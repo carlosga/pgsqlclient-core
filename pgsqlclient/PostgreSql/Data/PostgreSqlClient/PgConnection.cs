@@ -121,7 +121,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             throw new NotImplementedException();
         }
 
-        public new virtual PgCommand CreateCommand() => _innerConnection.CreateCommand();
+        public new PgCommand CreateCommand() => _innerConnection.CreateCommand();
         
         public override void Open()
         {

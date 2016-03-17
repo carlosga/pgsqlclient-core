@@ -326,7 +326,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     }
                 }
             }
-#warning TODO: It should be catching ThreadAbortException             
+#warning TODO: It should be catching              
             catch (Exception)
             {
                 _isRunning = false;

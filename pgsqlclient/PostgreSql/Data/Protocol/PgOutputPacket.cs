@@ -333,7 +333,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDataType.Decimal:
                     {
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_encoding.GetByteCount(paramValue));
+                        packet.Write(_serverConfig.ClientEncoding.GetByteCount(paramValue));
                         packet.WriteString(paramValue);
                     }
                     break;
@@ -346,7 +346,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDataType.Float:
                     {
                         string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_encoding.GetByteCount(paramValue));
+                        packet.Write(_serverConfig.ClientEncoding.GetByteCount(paramValue));
                         packet.WriteString(paramValue);
                     }
                     break;

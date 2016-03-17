@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -42,7 +43,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement(sql))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
 
                 if (stmt.Tag != "START TRANSACTION")
                 {
@@ -57,7 +58,7 @@ namespace PostgreSql.Data.Protocol
         {
             using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
 
                 if (stmt.Tag != "COMMIT")
                 {
@@ -72,7 +73,7 @@ namespace PostgreSql.Data.Protocol
         {
             using (var stmt = _database.CreateStatement("ROLLBACK TRANSACTION"))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
 
                 if (stmt.Tag != "ROLLBACK")
                 {
@@ -96,7 +97,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
             }
         }
 
@@ -113,7 +114,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
             }
         }
 
@@ -130,7 +131,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
-                stmt.Query();
+                Task.Run(async () => await stmt.QueryAsync());
             }
         }
     }

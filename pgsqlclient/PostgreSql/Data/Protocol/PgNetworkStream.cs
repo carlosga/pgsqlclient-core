@@ -59,17 +59,17 @@ namespace PostgreSql.Data.Protocol
                                     , bool              secureConnection
                                     , CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
+            // if (cancellationToken.IsCancellationRequested)
+            // {
+            //     return Task.FromCanceled(cancellationToken);
+            // }
                             
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             await sem.WaitAsync().ConfigureAwait(false);
                         
             try
             {
-                await ConnectAsync(host, portNumber, cancellationToken).ConfigureAwait(false);
+                await ConnectAsync(host, portNumber).ConfigureAwait(false);
 
                 if (secureConnection)
                 {
@@ -86,11 +86,11 @@ namespace PostgreSql.Data.Protocol
                     _stream = _networkStream;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Detach();
-
-                return Task.FromException(ex);
+                
+                throw;
             }
             finally
             {
@@ -140,10 +140,10 @@ namespace PostgreSql.Data.Protocol
 
         internal async Task CloseAsync(CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
+            // if (cancellationToken.IsCancellationRequested)
+            // {
+            //     return Task.FromCanceled(cancellationToken);
+            // }
 
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             await sem.WaitAsync().ConfigureAwait(false);
@@ -170,17 +170,17 @@ namespace PostgreSql.Data.Protocol
         internal async Task<PgInputPacket> ReadPacketAsync(PgServerConfig    serverConfig
                                                          , CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled<PgInputPacket>(cancellationToken);   
-            }
+            // if (cancellationToken.IsCancellationRequested)
+            // {
+            //     return Task.FromCanceled<PgInputPacket>(cancellationToken);   
+            // }
              
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             await sem.WaitAsync().ConfigureAwait(false);
 
             try
             {
-                char type = (char)_stream.ReadByte();
+                char type = (char)_stream.ReadByte();   
                 
                 if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
                 {
@@ -195,10 +195,10 @@ namespace PostgreSql.Data.Protocol
                 {
                     received += await _stream.ReadAsync(buffer, received, length - received, cancellationToken).ConfigureAwait(false);
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return Task.FromCanceled<PgInputPacket>(cancellationToken);
-                    }
+                    // if (cancellationToken.IsCancellationRequested)
+                    // {
+                    //     return Task.FromCanceled<PgInputPacket>(cancellationToken);
+                    // }
                 }
 
                 return new PgInputPacket(type, buffer, serverConfig);
@@ -231,10 +231,10 @@ namespace PostgreSql.Data.Protocol
 
         internal async Task WritePacketAsync(char type, byte[] buffer, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
+            // if (cancellationToken.IsCancellationRequested)
+            // {
+            //     return Task.FromCanceled(cancellationToken);
+            // }
 
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             await sem.WaitAsync().ConfigureAwait(false);
@@ -279,7 +279,7 @@ namespace PostgreSql.Data.Protocol
             _stream.Write(_buffer, 0, 4);
         }
 
-        private async Task ConnectAsync(string host, int portNumber, CancellationToken cancellationToken)
+        private async Task ConnectAsync(string host, int portNumber)
         {
             var remoteAddress = await GetIPAddressAsync(host, AddressFamily.InterNetwork).ConfigureAwait(false);
             var remoteEP      = new IPEndPoint(remoteAddress, portNumber);
@@ -295,13 +295,10 @@ namespace PostgreSql.Data.Protocol
             // Disables the Nagle algorithm for send coalescing.
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
-            await _socket.ConnectAsync(remoteEP, cancellationToken).ConfigureAwait(false);
+            await _socket.ConnectAsync(remoteEP).ConfigureAwait(false);
            
-            if (!cancellationToken.IsCancellationRequested) 
-            {
-                // Set the nework stream
-                _networkStream = new NetworkStream(_socket, true);
-            }
+            // Set the nework stream
+            _networkStream = new NetworkStream(_socket, true);
         }
 
         private async Task<bool> OpenSecureChannelAsync(string host)
@@ -327,7 +324,7 @@ namespace PostgreSql.Data.Protocol
         {
             Write(PgCodes.SSL_REQUEST);
 
-            return (ReadChar() == 'S');
+            return ((char)_stream.ReadByte() == 'S');
         }
 
         private async Task<IPAddress> GetIPAddressAsync(string dataSource, AddressFamily addressFamily)

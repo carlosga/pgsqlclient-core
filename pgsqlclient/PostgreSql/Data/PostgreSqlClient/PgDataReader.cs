@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -87,17 +88,19 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _position = STARTPOS;
 
                 // Close the active statement
-                _statement.Close();
+                _statement.CloseAsync();
 
                 // Create a new statement to fetch the current refcursor
                 string statementName = Guid.NewGuid().ToString();
 
                 _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
-                // statement.Query();
-                _statement.Parse();
-                _statement.Describe();
-                _statement.Bind();
-                _statement.Execute();
+
+                var t1 = Task.Run(async () => await _statement.ParseAsync().ConfigureAwait(false));
+                var t2 = t1.ContinueWith(async (antecedent) => await _statement.DescribeAsync().ConfigureAwait(false));
+                var t3 = t2.ContinueWith(async (antecedent) => await _statement.BindAsync().ConfigureAwait(false));
+                var t4 = t3.ContinueWith(async (antecedent) => await _statement.ExecuteAsync().ConfigureAwait(false));
+                    
+                Task.WaitAll(t1, t2, t3, t4);
 
                 // Allow the DataReader to process more refcursors
                 hasMoreResults = true;
@@ -112,20 +115,22 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             if ((CheckCommandBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_command.Statement.HasRows)
             {
+                return read;
             }
-            else
-            {
-                try
-                {
-                    _position++;
 
-                    _row = _statement.FetchRow();
-                    read = (_row != null);
-                }
-                catch (PgClientException ex)
-                {
-                    throw new PgException(ex);
-                }
+            try
+            {
+                _position++;
+
+                _row = Task.Run<object[]>(async () => {
+                    return await _statement.FetchRowAsync().ConfigureAwait(false);   
+                }).Result;
+                
+                read = (_row != null);
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
             }
 
             return read;
@@ -502,7 +507,9 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 while (_statement.HasRows)
                 {
-                    row = _statement.FetchRow();
+                    row = Task.Run<object[]>(async () => {
+                        return await _statement.FetchRowAsync().ConfigureAwait(false);   
+                    }).Result;
 
                     if (row != null)
                     {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -39,7 +40,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 if (_statement != null && !String.IsNullOrEmpty(_commandText) && _commandText != value)
                 {
-                    InternalClose();
+                    Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
                 }
 
                 _commandText = value;
@@ -95,7 +96,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _transaction = null;
                     }
 
-                    InternalClose();
+                    Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
                 }
 
                 _connection = value as PgConnection;
@@ -223,8 +224,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckCommand();
 
-            InternalPrepare();
-            InternalExecute();
+            var t1 = Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false));
+            var t2 = Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false));
+            
+            Task.WaitAll(t1, t2);
 
             InternalSetOutputParameters();
 
@@ -235,8 +238,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckCommand();
 
-            InternalPrepare();
-            InternalExecute();
+            var t1 = Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false));
+            var t2 = Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false));
+            
+            Task.WaitAll(t1, t2);
 
             return _statement.ExecuteScalar();
         }
@@ -245,7 +250,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckCommand();
 
-            InternalPrepare();
+            Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false)).Wait();
         }
 
         protected override void Dispose(bool disposing)
@@ -256,7 +261,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 {
                     try
                     {
-                        InternalClose();
+                        Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
                     }
                     catch
                     {
@@ -288,7 +293,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             _commandBehavior = behavior;
 
-            InternalPrepare();
+            Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false)).Wait();
 
             if ((_commandBehavior & CommandBehavior.Default)          == CommandBehavior.Default
              || (_commandBehavior & CommandBehavior.SequentialAccess) == CommandBehavior.SequentialAccess
@@ -296,15 +301,13 @@ namespace PostgreSql.Data.PostgreSqlClient
              || (_commandBehavior & CommandBehavior.SingleRow)        == CommandBehavior.SingleRow
              || (_commandBehavior & CommandBehavior.CloseConnection)  == CommandBehavior.CloseConnection)
             {
-                InternalExecute();
+                Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false)).Wait();
             }
 
-            _activeDataReader = new PgDataReader(_connection, this);
-
-            return _activeDataReader;
+            return _activeDataReader = new PgDataReader(_connection, this);
         }
 
-        internal void InternalPrepare()
+        internal async Task InternalPrepareAsync()
         {
             try
             {
@@ -327,10 +330,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                     _statement = _connection.InnerConnection.CreateStatement(prepareName, portalName, stmtText);
 
                     // Parse statement
-                    _statement.Parse();
+                    await _statement.ParseAsync().ConfigureAwait(false);
                     
                     // Describe statement
-                    _statement.Describe();
+                    await _statement.DescribeAsync().ConfigureAwait(false);
                     
                     // Add the command to the internal connection prepared statements
                     _connection.InnerConnection.AddPreparedCommand(this);
@@ -338,7 +341,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 else
                 {
                     // Close existent portal
-                    _statement.ClosePortal();
+                    await _statement.ClosePortalAsync().ConfigureAwait(false);
                 }
             }
             catch (PgClientException ex)
@@ -347,7 +350,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        internal void InternalExecute()
+        internal async Task InternalExecuteAsync()
         {
             try
             {
@@ -355,10 +358,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                 SetParameterValues();
 
                 // Bind Statement
-                _statement.Bind();
+                await _statement.BindAsync().ConfigureAwait(false);
                                 
                 // Execute Statement
-                _statement.Execute();
+                await _statement.ExecuteAsync().ConfigureAwait(false);
             }
             catch (PgClientException ex)
             {
@@ -366,14 +369,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        internal void InternalClose()
+        internal async Task InternalCloseAsync()
         {
             try
             {
-                _connection?.InnerConnection?.RemovePreparedCommand(this);
+                _connection.InnerConnection.RemovePreparedCommand(this);
                 
                 // Closing the prepared statement closes all his portals too.
-                _statement?.Close();
+                await _statement.CloseAsync().ConfigureAwait(false);
             }
             catch (PgClientException ex)
             {
@@ -388,18 +391,22 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void InternalSetOutputParameters()
         {
-            if (CommandType == CommandType.StoredProcedure && _parameters.Count > 0 && _statement.HasRows)
+            if (CommandType != CommandType.StoredProcedure || _parameters.Count == 0 || !_statement.HasRows)
             {
-                object[] values = _statement.FetchRow();
+                return;
+            }
+            
+            object[] row = Task.Run<object[]>(async () => {
+                return await _statement.FetchRowAsync().ConfigureAwait(false);   
+            }).Result;
 
-                if (!values.IsEmpty())
+            if (!row.IsEmpty())
+            {
+                for (int i = 0; i < _parameters.Count; ++i)
                 {
-                    for (int i = 0; i < _parameters.Count; ++i)
+                    if (_parameters[i].Direction != ParameterDirection.Input)
                     {
-                        if (_parameters[i].Direction != ParameterDirection.Input)
-                        {
-                            _parameters[i].Value = values[i];
-                        }
+                        _parameters[i].Value = row[i];
                     }
                 }
             }

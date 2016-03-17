@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -52,7 +53,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal string ServerVersion
         {
-            get { return _database?.ParameterStatus?["server_version"]; }
+            get { return _database.ServerConfiguration.ServerVersion; }
         }
 
         internal PgConnectionInternal(string connectionString)
@@ -69,7 +70,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             try
             {
                 // Connect
-                _database.Open();
+                _database.OpenAsync();
 
                 // Grab Data Types Oid's from the database if requested
                 FetchDatabaseOids();
@@ -183,15 +184,19 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void ClosePreparedCommands()
         {
+            List<Task> tasks = new List<Task>();
+            
             foreach (var commandRef in _preparedCommands)
             {
                 PgCommand command = null;
 
                 if (commandRef.Value != null && commandRef.Value.TryGetTarget(out command))
                 {
-                    command.InternalClose();
+                    tasks.Add(Task.Run(async () => await command.InternalCloseAsync().ConfigureAwait(false)));
                 }
             }
+            
+            Task.WaitAll(tasks.ToArray());
 
             _preparedCommands.Clear();
         }
@@ -215,7 +220,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             try
             {
                 // Try to send a Sync message to the PostgreSQL Server
-                _database.Sync();
+                _database.SyncAsync();
             }
             catch
             {
@@ -227,7 +232,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void FetchDatabaseOids()
         {
-            if (!_database.Options.UseDatabaseOids)
+            if (!_database.ConnectionOptions.UseDatabaseOids)
             {
                 return;
             }
@@ -241,7 +246,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     command.Parameters.Add(new PgParameter("@typeName", PgDbType.VarChar));
 
                     // After the connection gets established we should update the Data Types collection oids
-                    foreach (PgType type in Database.DataTypes)
+                    foreach (PgType type in _database.ServerConfiguration.DataTypes)
                     {
                         command.Parameters["@typeName"].Value = type.Name;
 
