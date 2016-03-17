@@ -4,6 +4,7 @@
     "editor.fontSize": 15,
     "editor.fontLigatures": true,
     "editor.glyphMargin": true,
+    "files.eol": "\n",
     "json.schemas": [
         {
             "fileMatch": [
