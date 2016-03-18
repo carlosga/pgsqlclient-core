@@ -136,14 +136,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
             }
 
-            Console.WriteLine("starting transaction");
-
             var txn = _innerConnection.BeginTransaction(isolationLevel);
             
             await txn.BeginAsync(transactionName).ConfigureAwait(false);
-            
-            Console.WriteLine("transaction started");
-            
+                        
             return txn;            
         }
 
@@ -154,9 +150,9 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public new PgCommand CreateCommand() => _innerConnection.CreateCommand();
         
-        public override async void Open()
+        public override void Open()
         {
-            await OpenAsync(CancellationToken.None).ConfigureAwait(false);            
+            Task.Run(async () => await OpenAsync(CancellationToken.None).ConfigureAwait(false)).Wait();            
         }
                
         public override async Task OpenAsync(CancellationToken cancellationToken)
@@ -233,8 +229,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         protected override void Dispose(bool disposing)
         {
-            Console.WriteLine("Disposing connection");
-            
             if (!_disposed)
             {
                 try

@@ -111,13 +111,15 @@ namespace PostgreSql.Data.Protocol
 
         private void Dispose(bool disposing)
         {
+            Console.WriteLine($"Disposing {_stmtText}");
+            
             if (!_disposedValue)
             {
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
 
-                    Task.Run(async () => await CloseAsync());
+                    Task.Run(async () => await CloseAsync()).Wait();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

@@ -88,7 +88,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal async Task BeginAsync(string transactionName)
         {
             await _innerTransaction.BeginAsync().ConfigureAwait(false);
-            await _innerTransaction.SaveAsync(transactionName);
+            await _innerTransaction.SaveAsync(transactionName).ConfigureAwait(false);
         }
 
         protected override void Dispose(bool disposing)

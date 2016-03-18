@@ -3,5 +3,11 @@
 	"editor.fontFamily": "Fira Code",
  	"editor.fontSize": 15,
     "editor.fontLigatures": true, 
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/bin": true,
+        "**/obj": true
+    }
 }

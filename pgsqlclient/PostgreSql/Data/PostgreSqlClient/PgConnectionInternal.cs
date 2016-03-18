@@ -47,7 +47,8 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal bool HasActiveTransaction
         {
-            get { return (_activeTransaction != null && _database.TransactionStatus == 'T'); }
+            get { return (_activeTransaction != null 
+                       && _database.TransactionStatus != PgTransactionStatus.Default); }
         }
 
         internal long Lifetime

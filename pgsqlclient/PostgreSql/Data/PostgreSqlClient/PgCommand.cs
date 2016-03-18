@@ -181,9 +181,9 @@ namespace PostgreSql.Data.PostgreSqlClient
         public PgCommand(string cmdText, PgConnection connection, PgTransaction transaction)
             : this()
         {
-            CommandText = cmdText;
-            Connection  = connection;
-            Transaction = transaction;
+            _commandText = cmdText;
+            _connection  = connection;
+            _transaction = transaction;
         }
 
         public override void Cancel()

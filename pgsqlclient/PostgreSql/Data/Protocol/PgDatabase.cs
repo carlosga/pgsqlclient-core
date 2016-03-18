@@ -21,7 +21,7 @@ namespace PostgreSql.Data.Protocol
         private PgServerConfig      _serverConfiguration;
         private int                 _handle;
         private int                 _secretKey;
-        private char                _transactionStatus;
+        private PgTransactionStatus _transactionStatus;
         private bool                _authenticated;
         
         internal NotificationCallback Notification
@@ -58,7 +58,7 @@ namespace PostgreSql.Data.Protocol
             get { return _connectionOptions; }
         }
         
-        internal char TransactionStatus
+        internal PgTransactionStatus TransactionStatus
         {
             get { return _transactionStatus; }
         }
@@ -74,16 +74,14 @@ namespace PostgreSql.Data.Protocol
         private bool _disposedValue = false; // To detect redundant calls
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        ~PgDatabase()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
-        }
+        // ~PgDatabase()
+        // {
+        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //     Dispose(false);
+        // }
 
         private void Dispose(bool disposing)
         {
-            Console.WriteLine("Disposing database connection");
-            
             if (!_disposedValue)
             {
                 if (disposing)
@@ -158,8 +156,6 @@ namespace PostgreSql.Data.Protocol
 
         internal void Close()
         {
-            Console.WriteLine("Closing database connection");
-
             try
             {
                 _stream.CloseAsync();
@@ -171,7 +167,7 @@ namespace PostgreSql.Data.Protocol
             {
                 _connectionOptions   = null;
                 _serverConfiguration = null;
-                _transactionStatus   = ' ';
+                _transactionStatus   = PgTransactionStatus.Default;
                 _handle              = -1;
                 _secretKey           = -1;
                 _stream              = null;
@@ -201,14 +197,14 @@ namespace PostgreSql.Data.Protocol
             return new PgStatement(this, parseName, portalName, stmtText);
         }
 
-        internal Task FlushAsync() => FlushAsync(CancellationToken.None);
+        internal async Task FlushAsync() => await FlushAsync(CancellationToken.None).ConfigureAwait(false);
 
         internal async Task FlushAsync(CancellationToken cancellationToken)
         {
             await _stream.WritePacketAsync(PgFrontEndCodes.FLUSH, cancellationToken).ConfigureAwait(false);
         }
 
-        internal Task SyncAsync() => SyncAsync(CancellationToken.None);
+        internal async Task SyncAsync() => await SyncAsync(CancellationToken.None).ConfigureAwait(false);
 
         internal async Task SyncAsync(CancellationToken cancellationToken)
         {
@@ -225,12 +221,12 @@ namespace PostgreSql.Data.Protocol
             {
                 response = await ReadAsync().ConfigureAwait(false);
                 
-                await HandlePacketAsync(response).ConfigureAwait(false);;
+                await HandlePacketAsync(response).ConfigureAwait(false);
                 
             } while (!response.IsReadyForQuery);
         }
 
-        internal Task CancelRequestAsync() => CancelRequestAsync(CancellationToken.None);
+        internal async Task CancelRequestAsync() => await CancelRequestAsync(CancellationToken.None).ConfigureAwait(false);
 
         internal async Task CancelRequestAsync(CancellationToken cancellationToken)
         {
@@ -253,20 +249,34 @@ namespace PostgreSql.Data.Protocol
             
             if (packet.Message == PgBackendCodes.READY_FOR_QUERY)
             {
-                _transactionStatus = packet.ReadChar();
+                switch (packet.ReadChar())
+                {
+                    case 'T':
+                        _transactionStatus = PgTransactionStatus.Active;
+                        break;
+
+                    case 'E':
+                        _transactionStatus = PgTransactionStatus.Broken;
+                        break;                    
+                    
+                    case 'I':
+                    default:
+                        _transactionStatus = PgTransactionStatus.Default;
+                        break;
+                }
             }
             
             return packet;
         }
 
-        internal Task SendAsync(char messageType, PgOutputPacket packet)
+        internal async Task SendAsync(char messageType, PgOutputPacket packet)
         {
-            return SendAsync(messageType, packet, CancellationToken.None);
+            await SendAsync(messageType, packet, CancellationToken.None).ConfigureAwait(false);
         }
         
         internal async Task SendAsync(char messageType, PgOutputPacket packet, CancellationToken token)
         {
-            await _stream.WritePacketAsync(messageType, packet, token).ConfigureAwait(true);
+            await _stream.WritePacketAsync(messageType, packet, token).ConfigureAwait(false);
         }
 
         private async Task HandlePacketAsync(PgInputPacket packet)

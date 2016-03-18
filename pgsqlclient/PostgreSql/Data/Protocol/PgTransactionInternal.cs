@@ -18,7 +18,7 @@ namespace PostgreSql.Data.Protocol
             _isolationLevel = isolationLevel;
         }
 
-        internal async Task BeginAsync()
+        internal Task BeginAsync()
         {
             string sql = "START TRANSACTION ISOLATION LEVEL ";
 
@@ -40,15 +40,29 @@ namespace PostgreSql.Data.Protocol
                     break;
             }
 
-            using (var stmt = _database.CreateStatement(sql))
-            {
-                await stmt.QueryAsync().ConfigureAwait(false);
-                
-                if (stmt.Tag != "START TRANSACTION")
-                {
-                    throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
-                }
-            }
+            // using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
+            // {
+            //     await stmt.QueryAsync().ConfigureAwait(true);
+
+            //     if (stmt.Tag != "START TRANSACTION")
+            //     {
+            //         throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
+            //     }
+            // }
+
+            var stmt = _database.CreateStatement(sql);
+            
+            Task t1 = Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false));            
+            Task t2 = t1.ContinueWith(async (a) => {
+                           await a.ConfigureAwait(false);
+                           stmt.Dispose();
+                           if (stmt.Tag != "START TRANSACTION")
+                           {
+                               throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
+                           }
+                       });
+                       
+            return t2;
         }
 
         internal async Task CommitAsync()
