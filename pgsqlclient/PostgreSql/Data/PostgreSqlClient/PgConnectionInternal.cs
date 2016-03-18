@@ -40,9 +40,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             set { _pooled = value; }
         }
 
+        internal PgTransaction ActiveTransaction
+        {
+            get { return _activeTransaction; }
+        }
+
         internal bool HasActiveTransaction
         {
-            get { return (_activeTransaction != null && !_activeTransaction.IsUpdated); }
+            get { return (_activeTransaction != null && _database.TransactionStatus == 'T'); }
         }
 
         internal long Lifetime
@@ -74,7 +79,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 // Grab Data Types Oid's from the database if requested
                 await FetchDatabaseOidsAsync().ConfigureAwait(false);
-
+                
                 // Update owner
                 _owner = owner;
             }
@@ -123,28 +128,14 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal PgTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
-            return BeginTransaction(isolationLevel, null);
-        }
-
-        internal PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
-        {           
             if (_activeTransaction != null)
             {
                 throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
             }
 
-            try
-            {
-                _activeTransaction = new PgTransaction(_owner, isolationLevel);                
-            }
-            catch (PgClientException ex)
-            {
-                DisposeActiveTransaction();
-
-                throw new PgException(ex);
-            }
-
-            return _activeTransaction;
+            _activeTransaction = new PgTransaction(_owner, isolationLevel);
+            
+            return _activeTransaction;                
         }
 
         internal PgCommand CreateCommand()
@@ -244,8 +235,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 using (PgCommand command = new PgCommand(sql, _owner))
                 {
                     command.Parameters.Add(new PgParameter("@typeName", PgDbType.VarChar));
-
-                    // After the connection gets established we should update the Data Types collection oids
+                    
                     foreach (PgType type in _database.ServerConfiguration.DataTypes)
                     {
                         command.Parameters["@typeName"].Value = type.Name;

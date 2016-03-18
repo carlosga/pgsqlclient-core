@@ -9,7 +9,11 @@ namespace ConsoleApplication
     {
         public static void Main(string[] args)
         {
-            Run().Wait();
+            Task t = Task.Run(async () => await Run());
+            
+            t.Wait(-1);
+            
+            Console.WriteLine("finishing program");   
         }
         
         async static Task Run()
@@ -24,39 +28,36 @@ namespace ConsoleApplication
             csb.Ssl             = false;
             csb.Pooling         = false;
                                    
-            using (var connection = new PgConnection(csb.ToString()))
-            {
-                await connection.OpenAsync();
+            var connection = new PgConnection(csb.ToString());
 
-                System.Console.WriteLine("Connection open");
+            await connection.OpenAsync();
+
+            System.Console.WriteLine("Connection open");
                 
-                using (var transaction = connection.BeginTransaction())
-                {
-                    System.Console.WriteLine("Transaction Started");
-                    
-                    using (var command = new PgCommand("SELECT * FROM accounting.accounting_company", connection, transaction))
-                    {
-                        System.Console.WriteLine("Executing command");
-                        
-                        using (var reader = command.ExecuteReader())
-                        {
-                            System.Console.WriteLine("Fetching rows");
-                            
-                            while (reader.Read())
-                            {
-                                for (int i = 0; i < reader.FieldCount; i++)
-                                {
-                                    Console.Write(reader.GetValue(i) + "\t");
-                                }
+            var transaction = await connection.BeginTransactionAsync();
 
-                                Console.WriteLine();
-                            }
-                        }
+            System.Console.WriteLine("Transaction Started");
+            
+            var command = new PgCommand("SELECT * FROM accounting.accounting_company", connection, transaction);
+
+            System.Console.WriteLine("Executing command");
+            
+            using (var reader = command.ExecuteReader())
+            {
+                System.Console.WriteLine("Fetching rows");
+                
+                while (reader.Read())
+                {
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        Console.Write(reader.GetValue(i) + "\t");
                     }
-                    
-                    transaction.Rollback();                    
+
+                    Console.WriteLine();
                 }
-            }            
+            }
+            
+            transaction.Rollback();                    
         } 
     }
 }

@@ -243,7 +243,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             
             Task.WaitAll(t1, t2);
 
-            return _statement.ExecuteScalar();
+            return _statement.ExecuteScalarAsync();
         }
 
         public override void Prepare()
@@ -414,11 +414,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private void CheckCommand()
         {
-            if (_transaction != null && _transaction.IsUpdated)
-            {
-                _transaction = null;
-            }
-
             if (_connection == null || _connection.State != ConnectionState.Open)
             {
                 throw new InvalidOperationException("Connection must valid and open");

@@ -103,6 +103,8 @@ namespace PostgreSql.Data.Protocol
 
         void Dispose(bool disposing)
         {
+            Console.WriteLine("Disposing network stream");
+
             if (!disposedValue)
             {
                 if (disposing)
@@ -148,6 +150,8 @@ namespace PostgreSql.Data.Protocol
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             await sem.WaitAsync().ConfigureAwait(false);
 
+            Console.WriteLine("closing network stream");
+
             try 
             {
                 // Notify the server that we are closing the connection.
@@ -180,7 +184,7 @@ namespace PostgreSql.Data.Protocol
 
             try
             {
-                char type = (char)_stream.ReadByte();   
+                char type = (char)_stream.ReadByte();
                 
                 if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
                 {
@@ -241,9 +245,12 @@ namespace PostgreSql.Data.Protocol
 
             try
             {
-                // Write packet Type
-                _stream.WriteByte((byte)type);
-
+                if (type != ' ')
+                {
+                    // Write packet Type
+                    _stream.WriteByte((byte)type);
+                }
+                
                 // Write packet length
                 Write(((buffer == null) ? 4 : buffer.Length + 4));
 

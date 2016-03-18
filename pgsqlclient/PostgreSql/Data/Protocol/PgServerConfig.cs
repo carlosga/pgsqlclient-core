@@ -114,7 +114,7 @@ namespace PostgreSql.Data.Protocol
                     break;
                     
                 case "is_superuser":
-                    _isSuperUser = Convert.ToBoolean(value);
+                    _isSuperUser = ((value) == "on");
                     break;
                     
                 case "session_authorization":
@@ -134,7 +134,7 @@ namespace PostgreSql.Data.Protocol
                     break;
                     
                 case "integer_datetimes":
-                    _integerDateTimes = Convert.ToBoolean(value);
+                    _integerDateTimes = ((value) == "on");
                     break;
                     
                 case "standard_conforming_strings":

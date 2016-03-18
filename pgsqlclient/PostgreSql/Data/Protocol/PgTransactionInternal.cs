@@ -18,7 +18,7 @@ namespace PostgreSql.Data.Protocol
             _isolationLevel = isolationLevel;
         }
 
-        internal void Begin()
+        internal async Task BeginAsync()
         {
             string sql = "START TRANSACTION ISOLATION LEVEL ";
 
@@ -42,8 +42,8 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement(sql))
             {
-                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
-
+                await stmt.QueryAsync().ConfigureAwait(false);
+                
                 if (stmt.Tag != "START TRANSACTION")
                 {
                     throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
@@ -51,11 +51,11 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal void Commit()
+        internal async Task CommitAsync()
         {
             using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                await stmt.QueryAsync().ConfigureAwait(false);
 
                 if (stmt.Tag != "COMMIT")
                 {
@@ -64,11 +64,11 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal void Rollback()
+        internal async Task RollbackAsync()
         {
             using (var stmt = _database.CreateStatement("ROLLBACK TRANSACTION"))
             {
-                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
+                await stmt.QueryAsync().ConfigureAwait(false);
 
                 if (stmt.Tag != "ROLLBACK")
                 {
@@ -77,24 +77,20 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal void Save(string savePointName)
+        internal async Task SaveAsync(string savePointName)
         {
-            if (savePointName == null)
+            if (String.IsNullOrEmpty(savePointName))
             {
-                throw new ArgumentException("No transaction name was be specified.");
+                return;
             }
-            else if (savePointName.Length == 0)
-            {
-                throw new ArgumentException("No transaction name was be specified.");
-            }
-
+            
             using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
+                await stmt.QueryAsync().ConfigureAwait(false);
             }
         }
 
-        internal void Commit(string savePointName)
+        internal async Task CommitAsync(string savePointName)
         {
             if (savePointName == null)
             {
@@ -107,11 +103,11 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
+                await stmt.QueryAsync().ConfigureAwait(false);
             }
         }
 
-        internal void Rollback(string savePointName)
+        internal async Task RollbackAsync(string savePointName)
         {
             if (savePointName == null)
             {
@@ -124,7 +120,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
+                await stmt.QueryAsync().ConfigureAwait(false);
             }
         }
     }

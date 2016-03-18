@@ -12,7 +12,7 @@ namespace PostgreSql.Data.Protocol
     internal sealed class PgStatement
         : IDisposable
     {
-        private PgDatabase        _db;
+        private PgDatabase        _database;
         private string            _stmtText;
         private bool              _hasRows;
         private string            _tag;
@@ -84,7 +84,7 @@ namespace PostgreSql.Data.Protocol
 
         internal PgStatement(PgDatabase db, string parseName, string portalName, string stmtText)
         {
-            _db              = db;
+            _database              = db;
             _status          = PgStatementStatus.Initial;
             _outParameter    = new PgParameter();
             _parameters      = new List<PgParameter>();
@@ -152,14 +152,14 @@ namespace PostgreSql.Data.Protocol
                 _rowDescriptor.Clear();
                 _parameters.Clear();
 
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 packet.WriteNullString(_parseName);
                 packet.WriteNullString(_stmtText);
                 packet.Write((short)0);
                 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.PARSE, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.PARSE, packet).ConfigureAwait(false);
 
                 // Update status
                 _status = PgStatementStatus.Parsed;
@@ -191,7 +191,7 @@ namespace PostgreSql.Data.Protocol
                 // Clear row data
                 ClearRows();
 
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 // Destination portal name
                 packet.WriteNullString(_portalName);
@@ -221,7 +221,7 @@ namespace PostgreSql.Data.Protocol
                 }
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.BIND, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.BIND, packet).ConfigureAwait(false);
 
                 // Update status
                 _status = PgStatementStatus.Binded;
@@ -242,23 +242,23 @@ namespace PostgreSql.Data.Protocol
                 // Update status
                 _status = PgStatementStatus.Executing;
 
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 packet.WriteNullString(_portalName);
                 packet.Write(_fetchSize);	// Rows to retrieve ( 0 = nolimit )
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.EXECUTE, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.EXECUTE, packet).ConfigureAwait(false);
 
                 // Flush pending messages
-                await _db.FlushAsync().ConfigureAwait(false);
+                await _database.FlushAsync().ConfigureAwait(false);
 
                 // Receive response
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _db.ReadAsync().ConfigureAwait(false);
+                    response = await _database.ReadAsync().ConfigureAwait(false);
                     
                     HandleSqlMessage(response);
                 }
@@ -275,7 +275,7 @@ namespace PostgreSql.Data.Protocol
                 // rows perform a Sync.
                 if (!HasRows || _allRowsFetched)
                 {
-                    await _db.SyncAsync().ConfigureAwait(false);
+                    await _database.SyncAsync().ConfigureAwait(false);
                 }
 
                 // Update status
@@ -295,7 +295,7 @@ namespace PostgreSql.Data.Protocol
                 // Update status
                 _status = PgStatementStatus.Executing;
 
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 // Function id
                 packet.Write(id);
@@ -320,14 +320,14 @@ namespace PostgreSql.Data.Protocol
                 packet.Write(PgCodes.BINARY_FORMAT);
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.FUNCTION_CALL, packet);
+                await _database.SendAsync(PgFrontEndCodes.FUNCTION_CALL, packet);
 
                 // Receive response
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _db.ReadAsync().ConfigureAwait(false);
+                    response = await _database.ReadAsync().ConfigureAwait(false);
                     
                     HandleSqlMessage(response);
                 }
@@ -345,6 +345,21 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
+        internal async Task<object> ExecuteScalarAsync()
+        {
+            if (!_allRowsFetched && _rows.IsEmpty())
+            {
+                await QueryAsync().ConfigureAwait(false);
+            }
+            
+            if (!_rows.IsEmpty())
+            {
+                return _rows.Dequeue()[0];
+            }
+            
+            return null;
+        }                
+
         internal async Task QueryAsync()
         {
             int currentFetchSize = _fetchSize;
@@ -354,12 +369,12 @@ namespace PostgreSql.Data.Protocol
                 // Update Status
                 _status = PgStatementStatus.OnQuery;
 
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 packet.WriteNullString(_stmtText);
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.QUERY, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.QUERY, packet).ConfigureAwait(false);
 
                 // Set fetch size
                 _fetchSize = 1;
@@ -369,7 +384,7 @@ namespace PostgreSql.Data.Protocol
 
                 do
                 {
-                    response = await _db.ReadAsync().ConfigureAwait(false);
+                    response = await _database.ReadAsync().ConfigureAwait(false);
                     
                     HandleSqlMessage(response);
                 }
@@ -412,21 +427,6 @@ namespace PostgreSql.Data.Protocol
             return null;
         }
 
-        internal async Task<object> ExecuteScalar()
-        {
-            if (!_allRowsFetched && _rows.IsEmpty())
-            {
-                await QueryAsync().ConfigureAwait(false);
-            }
-            
-            if (!_rows.IsEmpty())
-            {
-                return _rows.Dequeue()[0];
-            }
-            
-            return null;
-        }                
-
         internal Task CloseAsync()
         {
             return CloseAsync('S');
@@ -447,7 +447,7 @@ namespace PostgreSql.Data.Protocol
                 stmtText += "VERBOSE ";
             }
 
-            using (var stmt = _db.CreateStatement(stmtText))
+            using (var stmt = _database.CreateStatement(stmtText))
             {
                 await stmt.QueryAsync().ConfigureAwait(false);
 
@@ -478,23 +478,23 @@ namespace PostgreSql.Data.Protocol
                 _status = PgStatementStatus.Describing;
 
                 var name = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 packet.Write(stmtType);
                 packet.WriteNullString(name);
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.DESCRIBE, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.DESCRIBE, packet).ConfigureAwait(false);
 
                 // Flush pending messages
-                await _db.FlushAsync().ConfigureAwait(false);
+                await _database.FlushAsync().ConfigureAwait(false);
 
                 // Receive Describe response
                 PgInputPacket response = null;
                 
                 do
                 {
-                    response = await _db.ReadAsync().ConfigureAwait(false);
+                    response = await _database.ReadAsync().ConfigureAwait(false);
                     HandleSqlMessage(response);                    
                 } while (!response.IsRowDescription && !response.IsNoData);
                 
@@ -503,7 +503,7 @@ namespace PostgreSql.Data.Protocol
                 foreach (PgParameter parameter in _parameters.Where(x => x.DataType == null))
                 {
                     // It's a non supported data type or a domain data type
-                    var stmt = new PgStatement(_db, $"select typbasetype from pg_type where oid = {parameter.DataTypeOid} and typtype = 'd'");
+                    var stmt = new PgStatement(_database, $"select typbasetype from pg_type where oid = {parameter.DataTypeOid} and typtype = 'd'");
 
                     try
                     {
@@ -516,7 +516,7 @@ namespace PostgreSql.Data.Protocol
 
                         var row         = await stmt.FetchRowAsync();
                         int baseTypeOid = Convert.ToInt32(row[0]);
-                        var dataType    = _db.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == baseTypeOid);
+                        var dataType    = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == baseTypeOid);
 
                         if (dataType == null)
                         {
@@ -549,23 +549,23 @@ namespace PostgreSql.Data.Protocol
             try
             {
                 var name   = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _db.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket();
 
                 packet.Write(stmtType);
                 packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
 
                 // Send packet to the server
-                await _db.SendAsync(PgFrontEndCodes.CLOSE, packet).ConfigureAwait(false);
+                await _database.SendAsync(PgFrontEndCodes.CLOSE, packet).ConfigureAwait(false);
 
                 // Sync server and client
-                await _db.FlushAsync().ConfigureAwait(false);
+                await _database.FlushAsync().ConfigureAwait(false);
 
                 // Read until CLOSE COMPLETE message is received
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _db.ReadAsync().ConfigureAwait(false);
+                    response = await _database.ReadAsync().ConfigureAwait(false);
                     HandleSqlMessage(response);
                 }
                 while (!response.IsCloseComplete);
@@ -670,7 +670,7 @@ namespace PostgreSql.Data.Protocol
                 var typeSize        = packet.ReadInt16();
                 var typeModifier    = packet.ReadInt32();
                 var format          = (PgTypeFormat)packet.ReadInt16();
-                var type            = _db.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
+                var type            = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
                 var descriptor      = new PgFieldDescriptor(name, tableOid, columnAttNumber, typeOid, typeSize, typeModifier, format, type);
 
                 _rowDescriptor.Add(descriptor);
@@ -689,7 +689,7 @@ namespace PostgreSql.Data.Protocol
             {
                 oid = packet.ReadInt32();
 
-                _parameters.Add(new PgParameter(_db.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
+                _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
             }
         }
 

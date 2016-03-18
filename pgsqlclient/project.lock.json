@@ -375,16 +375,16 @@
           "ref/dotnet5.4/System.Net.Security.dll": {}
         }
       },
-      "System.Net.Sockets/4.1.0-beta-23516": {
+      "System.Net.Sockets/4.1.0-rc2-23911": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0",
-          "System.Net.Primitives": "4.0.10",
-          "System.Runtime": "4.0.0",
-          "System.Threading.Tasks": "4.0.0"
+          "System.IO": "4.0.11-rc2-23911",
+          "System.Net.Primitives": "4.0.11-rc2-23911",
+          "System.Runtime": "4.0.21-rc2-23911",
+          "System.Threading.Tasks": "4.0.11-rc2-23911"
         },
         "compile": {
-          "ref/dotnet5.5/System.Net.Sockets.dll": {}
+          "ref/netstandard1.3/System.Net.Sockets.dll": {}
         }
       },
       "System.ObjectModel/4.0.12-rc2-23911": {
@@ -1964,45 +1964,39 @@
         "runtime.json"
       ]
     },
-    "System.Net.Sockets/4.1.0-beta-23516": {
-      "sha512": "hJQxXC5OcecCG49Wg9PreHFC2tDZFwpqiGhRnQMK47eo8ozvOMl2XqISanclj1cjCIUZDUSn0XxggVC7Z2WppA==",
+    "System.Net.Sockets/4.1.0-rc2-23911": {
+      "sha512": "9/aI1Mtc608ZjRlkbWt+MNH59tqmW+smOmLOIK9vUI0j/RdAG9sgB1CQeULNWyQYewo3Y0wXhkwBqymM7BsbYA==",
       "type": "package",
       "files": [
-        "System.Net.Sockets.4.1.0-beta-23516.nupkg.sha512",
+        "System.Net.Sockets.4.1.0-rc2-23911.nupkg.sha512",
         "System.Net.Sockets.nuspec",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
         "lib/net46/System.Net.Sockets.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
-        "ref/dotnet5.4/System.Net.Sockets.dll",
-        "ref/dotnet5.4/System.Net.Sockets.xml",
-        "ref/dotnet5.4/de/System.Net.Sockets.xml",
-        "ref/dotnet5.4/es/System.Net.Sockets.xml",
-        "ref/dotnet5.4/fr/System.Net.Sockets.xml",
-        "ref/dotnet5.4/it/System.Net.Sockets.xml",
-        "ref/dotnet5.4/ja/System.Net.Sockets.xml",
-        "ref/dotnet5.4/ko/System.Net.Sockets.xml",
-        "ref/dotnet5.4/ru/System.Net.Sockets.xml",
-        "ref/dotnet5.4/zh-hans/System.Net.Sockets.xml",
-        "ref/dotnet5.4/zh-hant/System.Net.Sockets.xml",
-        "ref/dotnet5.5/System.Net.Sockets.dll",
-        "ref/dotnet5.5/System.Net.Sockets.xml",
-        "ref/dotnet5.5/de/System.Net.Sockets.xml",
-        "ref/dotnet5.5/es/System.Net.Sockets.xml",
-        "ref/dotnet5.5/fr/System.Net.Sockets.xml",
-        "ref/dotnet5.5/it/System.Net.Sockets.xml",
-        "ref/dotnet5.5/ja/System.Net.Sockets.xml",
-        "ref/dotnet5.5/ko/System.Net.Sockets.xml",
-        "ref/dotnet5.5/ru/System.Net.Sockets.xml",
-        "ref/dotnet5.5/zh-hans/System.Net.Sockets.xml",
-        "ref/dotnet5.5/zh-hant/System.Net.Sockets.xml",
         "ref/net46/System.Net.Sockets.dll",
+        "ref/netstandard1.3/System.Net.Sockets.dll",
+        "ref/netstandard1.3/System.Net.Sockets.xml",
+        "ref/netstandard1.3/de/System.Net.Sockets.xml",
+        "ref/netstandard1.3/es/System.Net.Sockets.xml",
+        "ref/netstandard1.3/fr/System.Net.Sockets.xml",
+        "ref/netstandard1.3/it/System.Net.Sockets.xml",
+        "ref/netstandard1.3/ja/System.Net.Sockets.xml",
+        "ref/netstandard1.3/ko/System.Net.Sockets.xml",
+        "ref/netstandard1.3/ru/System.Net.Sockets.xml",
+        "ref/netstandard1.3/zh-hans/System.Net.Sockets.xml",
+        "ref/netstandard1.3/zh-hant/System.Net.Sockets.xml",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "runtime.json"
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._"
       ]
     },
     "System.ObjectModel/4.0.12-rc2-23911": {
@@ -3403,7 +3397,7 @@
       "System.Net.NameResolution >= 4.0.0-rc3-23910",
       "System.Net.Primitives >= 4.0.11-rc3-23910",
       "System.Net.Security >= 4.0.0-beta-23516",
-      "System.Net.Sockets >= 4.1.0-beta-23516",
+      "System.Net.Sockets >= 4.1.0-rc2-23911",
       "System.Reflection >= 4.1.0-rc3-23910",
       "System.Reflection.TypeExtensions >= 4.1.0-beta-23516",
       "System.Resources.ResourceManager >= 4.0.1-rc3-23910",

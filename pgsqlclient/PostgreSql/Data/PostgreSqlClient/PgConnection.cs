@@ -104,18 +104,47 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted, null);
         
-        public new PgTransaction BeginTransaction(IsolationLevel iso) => BeginTransaction(iso, null);
+        public new PgTransaction BeginTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel, null);
         
         public PgTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 
-        public PgTransaction BeginTransaction(IsolationLevel level, string transactionName)
+        public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
+            return Task.Run<PgTransaction>(async () => {
+                return await BeginTransactionAsync(isolationLevel, transactionName).ConfigureAwait(false);
+            }).Result;
+        }
+
+        public async Task<PgTransaction> BeginTransactionAsync()
+        {
+            return await BeginTransactionAsync(IsolationLevel.ReadCommitted, null).ConfigureAwait(false);
+        }
+                
+        public async Task<PgTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, string transactionName)
+        {
+            // if (transactionName == null)
+            // {
+            //     throw new ArgumentException("No transaction name was be specified.");
+            // }
+            // else if (transactionName.Length == 0)
+            // {
+            //     throw new ArgumentException("No transaction name was be specified.");
+            // }
+            
             if (IsClosed)
             {
                 throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
             }
 
-            return _innerConnection.BeginTransaction(level, transactionName);
+            Console.WriteLine("starting transaction");
+
+            var txn = _innerConnection.BeginTransaction(isolationLevel);
+            
+            await txn.BeginAsync(transactionName).ConfigureAwait(false);
+            
+            Console.WriteLine("transaction started");
+            
+            return txn;            
         }
 
         public override void ChangeDatabase(string db)
@@ -129,13 +158,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             await OpenAsync(CancellationToken.None).ConfigureAwait(false);            
         }
-
-        public Task OpenAsync()
-        {
-            return OpenAsync(CancellationToken.None);
-        }
-                
-        public async Task OpenAsync(CancellationToken cancellationToken)
+               
+        public override async Task OpenAsync(CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(_connectionString))
             {
@@ -209,6 +233,8 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         protected override void Dispose(bool disposing)
         {
+            Console.WriteLine("Disposing connection");
+            
             if (!_disposed)
             {
                 try

@@ -5,17 +5,18 @@ using PostgreSql.Data.Protocol;
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
     public sealed class PgTransaction
         : DbTransaction
     {
-        private PgConnection            _connection;
-        private IsolationLevel          _isolationLevel;
-        private PgTransactionInternal   _innerTransaction;
-        private bool                    _disposed;
-        private bool                    _isUpdated;
+        private PgConnection          _connection;
+        private IsolationLevel        _isolationLevel;
+        private PgTransactionInternal _innerTransaction;
+        private bool                  _disposed;
 
         public override IsolationLevel IsolationLevel
         {
@@ -25,11 +26,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         protected override DbConnection DbConnection
         {
             get { return _connection; }
-        }
-
-        internal bool IsUpdated
-        {
-            get { return _isUpdated; }
         }
 
         private PgTransaction()
@@ -46,7 +42,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             _connection       = connection;
             _isolationLevel   = isolationLevel;
-            _innerTransaction = connection.InnerConnection.Database.BeginTransaction(IsolationLevel);
+            _innerTransaction = connection.InnerConnection.Database.CreateTransaction(IsolationLevel);
         }
 
         ~PgTransaction()
@@ -58,39 +54,41 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckTransaction();
 
-            _innerTransaction.Commit();
-
-            _isUpdated = true;
+            _innerTransaction.CommitAsync();
         }
 
         public override void Rollback()
         {
             CheckTransaction();
 
-            _innerTransaction.Rollback();
-
-            _isUpdated = true;
+            _innerTransaction.RollbackAsync();
         }
 
         public void Save(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.Save(savePointName);
+            _innerTransaction.SaveAsync(savePointName);
         }
 
         public void Commit(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.Commit(savePointName);
+            _innerTransaction.CommitAsync(savePointName);
         }
 
         public void Rollback(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.Rollback(savePointName);
+            _innerTransaction.RollbackAsync(savePointName);
+        }
+
+        internal async Task BeginAsync(string transactionName)
+        {
+            await _innerTransaction.BeginAsync().ConfigureAwait(false);
+            await _innerTransaction.SaveAsync(transactionName);
         }
 
         protected override void Dispose(bool disposing)
@@ -99,20 +97,20 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 if (disposing)
                 {
-                    if (_connection != null && !_isUpdated)
+                    try
                     {
-                        try
+                        if (_connection?.InnerConnection != null
+                         && _connection.InnerConnection.HasActiveTransaction)
                         {
                             // Implicitly roll back if the transaction still valid.
                             Rollback();
                         }
-                        finally
-                        {
-                            _connection       = null;
-                            _innerTransaction = null;
-                            _disposed         = true;
-                            _isUpdated        = true;
-                        }
+                    }
+                    finally
+                    {
+                        _connection       = null;
+                        _innerTransaction = null;
+                        _disposed         = true;
                     }
                 }
             }
@@ -120,7 +118,9 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private void CheckTransaction()
         {
-            if (_isUpdated)
+            if (_connection?.InnerConnection != null
+             && _connection.InnerConnection.HasActiveTransaction
+             && _connection.InnerConnection.ActiveTransaction == this)
             {
                 throw new InvalidOperationException("This Transaction has completed; it is no longer usable.");
             }

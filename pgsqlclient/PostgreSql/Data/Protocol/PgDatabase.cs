@@ -82,6 +82,8 @@ namespace PostgreSql.Data.Protocol
 
         private void Dispose(bool disposing)
         {
+            Console.WriteLine("Disposing database connection");
+            
             if (!_disposedValue)
             {
                 if (disposing)
@@ -120,36 +122,23 @@ namespace PostgreSql.Data.Protocol
                 // Reset instance data
                 _authenticated       = false;
                 _serverConfiguration = new PgServerConfig();
-                
-                System.Console.WriteLine("Opening pg stream");
-                
+
                 await _stream.OpenAsync(_connectionOptions.DataSource
                                       , _connectionOptions.PortNumber
                                       , _connectionOptions.Ssl).ConfigureAwait(false);
-                                      
-                System.Console.WriteLine("Opened pg stream");
-                
-                System.Console.WriteLine("Sending startup packet");
-                                                                             
+                                                                            
                 // Send startup packet
                 await SendStartupPacketAsync(cancellationToken).ConfigureAwait(false);
                 
-                System.Console.WriteLine("Startup packet sent");
-                
                 // Read startup response
                 PgInputPacket response = null;
-                
-                System.Console.WriteLine("Reading startup packet response");
-                
+                               
                 do 
                 {
                     response = await ReadAsync().ConfigureAwait(false);
                     
                     await HandlePacketAsync(response).ConfigureAwait(false);
-                    
                 } while (!response.IsReadyForQuery);
-                
-                System.Console.WriteLine("Readed startup packet response");
             }
             catch (IOException ex)
             {
@@ -169,6 +158,8 @@ namespace PostgreSql.Data.Protocol
 
         internal void Close()
         {
+            Console.WriteLine("Closing database connection");
+
             try
             {
                 _stream.CloseAsync();
@@ -194,13 +185,9 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal PgTransactionInternal BeginTransaction(IsolationLevel isolationLevel)
+        internal PgTransactionInternal CreateTransaction(IsolationLevel isolationLevel)
         {
-            var transaction = new PgTransactionInternal(this, isolationLevel);
-                        
-            transaction.Begin();
-            
-            return transaction;
+            return new PgTransactionInternal(this, isolationLevel);                        
         }
 
         internal PgStatement CreateStatement() => new PgStatement(this);
@@ -230,7 +217,6 @@ namespace PostgreSql.Data.Protocol
                 return; 
             }          
               
-            // Send packet to the server
             await _stream.WritePacketAsync(PgFrontEndCodes.SYNC).ConfigureAwait(false);
             
             PgInputPacket response = null;
@@ -261,9 +247,16 @@ namespace PostgreSql.Data.Protocol
         
         internal PgOutputPacket CreateOutputPacket() => new PgOutputPacket(_serverConfiguration);
         
-        internal Task<PgInputPacket> ReadAsync()
+        internal async Task<PgInputPacket> ReadAsync()
         {
-            return _stream.ReadPacketAsync(_serverConfiguration);            
+            var packet = await _stream.ReadPacketAsync(_serverConfiguration).ConfigureAwait(false);
+            
+            if (packet.Message == PgBackendCodes.READY_FOR_QUERY)
+            {
+                _transactionStatus = packet.ReadChar();
+            }
+            
+            return packet;
         }
 
         internal Task SendAsync(char messageType, PgOutputPacket packet)
@@ -311,10 +304,6 @@ namespace PostgreSql.Data.Protocol
 
                 case PgBackendCodes.PARAMETER_STATUS:
                     HandleParameterStatus(packet);
-                    break;
-
-                case PgBackendCodes.READY_FOR_QUERY:
-                    _transactionStatus = packet.ReadChar();
                     break;
             }
         }
@@ -435,6 +424,15 @@ namespace PostgreSql.Data.Protocol
 
             return new PgClientException(error.Message, error);
         }
+
+        private void HandleNotificationMessage(PgInputPacket packet)
+        {
+            var processId  = packet.ReadInt32();
+            var condition  = packet.ReadNullString();
+            var additional = packet.ReadNullString();
+
+            Notification?.Invoke(processId, condition, additional);
+        }
         
         private Task SendStartupPacketAsync()
         {
@@ -491,15 +489,6 @@ namespace PostgreSql.Data.Protocol
             packet.WriteByte(0);
 
             await _stream.WritePacketAsync(' ', packet).ConfigureAwait(false);
-        }
-
-        private void HandleNotificationMessage(PgInputPacket packet)
-        {
-            var processId  = packet.ReadInt32();
-            var condition  = packet.ReadNullString();
-            var additional = packet.ReadNullString();
-
-            Notification?.Invoke(processId, condition, additional);
         }
 
         private void HandleParameterStatus(PgInputPacket packet)
