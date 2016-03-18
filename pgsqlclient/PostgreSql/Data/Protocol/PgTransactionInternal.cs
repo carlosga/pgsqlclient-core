@@ -11,7 +11,6 @@ namespace PostgreSql.Data.Protocol
     {
         private readonly PgDatabase     _database;
         private readonly IsolationLevel _isolationLevel;
-        private char                    _transactionStatus;
 
         internal PgTransactionInternal(PgDatabase database, IsolationLevel isolationLevel)
         {
@@ -43,14 +42,12 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement(sql))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
 
                 if (stmt.Tag != "START TRANSACTION")
                 {
                     throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
                 }
-
-                _transactionStatus = _database.TransactionStatus;
             }
         }
 
@@ -64,8 +61,6 @@ namespace PostgreSql.Data.Protocol
                 {
                     throw new PgClientException("There are no transaction for commit.");
                 }
-
-                _transactionStatus = _database.TransactionStatus;
             }
         }
 
@@ -73,14 +68,12 @@ namespace PostgreSql.Data.Protocol
         {
             using (var stmt = _database.CreateStatement("ROLLBACK TRANSACTION"))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
 
                 if (stmt.Tag != "ROLLBACK")
                 {
                     throw new PgClientException("There are no transaction for rollback.");
                 }
-
-                _transactionStatus = _database.TransactionStatus;
             }
         }
 
@@ -97,7 +90,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
             }
         }
 
@@ -114,7 +107,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
             }
         }
 
@@ -131,7 +124,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
-                Task.Run(async () => await stmt.QueryAsync());
+                Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false)).Wait();
             }
         }
     }

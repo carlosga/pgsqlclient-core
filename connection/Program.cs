@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using PostgreSql.Data.PostgreSqlClient;
 
 namespace ConsoleApplication
@@ -7,30 +9,39 @@ namespace ConsoleApplication
     {
         public static void Main(string[] args)
         {
+            Run().Wait();
+        }
+        
+        async static Task Run()
+        {
             var csb = new PgConnectionStringBuilder();
 
             csb.DataSource      = "localhost";
             csb.InitialCatalog  = "chronos";
             csb.UserID          = "chronos";
-            csb.Password        = "::pgsql::";
+            csb.Password        = "::pelanas.2016::";
             csb.PortNumber      = 5432;
             csb.Ssl             = false;
             csb.Pooling         = false;
                                    
             using (var connection = new PgConnection(csb.ToString()))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 System.Console.WriteLine("Connection open");
                 
                 using (var transaction = connection.BeginTransaction())
                 {
+                    System.Console.WriteLine("Transaction Started");
+                    
                     using (var command = new PgCommand("SELECT * FROM accounting.accounting_company", connection, transaction))
                     {
-                        System.Console.WriteLine("Running command");
+                        System.Console.WriteLine("Executing command");
                         
                         using (var reader = command.ExecuteReader())
                         {
+                            System.Console.WriteLine("Fetching rows");
+                            
                             while (reader.Read())
                             {
                                 for (int i = 0; i < reader.FieldCount; i++)
@@ -45,7 +56,7 @@ namespace ConsoleApplication
                     
                     transaction.Rollback();                    
                 }
-            }
-        }
+            }            
+        } 
     }
 }

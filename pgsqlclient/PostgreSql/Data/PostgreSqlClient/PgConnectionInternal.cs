@@ -65,15 +65,15 @@ namespace PostgreSql.Data.PostgreSqlClient
             _lifetime         = 0;
         }
 
-        internal void Open(PgConnection owner)
+        internal async Task OpenAsync(PgConnection owner)
         {
             try
             {
                 // Connect
-                _database.OpenAsync();
+                await _database.OpenAsync().ConfigureAwait(false);
 
                 // Grab Data Types Oid's from the database if requested
-                FetchDatabaseOids();
+                await FetchDatabaseOidsAsync().ConfigureAwait(false);
 
                 // Update owner
                 _owner = owner;
@@ -230,7 +230,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return isValid;
         }
 
-        internal void FetchDatabaseOids()
+        internal async Task FetchDatabaseOidsAsync()
         {
             if (!_database.ConnectionOptions.UseDatabaseOids)
             {
@@ -250,7 +250,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     {
                         command.Parameters["@typeName"].Value = type.Name;
 
-                        object realOid = command.ExecuteScalar();
+                        object realOid = await command.ExecuteScalarAsync().ConfigureAwait(false);
 
                         if (realOid != null && Convert.ToInt32(realOid) != type.Oid)
                         {

@@ -121,23 +121,35 @@ namespace PostgreSql.Data.Protocol
                 _authenticated       = false;
                 _serverConfiguration = new PgServerConfig();
                 
+                System.Console.WriteLine("Opening pg stream");
+                
                 await _stream.OpenAsync(_connectionOptions.DataSource
                                       , _connectionOptions.PortNumber
                                       , _connectionOptions.Ssl).ConfigureAwait(false);
+                                      
+                System.Console.WriteLine("Opened pg stream");
+                
+                System.Console.WriteLine("Sending startup packet");
                                                                              
                 // Send startup packet
                 await SendStartupPacketAsync(cancellationToken).ConfigureAwait(false);
                 
+                System.Console.WriteLine("Startup packet sent");
+                
                 // Read startup response
                 PgInputPacket response = null;
                 
+                System.Console.WriteLine("Reading startup packet response");
+                
                 do 
                 {
-                    response = await ReadAsync().ConfigureAwait(false);;
+                    response = await ReadAsync().ConfigureAwait(false);
                     
-                    await HandlePacketAsync(response).ConfigureAwait(false);;
+                    await HandlePacketAsync(response).ConfigureAwait(false);
                     
                 } while (!response.IsReadyForQuery);
+                
+                System.Console.WriteLine("Readed startup packet response");
             }
             catch (IOException ex)
             {

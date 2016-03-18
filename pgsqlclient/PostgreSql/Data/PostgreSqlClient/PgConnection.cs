@@ -7,6 +7,8 @@ using System.Data;
 using System.Data.Common;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -123,7 +125,17 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public new PgCommand CreateCommand() => _innerConnection.CreateCommand();
         
-        public override void Open()
+        public override async void Open()
+        {
+            await OpenAsync(CancellationToken.None).ConfigureAwait(false);            
+        }
+
+        public Task OpenAsync()
+        {
+            return OpenAsync(CancellationToken.None);
+        }
+                
+        public async Task OpenAsync(CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(_connectionString))
             {
@@ -162,7 +174,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _innerConnection.Database.Notification = new NotificationCallback(OnNotification);
 
                 // Connect
-                _innerConnection.Open(this);
+                await _innerConnection.OpenAsync(this).ConfigureAwait(false);
 
                 // Set connection state to Open
                 ChangeState(ConnectionState.Open);
@@ -171,7 +183,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 ChangeState(ConnectionState.Broken);
                 throw new PgException(ex);
-            }
+            }            
         }
 
         public override void Close()
