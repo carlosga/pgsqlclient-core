@@ -49,31 +49,18 @@ namespace PostgreSql.Data.Protocol
             _buffer = new byte[8];
         }
 
-        internal Task OpenAsync(string host, int portNumber, bool secureConnection)
+        internal void Open(string host, int portNumber, bool secureConnection)
         {
-            return OpenAsync(host, portNumber, secureConnection, CancellationToken.None);
-        }
-
-        internal async Task OpenAsync(string            host
-                                    , int               portNumber
-                                    , bool              secureConnection
-                                    , CancellationToken cancellationToken)
-        {
-            // if (cancellationToken.IsCancellationRequested)
-            // {
-            //     return Task.FromCanceled(cancellationToken);
-            // }
-                            
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            await sem.WaitAsync().ConfigureAwait(false);
+            sem.Wait();
                         
             try
             {
-                await ConnectAsync(host, portNumber).ConfigureAwait(false);
+                Connect(host, portNumber);
 
                 if (secureConnection)
                 {
-                    bool secured = await OpenSecureChannelAsync(host).ConfigureAwait(false);
+                    bool secured = OpenSecureChannel(host);
                     if (!secured)
                     {
                         throw new PgClientException("Cannot open a secure connection against PostgreSQL server.");
@@ -135,25 +122,15 @@ namespace PostgreSql.Data.Protocol
         }
         #endregion
 
-        internal Task CloseAsync()
-        {
-            return CloseAsync(CancellationToken.None);
-        }
-
-        internal async Task CloseAsync(CancellationToken cancellationToken)
-        {
-            // if (cancellationToken.IsCancellationRequested)
-            // {
-            //     return Task.FromCanceled(cancellationToken);
-            // }
-            
+        internal void Close()
+        {            
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            await sem.WaitAsync().ConfigureAwait(false);
+            sem.Wait();
 
             try 
             {
                 // Notify the server that we are closing the connection.
-                await WritePacketAsync(PgFrontEndCodes.TERMINATE, cancellationToken).ConfigureAwait(false);
+                WritePacket(PgFrontEndCodes.TERMINATE);
 
                 // Close socket, network stream, ...
                 Detach();
@@ -164,21 +141,10 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task<PgInputPacket> ReadPacketAsync(PgServerConfig serverConfig)
-        {
-            return await ReadPacketAsync(serverConfig, CancellationToken.None).ConfigureAwait(false);
-        }
-        
-        internal async Task<PgInputPacket> ReadPacketAsync(PgServerConfig    serverConfig
-                                                         , CancellationToken cancellationToken)
-        {
-            // if (cancellationToken.IsCancellationRequested)
-            // {
-            //     return Task.FromCanceled<PgInputPacket>(cancellationToken);   
-            // }
-             
+        internal PgInputPacket ReadPacket(PgServerConfig serverConfig)
+        {            
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            await sem.WaitAsync().ConfigureAwait(false);
+            sem.Wait();
 
             try
             {
@@ -190,12 +156,12 @@ namespace PostgreSql.Data.Protocol
                 }
                 
                 int    received = 0;
-                int    length   = await ReadInt32Async().ConfigureAwait(false) - 4;
+                int    length   = ReadInt32() - 4;
                 byte[] buffer   = new byte[length];
                 
                 while (received < length)
                 {
-                    received += await _stream.ReadAsync(buffer, received, length - received, cancellationToken).ConfigureAwait(false);
+                    received +=  _stream.Read(buffer, received, length - received);
                 }
 
                 return new PgInputPacket(type, buffer, serverConfig);
@@ -206,35 +172,20 @@ namespace PostgreSql.Data.Protocol
             }            
         }
 
-        internal async Task WritePacketAsync(char type)
+        internal void WritePacket(char type)
         {
-            await WritePacketAsync(type, CancellationToken.None).ConfigureAwait(false);
+            WritePacket(type, s_buffer);
         }
 
-        internal async Task WritePacketAsync(char type, CancellationToken cancellationToken)
+        internal void WritePacket(char type, PgOutputPacket packet)
         {
-            await WritePacketAsync(type, s_buffer, cancellationToken).ConfigureAwait(false);
+            WritePacket(type, packet.ToArray());
         }
 
-        internal async Task WritePacketAsync(char type, PgOutputPacket packet)
+        internal void WritePacket(char type, byte[] buffer)
         {
-            await WritePacketAsync(type, packet.ToArray(), CancellationToken.None).ConfigureAwait(false);
-        }
-
-        internal async Task WritePacketAsync(char type, PgOutputPacket packet, CancellationToken cancellationToken)
-        {
-            await WritePacketAsync(type, packet.ToArray(), cancellationToken).ConfigureAwait(false);
-        }
-
-        internal async Task WritePacketAsync(char type, byte[] buffer, CancellationToken cancellationToken)
-        {
-            // if (cancellationToken.IsCancellationRequested)
-            // {
-            //     return Task.FromCanceled(cancellationToken);
-            // }
-
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            await sem.WaitAsync().ConfigureAwait(false);
+            sem.Wait();
 
             try
             {
@@ -245,15 +196,13 @@ namespace PostgreSql.Data.Protocol
                 }
                                 
                 // Write packet length
-                await WriteAsync(((buffer == null) ? 4 : buffer.Length + 4)).ConfigureAwait(false);
+                Write(((buffer == null) ? 4 : buffer.Length + 4));
 
                 // Write packet contents
                 if (buffer != null && buffer.Length > 0)
                 {
-                    await _stream.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+                    _stream.Write(buffer, 0, buffer.Length);
                 }
-                
-                await _stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -261,9 +210,9 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        private async Task<int> ReadInt32Async()
+        private int ReadInt32()
         {
-            await _stream.ReadAsync(_buffer, 0, 4).ConfigureAwait(false);
+            _stream.Read(_buffer, 0, 4);
 
             return (_buffer[3])
                  | (_buffer[2] <<  8)
@@ -271,20 +220,23 @@ namespace PostgreSql.Data.Protocol
                  | (_buffer[0] << 24);
         }
 
-        public async Task WriteAsync(int value)
+        public void Write(int value)
         {
             _buffer[0] = (byte)(value >> 24);
             _buffer[1] = (byte)(value >> 16);
             _buffer[2] = (byte)(value >> 8);
             _buffer[3] = (byte)(value);
 
-            await _stream.WriteAsync(_buffer, 0, 4).ConfigureAwait(false);
+            _stream.Write(_buffer, 0, 4);
         }
 
-        private async Task ConnectAsync(string host, int portNumber)
+        private void Connect(string host, int portNumber)
         {
-            var remoteAddress = await GetIPAddressAsync(host, AddressFamily.InterNetwork).ConfigureAwait(false);
-            var remoteEP      = new IPEndPoint(remoteAddress, portNumber);
+            var remoteAddress = Task.Run<IPAddress>(async () => {
+                return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
+            });
+            
+            var remoteEP = new IPEndPoint(remoteAddress.Result, portNumber);
 
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -297,34 +249,40 @@ namespace PostgreSql.Data.Protocol
             // Disables the Nagle algorithm for send coalescing.
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
-            await _socket.ConnectAsync(remoteEP).ConfigureAwait(false);
+            _socket.Connect(remoteEP);
            
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }
 
-        private async Task<bool> OpenSecureChannelAsync(string host)
+        private bool OpenSecureChannel(string host)
         {
-            bool request = await RequestSecureChannelAsync().ConfigureAwait(false);
+            bool request = RequestSecureChannel();
 
             if (request)
             {
-                _secureStream = new SslStream(_networkStream
-                                             , false
-                                             , UserCertificateValidationCallback
-                                             , UserCertificateSelectionCallback);
+                try
+                {
+                    _secureStream = new SslStream(_networkStream
+                                                , false
+                                                , UserCertificateValidationCallback
+                                                , UserCertificateSelectionCallback);
 
-                await _secureStream.AuthenticateAsClientAsync(host);
+                    _secureStream.AuthenticateAsClientAsync(host);                    
 
-                return true;
+                    return true;
+                }
+                catch
+                {                    
+                }
             }
 
             return false;
         }
 
-        internal async Task<bool> RequestSecureChannelAsync()
+        internal bool RequestSecureChannel()
         {
-            await WriteAsync(PgCodes.SSL_REQUEST).ConfigureAwait(false);
+            Write(PgCodes.SSL_REQUEST);
 
             return ((char)_stream.ReadByte() == 'S');
         }

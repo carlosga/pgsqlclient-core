@@ -8,8 +8,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -107,13 +105,8 @@ namespace PostgreSql.Data.Protocol
         }
 
         #endregion
-
-        internal Task OpenAsync()
-        {
-            return OpenAsync(CancellationToken.None);            
-        }
-        
-        internal async Task OpenAsync(CancellationToken cancellationToken)
+       
+        internal void Open()
         {
             try
             {
@@ -121,21 +114,21 @@ namespace PostgreSql.Data.Protocol
                 _authenticated       = false;
                 _serverConfiguration = new PgServerConfig();
 
-                await _stream.OpenAsync(_connectionOptions.DataSource
-                                      , _connectionOptions.PortNumber
-                                      , _connectionOptions.Ssl).ConfigureAwait(false);
+                _stream.Open(_connectionOptions.DataSource
+                           , _connectionOptions.PortNumber
+                           , _connectionOptions.Ssl);
                                                                             
                 // Send startup packet
-                await SendStartupPacketAsync(cancellationToken).ConfigureAwait(false);
+                SendStartupPacket();
                 
                 // Read startup response
                 PgInputPacket response = null;
                                
                 do 
                 {
-                    response = await ReadAsync().ConfigureAwait(false);
+                    response = Read();
                     
-                    await HandlePacketAsync(response).ConfigureAwait(false);
+                    HandlePacket(response);
                 } while (!response.IsReadyForQuery);
             }
             catch (IOException ex)
@@ -158,7 +151,7 @@ namespace PostgreSql.Data.Protocol
         {
             try
             {
-                _stream.CloseAsync();
+                _stream.Close();
             }
             catch
             {
@@ -197,38 +190,28 @@ namespace PostgreSql.Data.Protocol
             return new PgStatement(this, parseName, portalName, stmtText);
         }
 
-        internal async Task FlushAsync() => await FlushAsync(CancellationToken.None).ConfigureAwait(false);
+        internal void Flush() => _stream.WritePacket(PgFrontEndCodes.FLUSH);
 
-        internal async Task FlushAsync(CancellationToken cancellationToken)
-        {
-            await _stream.WritePacketAsync(PgFrontEndCodes.FLUSH, cancellationToken).ConfigureAwait(false);
-        }
-
-        internal async Task SyncAsync() => await SyncAsync(CancellationToken.None).ConfigureAwait(false);
-
-        internal async Task SyncAsync(CancellationToken cancellationToken)
+        internal void Sync()
         {
             if (!_authenticated)
             {
                 return; 
             }          
               
-            await _stream.WritePacketAsync(PgFrontEndCodes.SYNC).ConfigureAwait(false);
+            _stream.WritePacket(PgFrontEndCodes.SYNC);
             
             PgInputPacket response = null;
             
             do 
             {
-                response = await ReadAsync().ConfigureAwait(false);
+                response = Read();
                 
-                await HandlePacketAsync(response).ConfigureAwait(false);
-                
+                HandlePacket(response);                
             } while (!response.IsReadyForQuery);
         }
 
-        internal async Task CancelRequestAsync() => await CancelRequestAsync(CancellationToken.None).ConfigureAwait(false);
-
-        internal async Task CancelRequestAsync(CancellationToken cancellationToken)
+        internal void CancelRequest()
         {
             var packet = CreateOutputPacket();
            
@@ -238,14 +221,14 @@ namespace PostgreSql.Data.Protocol
             packet.Write(_secretKey);
 
             // Send packet to the server
-            await _stream.WritePacketAsync(' ', packet, cancellationToken).ConfigureAwait(false);
+            _stream.WritePacket(' ', packet);
         }
         
         internal PgOutputPacket CreateOutputPacket() => new PgOutputPacket(_serverConfiguration);
         
-        internal async Task<PgInputPacket> ReadAsync()
+        internal PgInputPacket Read()
         {
-            var packet = await _stream.ReadPacketAsync(_serverConfiguration).ConfigureAwait(false);
+            var packet = _stream.ReadPacket(_serverConfiguration);
             
             if (packet.Message == PgBackendCodes.READY_FOR_QUERY)
             {
@@ -268,27 +251,18 @@ namespace PostgreSql.Data.Protocol
             
             return packet;
         }
+       
+        internal void Send(char messageType, PgOutputPacket packet) => _stream.WritePacket(messageType, packet);
 
-        internal async Task SendAsync(char messageType, PgOutputPacket packet)
-        {
-            await SendAsync(messageType, packet, CancellationToken.None).ConfigureAwait(false);
-        }
-        
-        internal async Task SendAsync(char messageType, PgOutputPacket packet, CancellationToken token)
-        {
-            await _stream.WritePacketAsync(messageType, packet, token).ConfigureAwait(false);
-        }
-
-        private async Task HandlePacketAsync(PgInputPacket packet)
+        private void HandlePacket(PgInputPacket packet)
         {
             switch (packet.Message)
             {
                 case PgBackendCodes.AUTHENTICATION:
-                    await HandleAuthPacketAsync(packet).ConfigureAwait(false);
+                    HandleAuthPacket(packet);
                     break;
 
                 case PgBackendCodes.BACKEND_KEY_DATA:
-                    // BackendKeyData
                     _handle    = packet.ReadInt32();
                     _secretKey = packet.ReadInt32();
                     break;
@@ -298,7 +272,7 @@ namespace PostgreSql.Data.Protocol
                     var ex = HandleErrorMessage(packet);
 
                     // Perform a sync
-                    await SyncAsync().ConfigureAwait(false);
+                    Sync();
 
                     // Throw the PostgreSQL exception
                     throw ex;
@@ -318,7 +292,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        private async Task HandleAuthPacketAsync(PgInputPacket packet)
+        private void HandleAuthPacket(PgInputPacket packet)
         {
             // Authentication response
             int authType   = packet.ReadInt32();
@@ -374,7 +348,7 @@ namespace PostgreSql.Data.Protocol
             }
             
             // Send the packet to the server
-            await _stream.WritePacketAsync(PgFrontEndCodes.PASSWORD_MESSAGE, authPacket).ConfigureAwait(false);
+            _stream.WritePacket(PgFrontEndCodes.PASSWORD_MESSAGE, authPacket);
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)
@@ -444,12 +418,7 @@ namespace PostgreSql.Data.Protocol
             Notification?.Invoke(processId, condition, additional);
         }
         
-        private Task SendStartupPacketAsync()
-        {
-            return SendStartupPacketAsync(CancellationToken.None);
-        }
-
-        private async Task SendStartupPacketAsync(CancellationToken cancellationToken)
+        private void SendStartupPacket()
         {
             // Send Startup message
             var packet = CreateOutputPacket();
@@ -498,7 +467,7 @@ namespace PostgreSql.Data.Protocol
             // Terminator
             packet.WriteByte(0);
 
-            await _stream.WritePacketAsync(' ', packet).ConfigureAwait(false);
+            _stream.WritePacket(' ', packet);
         }
 
         private void HandleParameterStatus(PgInputPacket packet)

@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -71,15 +70,15 @@ namespace PostgreSql.Data.PostgreSqlClient
             _lifetime         = 0;
         }
 
-        internal async Task OpenAsync(PgConnection owner)
+        internal void Open(PgConnection owner)
         {
             try
             {
                 // Connect
-                await _database.OpenAsync().ConfigureAwait(false);
+                _database.Open();
 
                 // Grab Data Types Oid's from the database if requested
-                await FetchDatabaseOidsAsync().ConfigureAwait(false);
+                FetchDatabaseOids();
                 
                 // Update owner
                 _owner = owner;
@@ -127,7 +126,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        internal PgTransaction BeginTransaction(IsolationLevel isolationLevel)
+        internal PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
             if (_activeTransaction != null)
             {
@@ -135,6 +134,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             _activeTransaction = new PgTransaction(_owner, isolationLevel);
+            _activeTransaction.Begin(transactionName);
             
             return _activeTransaction;                
         }
@@ -176,20 +176,16 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void ClosePreparedCommands()
         {
-            List<Task> tasks = new List<Task>();
-            
             foreach (var commandRef in _preparedCommands)
             {
                 PgCommand command = null;
 
                 if (commandRef.Value != null && commandRef.Value.TryGetTarget(out command))
                 {
-                    tasks.Add(Task.Run(async () => await command.InternalCloseAsync().ConfigureAwait(false)));
+                    command.InternalClose();
                 }
             }
             
-            Task.WaitAll(tasks.ToArray());
-
             _preparedCommands.Clear();
         }
 
@@ -212,7 +208,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             try
             {
                 // Try to send a Sync message to the PostgreSQL Server
-                _database.SyncAsync();
+                _database.Sync();
             }
             catch
             {
@@ -222,7 +218,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return isValid;
         }
 
-        internal async Task FetchDatabaseOidsAsync()
+        internal void FetchDatabaseOids()
         {
             if (!_database.ConnectionOptions.UseDatabaseOids)
             {
@@ -241,7 +237,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     {
                         command.Parameters["@typeName"].Value = type.Name;
 
-                        object realOid = await command.ExecuteScalarAsync().ConfigureAwait(false);
+                        object realOid = command.ExecuteScalar();
 
                         if (realOid != null && Convert.ToInt32(realOid) != type.Oid)
                         {

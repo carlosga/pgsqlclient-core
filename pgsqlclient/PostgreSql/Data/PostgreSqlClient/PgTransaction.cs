@@ -5,8 +5,6 @@ using PostgreSql.Data.Protocol;
 using System;
 using System.Data;
 using System.Data.Common;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -54,41 +52,41 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckTransaction();
 
-            _innerTransaction.CommitAsync();
+            _innerTransaction.Commit();
         }
 
         public override void Rollback()
         {
             CheckTransaction();
 
-            _innerTransaction.RollbackAsync();
+            _innerTransaction.Rollback();
         }
 
         public void Save(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.SaveAsync(savePointName);
+            _innerTransaction.Save(savePointName);
         }
 
         public void Commit(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.CommitAsync(savePointName);
+            _innerTransaction.Commit(savePointName);
         }
 
         public void Rollback(string savePointName)
         {
             CheckTransaction();
 
-            _innerTransaction.RollbackAsync(savePointName);
+            _innerTransaction.Rollback(savePointName);
         }
 
-        internal async Task BeginAsync(string transactionName)
+        internal void Begin(string transactionName)
         {
-            await _innerTransaction.BeginAsync().ConfigureAwait(false);
-            await _innerTransaction.SaveAsync(transactionName).ConfigureAwait(false);
+            _innerTransaction.Begin();
+            _innerTransaction.Save(transactionName);
         }
 
         protected override void Dispose(bool disposing)

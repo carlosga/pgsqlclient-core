@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -41,7 +39,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 if (_statement != null && !String.IsNullOrEmpty(_commandText) && _commandText != value)
                 {
-                    Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
+                    InternalClose();
                 }
 
                 _commandText = value;
@@ -97,7 +95,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _transaction = null;
                     }
 
-                    Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
+                    InternalClose();
                 }
 
                 _connection = value as PgConnection;
@@ -223,86 +221,36 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override int ExecuteNonQuery()
         {
-            return Task.Run<int>(async () => {
-                return await ExecuteNonQueryAsync().ConfigureAwait(false);
-            }).Result;
-        }
-
-        public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return await TaskHelpers.FromCancellation<int>(cancellationToken);
-            }
-            
             CheckCommand();
+
+            InternalPrepare();
+            InternalExecute();
             
-            CancellationTokenRegistration registration = new CancellationTokenRegistration();
-            if (cancellationToken.CanBeCanceled)
-            {
-                //registration = cancellationToken.Register(s => ((DbCommand)s).CancelIgnoreFailure(), this);
-            }
+            InternalSetOutputParameters();
 
-            try
-            {
-                await InternalPrepareAsync().ConfigureAwait(false);
-                await InternalExecuteAsync().ConfigureAwait(false);
-                
-                InternalSetOutputParameters();
-
-                return _statement.RecordsAffected;            
-            }
-            catch (Exception e)
-            {
-                return await TaskHelpers.FromException<int>(e);
-            }
-            finally
-            {
-                registration.Dispose();
-            }                        
+            return _statement.RecordsAffected;            
         }
 
         public new PgDataReader ExecuteReader(CommandBehavior behavior)
         {
-            var t = Task.Run<PgDataReader>(async () => { return await InternalExecuteReaderAsync(behavior).ConfigureAwait(false); });
-            
-            return t.Result;
+            return InternalExecuteReader(behavior);
         }
         
-        public new Task<PgDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
-        {
-            return InternalExecuteReaderAsync(behavior);
-        }
-
         public override object ExecuteScalar()
-        {
-            var t = Task.Run<object>(async () => { return await ExecuteScalarAsync().ConfigureAwait(false); });
-            
-            return t.Result;
-        }
-        
-        public override async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
         {
             CheckCommand();
 
-            await InternalPrepareAsync().ConfigureAwait(false);
-            await InternalExecuteAsync().ConfigureAwait(false);
+            InternalPrepare();
+            InternalExecute();
             
-            return await _statement.ExecuteScalarAsync().ConfigureAwait(false);            
+            return _statement.ExecuteScalar();            
         }
 
         public override void Prepare()
         {
-            Task t = Task.Run(async () => await PrepareAsync().ConfigureAwait(false));
-            
-            t.Wait();
-        }
-
-        public Task PrepareAsync()
-        {
             CheckCommand();
 
-            return InternalPrepareAsync();
+            InternalPrepare();
         }
 
         protected override void Dispose(bool disposing)
@@ -313,7 +261,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 {
                     try
                     {
-                        Task.Run(async () => await InternalCloseAsync().ConfigureAwait(false)).Wait();
+                        InternalClose();
                     }
                     catch
                     {
@@ -344,7 +292,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return ExecuteReader();
         }
 
-        internal async Task InternalPrepareAsync()
+        internal void InternalPrepare()
         {
             try
             {
@@ -367,10 +315,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                     _statement = _connection.InnerConnection.CreateStatement(prepareName, portalName, stmtText);
 
                     // Parse statement
-                    await _statement.ParseAsync().ConfigureAwait(false);
+                    _statement.Parse();
                     
                     // Describe statement
-                    await _statement.DescribeAsync().ConfigureAwait(false);
+                    _statement.Describe();
                     
                     // Add the command to the internal connection prepared statements
                     _connection.InnerConnection.AddPreparedCommand(this);
@@ -378,7 +326,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 else
                 {
                     // Close existent portal
-                    await _statement.ClosePortalAsync().ConfigureAwait(false);
+                    _statement.ClosePortal();
                 }
             }
             catch (PgClientException ex)
@@ -387,13 +335,13 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        private async Task<PgDataReader> InternalExecuteReaderAsync(CommandBehavior behavior)
+        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
         {
             CheckCommand();
 
             _commandBehavior = behavior;
 
-            await InternalPrepareAsync().ConfigureAwait(false);
+            InternalPrepare();
 
             if ((_commandBehavior & CommandBehavior.Default)          == CommandBehavior.Default
              || (_commandBehavior & CommandBehavior.SequentialAccess) == CommandBehavior.SequentialAccess
@@ -401,13 +349,13 @@ namespace PostgreSql.Data.PostgreSqlClient
              || (_commandBehavior & CommandBehavior.SingleRow)        == CommandBehavior.SingleRow
              || (_commandBehavior & CommandBehavior.CloseConnection)  == CommandBehavior.CloseConnection)
             {
-                await InternalExecuteAsync().ConfigureAwait(false);
+                InternalExecute();
             }
 
             return _activeDataReader = new PgDataReader(_connection, this);
         }
 
-        internal async Task InternalExecuteAsync()
+        internal void InternalExecute()
         {
             try
             {
@@ -415,10 +363,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                 SetParameterValues();
 
                 // Bind Statement
-                await _statement.BindAsync().ConfigureAwait(false);
+                _statement.Bind();
                                 
                 // Execute Statement
-                await _statement.ExecuteAsync().ConfigureAwait(false);
+                _statement.Execute();
             }
             catch (PgClientException ex)
             {
@@ -426,18 +374,17 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        internal async Task InternalCloseAsync()
+        internal void InternalClose()
         {
             try
             {
                 _connection.InnerConnection.RemovePreparedCommand(this);
                 
                 // Closing the prepared statement closes all his portals too.
-                await _statement.CloseAsync().ConfigureAwait(false);
+                _statement.Close();
             }
-            catch (PgClientException ex)
+            catch
             {
-                throw new PgException(ex);
             }
             finally
             {
@@ -453,9 +400,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return;
             }
             
-            object[] row = Task.Run<object[]>(async () => {
-                return await _statement.FetchRowAsync().ConfigureAwait(false);   
-            }).Result;
+            var row = _statement.FetchRow();   
 
             if (!row.IsEmpty())
             {

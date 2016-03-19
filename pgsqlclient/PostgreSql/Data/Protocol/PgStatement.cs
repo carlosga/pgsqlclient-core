@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -119,7 +118,7 @@ namespace PostgreSql.Data.Protocol
                 {
                     // TODO: dispose managed state (managed objects).
 
-                    Task.Run(async () => await CloseAsync()).Wait();
+                    Close();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -140,7 +139,7 @@ namespace PostgreSql.Data.Protocol
 
         #endregion
 
-        internal async Task ParseAsync()
+        internal void Parse()
         {
             try
             {
@@ -161,7 +160,7 @@ namespace PostgreSql.Data.Protocol
                 packet.Write((short)0);
                 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.PARSE, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.PARSE, packet);
 
                 // Update status
                 _status = PgStatementStatus.Parsed;
@@ -173,17 +172,17 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal Task DescribeAsync()
+        internal void Describe()
         {
-            return DescribeAsync('S');
+            Describe('S');
         }
 
-        internal Task DescribePortalAsync()
+        internal void DescribePortal()
         {
-            return DescribeAsync('P');
+            Describe('P');
         }
 
-        internal async Task BindAsync()
+        internal void Bind()
         {
             try
             {
@@ -223,7 +222,7 @@ namespace PostgreSql.Data.Protocol
                 }
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.BIND, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.BIND, packet);
 
                 // Update status
                 _status = PgStatementStatus.Binded;
@@ -237,7 +236,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task ExecuteAsync()
+        internal void Execute()
         {
             try
             {
@@ -250,17 +249,17 @@ namespace PostgreSql.Data.Protocol
                 packet.Write(_fetchSize);	// Rows to retrieve ( 0 = nolimit )
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.EXECUTE, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.EXECUTE, packet);
 
                 // Flush pending messages
-                await _database.FlushAsync().ConfigureAwait(false);
+                _database.Flush();
 
                 // Receive response
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _database.ReadAsync().ConfigureAwait(false);
+                    response = _database.Read();
                     
                     HandleSqlMessage(response);
                 }
@@ -277,7 +276,7 @@ namespace PostgreSql.Data.Protocol
                 // rows perform a Sync.
                 if (!HasRows || _allRowsFetched)
                 {
-                    await _database.SyncAsync().ConfigureAwait(false);
+                    _database.Sync();
                 }
 
                 // Update status
@@ -290,7 +289,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task ExecuteFunctionAsync(int id)
+        internal void ExecuteFunction(int id)
         {
             try
             {
@@ -322,14 +321,14 @@ namespace PostgreSql.Data.Protocol
                 packet.Write(PgCodes.BINARY_FORMAT);
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.FUNCTION_CALL, packet);
+                _database.Send(PgFrontEndCodes.FUNCTION_CALL, packet);
 
                 // Receive response
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _database.ReadAsync().ConfigureAwait(false);
+                    response = _database.Read();
                     
                     HandleSqlMessage(response);
                 }
@@ -347,11 +346,11 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task<object> ExecuteScalarAsync()
+        internal object ExecuteScalar()
         {
             if (!_allRowsFetched && _rows.IsEmpty())
             {
-                await QueryAsync().ConfigureAwait(false);
+                Query();
             }
             
             if (!_rows.IsEmpty())
@@ -362,7 +361,7 @@ namespace PostgreSql.Data.Protocol
             return null;
         }                
 
-        internal async Task QueryAsync()
+        internal void Query()
         {
             int currentFetchSize = _fetchSize;
 
@@ -376,7 +375,7 @@ namespace PostgreSql.Data.Protocol
                 packet.WriteNullString(_stmtText);
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.QUERY, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.QUERY, packet);
 
                 // Set fetch size
                 _fetchSize = 1;
@@ -386,7 +385,7 @@ namespace PostgreSql.Data.Protocol
 
                 do
                 {
-                    response = await _database.ReadAsync().ConfigureAwait(false);
+                    response = _database.Read();
                     
                     HandleSqlMessage(response);
                 }
@@ -413,12 +412,12 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task<object[]> FetchRowAsync()
+        internal object[] FetchRow()
         {
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
-                await ExecuteAsync().ConfigureAwait(false);
+                Execute();
             }
 
             if (!_rows.IsEmpty())
@@ -429,17 +428,17 @@ namespace PostgreSql.Data.Protocol
             return null;
         }
 
-        internal Task CloseAsync()
+        internal void Close()
         {
-            return CloseAsync('S');
+            Close('S');
         }
 
-        internal Task ClosePortalAsync()
+        internal void ClosePortal()
         {
-            return CloseAsync('P');
+            Close('P');
         }
 
-        internal async Task<string> GetPlanAsync(bool verbose)
+        internal string GetPlan(bool verbose)
         {
             var stmtPlan = new StringBuilder();
             var stmtText = "EXPLAIN ANALYZE ";
@@ -451,11 +450,11 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement(stmtText))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
 
                 while (stmt.HasRows)
                 {
-                    object[] row = await stmt.FetchRowAsync().ConfigureAwait(false);
+                    object[] row = stmt.FetchRow();
 
                     stmtPlan.Append($"{row[0]} \r\n");
                 }
@@ -472,31 +471,31 @@ namespace PostgreSql.Data.Protocol
             _allRowsFetched = false;
         }
 
-        private async Task DescribeAsync(char stmtType)
+        private void Describe(char stmtType)
         {
             try
             {
                 // Update status
                 _status = PgStatementStatus.Describing;
 
-                var name = ((stmtType == 'S') ? _parseName : _portalName);
+                var name   = ((stmtType == 'S') ? _parseName : _portalName);
                 var packet = _database.CreateOutputPacket();
 
                 packet.Write(stmtType);
                 packet.WriteNullString(name);
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.DESCRIBE, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.DESCRIBE, packet);
 
                 // Flush pending messages
-                await _database.FlushAsync().ConfigureAwait(false);
+                _database.Flush();
 
                 // Receive Describe response
                 PgInputPacket response = null;
                 
                 do
                 {
-                    response = await _database.ReadAsync().ConfigureAwait(false);
+                    response = _database.Read();
                     HandleSqlMessage(response);                    
                 } while (!response.IsRowDescription && !response.IsNoData);
                 
@@ -509,14 +508,14 @@ namespace PostgreSql.Data.Protocol
 
                     try
                     {
-                        await stmt.QueryAsync();
+                        stmt.Query();
 
                         if (!stmt.HasRows)
                         {
                             throw new PgClientException("Unsupported data type");
                         }
 
-                        var row         = await stmt.FetchRowAsync();
+                        var row         = stmt.FetchRow();
                         int baseTypeOid = Convert.ToInt32(row[0]);
                         var dataType    = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == baseTypeOid);
 
@@ -546,7 +545,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        private async Task CloseAsync(char stmtType)
+        private void Close(char stmtType)
         {
             try
             {
@@ -557,17 +556,17 @@ namespace PostgreSql.Data.Protocol
                 packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
 
                 // Send packet to the server
-                await _database.SendAsync(PgFrontEndCodes.CLOSE, packet).ConfigureAwait(false);
+                _database.Send(PgFrontEndCodes.CLOSE, packet);
 
                 // Sync server and client
-                await _database.FlushAsync().ConfigureAwait(false);
+                _database.Flush();
 
                 // Read until CLOSE COMPLETE message is received
                 PgInputPacket response = null;
 
                 do
                 {
-                    response = await _database.ReadAsync().ConfigureAwait(false);
+                    response = _database.Read();
                     HandleSqlMessage(response);
                 }
                 while (!response.IsCloseComplete);

@@ -2,6 +2,7 @@
     "projects": [
         "pgsqlclient",
         "connection",
+        "DLinq",
         "tests"
     ],
     "packages": "",

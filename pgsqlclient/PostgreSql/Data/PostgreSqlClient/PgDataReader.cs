@@ -78,11 +78,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool NextResult()
         {
-            return Task.Run<bool>(async () => { return await NextResultAsync().ConfigureAwait(false); }).Result;
-        }
-        
-        public async new Task<bool> NextResultAsync()
-        {
             if (_refCursors.Count != 0 && _connection.InnerConnection.HasActiveTransaction)
             {
                 return false;
@@ -94,27 +89,22 @@ namespace PostgreSql.Data.PostgreSqlClient
             _position = STARTPOS;
 
             // Close the active statement
-            await _statement.CloseAsync().ConfigureAwait(false);
+            _statement.Close();
 
             // Create a new statement to fetch the current refcursor
             string statementName = Guid.NewGuid().ToString();
 
             _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
 
-            await _statement.ParseAsync().ConfigureAwait(false);
-            await _statement.DescribeAsync().ConfigureAwait(false);
-            await _statement.BindAsync().ConfigureAwait(false);
-            await _statement.ExecuteAsync().ConfigureAwait(false);
+            _statement.Parse();
+            _statement.Describe();
+            _statement.Bind();
+            _statement.Execute();
                 
             return true;
         }
 
         public override bool Read()
-        {
-            return Task.Run<bool>(async () => { return await ReadAsync().ConfigureAwait(false); }).Result;
-        }
-        
-        public new async Task<bool> ReadAsync()
         {
             bool read = false;
 
@@ -127,7 +117,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _position++;
 
-                _row = await _statement.FetchRowAsync().ConfigureAwait(false);   
+                _row = _statement.FetchRow();   
                 
                 read = (_row != null);
             }
@@ -510,9 +500,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 while (_statement.HasRows)
                 {
-                    row = Task.Run<object[]>(async () => {
-                        return await _statement.FetchRowAsync().ConfigureAwait(false);   
-                    }).Result;
+                    row = _statement.FetchRow();   
 
                     if (row != null)
                     {

@@ -7,8 +7,6 @@ using System.Data;
 using System.Data.Common;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -110,37 +108,21 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            return Task.Run<PgTransaction>(async () => {
-                return await BeginTransactionAsync(isolationLevel, transactionName).ConfigureAwait(false);
-            }).Result;
-        }
-
-        public async Task<PgTransaction> BeginTransactionAsync()
-        {
-            return await BeginTransactionAsync(IsolationLevel.ReadCommitted, null).ConfigureAwait(false);
-        }
-                
-        public async Task<PgTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, string transactionName)
-        {
-            // if (transactionName == null)
-            // {
-            //     throw new ArgumentException("No transaction name was be specified.");
-            // }
-            // else if (transactionName.Length == 0)
-            // {
-            //     throw new ArgumentException("No transaction name was be specified.");
-            // }
+            if (transactionName == null)
+            {
+                throw new ArgumentException("No transaction name was be specified.");
+            }
+            else if (transactionName.Length == 0)
+            {
+                throw new ArgumentException("No transaction name was be specified.");
+            }
             
             if (IsClosed)
             {
                 throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
             }
 
-            var txn = _innerConnection.BeginTransaction(isolationLevel);
-            
-            await txn.BeginAsync(transactionName).ConfigureAwait(false);
-                        
-            return txn;            
+            return _innerConnection.BeginTransaction(isolationLevel, transactionName);
         }
 
         public override void ChangeDatabase(string db)
@@ -151,11 +133,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         public new PgCommand CreateCommand() => _innerConnection.CreateCommand();
         
         public override void Open()
-        {
-            Task.Run(async () => await OpenAsync(CancellationToken.None).ConfigureAwait(false)).Wait();
-        }
-               
-        public override async Task OpenAsync(CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(_connectionString))
             {
@@ -194,7 +171,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _innerConnection.Database.Notification = new NotificationCallback(OnNotification);
 
                 // Connect
-                await _innerConnection.OpenAsync(this).ConfigureAwait(false);
+                _innerConnection.Open(this);
 
                 // Set connection state to Open
                 ChangeState(ConnectionState.Open);
@@ -219,10 +196,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
             catch
             {
-#warning TODO: Log the exception ( to the console )
             }
             finally
             {
+                // Cleanup
+                _innerConnection  = null;
+                _connectionString = null;
+                _options          = null;
+                
                 ChangeState(ConnectionState.Closed);
             }
         }
@@ -237,11 +218,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                     {
                         // release any managed resources
                         Close();
-
-                        // Cleanup
-                        _innerConnection  = null;
-                        _connectionString = null;
-                        _options          = null;
                     }
 
                     // release any unmanaged resources

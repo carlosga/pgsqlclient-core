@@ -3,7 +3,6 @@
 
 using System;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -18,7 +17,7 @@ namespace PostgreSql.Data.Protocol
             _isolationLevel = isolationLevel;
         }
 
-        internal Task BeginAsync()
+        internal void Begin()
         {
             string sql = "START TRANSACTION ISOLATION LEVEL ";
 
@@ -40,36 +39,22 @@ namespace PostgreSql.Data.Protocol
                     break;
             }
 
-            // using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
-            // {
-            //     await stmt.QueryAsync().ConfigureAwait(true);
+            using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
+            {
+                stmt.Query();
 
-            //     if (stmt.Tag != "START TRANSACTION")
-            //     {
-            //         throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
-            //     }
-            // }
-
-            var stmt = _database.CreateStatement(sql);
-            
-            Task t1 = Task.Run(async () => await stmt.QueryAsync().ConfigureAwait(false));            
-            Task t2 = t1.ContinueWith(async (a) => {
-                           await a.ConfigureAwait(false);
-                           stmt.Dispose();
-                           if (stmt.Tag != "START TRANSACTION")
-                           {
-                               throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
-                           }
-                       });
-                       
-            return t2;
+                if (stmt.Tag != "START TRANSACTION")
+                {
+                    throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
+                }
+            }
         }
 
-        internal async Task CommitAsync()
+        internal void Commit()
         {
             using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
 
                 if (stmt.Tag != "COMMIT")
                 {
@@ -78,11 +63,11 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task RollbackAsync()
+        internal void Rollback()
         {
             using (var stmt = _database.CreateStatement("ROLLBACK TRANSACTION"))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
 
                 if (stmt.Tag != "ROLLBACK")
                 {
@@ -91,7 +76,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal async Task SaveAsync(string savePointName)
+        internal void Save(string savePointName)
         {
             if (String.IsNullOrEmpty(savePointName))
             {
@@ -100,11 +85,11 @@ namespace PostgreSql.Data.Protocol
             
             using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
             }
         }
 
-        internal async Task CommitAsync(string savePointName)
+        internal void Commit(string savePointName)
         {
             if (savePointName == null)
             {
@@ -117,11 +102,11 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
             }
         }
 
-        internal async Task RollbackAsync(string savePointName)
+        internal void Rollback(string savePointName)
         {
             if (savePointName == null)
             {
@@ -134,7 +119,7 @@ namespace PostgreSql.Data.Protocol
 
             using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
-                await stmt.QueryAsync().ConfigureAwait(false);
+                stmt.Query();
             }
         }
     }

@@ -3,5 +3,5 @@
 
 namespace PostgreSql.Data.Protocol
 {
-    internal delegate void NotificationCallback(int processID, string condition, string aditional);
+    internal delegate void NotificationCallback(int processId, string condition, string aditional);
 }
