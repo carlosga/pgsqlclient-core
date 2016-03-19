@@ -152,7 +152,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         
         public override void Open()
         {
-            Task.Run(async () => await OpenAsync(CancellationToken.None).ConfigureAwait(false)).Wait();            
+            Task.Run(async () => await OpenAsync(CancellationToken.None).ConfigureAwait(false)).Wait();
         }
                
         public override async Task OpenAsync(CancellationToken cancellationToken)

@@ -9,10 +9,8 @@ namespace ConsoleApplication
     {
         public static void Main(string[] args)
         {
-            Task t = Task.Run(async () => await Run());
-            
-            t.Wait(-1);
-            
+            Run().Wait();
+                        
             Console.WriteLine("finishing program");   
         }
         
@@ -42,22 +40,24 @@ namespace ConsoleApplication
 
             System.Console.WriteLine("Executing command");
             
-            using (var reader = command.ExecuteReader())
-            {
-                System.Console.WriteLine("Fetching rows");
-                
-                while (reader.Read())
-                {
-                    for (int i = 0; i < reader.FieldCount; i++)
-                    {
-                        Console.Write(reader.GetValue(i) + "\t");
-                    }
+            var reader = await command.ExecuteReaderAsync();
 
-                    Console.WriteLine();
+            System.Console.WriteLine("Fetching rows");
+            
+            while (await reader.ReadAsync())
+            {
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    Console.Write(reader.GetValue(i) + "\t");
                 }
+
+                Console.WriteLine();
             }
             
-            transaction.Rollback();                    
+            reader.Dispose();
+            command.Dispose();
+            transaction.Dispose();
+            connection.Dispose();
         } 
     }
 }

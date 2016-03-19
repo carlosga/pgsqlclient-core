@@ -78,38 +78,43 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool NextResult()
         {
-            bool hasMoreResults = false;
-
+            return Task.Run<bool>(async () => { return await NextResultAsync().ConfigureAwait(false); }).Result;
+        }
+        
+        public async new Task<bool> NextResultAsync()
+        {
             if (_refCursors.Count != 0 && _connection.InnerConnection.HasActiveTransaction)
             {
-                string sql = $"fetch all in \"{_refCursors.Dequeue()}\"";
-
-                // Reset position
-                _position = STARTPOS;
-
-                // Close the active statement
-                _statement.CloseAsync();
-
-                // Create a new statement to fetch the current refcursor
-                string statementName = Guid.NewGuid().ToString();
-
-                _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
-
-                var t1 = Task.Run(async () => await _statement.ParseAsync().ConfigureAwait(false));
-                var t2 = t1.ContinueWith(async (antecedent) => await _statement.DescribeAsync().ConfigureAwait(false));
-                var t3 = t2.ContinueWith(async (antecedent) => await _statement.BindAsync().ConfigureAwait(false));
-                var t4 = t3.ContinueWith(async (antecedent) => await _statement.ExecuteAsync().ConfigureAwait(false));
-                    
-                Task.WaitAll(t1, t2, t3, t4);
-
-                // Allow the DataReader to process more refcursors
-                hasMoreResults = true;
+                return false;
             }
+            
+            string sql = $"fetch all in \"{_refCursors.Dequeue()}\"";
 
-            return hasMoreResults;
+            // Reset position
+            _position = STARTPOS;
+
+            // Close the active statement
+            await _statement.CloseAsync().ConfigureAwait(false);
+
+            // Create a new statement to fetch the current refcursor
+            string statementName = Guid.NewGuid().ToString();
+
+            _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
+
+            await _statement.ParseAsync().ConfigureAwait(false);
+            await _statement.DescribeAsync().ConfigureAwait(false);
+            await _statement.BindAsync().ConfigureAwait(false);
+            await _statement.ExecuteAsync().ConfigureAwait(false);
+                
+            return true;
         }
 
         public override bool Read()
+        {
+            return Task.Run<bool>(async () => { return await ReadAsync().ConfigureAwait(false); }).Result;
+        }
+        
+        public new async Task<bool> ReadAsync()
         {
             bool read = false;
 
@@ -122,9 +127,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _position++;
 
-                _row = Task.Run<object[]>(async () => {
-                    return await _statement.FetchRowAsync().ConfigureAwait(false);   
-                }).Result;
+                _row = await _statement.FetchRowAsync().ConfigureAwait(false);   
                 
                 read = (_row != null);
             }
@@ -133,7 +136,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new PgException(ex);
             }
 
-            return read;
+            return read;            
         }
 
         public override int FieldCount

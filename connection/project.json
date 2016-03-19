@@ -3,17 +3,18 @@
     "compilationOptions": {
         "emitEntryPoint": true,
         "allowUnsafe": false,
-        "warningsAsErrors" : false       
-    },
-    "dependencies": {
-	"NETStandard.Library": "1.5.0-rc3-*",
-        "pgsqlclient": {
-            "target"  : "project"            
-        }
+        "warningsAsErrors" : false,
+        "languageVersion": "csharp6",
+        "debugType": "portable"               
     },
     "frameworks": {
-        "netstandardapp1.5": {
-            "imports": "dnxcore50"
+        "netstandard15":{
+            "dependecies":{
+                "NETStandard.Library": "1.5.0-rc3-*",
+                "pgsqlclient": {
+                    "target"  : "project"            
+                }
+            }
         }
     },
     "configurations": {

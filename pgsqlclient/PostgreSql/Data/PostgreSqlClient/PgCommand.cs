@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PostgreSql.Data.PostgreSqlClient
@@ -222,35 +223,86 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override int ExecuteNonQuery()
         {
-            CheckCommand();
+            return Task.Run<int>(async () => {
+                return await ExecuteNonQueryAsync().ConfigureAwait(false);
+            }).Result;
+        }
 
-            var t1 = Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false));
-            var t2 = Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false));
+        public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return await TaskHelpers.FromCancellation<int>(cancellationToken);
+            }
             
-            Task.WaitAll(t1, t2);
+            CheckCommand();
+            
+            CancellationTokenRegistration registration = new CancellationTokenRegistration();
+            if (cancellationToken.CanBeCanceled)
+            {
+                //registration = cancellationToken.Register(s => ((DbCommand)s).CancelIgnoreFailure(), this);
+            }
 
-            InternalSetOutputParameters();
+            try
+            {
+                await InternalPrepareAsync().ConfigureAwait(false);
+                await InternalExecuteAsync().ConfigureAwait(false);
+                
+                InternalSetOutputParameters();
 
-            return _statement.RecordsAffected;
+                return _statement.RecordsAffected;            
+            }
+            catch (Exception e)
+            {
+                return await TaskHelpers.FromException<int>(e);
+            }
+            finally
+            {
+                registration.Dispose();
+            }                        
+        }
+
+        public new PgDataReader ExecuteReader(CommandBehavior behavior)
+        {
+            var t = Task.Run<PgDataReader>(async () => { return await InternalExecuteReaderAsync(behavior).ConfigureAwait(false); });
+            
+            return t.Result;
+        }
+        
+        public new Task<PgDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+        {
+            return InternalExecuteReaderAsync(behavior);
         }
 
         public override object ExecuteScalar()
         {
+            var t = Task.Run<object>(async () => { return await ExecuteScalarAsync().ConfigureAwait(false); });
+            
+            return t.Result;
+        }
+        
+        public override async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+        {
             CheckCommand();
 
-            var t1 = Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false));
-            var t2 = Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false));
+            await InternalPrepareAsync().ConfigureAwait(false);
+            await InternalExecuteAsync().ConfigureAwait(false);
             
-            Task.WaitAll(t1, t2);
-
-            return _statement.ExecuteScalarAsync();
+            return await _statement.ExecuteScalarAsync().ConfigureAwait(false);            
         }
 
         public override void Prepare()
         {
+            Task t = Task.Run(async () => await PrepareAsync().ConfigureAwait(false));
+            
+            t.Wait();
+        }
+
+        public Task PrepareAsync()
+        {
             CheckCommand();
 
-            Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false)).Wait();
+            return InternalPrepareAsync();
         }
 
         protected override void Dispose(bool disposing)
@@ -289,22 +341,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
-            CheckCommand();
-
-            _commandBehavior = behavior;
-
-            Task.Run(async () => await InternalPrepareAsync().ConfigureAwait(false)).Wait();
-
-            if ((_commandBehavior & CommandBehavior.Default)          == CommandBehavior.Default
-             || (_commandBehavior & CommandBehavior.SequentialAccess) == CommandBehavior.SequentialAccess
-             || (_commandBehavior & CommandBehavior.SingleResult)     == CommandBehavior.SingleResult
-             || (_commandBehavior & CommandBehavior.SingleRow)        == CommandBehavior.SingleRow
-             || (_commandBehavior & CommandBehavior.CloseConnection)  == CommandBehavior.CloseConnection)
-            {
-                Task.Run(async () => await InternalExecuteAsync().ConfigureAwait(false)).Wait();
-            }
-
-            return _activeDataReader = new PgDataReader(_connection, this);
+            return ExecuteReader();
         }
 
         internal async Task InternalPrepareAsync()
@@ -348,6 +385,26 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw new PgException(ex);
             }
+        }
+
+        private async Task<PgDataReader> InternalExecuteReaderAsync(CommandBehavior behavior)
+        {
+            CheckCommand();
+
+            _commandBehavior = behavior;
+
+            await InternalPrepareAsync().ConfigureAwait(false);
+
+            if ((_commandBehavior & CommandBehavior.Default)          == CommandBehavior.Default
+             || (_commandBehavior & CommandBehavior.SequentialAccess) == CommandBehavior.SequentialAccess
+             || (_commandBehavior & CommandBehavior.SingleResult)     == CommandBehavior.SingleResult
+             || (_commandBehavior & CommandBehavior.SingleRow)        == CommandBehavior.SingleRow
+             || (_commandBehavior & CommandBehavior.CloseConnection)  == CommandBehavior.CloseConnection)
+            {
+                await InternalExecuteAsync().ConfigureAwait(false);
+            }
+
+            return _activeDataReader = new PgDataReader(_connection, this);
         }
 
         internal async Task InternalExecuteAsync()
