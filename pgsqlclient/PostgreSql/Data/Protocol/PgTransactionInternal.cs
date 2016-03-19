@@ -39,7 +39,7 @@ namespace PostgreSql.Data.Protocol
                     break;
             }
 
-            using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
+            using (var stmt = _database.CreateStatement(sql))
             {
                 stmt.Query();
 

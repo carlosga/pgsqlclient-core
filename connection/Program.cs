@@ -14,7 +14,7 @@ namespace ConsoleApplication
             csb.DataSource      = "localhost";
             csb.InitialCatalog  = "chronos";
             csb.UserID          = "chronos";
-            csb.Password        = "::pelanas.2016::";
+            csb.Password        = "chronos@2";
             csb.PortNumber      = 5432;
             csb.Ssl             = false;
             csb.Pooling         = false;

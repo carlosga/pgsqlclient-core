@@ -289,7 +289,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
-            return ExecuteReader();
+            return InternalExecuteReader(behavior);
         }
 
         internal void InternalPrepare()

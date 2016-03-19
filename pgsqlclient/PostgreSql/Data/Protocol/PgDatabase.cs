@@ -248,6 +248,17 @@ namespace PostgreSql.Data.Protocol
                         break;
                 }
             }
+            else if (packet.Message == PgBackendCodes.ERROR_RESPONSE)
+            {
+                // Read the error message and trow the exception
+                var ex = HandleErrorMessage(packet);
+
+                // Perform a sync
+                Sync();
+
+                // Throw the PostgreSQL exception
+                throw ex;
+            }
             
             return packet;
         }
@@ -266,16 +277,6 @@ namespace PostgreSql.Data.Protocol
                     _handle    = packet.ReadInt32();
                     _secretKey = packet.ReadInt32();
                     break;
-
-                case PgBackendCodes.ERROR_RESPONSE:
-                    // Read the error message and trow the exception
-                    var ex = HandleErrorMessage(packet);
-
-                    // Perform a sync
-                    Sync();
-
-                    // Throw the PostgreSQL exception
-                    throw ex;
 
                 case PgBackendCodes.NOTICE_RESPONSE:
                     // Read the notice message and raise an InfoMessage event
@@ -303,7 +304,7 @@ namespace PostgreSql.Data.Protocol
                 case PgCodes.AUTH_OK:
                     // Authentication successful
                     _authenticated = true;
-                    break;
+                    return;
 
                 case PgCodes.AUTH_CLEARTEXT_PASSWORD:
                     authPacket.WriteNullString(_connectionOptions.Password);
@@ -313,8 +314,8 @@ namespace PostgreSql.Data.Protocol
                     // First read salt to use when encrypting the password
                     var salt = packet.ReadBytes(4);
                     var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
-                    authPacket.WriteNullString(hash);
-                    break;
+                    authPacket.WriteNullString(hash);             
+                   break;
 
                 default:
                     throw new NotSupportedException();
@@ -348,7 +349,7 @@ namespace PostgreSql.Data.Protocol
             }
             
             // Send the packet to the server
-            _stream.WritePacket(PgFrontEndCodes.PASSWORD_MESSAGE, authPacket);
+            _stream.WritePacket(PgFrontEndCodes.PASSWORD_MESSAGE, authPacket);            
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)

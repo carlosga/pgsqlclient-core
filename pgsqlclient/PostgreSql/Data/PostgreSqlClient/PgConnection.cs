@@ -108,14 +108,10 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            if (transactionName == null)
-            {
-                throw new ArgumentException("No transaction name was be specified.");
-            }
-            else if (transactionName.Length == 0)
-            {
-                throw new ArgumentException("No transaction name was be specified.");
-            }
+            // if (String.IsNullOrEmpty(transactionName))
+            // {
+            //     throw new ArgumentException("No transaction name was be specified.");
+            // }
             
             if (IsClosed)
             {

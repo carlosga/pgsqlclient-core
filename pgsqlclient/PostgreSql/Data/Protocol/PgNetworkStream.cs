@@ -33,7 +33,7 @@ namespace PostgreSql.Data.Protocol
         private NetworkStream _networkStream;
         private SslStream     _secureStream;
         private Stream        _stream;
-        private byte[]        _buffer;        
+        private byte[]        _buffer;
 
         private SemaphoreSlim _asyncActiveSemaphore;
 
@@ -43,7 +43,7 @@ namespace PostgreSql.Data.Protocol
             // WaitHandle, we don't need to worry about Disposing it.
             return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
         }
-                
+
         internal PgNetworkStream()
         {
             _buffer = new byte[8];
@@ -53,7 +53,7 @@ namespace PostgreSql.Data.Protocol
         {
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             sem.Wait();
-                        
+
             try
             {
                 Connect(host, portNumber);
@@ -76,7 +76,7 @@ namespace PostgreSql.Data.Protocol
             catch (Exception)
             {
                 Detach();
-                
+
                 throw;
             }
             finally
@@ -86,7 +86,7 @@ namespace PostgreSql.Data.Protocol
         }
 
         #region IDisposable Support
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void Dispose(bool disposing)
@@ -106,8 +106,8 @@ namespace PostgreSql.Data.Protocol
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgNetworkStream() 
-        // {              
+        // ~PgNetworkStream()
+        // {
         //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
         //     Dispose(false);
         // }
@@ -123,11 +123,11 @@ namespace PostgreSql.Data.Protocol
         #endregion
 
         internal void Close()
-        {            
+        {
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             sem.Wait();
 
-            try 
+            try
             {
                 // Notify the server that we are closing the connection.
                 WritePacket(PgFrontEndCodes.TERMINATE);
@@ -142,23 +142,23 @@ namespace PostgreSql.Data.Protocol
         }
 
         internal PgInputPacket ReadPacket(PgServerConfig serverConfig)
-        {            
+        {
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             sem.Wait();
 
             try
             {
                 char type = (char)_stream.ReadByte();
-                
+
                 if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
                 {
                     return null;
                 }
-                
+
                 int    received = 0;
                 int    length   = ReadInt32() - 4;
                 byte[] buffer   = new byte[length];
-                
+
                 while (received < length)
                 {
                     received +=  _stream.Read(buffer, received, length - received);
@@ -169,7 +169,7 @@ namespace PostgreSql.Data.Protocol
             finally
             {
                 sem.Release();
-            }            
+            }
         }
 
         internal void WritePacket(char type)
@@ -194,7 +194,7 @@ namespace PostgreSql.Data.Protocol
                     // Write packet Type
                     _stream.WriteByte((byte)type);
                 }
-                                
+
                 // Write packet length
                 Write(((buffer == null) ? 4 : buffer.Length + 4));
 
@@ -235,7 +235,7 @@ namespace PostgreSql.Data.Protocol
             var remoteAddress = Task.Run<IPAddress>(async () => {
                 return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
             });
-            
+
             var remoteEP = new IPEndPoint(remoteAddress.Result, portNumber);
 
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -250,7 +250,7 @@ namespace PostgreSql.Data.Protocol
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
             _socket.Connect(remoteEP);
-           
+
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }
@@ -268,12 +268,12 @@ namespace PostgreSql.Data.Protocol
                                                 , UserCertificateValidationCallback
                                                 , UserCertificateSelectionCallback);
 
-                    _secureStream.AuthenticateAsClientAsync(host);                    
+                    _secureStream.AuthenticateAsClientAsync(host);
 
                     return true;
                 }
                 catch
-                {                    
+                {
                 }
             }
 
