@@ -5,12 +5,11 @@
     "compilationOptions": {
         "emitEntryPoint": false,
         "allowUnsafe": false,
-        "warningsAsErrors" : false,
-        "languageVersion": "csharp6",
-        "debugType": "portable"
+        "warningsAsErrors" : false
     },
     "frameworks": {
         "netstandard15":{
+            "imports" : "dnxcore50",
             "dependencies":{
                 "NETStandard.Library": "1.5.0-rc3-*",  
                 "Microsoft.Win32.Primitives": "4.0.1-rc3-*",

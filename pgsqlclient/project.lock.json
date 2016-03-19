@@ -13,9 +13,25 @@
         }
       },
       "Microsoft.NETCore.Runtime/1.0.2-rc3-23918": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc3-23918",
+          "Microsoft.NETCore.Runtime.Native": "1.0.2-rc3-23918"
+        }
+      },
+      "Microsoft.NETCore.Runtime.CoreCLR/1.0.2-rc3-23918": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.NETCore.Windows.ApiSets": "1.0.1-rc3-23918"
+        }
+      },
+      "Microsoft.NETCore.Runtime.Native/1.0.2-rc3-23918": {
         "type": "package"
       },
       "Microsoft.NETCore.Targets/1.0.1-rc3-23918": {
+        "type": "package"
+      },
+      "Microsoft.NETCore.Windows.ApiSets/1.0.1-rc3-23918": {
         "type": "package"
       },
       "Microsoft.Win32.Primitives/4.0.1-rc3-23918": {
@@ -1162,12 +1178,44 @@
         "dotnet_library_license.txt"
       ]
     },
+    "Microsoft.NETCore.Runtime.CoreCLR/1.0.2-rc3-23918": {
+      "sha512": "h6cpYSh1/MIwV2DszSyvIe0Uzsfzv87/wu86SgVQ5XpwAihxIkmppWqy44JwWjuI1INiIETmH2DuKJtwceuJFQ==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Runtime.CoreCLR.1.0.2-rc3-23918.nupkg.sha512",
+        "Microsoft.NETCore.Runtime.CoreCLR.nuspec",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.Runtime.Native/1.0.2-rc3-23918": {
+      "sha512": "b8JmzP8OmbcPHp2fCePF9h+TrJEnTH4T583ACwgNUTAGYqZcWHxsuOBfxr7M4TzGvpbqnHqTo3jtHIVKgoe+MQ==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Runtime.Native.1.0.2-rc3-23918.nupkg.sha512",
+        "Microsoft.NETCore.Runtime.Native.nuspec",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt"
+      ]
+    },
     "Microsoft.NETCore.Targets/1.0.1-rc3-23918": {
       "sha512": "s6mKxui9RkGBcqI7HILYDwS2WXYyDpW2bbPFZpO5Z2n3adaDQr6vCVqkjxa7aHbwXgxUtQ46NHzDHBR8RCa0lw==",
       "type": "package",
       "files": [
         "Microsoft.NETCore.Targets.1.0.1-rc3-23918.nupkg.sha512",
         "Microsoft.NETCore.Targets.nuspec",
+        "ThirdPartyNotices.txt",
+        "dotnet_library_license.txt",
+        "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.Windows.ApiSets/1.0.1-rc3-23918": {
+      "sha512": "MVG7n9ZKRBRvaDDCf3CcmX3o/s6fiXWEfsAhPGqHXQK44YbitkqxRteUbmLSTmKjunby7O6K4sloCqR0HIi3Og==",
+      "type": "package",
+      "files": [
+        "Microsoft.NETCore.Windows.ApiSets.1.0.1-rc3-23918.nupkg.sha512",
+        "Microsoft.NETCore.Windows.ApiSets.nuspec",
         "ThirdPartyNotices.txt",
         "dotnet_library_license.txt",
         "runtime.json"
