@@ -9,7 +9,7 @@
     },
     "frameworks": {
         "netstandard15":{
-            "dependecies":{
+            "dependencies":{
                 "NETStandard.Library": "1.5.0-rc3-*",
                 "pgsqlclient": {
                     "target"  : "project"            
