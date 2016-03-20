@@ -542,7 +542,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return 0;
             }
 
-            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier >> 16);
+            return (_command.Statement.RowDescriptor[i].TypeModifier >> 16);
         }
 
         private int GetNumericScale(int i)
