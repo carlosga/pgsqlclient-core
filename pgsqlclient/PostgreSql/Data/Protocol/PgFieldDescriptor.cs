@@ -53,6 +53,32 @@ namespace PostgreSql.Data.Protocol
         {
             get { return _type; }
         }
+        
+        internal int NumericPrecision
+        {
+            get
+            {
+                if (!_type.IsNumeric)
+                {
+                    return 0;
+                }
+
+                return (_typeModifier >> 16);
+            }
+        }
+
+        internal int NumericScale
+        {
+            get
+            {
+                if (!_type.IsNumeric)
+                {
+                    return 0;
+                }
+
+                return ((ushort)_typeModifier - 4);
+            }
+        }        
 
         internal PgFieldDescriptor(string       name
                                  , int          tableOid

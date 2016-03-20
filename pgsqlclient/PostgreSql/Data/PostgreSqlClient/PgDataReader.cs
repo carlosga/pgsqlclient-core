@@ -535,26 +535,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             return (PgDbType)_command.Statement.RowDescriptor[i].Type.DataType;
         }
 
-        private int GetNumericPrecision(int i)
-        {
-            if (!IsNumeric(i))
-            {
-                return 0;
-            }
-
-            return (_command.Statement.RowDescriptor[i].TypeModifier >> 16);
-        }
-
-        private int GetNumericScale(int i)
-        {
-            if (!IsNumeric(i))
-            {
-                return 0;
-            }
-
-            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier - 4);
-        }
-
         private bool IsNumeric(int i)
         {
             CheckIndex(i);
