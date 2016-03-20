@@ -180,19 +180,19 @@ namespace PostgreSql.Data.Protocol
             WritePacket(type, s_buffer);
         }
 
-        internal void WritePacket(char type, PgOutputPacket packet)
+        internal void WritePacket(PgOutputPacket packet)
         {
-            WritePacket(type, packet.ToArray());
+            WritePacket(packet.PacketType, packet.ToArray());
         }
 
-        internal void WritePacket(char type, byte[] buffer)
+        private void WritePacket(char type, byte[] buffer)
         {
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             sem.Wait();
 
             try
             {
-                if (type != ' ')
+                if (type != PgFrontEndCodes.UNTYPED)
                 {
                     // Write packet Type
                     _stream.WriteByte((byte)type);

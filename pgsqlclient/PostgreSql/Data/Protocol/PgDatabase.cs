@@ -213,7 +213,7 @@ namespace PostgreSql.Data.Protocol
 
         internal void CancelRequest()
         {
-            var packet = CreateOutputPacket();
+            var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
            
             packet.Write(16);
             packet.Write(PgCodes.CANCEL_REQUEST);
@@ -221,10 +221,10 @@ namespace PostgreSql.Data.Protocol
             packet.Write(_secretKey);
 
             // Send packet to the server
-            _stream.WritePacket(' ', packet);
+            _stream.WritePacket(packet);
         }
         
-        internal PgOutputPacket CreateOutputPacket() => new PgOutputPacket(_serverConfiguration);
+        internal PgOutputPacket CreateOutputPacket(char type) => new PgOutputPacket(type, _serverConfiguration);
         
         internal PgInputPacket Read()
         {
@@ -263,7 +263,7 @@ namespace PostgreSql.Data.Protocol
             return packet;
         }
        
-        internal void Send(char messageType, PgOutputPacket packet) => _stream.WritePacket(messageType, packet);
+        internal void Send(PgOutputPacket packet) => _stream.WritePacket(packet);
 
         private void HandlePacket(PgInputPacket packet)
         {
@@ -297,7 +297,7 @@ namespace PostgreSql.Data.Protocol
         {
             // Authentication response
             int authType   = packet.ReadInt32();
-            var authPacket = CreateOutputPacket();
+            var authPacket = CreateOutputPacket(PgFrontEndCodes.PASSWORD_MESSAGE);
 
             switch (authType)
             {
@@ -349,7 +349,7 @@ namespace PostgreSql.Data.Protocol
             }
             
             // Send the packet to the server
-            _stream.WritePacket(PgFrontEndCodes.PASSWORD_MESSAGE, authPacket);            
+            _stream.WritePacket(authPacket);            
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)
@@ -422,7 +422,7 @@ namespace PostgreSql.Data.Protocol
         private void SendStartupPacket()
         {
             // Send Startup message
-            var packet = CreateOutputPacket();
+            var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
 
             packet.Write(PgCodes.PROTOCOL_VERSION3);
             packet.WriteNullString("user");
@@ -468,7 +468,7 @@ namespace PostgreSql.Data.Protocol
             // Terminator
             packet.WriteByte(0);
 
-            _stream.WritePacket(' ', packet);
+            _stream.WritePacket(packet);
         }
 
         private void HandleParameterStatus(PgInputPacket packet)

@@ -17,5 +17,6 @@ namespace PostgreSql.Data.Protocol
         internal const char QUERY            = 'Q';
         internal const char SYNC             = 'S';
         internal const char TERMINATE        = 'X';
+        internal const char UNTYPED          = ' ';
     }
 }

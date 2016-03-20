@@ -151,14 +151,14 @@ namespace PostgreSql.Data.Protocol
                 _rowDescriptor.Clear();
                 _parameters.Clear();
 
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.PARSE);
 
                 packet.WriteNullString(_parseName);
                 packet.WriteNullString(_stmtText);
                 packet.Write((short)0);
                 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.PARSE, packet);
+                _database.Send(packet);
 
                 // Update status
                 _status = PgStatementStatus.Parsed;
@@ -190,7 +190,7 @@ namespace PostgreSql.Data.Protocol
                 // Clear row data
                 ClearRows();
 
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.BIND);
 
                 // Destination portal name
                 packet.WriteNullString(_portalName);
@@ -220,7 +220,7 @@ namespace PostgreSql.Data.Protocol
                 }
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.BIND, packet);
+                _database.Send(packet);
 
                 // Update status
                 _status = PgStatementStatus.Binded;
@@ -241,13 +241,13 @@ namespace PostgreSql.Data.Protocol
                 // Update status
                 _status = PgStatementStatus.Executing;
 
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
 
                 packet.WriteNullString(_portalName);
                 packet.Write(_fetchSize);	// Rows to retrieve ( 0 = nolimit )
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.EXECUTE, packet);
+                _database.Send(packet);
 
                 // Flush pending messages
                 _database.Flush();
@@ -265,14 +265,14 @@ namespace PostgreSql.Data.Protocol
 
                 // If the command is finished and has returned rows
                 // set all rows are received
-                if ((response.IsReadyForQuery || response.IsCommandComplete) && HasRows)
+                if ((response.IsReadyForQuery || response.IsCommandComplete) && _hasRows)
                 {
                     _allRowsFetched = true;
                 }
 
                 // If all rows are received or the command doesn't return
                 // rows perform a Sync.
-                if (!HasRows || _allRowsFetched)
+                if (!_hasRows || _allRowsFetched)
                 {
                     _database.Sync();
                 }
@@ -294,7 +294,7 @@ namespace PostgreSql.Data.Protocol
                 // Update status
                 _status = PgStatementStatus.Executing;
 
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.FUNCTION_CALL);
 
                 // Function id
                 packet.Write(id);
@@ -319,7 +319,7 @@ namespace PostgreSql.Data.Protocol
                 packet.Write(PgCodes.BINARY_FORMAT);
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.FUNCTION_CALL, packet);
+                _database.Send(packet);
 
                 // Receive response
                 PgInputPacket response = null;
@@ -368,12 +368,12 @@ namespace PostgreSql.Data.Protocol
                 // Update Status
                 _status = PgStatementStatus.OnQuery;
 
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.QUERY);
 
                 packet.WriteNullString(_stmtText);
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.QUERY, packet);
+                _database.Send(packet);
 
                 // Set fetch size
                 _fetchSize = 1;
@@ -450,7 +450,7 @@ namespace PostgreSql.Data.Protocol
             {
                 stmt.Query();
 
-                while (stmt.HasRows)
+                while (stmt._hasRows)
                 {
                     object[] row = stmt.FetchRow();
 
@@ -465,7 +465,7 @@ namespace PostgreSql.Data.Protocol
         {
             _rows.Clear();
 
-            _hasRows = false;
+            _hasRows        = false;
             _allRowsFetched = false;
         }
 
@@ -477,13 +477,13 @@ namespace PostgreSql.Data.Protocol
                 _status = PgStatementStatus.Describing;
 
                 var name   = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.DESCRIBE);
 
                 packet.Write(stmtType);
                 packet.WriteNullString(name);
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.DESCRIBE, packet);
+                _database.Send(packet);
 
                 // Flush pending messages
                 _database.Flush();
@@ -524,7 +524,7 @@ namespace PostgreSql.Data.Protocol
                 {
                     stmt.Query();
 
-                    if (!stmt.HasRows)
+                    if (!stmt._hasRows)
                     {
                         throw new PgClientException("Unsupported data type");
                     }
@@ -549,13 +549,13 @@ namespace PostgreSql.Data.Protocol
             try
             {
                 var name   = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _database.CreateOutputPacket();
+                var packet = _database.CreateOutputPacket(PgFrontEndCodes.CLOSE);
 
                 packet.Write(stmtType);
                 packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
 
                 // Send packet to the server
-                _database.Send(PgFrontEndCodes.CLOSE, packet);
+                _database.Send(packet);
 
                 // Sync server and client
                 _database.Flush();
@@ -625,11 +625,9 @@ namespace PostgreSql.Data.Protocol
 
         private void ProcessTag(PgInputPacket packet)
         {
-            string[] elements = null;
-
             _tag = packet.ReadNullString();
-
-            elements = _tag.Split(' ');
+            
+            string[] elements = _tag.Split(' ');
 
             switch (elements[0])
             {
@@ -671,9 +669,8 @@ namespace PostgreSql.Data.Protocol
                 var typeModifier = packet.ReadInt32();
                 var format       = (PgTypeFormat)packet.ReadInt16();
                 var type         = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
-                var descriptor   = new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, type);
 
-                _rowDescriptor.Add(descriptor);
+                _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, type));
             }
         }
 
