@@ -12,6 +12,21 @@ namespace PostgreSql.Data.Protocol
 {
     internal sealed class PgInputPacket
     {
+        // private static TimeSpan ToTimeSpan(long value)
+        // {
+        //     var time = value;            
+        //     var hour = time / PgCodes.MicrosecondsPerHour;
+        //     time -= (hour) * PgCodes.MicrosecondsPerHour;
+            
+        //     var min = time / PgCodes.MicrosecondsPerMinute;
+        //     time -= (min) * PgCodes.MicrosecondsPerMinute;
+            
+        //     var sec = time / PgCodes.MicrosecondsPerSecond;
+        //     var fsec = time - (sec * PgCodes.MicrosecondsPerSecond);
+
+        //     return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
+        // }
+        
         private readonly char           _message;
         private readonly byte[]         _contents;
         private readonly PgServerConfig _serverConfig;
@@ -228,60 +243,12 @@ namespace PostgreSql.Data.Protocol
                 throw new NotSupportedException("non integer datetimes are no supported.");
             }
             
-            var value = ReadInt64();
-            var days  = 0L;
+            var value = ReadInt64();           
+            var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));          
             
-            tmod(ref value, ref days, PgCodes.MicrosecondsPerDay);
-
-            if (value < 0)
-            {
-                value += PgCodes.MicrosecondsPerDay;
-                days  -= 1;
-            }
-            
-            // Julian day routine does not work for negative Julian days
-            if (days < 0 || days > Int32.MaxValue)
-            {
-                return PgCodes.BASE_DATE;
-            }
-                        
-            var time = ToTimeSpan(value);
-            var date = PgCodes.BASE_DATE.AddDays(days).Add(time);            
-            
-            return TimeZoneInfo.ConvertTime(date, _serverConfig.TimeZoneInfo);
-            
-            // Doing the conversion this way is more direct but losses the milliseconds precision
-            // var  value   = ReadInt64();
-            // long seconds = (long)((value * 0.001) / 1000)
-            //              + PgCodes.SecondsBetweenEpoch;                               
-            // var tm = DateTimeOffset.FromUnixTimeSeconds(seconds);
-            // var tz = TimeZoneInfo.ConvertTime(tm, TimeZoneInfo.Local);
-            
-            // return tz;
-        }
+            return TimeZoneInfo.ConvertTime(dt, _serverConfig.TimeZoneInfo);
+        }        
         
-        private static TimeSpan ToTimeSpan(long value)
-        {
-            var time = value;            
-            var hour = time / PgCodes.MicrosecondsPerHour;
-            time -= (hour) * PgCodes.MicrosecondsPerHour;
-            
-            var min = time / PgCodes.MicrosecondsPerMinute;
-            time -= (min) * PgCodes.MicrosecondsPerMinute;
-            
-            var sec = time / PgCodes.MicrosecondsPerSecond;
-            var fsec = time - (sec * PgCodes.MicrosecondsPerSecond);
-
-            return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
-        }
-        
-        ///https://github.com/postgres/postgres/blob/master/src/backend/utils/adt/timestamp.c
-        private static void tmod(ref long t, ref long q, long u)
-        {
-            (q) = ((t) / (u));
-            if ((q) != 0) (t) -= ((q) * (u));
-        }
-
         internal Array ReadArray(PgType type, int length)
         {
             if (type.Format == PgTypeFormat.Text)

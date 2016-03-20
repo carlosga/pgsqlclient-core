@@ -275,8 +275,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _parameters       = null;
                         _namedParameters  = null;
                         _commandText      = null;
-                        
-                        base.Dispose(disposing);                        
                     }
                 }
 
@@ -443,38 +441,38 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private string BuildStoredProcedureSql(string commandText)
         {
-            if (!commandText.Trim().ToLower().StartsWith("select "))
+            if (commandText.Trim().ToLower().StartsWith("select "))
             {
-                var paramsText = new StringBuilder();
-
-                // Append the stored proc parameter name
-                paramsText.Append(commandText);
-                paramsText.Append("(");
-
-                for (int i = 0; i < _parameters.Count; ++i)
-                {
-                    var parameter = _parameters[i];
-
-                    if (parameter.Direction == ParameterDirection.Input
-                     || parameter.Direction == ParameterDirection.InputOutput)
-                    {
-                        // Append parameter name to parameter list
-                        paramsText.Append(Parameters[i].ParameterName);
-
-                        if (i != Parameters.Count - 1)
-                        {
-                            paramsText.Append(",");
-                        }
-                    }
-                }
-
-                paramsText.Append(")");
-                paramsText.Replace(",)", ")");
-
-                commandText = $"SELECT * FROM {paramsText.ToString()}";
+                return commandText;
             }
 
-            return commandText;
+            var paramsText = new StringBuilder();
+
+            // Append the stored proc parameter name
+            paramsText.Append(commandText);
+            paramsText.Append("(");
+
+            for (int i = 0; i < _parameters.Count; ++i)
+            {
+                var parameter = _parameters[i];
+
+                if (parameter.Direction == ParameterDirection.Input
+                 || parameter.Direction == ParameterDirection.InputOutput)
+                {
+                    // Append parameter name to parameter list
+                    paramsText.Append(Parameters[i].ParameterName);
+
+                    if (i != Parameters.Count - 1)
+                    {
+                        paramsText.Append(",");
+                    }
+                }
+            }
+
+            paramsText.Append(")");
+            paramsText.Replace(",)", ")");
+
+            return $"SELECT * FROM {paramsText.ToString()}";
         }
 
         private string ParseNamedParameters(string sql)

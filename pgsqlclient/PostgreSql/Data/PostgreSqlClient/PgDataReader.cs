@@ -106,11 +106,9 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool Read()
         {
-            bool read = false;
-
             if ((CheckCommandBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_command.Statement.HasRows)
             {
-                return read;
+                return false;
             }
 
             try
@@ -119,14 +117,12 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 _row = _statement.FetchRow();   
                 
-                read = (_row != null);
+                return (_row != null);
             }
             catch (PgClientException ex)
             {
                 throw new PgException(ex);
             }
-
-            return read;            
         }
 
         public override int FieldCount

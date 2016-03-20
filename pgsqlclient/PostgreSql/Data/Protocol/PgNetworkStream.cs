@@ -124,20 +124,23 @@ namespace PostgreSql.Data.Protocol
 
         internal void Close()
         {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            sem.Wait();
-
+            if (_stream == null)
+            {
+                return;
+            }
+            
             try
             {
                 // Notify the server that we are closing the connection.
                 WritePacket(PgFrontEndCodes.TERMINATE);
-
-                // Close socket, network stream, ...
-                Detach();
+            }
+            catch
+            {
             }
             finally
             {
-                sem.Release();
+                // Close socket, network stream, ...
+                Detach();                
             }
         }
 

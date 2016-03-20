@@ -83,7 +83,7 @@ namespace PostgreSql.Data.Protocol
 
         internal PgStatement(PgDatabase db, string parseName, string portalName, string stmtText)
         {
-            _database              = db;
+            _database        = db;
             _status          = PgStatementStatus.Initial;
             _outParameter    = new PgParameter();
             _parameters      = new List<PgParameter>();
@@ -110,8 +110,6 @@ namespace PostgreSql.Data.Protocol
 
         private void Dispose(bool disposing)
         {
-            Console.WriteLine($"Disposing {_stmtText}");
-            
             if (!_disposedValue)
             {
                 if (disposing)
@@ -498,40 +496,8 @@ namespace PostgreSql.Data.Protocol
                     response = _database.Read();
                     HandleSqlMessage(response);                    
                 } while (!response.IsRowDescription && !response.IsNoData);
-                
-#warning TODO : Rewrite
-                // Review if there are some parameter with a domain as a Data Type
-                foreach (PgParameter parameter in _parameters.Where(x => x.DataType == null))
-                {
-                    // It's a non supported data type or a domain data type
-                    var stmt = new PgStatement(_database, $"select typbasetype from pg_type where oid = {parameter.DataTypeOid} and typtype = 'd'");
 
-                    try
-                    {
-                        stmt.Query();
-
-                        if (!stmt.HasRows)
-                        {
-                            throw new PgClientException("Unsupported data type");
-                        }
-
-                        var row         = stmt.FetchRow();
-                        int baseTypeOid = Convert.ToInt32(row[0]);
-                        var dataType    = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == baseTypeOid);
-
-                        if (dataType == null)
-                        {
-                            throw new PgClientException("Unsupported data type");
-                        }
-
-                        // Try to add the data type to the list of supported data types
-                        parameter.DataType = dataType;
-                    }
-                    catch
-                    {
-                        throw new PgClientException("Unsupported data type");
-                    }
-                }
+                DescribeParameters();                
 
                 // Update status
                 _status = PgStatementStatus.Described;
@@ -543,6 +509,39 @@ namespace PostgreSql.Data.Protocol
                 // Throw exception
                 throw;
             }
+        }
+        
+        private void DescribeParameters()
+        {
+#warning TODO : Rewrite
+            // Review if there are some parameter with a domain as a Data Type
+            foreach (PgParameter parameter in _parameters.Where(x => x.DataType == null))
+            {
+                string sql = $"select typbasetype from pg_type where oid = {parameter.DataTypeOid} and typtype = 'd'";
+                
+                // It's a non supported data type or a domain data type
+                using (var stmt = new PgStatement(_database, sql))
+                {
+                    stmt.Query();
+
+                    if (!stmt.HasRows)
+                    {
+                        throw new PgClientException("Unsupported data type");
+                    }
+
+                    var row         = stmt.FetchRow();
+                    int baseTypeOid = Convert.ToInt32(row[0]);
+                    var dataType    = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == baseTypeOid);
+
+                    if (dataType == null)
+                    {
+                        throw new PgClientException("Unsupported data type");
+                    }
+
+                    // Try to add the data type to the list of supported data types
+                    parameter.DataType = dataType;
+                }
+            }            
         }
 
         private void Close(char stmtType)

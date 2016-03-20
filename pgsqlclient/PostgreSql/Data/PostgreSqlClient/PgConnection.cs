@@ -208,21 +208,19 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (!_disposed)
             {
-                try
+                if (disposing)
                 {
-                    if (disposing)
+                    try
                     {
                         // release any managed resources
                         Close();
                     }
-
-                    // release any unmanaged resources
-                }
-                finally
-                {
-                    base.Dispose(disposing);
+                    finally
+                    {
+                    }
                 }
 
+                // release any unmanaged resources
                 _disposed = true;
             }
         }

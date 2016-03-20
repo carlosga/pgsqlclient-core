@@ -107,7 +107,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     finally
                     {
                         _connection       = null;
-                        _innerTransaction = null;
+                        _innerTransaction = null; 
                         _disposed         = true;
                     }
                 }
@@ -117,8 +117,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private void CheckTransaction()
         {
             if (_connection?.InnerConnection != null
-             && _connection.InnerConnection.HasActiveTransaction
-             && _connection.InnerConnection.ActiveTransaction == this)
+             && !_connection.InnerConnection.HasActiveTransaction)
             {
                 throw new InvalidOperationException("This Transaction has completed; it is no longer usable.");
             }

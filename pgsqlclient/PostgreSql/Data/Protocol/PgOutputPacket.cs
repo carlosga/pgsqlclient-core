@@ -99,16 +99,8 @@ namespace PostgreSql.Data.Protocol
 
         internal void Write(long value)
         {
-            _buffer[0] = (byte)(value >> 56);
-            _buffer[1] = (byte)(value >> 48);
-            _buffer[2] = (byte)(value >> 40);
-            _buffer[3] = (byte)(value >> 32);
-            _buffer[4] = (byte)(value >> 24);
-            _buffer[5] = (byte)(value >> 16);
-            _buffer[6] = (byte)(value >> 8);
-            _buffer[7] = (byte)(value);
-
-            _stream.Write(_buffer, 0 , 8);
+            Write((int)(value >> 32));
+            Write((int)(value));
         }
 
         internal void Write(float value)
@@ -133,12 +125,6 @@ namespace PostgreSql.Data.Protocol
 
         internal void WriteInterval(TimeSpan interval)
         {
-            // int months = (interval.Days / 30);
-            // int days   = (interval.Days % 30);
-
-            // Write(interval.Subtract(TimeSpan.FromDays(months * 30)).TotalSeconds);
-            // Write(months);
-
             Write(interval.Subtract(TimeSpan.FromDays(interval.Days)).TotalSeconds);
             Write(interval.Days / 30);
         }
@@ -160,6 +146,7 @@ namespace PostgreSql.Data.Protocol
 
         internal void WriteTimestampWithTZ(DateTime timestamp)
         {
+#warning TODO: Encode as microseconds since epoch
             WriteString(timestamp.ToString("yyyy/MM/dd HH:mm:ss.fff zz"));
         }
 
