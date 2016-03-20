@@ -552,7 +552,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return 0;
             }
 
-            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier);
+            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier - 4);
         }
 
         private bool IsNumeric(int i)
