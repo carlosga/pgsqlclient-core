@@ -5,17 +5,18 @@
         "allowUnsafe": false,
         "warningsAsErrors" : false       
     },
-    "dependencies": {
-        "NETStandard.Library": "1.0.0-rc2-23901",
-        "xunit": "2.1.0",
-        "dotnet-test-xunit": "1.0.0-dev-91790-12",
-        "pgsqlclient": {
-            "target"  : "project"            
-        }
-    },
     "frameworks": {
-        "netstandard1.5": {
-            "imports": "dnxcore50"
+        "netstandardapp1.5": {
+            "imports":  "dotnet56",
+            "dependencies": {                
+                "NETStandard.Library": "1.5.0-rc3-*",
+                "xunit": "2.1.0",
+                "dotnet-test-xunit": "1.0.0-dev-*",
+                "pgsqlclient": {
+                    "target"  : "project",
+                    "version" : "0.0.1"
+                }
+            }            
         }
     },
     "configurations": {

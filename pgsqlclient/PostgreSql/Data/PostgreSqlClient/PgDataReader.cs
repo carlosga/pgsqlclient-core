@@ -537,14 +537,22 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private int GetNumericPrecision(int i)
         {
-#warning "TODO: Implement"
-            return 0;
+            if (!IsNumeric(i))
+            {
+                return 0;
+            }
+
+            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier >> 16);
         }
 
         private int GetNumericScale(int i)
         {
-#warning "TODO: Implement"
-            return 0;
+            if (!IsNumeric(i))
+            {
+                return 0;
+            }
+
+            return ((ushort)_command.Statement.RowDescriptor[i].TypeModifier);
         }
 
         private bool IsNumeric(int i)

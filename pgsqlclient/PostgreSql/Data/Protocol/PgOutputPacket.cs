@@ -20,6 +20,12 @@ namespace PostgreSql.Data.Protocol
         private readonly byte[]         _buffer;
         private readonly MemoryStream   _stream;
         private readonly PgServerConfig _serverConfig;
+        private readonly char           _packetType;
+
+        internal char PacketType
+        {
+            get { return _packetType; }
+        }
 
         internal int Position
         {
@@ -31,9 +37,10 @@ namespace PostgreSql.Data.Protocol
             get { return (int)_stream.Length; }
         }
 
-        internal PgOutputPacket(PgServerConfig serverConfig)
+        internal PgOutputPacket(char packetType, PgServerConfig serverConfig)
         {
             // _stream      = s_memoryStreamManager.GetStream("PgOutputPacket");
+            _packetType   = packetType;
             _stream       = new MemoryStream();
             _buffer       = new byte[8];
             _serverConfig = serverConfig;
@@ -235,10 +242,7 @@ namespace PostgreSql.Data.Protocol
             // Get array element type
             PgType elementType = _serverConfig.DataTypes.Single(x => x.Oid == parameter.DataType.ElementType);
 
-            var packet = new PgOutputPacket(_serverConfig);
-
-            // Reset packet
-            packet.Reset();
+            var packet = new PgOutputPacket(' ', _serverConfig);
 
             // Write the number of dimensions
             packet.Write(array.Rank);
