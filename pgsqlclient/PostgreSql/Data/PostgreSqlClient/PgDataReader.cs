@@ -106,7 +106,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool Read()
         {
-            if ((CheckCommandBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_command.Statement.HasRows)
+            if ((_behavior.HasBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_command.Statement.HasRows)
             {
                 return false;
             }
@@ -457,7 +457,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _command.ActiveDataReader = null;
             }
 
-            if (_connection != null && CheckCommandBehavior(CommandBehavior.CloseConnection))
+            if (_behavior.HasBehavior(CommandBehavior.CloseConnection) && _connection != null)
             {
                 _connection.Close();
             }
@@ -570,11 +570,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _recordsAffected  = ((_recordsAffected == -1) ? 0 : _recordsAffected);
                 _recordsAffected += _command.RecordsAffected;
             }
-        }
-
-        private bool CheckCommandBehavior(CommandBehavior behavior)
-        {
-            return ((behavior & _behavior) == behavior);
         }
     }
 }

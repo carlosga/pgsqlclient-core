@@ -341,11 +341,11 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             InternalPrepare();
 
-            if ((_commandBehavior & CommandBehavior.Default)          == CommandBehavior.Default
-             || (_commandBehavior & CommandBehavior.SequentialAccess) == CommandBehavior.SequentialAccess
-             || (_commandBehavior & CommandBehavior.SingleResult)     == CommandBehavior.SingleResult
-             || (_commandBehavior & CommandBehavior.SingleRow)        == CommandBehavior.SingleRow
-             || (_commandBehavior & CommandBehavior.CloseConnection)  == CommandBehavior.CloseConnection)
+            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
+             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
+             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
             {
                 InternalExecute();
             }
