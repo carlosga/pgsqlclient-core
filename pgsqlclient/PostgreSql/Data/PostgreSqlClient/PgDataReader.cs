@@ -575,8 +575,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return (_command.Statement.RowDescriptor[i].TableOid              == 0
-                  & _command.Statement.RowDescriptor[i].ColumnAttributeNumber == 0);
+            return (_command.Statement.RowDescriptor[i].TableOid == 0
+                  & _command.Statement.RowDescriptor[i].ColumnId == 0);
         }
 
         private void UpdateRecordsAffected()

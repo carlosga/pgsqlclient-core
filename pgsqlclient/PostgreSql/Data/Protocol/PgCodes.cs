@@ -54,8 +54,20 @@ namespace PostgreSql.Data.Protocol
         internal const short BINARY_FORMAT = 1;
 
         // Date & Time codes
-        internal static readonly DateTime BASE_DATE  = new DateTime(2000, 1, 1);
+        internal static readonly DateTime BASE_DATE  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         internal const string             DATE_STYLE = "ISO";
+
+        internal const long MicrosecondsPerDay    = 86400000000L;
+        internal const long MicrosecondsPerHour   = 3600000000L;
+        internal const long MicrosecondsPerMinute = 60000000L;
+        internal const long MicrosecondsPerSecond = 1000000L;  
+        internal const long SecondsPerDay	      = 86400L;
+        
+        // Julian-date equivalents of Day 0 in Unix and Postgres
+        internal const long UnixEpochDate         = 2440588; // 1970, 1, 1        
+        internal const long PostgresEpochDate     = 2451545; // 2000, 1, 1
+        
+        internal const long SecondsBetweenEpoch   = ((PostgresEpochDate - UnixEpochDate) * SecondsPerDay);
 
         // Numeric data type
         internal const int NUMERIC_SIGN_MASK     = 0xC000;

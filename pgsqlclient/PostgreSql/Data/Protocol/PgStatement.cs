@@ -664,15 +664,15 @@ namespace PostgreSql.Data.Protocol
 
             for (int i = 0; i < count; i++)
             {
-                var name            = packet.ReadNullString();
-                var tableOid        = packet.ReadInt32();
-                var columnAttNumber = packet.ReadInt16();
-                var typeOid         = packet.ReadInt32();
-                var typeSize        = packet.ReadInt16();
-                var typeModifier    = packet.ReadInt32();
-                var format          = (PgTypeFormat)packet.ReadInt16();
-                var type            = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
-                var descriptor      = new PgFieldDescriptor(name, tableOid, columnAttNumber, typeOid, typeSize, typeModifier, format, type);
+                var name         = packet.ReadNullString();
+                var tableOid     = packet.ReadInt32();
+                var columnid     = packet.ReadInt16();
+                var typeOid      = packet.ReadInt32();
+                var typeSize     = packet.ReadInt16();
+                var typeModifier = packet.ReadInt32();
+                var format       = (PgTypeFormat)packet.ReadInt16();
+                var type         = _database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
+                var descriptor   = new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, type);
 
                 _rowDescriptor.Add(descriptor);
             }

@@ -7,7 +7,7 @@ namespace PostgreSql.Data.Protocol
     {
         private readonly string       _name;
         private readonly int          _tableOid;
-        private readonly short        _columnAttributeNumber;
+        private readonly short        _columnId;
         private readonly int          _typeOid;
         private readonly short        _typeSize;
         private readonly int          _typeModifier;
@@ -24,9 +24,9 @@ namespace PostgreSql.Data.Protocol
             get { return _tableOid; }
         }
 
-        internal short ColumnAttributeNumber
+        internal short ColumnId
         {
-            get { return _columnAttributeNumber; }
+            get { return _columnId; }
         }
 
         internal int TypeOid
@@ -56,21 +56,21 @@ namespace PostgreSql.Data.Protocol
 
         internal PgFieldDescriptor(string       name
                                  , int          tableOid
-                                 , short        columnAttributeNumber
+                                 , short        columnId
                                  , int          typeOid
                                  , short        typeSize
                                  , int          typeModifier
                                  , PgTypeFormat format
                                  , PgType       type)
         {
-            _name                  = name;
-            _tableOid              = tableOid;
-            _columnAttributeNumber = columnAttributeNumber;
-            _typeOid               = typeOid;
-            _typeSize              = typeSize;
-            _typeModifier          = typeModifier;
-            _format                = format;
-            _type                  = type;
+            _name         = name;
+            _tableOid     = tableOid;
+            _columnId     = columnId;
+            _typeOid      = typeOid;
+            _typeSize     = typeSize;
+            _typeModifier = typeModifier;
+            _format       = format;
+            _type         = type;
         }
     }
 }

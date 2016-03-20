@@ -163,18 +163,10 @@ namespace PostgreSql.Data.Protocol
 
         internal long ReadInt64()
         {
-            long value = (_contents[_position + 7])
-                       | (_contents[_position + 6] <<  8)
-                       | (_contents[_position + 5] << 16)
-                       | (_contents[_position + 4] << 24) 
-                       | (_contents[_position + 3] << 32)
-                       | (_contents[_position + 2] << 40)
-                       | (_contents[_position + 1] << 48)
-                       | (_contents[_position    ] << 56);
+            int v1 = ReadInt32();
+            int v2 = ReadInt32();
  
-            _position += 8;
-
-            return value;
+            return (uint)v2 | ((long)v1 << 32);
         }
 
         internal float ReadSingle()
@@ -216,37 +208,78 @@ namespace PostgreSql.Data.Protocol
 
         internal DateTime ReadTime(int length)
         {
-            // milliseconds since January 1, 1970, 00:00:00 GMT. 
-            // A negative number is the number of milliseconds before January 1, 1970, 00:00:00 GMT.
-
             return DateTime.ParseExact(ReadString(length), PgTypeStringFormats.TimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.None);
         }
 
         internal DateTime ReadTimeWithTZ(int length)
         {
-            // milliseconds since January 1, 1970, 00:00:00 GMT. 
-            // A negative number is the number of milliseconds before January 1, 1970, 00:00:00 GMT.
-            return DateTime.Parse(ReadString(length));
+           return DateTime.Parse(ReadString(length));
         }
 
         internal DateTime ReadTimestamp(int length)
         {
-            // milliseconds since January 1, 1970, 00:00:00 GMT. 
-            // A negative number is the number of milliseconds before January 1, 1970, 00:00:00 GMT.
-
             return DateTime.Parse(ReadString(length));
         }
 
-        internal DateTime ReadTimestampWithTZ(int length)
+        internal DateTimeOffset ReadTimestampWithTZ(int length)
         {
+            if (!_serverConfig.IntegerDateTimes)
+            {
+                throw new NotSupportedException("non integer datetimes are no supported.");
+            }
+            
             var value = ReadInt64();
-                                 
-            // milliseconds since January 1, 1970, 00:00:00 GMT. 
-            // A negative number is the number of milliseconds before January 1, 1970, 00:00:00 GMT.
-                                               
-            System.Console.WriteLine(value);
-                                   
-            return DateTime.Now;
+            var days  = 0L;
+            
+            tmod(ref value, ref days, PgCodes.MicrosecondsPerDay);
+
+            if (value < 0)
+            {
+                value += PgCodes.MicrosecondsPerDay;
+                days  -= 1;
+            }
+            
+            // Julian day routine does not work for negative Julian days
+            if (days < 0 || days > Int32.MaxValue)
+            {
+                return PgCodes.BASE_DATE;
+            }
+                        
+            var time = ToTimeSpan(value);
+            var date = PgCodes.BASE_DATE.AddDays(days).Add(time);            
+            
+            return TimeZoneInfo.ConvertTime(date, _serverConfig.TimeZoneInfo);
+            
+            // Doing the conversion this way is more direct but losses the milliseconds precision
+            // var  value   = ReadInt64();
+            // long seconds = (long)((value * 0.001) / 1000)
+            //              + PgCodes.SecondsBetweenEpoch;                               
+            // var tm = DateTimeOffset.FromUnixTimeSeconds(seconds);
+            // var tz = TimeZoneInfo.ConvertTime(tm, TimeZoneInfo.Local);
+            
+            // return tz;
+        }
+        
+        private static TimeSpan ToTimeSpan(long value)
+        {
+            var time = value;            
+            var hour = time / PgCodes.MicrosecondsPerHour;
+            time -= (hour) * PgCodes.MicrosecondsPerHour;
+            
+            var min = time / PgCodes.MicrosecondsPerMinute;
+            time -= (min) * PgCodes.MicrosecondsPerMinute;
+            
+            var sec = time / PgCodes.MicrosecondsPerSecond;
+            var fsec = time - (sec * PgCodes.MicrosecondsPerSecond);
+
+            return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
+        }
+        
+        ///https://github.com/postgres/postgres/blob/master/src/backend/utils/adt/timestamp.c
+        private static void tmod(ref long t, ref long q, long u)
+        {
+            (q) = ((t) / (u));
+            if ((q) != 0) (t) -= ((q) * (u));
         }
 
         internal Array ReadArray(PgType type, int length)

@@ -16,7 +16,7 @@ namespace PostgreSql.Data.Protocol
         private string           _sessionAuthorization;
         private string           _dateStyle;
         private string           _intervalStyle;
-        private string           _timeZone;
+        private TimeZoneInfo     _timeZoneInfo;
         private bool             _integerDateTimes;
         private string           _standardConformingStrings;
         private PgTypeCollection _dataTypes;
@@ -61,9 +61,9 @@ namespace PostgreSql.Data.Protocol
             get { return _intervalStyle; }
         }
         
-        internal string TimeZone
+        internal TimeZoneInfo TimeZoneInfo
         {
-            get { return _timeZone; }
+            get { return _timeZoneInfo; }
         }
         
         internal bool IntegerDateTimes
@@ -129,8 +129,9 @@ namespace PostgreSql.Data.Protocol
                     _intervalStyle = value;
                     break;
                     
-                case "TimeZone":
-                    _timeZone = value;
+                case "TimeZone":                    
+#warning TODO: Add support for non local time zones
+                    _timeZoneInfo = TimeZoneInfo.Local;
                     break;
                     
                 case "integer_datetimes":
@@ -139,7 +140,7 @@ namespace PostgreSql.Data.Protocol
                     
                 case "standard_conforming_strings":
                     _standardConformingStrings = value;
-                    break;                    
+                    break;
             }
         }
     }
