@@ -57,30 +57,12 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool NextResult()
         {
-            if (_refCursors.Count != 0 && _connection.InnerConnection.HasActiveTransaction)
+            if (_refCursors.Count != 0 /*&& _connection.InnerConnection.HasActiveTransaction*/)
             {
-                return false;
+                return NextResultFromRefCursor();
             }
             
-            string sql = $"fetch all in \"{_refCursors.Dequeue()}\"";
-
-            // Reset position
-            _position = STARTPOS;
-
-            // Close the active statement
-            _statement.Close();
-
-            // Create a new statement to fetch the current refcursor
-            string statementName = Guid.NewGuid().ToString();
-
-            _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
-
-            _statement.Parse();
-            _statement.Describe();
-            _statement.Bind();
-            _statement.Execute();
-                
-            return true;
+            return false;
         }
 
         public override bool Read()
@@ -380,6 +362,29 @@ namespace PostgreSql.Data.PostgreSqlClient
                 // Grab information of the first refcursor
                 NextResult();
             }
+        }
+        
+        private bool NextResultFromRefCursor()
+        {
+            string sql = $"fetch all in \"{_refCursors.Dequeue()}\"";
+
+            // Reset position
+            _position = STARTPOS;
+
+            // Close the active statement
+            _statement.Close();
+
+            // Create a new statement to fetch the current refcursor
+            string statementName = Guid.NewGuid().ToString();
+
+            _statement = _connection.InnerConnection.CreateStatement($"PS{statementName}", $"PR{statementName}", sql);
+
+            _statement.Parse();
+            _statement.Describe();
+            _statement.Bind();
+            _statement.Execute();
+                
+            return true;            
         }
 
         private void CheckIndex(int i)
