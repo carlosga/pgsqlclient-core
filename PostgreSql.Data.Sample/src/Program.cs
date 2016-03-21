@@ -29,7 +29,7 @@ namespace ConsoleApplication
             {
                 conn.Open();
                 string query =
-                    "select \"OrderID\" from orders where \"OrderID\" < @id order by \"OrderID\";"; 
+                    "select orderid from orders where orderid < @id order by orderid;"; 
                 //   + "select * from shippers order by shipperid;" 
                 //   + "select * from shippers order by shipperid;" 
                 //   + "select * from region order by regionid;" 

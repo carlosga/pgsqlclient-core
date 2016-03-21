@@ -1,0 +1,47 @@
+{
+    "version": "0.0.1",
+    "compilationOptions": {
+        "emitEntryPoint": false,
+        "allowUnsafe": false,
+        "warningsAsErrors" : false       
+    },
+    "frameworks": {
+        "netstandardapp1.5": {
+            "imports":  "dotnet5.6",
+            "dependencies": {
+                "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",                
+                "NETStandard.Library": "1.5.0-rc3-*",
+                "xunit": "2.1.0",
+                "xunit.netcore.extensions": "1.0.0-prerelease-00187",
+                "PostgreSql.Data.PostgreSqlClient": {
+                    "target"  : "project",
+                    "version" : "0.0.1"
+                }
+            }            
+        }
+    },
+    "runtimes": {
+        "ubuntu.14.04-x64": { }
+    },        
+    "configurations": {
+        "Debug": {
+            "compilationOptions": {
+                "define": [
+                    "DEBUG",
+                    "TRACE"
+                ]
+            }
+        },
+        "Release": {
+            "compilationOptions": {
+                "define": [
+                    "RELEASE",
+                    "TRACE"
+                ],
+                "optimize": true
+            }
+        }
+    },
+    "compile": "src/**/*.cs",
+    "testRunner": "xunit"
+}

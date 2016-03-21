@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConnectionStrings>
+  <ConnectionString id="Postgresql9_Northwind"></ConnectionString>
+</ConnectionStrings>
