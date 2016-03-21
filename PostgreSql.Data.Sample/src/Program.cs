@@ -13,62 +13,80 @@ namespace ConsoleApplication
             var csb = new PgConnectionStringBuilder();
 
             csb.DataSource      = "localhost";
-            csb.InitialCatalog  = "chronos";
-            csb.UserID          = "chronos";
-            csb.Password        = "chronos@2";
+            csb.InitialCatalog  = "northwind";
+            csb.UserID          = "northwind";
+            csb.Password        = "northwind@2";
             csb.PortNumber      = 5432;
             csb.Ssl             = false;
             csb.Pooling         = false;
-                                   
-            using (var connection = new PgConnection(csb.ToString()))
+
+            // Ported from the Microsoft System.Data.SqlClient test suite.
+            // ---------------------------------------------------------------------
+            // Licensed to the .NET Foundation under one or more agreements.
+            // The .NET Foundation licenses this file to you under the MIT license.
+            // See the LICENSE file in the project root for more information.
+            using (PgConnection conn = new PgConnection(csb.ToString()))
             {
-                connection.Open();
+                conn.Open();
+                string query =
+                    "select \"OrderID\" from orders where \"OrderID\" < @id order by \"OrderID\";"; 
+                //   + "select * from shippers order by shipperid;" 
+                //   + "select * from shippers order by shipperid;" 
+                //   + "select * from region order by regionid;" 
+                //   + "select lastname from employees order by lastname";
 
-                System.Console.WriteLine("Connection open");
-                    
-                using (var transaction = connection.BeginTransaction())
+                // Each array in the expectedResults is a separate query result
+                string[][] expectedResults =
                 {
-                    System.Console.WriteLine("Transaction Started");
-                    
-                    using (var command = new PgCommand("SELECT * FROM accounting.accounting_plan_totals", connection, transaction))
+                    new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
+                    new string[] { "" }, // Empty query result
+                    new string[]
                     {
-                        System.Console.WriteLine("Executing command ");
-                        
-                        int count = 0;
-                        
-                        Stopwatch stopWatch = new Stopwatch();
-                        stopWatch.Start();
-                        
-                        using (var reader = command.ExecuteReader())
+                        "1", "Speedy Express"  , "(503) 555-9831",  // Query Row 1
+                        "2", "United Package"  , "(503) 555-3199",  // Query Row 2
+                        "3", "Federal Shipping", "(503) 555-9931"   // Query Row 3
+                    },
+                    new string[]
+                    {
+                        "1", "Eastern                                           ", // Query Row 1
+                        "2", "Western                                           ", // Query Row 2
+                        "3", "Northern                                          ", // Query Row 3
+                        "4", "Southern                                          "  // Query Row 4
+                    },
+                    new string[] { "Buchanan", "Callahan", "Davolio", "Dodsworth", "Fuller", "King", "Leverling", "Peacock", "Suyama" } // All separate rows
+                };
+
+                using (PgCommand cmd = new PgCommand(query, conn))
+                {
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10255;
+                    using (PgDataReader r1 = cmd.ExecuteReader())
+                    {
+                        int numBatches = 0;
+                        do
                         {
-                            System.Console.WriteLine("Fetching rows");
-                                                                
-                            while (reader.Read())
+                            // Assert.True(numBatches < expectedResults.Length, "ERROR: Received more batches than were expected.");
+                            object[] values = new object[r1.FieldCount];
+                            // Current "column" in expected row is (valuesChecked MOD FieldCount), since 
+                            // expected rows for current batch are appended together for easy formatting
+                            int valuesChecked = 0;
+                            while (r1.Read())
                             {
-                                // for (int i = 0; i < reader.FieldCount; i++)
-                                // {
-                                //     Console.Write(reader.GetValue(i) + "\t");
-                                // }
+                                r1.GetValues(values);
 
-                                // Console.WriteLine();
-                                
-                                count++;
+                                for (int col = 0; col < values.Length; col++, valuesChecked++)
+                                {
+                                    // Assert.True(valuesChecked < expectedResults[numBatches].Length, "ERROR: Received more results for this batch than was expected");
+                                    string expectedVal = expectedResults[numBatches][valuesChecked];
+                                    string actualVal = values[col].ToString();
+
+                                    // DataTestClass.AssertEqualsWithDescription(expectedVal, actualVal, "FAILED: Received a different value than expected.");
+                                }
                             }
-                        }
-                        
-                        stopWatch.Stop();
-                        // Get the elapsed time as a TimeSpan value.
-                        TimeSpan ts = stopWatch.Elapsed;
-
-                        // Format and display the TimeSpan value.
-                        string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                            ts.Hours, ts.Minutes, ts.Seconds,
-                            ts.Milliseconds / 10);
-                        Console.WriteLine("RunTime " + elapsedTime);
-                        Console.WriteLine("RowCount " + count);
+                            numBatches++;
+                        } while (r1.NextResult());
                     }
                 }
-            }            
+            }                                   
         } 
     }
 }

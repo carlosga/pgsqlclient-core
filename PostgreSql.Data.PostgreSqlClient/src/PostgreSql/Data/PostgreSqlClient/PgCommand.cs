@@ -71,6 +71,11 @@ namespace PostgreSql.Data.PostgreSqlClient
             get { return _designTimeVisible; }
             set { _designTimeVisible = value; }
         }
+        
+        public new PgParameterCollection Parameters
+        {
+            get { return _parameters; }
+        }        
 
         public override UpdateRowSource UpdatedRowSource
         {
@@ -206,6 +211,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RecordsAffected;            
         }
 
+        public new PgDataReader ExecuteReader() => InternalExecuteReader(CommandBehavior.Default);
         public new PgDataReader ExecuteReader(CommandBehavior behavior) => InternalExecuteReader(behavior);
         
         public override object ExecuteScalar()
@@ -508,7 +514,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private void SetParameterValues()
         {
-            if (_parameters != null && _parameters.Count > 0)
+            if (_parameters == null && _parameters.Count == 0)
             {
                 return;
             }
