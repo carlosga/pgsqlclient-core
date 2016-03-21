@@ -1,3 +1,5 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -5,7 +7,7 @@
 using System.Threading;
 using System.Runtime.Serialization;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     /// <summary>
     /// Random number generator that tracks information necessary to reproduce a sequence of random numbers. To save the current state, 

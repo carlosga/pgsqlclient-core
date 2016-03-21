@@ -1,10 +1,12 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     public class ParallelTransactionsTest
     {
@@ -23,7 +25,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void BasicParallelTest_shouldThrowsUnsupported(string connectionString)
         {
-            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(SqlConnection).Name);
+            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(PgConnection).Name);
             string tempTableName = "";
             try
             {
@@ -43,22 +45,22 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void BasicParallelTest(string connectionString, string tempTableName)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new PgConnection(connectionString))
             {
                 connection.Open();
-                SqlTransaction trans1 = connection.BeginTransaction();
-                SqlTransaction trans2 = connection.BeginTransaction();
-                SqlTransaction trans3 = connection.BeginTransaction();
+                PgTransaction trans1 = connection.BeginTransaction();
+                PgTransaction trans2 = connection.BeginTransaction();
+                PgTransaction trans3 = connection.BeginTransaction();
 
-                SqlCommand com1 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com1 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
                 com1.Transaction = trans1;
                 com1.ExecuteNonQuery();
 
-                SqlCommand com2 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com2 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
                 com2.Transaction = trans2;
                 com2.ExecuteNonQuery();
 
-                SqlCommand com3 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com3 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
                 com3.Transaction = trans3;
                 com3.ExecuteNonQuery();
 
@@ -89,7 +91,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(string connectionString)
         {
-            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(SqlConnection).Name);
+            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(PgConnection).Name);
             string tempTableName = "";
             try
             {
@@ -109,22 +111,22 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void MultipleExecutesInSameTransactionTest(string connectionString, string tempTableName)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new PgConnection(connectionString))
             {
                 connection.Open();
-                SqlTransaction trans1 = connection.BeginTransaction();
-                SqlTransaction trans2 = connection.BeginTransaction();
-                SqlTransaction trans3 = connection.BeginTransaction();
+                PgTransaction trans1 = connection.BeginTransaction();
+                PgTransaction trans2 = connection.BeginTransaction();
+                PgTransaction trans3 = connection.BeginTransaction();
 
-                SqlCommand com1 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com1 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com1.Transaction = trans1;
                 com1.ExecuteNonQuery();
 
-                SqlCommand com2 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com2 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com2.Transaction = trans2;
                 com2.ExecuteNonQuery();
 
-                SqlCommand com3 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com3 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com3.Transaction = trans3;
                 com3.ExecuteNonQuery();
 
@@ -136,7 +138,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 com2.Dispose();
                 com3.Dispose();
 
-                SqlCommand com4 = new SqlCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com4 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com4.Transaction = trans1;
                 SqlDataReader reader4 = com4.ExecuteReader();
                 reader4.Dispose();
@@ -151,10 +153,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         {
             var uniqueKey = string.Format("{0}_{1}_{2}", Environment.GetEnvironmentVariable("ComputerName"), Environment.TickCount, Guid.NewGuid()).Replace("-", "_");
             var tempTableName = "TEMP_" + uniqueKey;
-            using (var conn = new SqlConnection(connectionString))
+            using (var conn = new PgConnection(connectionString))
             {
                 conn.Open();
-                SqlCommand cmd = new SqlCommand(string.Format("SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {0} from pubs.dbo.authors", tempTableName), conn);
+                PgCommand cmd = new PgCommand(string.Format("SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {0} from pubs.dbo.authors", tempTableName), conn);
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = string.Format("alter table {0} add constraint au_id_{1} primary key (au_id)", tempTableName, uniqueKey);
                 cmd.ExecuteNonQuery();
@@ -165,10 +167,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void DropTempTable(string connectionString, string tempTableName)
         {
-            using (SqlConnection con1 = new SqlConnection(connectionString))
+            using (PgConnection con1 = new PgConnection(connectionString))
             {
                 con1.Open();
-                SqlCommand cmd = new SqlCommand("Drop table " + tempTableName, con1);
+                PgCommand cmd = new PgCommand("Drop table " + tempTableName, con1);
                 cmd.ExecuteNonQuery();
             }
         }

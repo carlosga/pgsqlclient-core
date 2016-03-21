@@ -1,8 +1,10 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     /// <summary>
     /// holds an information used to create a column in SQL Server

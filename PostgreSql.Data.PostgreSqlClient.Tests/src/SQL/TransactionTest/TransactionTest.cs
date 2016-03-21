@@ -1,26 +1,21 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     public class TransactionTest
     {
         [Fact]
-        public void TestYukon()
+        public void TestPostgreSql9()
         {
-            new TransactionTestWorker(DataTestClass.SQL2005_Northwind + ";multipleactiveresultsets=true;").StartTest();
-        }
-
-        [Fact]
-        public void TestKatmai()
-        {
-            new TransactionTestWorker(DataTestClass.SQL2008_Northwind + ";multipleactiveresultsets=true;").StartTest();
+            new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;").StartTest();
         }
     }
-
 
     internal class TransactionTestWorker
     {
@@ -66,10 +61,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void PrepareTables()
         {
-            using (var conn = new SqlConnection(_connectionString))
+            using (var conn = new PgConnection(_connectionString))
             {
                 conn.Open();
-                SqlCommand command = new SqlCommand(string.Format("CREATE TABLE [{0}]([CustomerID] [nchar](5) NOT NULL PRIMARY KEY, [CompanyName] [nvarchar](40) NOT NULL, [ContactName] [nvarchar](30) NULL)", s_tempTableName1), conn);
+                PgCommand command = new PgCommand(string.Format("CREATE TABLE [{0}]([CustomerID] [nchar](5) NOT NULL PRIMARY KEY, [CompanyName] [nvarchar](40) NOT NULL, [ContactName] [nvarchar](30) NULL)", s_tempTableName1), conn);
                 command.ExecuteNonQuery();
                 command.CommandText = "create table " + s_tempTableName2 + "(col1 int, col2 varchar(32))";
                 command.ExecuteNonQuery();
@@ -78,9 +73,9 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void DropTempTables()
         {
-            using (var conn = new SqlConnection(_connectionString))
+            using (var conn = new PgConnection(_connectionString))
             {
-                SqlCommand command = new SqlCommand(
+                PgCommand command = new PgCommand(
                         string.Format("DROP TABLE [{0}]; DROP TABLE [{1}]", s_tempTableName1, s_tempTableName2), conn);
                 conn.Open();
                 command.ExecuteNonQuery();
@@ -89,10 +84,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         public void ResetTables()
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (PgConnection connection = new PgConnection(_connectionString))
             {
                 connection.Open();
-                using (SqlCommand command = new SqlCommand(string.Format("TRUNCATE TABLE [{0}]; TRUNCATE TABLE [{1}]", s_tempTableName1, s_tempTableName2), connection))
+                using (PgCommand command = new PgCommand(string.Format("TRUNCATE TABLE [{0}]; TRUNCATE TABLE [{1}]", s_tempTableName1, s_tempTableName2), connection))
                 {
                     command.ExecuteNonQuery();
                 }
@@ -101,21 +96,21 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void CommitTransactionTest()
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (PgConnection connection = new PgConnection(_connectionString))
             {
-                SqlCommand command = new SqlCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'", connection);
+                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'", connection);
 
                 connection.Open();
 
                 SqlTransaction tx = connection.BeginTransaction();
                 command.Transaction = tx;
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     Assert.False(reader.HasRows, "Error: table is in incorrect state for test.");
                 }
 
-                using (SqlCommand command2 = connection.CreateCommand())
+                using (PgCommand command2 = connection.CreateCommand())
                 {
                     command2.Transaction = tx;
 
@@ -125,7 +120,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
                 tx.Commit();
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     int count = 0;
                     while (reader.Read()) { count++; }
@@ -137,21 +132,21 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void RollbackTransactionTest()
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (PgConnection connection = new PgConnection(_connectionString))
             {
-                SqlCommand command = new SqlCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
                     connection);
                 connection.Open();
 
                 SqlTransaction tx = connection.BeginTransaction();
                 command.Transaction = tx;
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     Assert.False(reader.HasRows, "Error: table is in incorrect state for test.");
                 }
 
-                using (SqlCommand command2 = connection.CreateCommand())
+                using (PgCommand command2 = connection.CreateCommand())
                 {
                     command2.Transaction = tx;
 
@@ -161,7 +156,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
                 tx.Rollback();
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     Assert.False(reader.HasRows, "Error Rollback Test : incorrect number of rows in table after rollback.");
                     int count = 0;
@@ -176,9 +171,9 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void ScopedTransactionTest()
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (PgConnection connection = new PgConnection(_connectionString))
             {
-                SqlCommand command = new SqlCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
                     connection);
 
                 connection.Open();
@@ -186,11 +181,11 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 SqlTransaction tx = connection.BeginTransaction("transName");
                 command.Transaction = tx;
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     Assert.False(reader.HasRows, "Error: table is in incorrect state for test.");
                 }
-                using (SqlCommand command2 = connection.CreateCommand())
+                using (PgCommand command2 = connection.CreateCommand())
                 {
                     command2.Transaction = tx;
 
@@ -200,7 +195,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 tx.Save("saveName");
 
                 //insert another one
-                using (SqlCommand command2 = connection.CreateCommand())
+                using (PgCommand command2 = connection.CreateCommand())
                 {
                     command2.Transaction = tx;
 
@@ -210,7 +205,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
                 tx.Rollback("saveName");
 
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (PgDataReader reader = command.ExecuteReader())
                 {
                     Assert.True(reader.HasRows, "Error Scoped Transaction Test : incorrect number of rows in table after rollback to save state one.");
                     int count = 0;
@@ -227,7 +222,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void ExceptionTest()
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (PgConnection connection = new PgConnection(_connectionString))
             {
                 connection.Open();
 
@@ -236,20 +231,20 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 string invalidSaveStateMessage = SystemDataResourceManager.Instance.SQL_NullEmptyTransactionName;
                 string executeCommandWithoutTransactionMessage = SystemDataResourceManager.Instance.ADP_TransactionRequired("ExecuteNonQuery");
                 string transactionConflictErrorMessage = SystemDataResourceManager.Instance.ADP_TransactionConnectionMismatch;
-                string parallelTransactionErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported("SqlConnection");
+                string parallelTransactionErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported("PgConnection");
 
                 AssertException<InvalidOperationException>(() =>
                 {
-                    SqlCommand command = new SqlCommand("sql", connection);
+                    PgCommand command = new PgCommand("sql", connection);
                     command.ExecuteNonQuery();
                 }, executeCommandWithoutTransactionMessage);
 
                 AssertException<InvalidOperationException>(() =>
                 {
-                    SqlConnection con1 = new SqlConnection(_connectionString);
+                    PgConnection con1 = new PgConnection(_connectionString);
                     con1.Open();
 
-                    SqlCommand command = new SqlCommand("sql", con1);
+                    PgCommand command = new PgCommand("sql", con1);
                     command.Transaction = tx;
                     command.ExecuteNonQuery();
                 }, transactionConflictErrorMessage);
@@ -294,28 +289,28 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void ReadUncommitedIsolationLevel_ShouldReturnUncommitedData()
         {
-            using (SqlConnection connection1 = new SqlConnection(_connectionString))
+            using (PgConnection connection1 = new PgConnection(_connectionString))
             {
                 connection1.Open();
                 SqlTransaction tx1 = connection1.BeginTransaction();
 
-                using (SqlCommand command1 = connection1.CreateCommand())
+                using (PgCommand command1 = connection1.CreateCommand())
                 {
                     command1.Transaction = tx1;
 
                     command1.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command1.ExecuteNonQuery();
                 }
-                using (SqlConnection connection2 = new SqlConnection(_connectionString))
+                using (PgConnection connection2 = new PgConnection(_connectionString))
                 {
-                    SqlCommand command2 =
-                        new SqlCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                    PgCommand command2 =
+                        new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
                             connection2);
                     connection2.Open();
                     SqlTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadUncommitted);
                     command2.Transaction = tx2;
 
-                    using (SqlDataReader reader = command2.ExecuteReader())
+                    using (PgDataReader reader = command2.ExecuteReader())
                     {
                         int count = 0;
                         while (reader.Read()) count++;
@@ -333,22 +328,22 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private void ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommitedTransaction()
         {
-            using (SqlConnection connection1 = new SqlConnection(_connectionString))
+            using (PgConnection connection1 = new PgConnection(_connectionString))
             {
                 connection1.Open();
                 SqlTransaction tx1 = connection1.BeginTransaction();
 
-                using (SqlCommand command1 = connection1.CreateCommand())
+                using (PgCommand command1 = connection1.CreateCommand())
                 {
                     command1.Transaction = tx1;
                     command1.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command1.ExecuteNonQuery();
                 }
 
-                using (SqlConnection connection2 = new SqlConnection(_connectionString))
+                using (PgConnection connection2 = new PgConnection(_connectionString))
                 {
-                    SqlCommand command2 =
-                        new SqlCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                    PgCommand command2 =
+                        new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
                             connection2);
 
                     connection2.Open();

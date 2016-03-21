@@ -1,3 +1,5 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -6,7 +8,7 @@ using System.Collections;
 using System.Globalization;
 using Xunit;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     public static class ExceptionTest
     {
@@ -22,7 +24,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         [Fact]
         public static void WarningTest()
         {
-            string connectionString = DataTestClass.SQL2008_Northwind;
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
 
             Action<object, SqlInfoMessageEventArgs> warningCallback =
                 (object sender, SqlInfoMessageEventArgs imevent) =>
@@ -34,15 +36,15 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 };
 
             SqlInfoMessageEventHandler handler = new SqlInfoMessageEventHandler(warningCallback);
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString + ";pooling=false;"))
+            using (PgConnection PgConnection = new PgConnection(connectionString + ";pooling=false;"))
             {
-                sqlConnection.InfoMessage += handler;
-                sqlConnection.Open();
+                PgConnection.InfoMessage += handler;
+                PgConnection.Open();
 
-                SqlCommand cmd = new SqlCommand(string.Format("PRINT N'{0}'", warningInfoMessage), sqlConnection);
+                PgCommand cmd = new PgCommand(string.Format("PRINT N'{0}'", warningInfoMessage), PgConnection);
                 cmd.ExecuteNonQuery();
 
-                sqlConnection.InfoMessage -= handler;
+                PgConnection.InfoMessage -= handler;
                 cmd.ExecuteNonQuery();
             }
         }
@@ -50,7 +52,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         [Fact]
         public static void WarningsBeforeRowsTest()
         {
-            string connectionString = DataTestClass.SQL2008_Northwind;
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
             bool hitWarnings = false;
 
             int iteration = 0;
@@ -65,19 +67,19 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                 };
 
             SqlInfoMessageEventHandler handler = new SqlInfoMessageEventHandler(warningCallback);
-            SqlConnection sqlConnection = new SqlConnection(connectionString);
-            sqlConnection.InfoMessage += handler;
-            sqlConnection.Open();
+            PgConnection PgConnection = new PgConnection(connectionString);
+            PgConnection.InfoMessage += handler;
+            PgConnection.Open();
             foreach (string orderClause in new string[] { "", " order by FirstName" })
             {
                 foreach (bool messagesOnErrors in new bool[] { true, false })
                 {
                     iteration++;
 
-                    sqlConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
+                    PgConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
 
                     // These queries should return warnings because AND here is a noise word.
-                    SqlCommand cmd = new SqlCommand("select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, sqlConnection);
+                    PgCommand cmd = new PgCommand("select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         Assert.True(reader.HasRows, "FAILED: SqlDataReader.HasRows is not correct (should be TRUE)");
@@ -107,10 +109,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                     }
                 }
             }
-            sqlConnection.Close();
+            PgConnection.Close();
         }
 
-        private static bool CheckThatExceptionsAreDistinctButHaveSameData(SqlException e1, SqlException e2)
+        private static bool CheckThatExceptionsAreDistinctButHaveSameData(PgException e1, PgException e2)
         {
             Assert.True(e1 != e2, "FAILED: verification of exception cloning in subsequent connection attempts");
 
@@ -136,46 +138,45 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         [Fact]
         public static void ExceptionTests()
         {
-            string connectionString = DataTestClass.SQL2008_Northwind;
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(connectionString);
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
+            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
 
             // tests improper server name thrown from constructor of tdsparser
-            SqlConnectionStringBuilder badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
 
-            VerifyConnectionFailure<SqlException>(() => GenerateConnectionException(badBuilder.ConnectionString), sqlsvrBadConn, VerifyException);
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), sqlsvrBadConn, VerifyException);
 
             // tests incorrect password - thrown from the adapter
-            badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
             string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
-            VerifyConnectionFailure<SqlException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
 
             // tests incorrect database name - exception thrown from adapter
-            badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { InitialCatalog = "NotADatabase" };
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { InitialCatalog = "NotADatabase" };
             errorMessage = string.Format(CultureInfo.InvariantCulture, "Cannot open database \"{0}\" requested by the login. The login failed.", badBuilder.InitialCatalog);
-            SqlException firstAttemptException = VerifyConnectionFailure<SqlException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 2, 4060, 1, 11));
+            PgException firstAttemptException = VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 2, 4060, 1, 11));
 
             // Verify that the same error results in a different instance of an exception, but with the same data
-            VerifyConnectionFailure<SqlException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
 
             // tests incorrect user name - exception thrown from adapter
-            badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
             errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
-            VerifyConnectionFailure<SqlException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
         }
 
         [Fact]
         public static void VariousExceptionTests()
         {
-            string connectionString = DataTestClass.SQL2008_Northwind;
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
 
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(connectionString);
-
+            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
 
             // Test 1 - A
-            SqlConnectionStringBuilder badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            using (var sqlConnection = new SqlConnection(badBuilder.ConnectionString))
+            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
             {
-                using (SqlCommand command = sqlConnection.CreateCommand())
+                using (PgCommand command = PgConnection.CreateCommand())
                 {
                     command.CommandText = orderIdQuery;
                     VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
@@ -183,29 +184,29 @@ namespace System.Data.SqlClient.ManualTesting.Tests
             }
 
             // Test 1 - B
-            badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
-            using (var sqlConnection = new SqlConnection(badBuilder.ConnectionString))
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
+            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
             {
                 string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
-                VerifyConnectionFailure<SqlException>(() => sqlConnection.Open(), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+                VerifyConnectionFailure<PgException>(() => PgConnection.Open(), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
             }
         }
 
         [Fact]
         public static void IndependentConnectionExceptionTest()
         {
-            string connectionString = DataTestClass.SQL2008_Northwind;
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
 
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(connectionString);
+            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
 
-            SqlConnectionStringBuilder badBuilder = new SqlConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            using (var sqlConnection = new SqlConnection(badBuilder.ConnectionString))
+            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
             {
                 // Test 1
-                VerifyConnectionFailure<SqlException>(() => sqlConnection.Open(), sqlsvrBadConn, VerifyException);
+                VerifyConnectionFailure<PgException>(() => PgConnection.Open(), sqlsvrBadConn, VerifyException);
 
                 // Test 2
-                using (SqlCommand command = new SqlCommand(orderIdQuery, sqlConnection))
+                using (PgCommand command = new PgCommand(orderIdQuery, PgConnection))
                 {
                     VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
                 }
@@ -214,10 +215,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
 
         private static void GenerateConnectionException(string connectionString)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            using (PgConnection PgConnection = new PgConnection(connectionString))
             {
-                sqlConnection.Open();
-                using (SqlCommand command = sqlConnection.CreateCommand())
+                PgConnection.Open();
+                using (PgCommand command = PgConnection.CreateCommand())
                 {
                     command.CommandText = orderIdQuery;
                     command.ExecuteReader();
@@ -228,7 +229,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         private static TException VerifyConnectionFailure<TException>(Action connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
         {
             TException ex = Assert.Throws<TException>(connectAction);
-            Assert.True(ex.Message.Contains(expectedExceptionMessage), string.Format("FAILED: SqlException did not contain expected error message. Actual message: {0}", ex.Message));
+            Assert.True(ex.Message.Contains(expectedExceptionMessage), string.Format("FAILED: PgException did not contain expected error message. Actual message: {0}", ex.Message));
             Assert.True(exVerifier(ex), "FAILED: Exception verifier failed on the exception.");
 
             return ex;
@@ -239,13 +240,13 @@ namespace System.Data.SqlClient.ManualTesting.Tests
             return VerifyConnectionFailure<TException>(connectAction, expectedExceptionMessage, (ex) => true);
         }
 
-        private static bool VerifyException(SqlException exception)
+        private static bool VerifyException(PgException exception)
         {
             VerifyException(exception, 1);
             return true;
         }
 
-        private static bool VerifyException(SqlException exception, int count, int? errorNumber = null, int? errorState = null, int? severity = null)
+        private static bool VerifyException(PgException exception, int count, int? errorNumber = null, int? errorState = null, int? severity = null)
         {
             // Verify that there are the correct number of errors in the exception
             Assert.True(exception.Errors.Count == count, string.Format("FAILED: Incorrect number of errors. Expected: {0}. Actual: {1}.", count, exception.Errors.Count));
@@ -275,11 +276,11 @@ namespace System.Data.SqlClient.ManualTesting.Tests
             if ((errorNumber.HasValue) && (errorState.HasValue) && (severity.HasValue))
             {
                 string detailsText = string.Format("Error Number:{0},State:{1},Class:{2}", errorNumber.Value, errorState.Value, severity.Value);
-                Assert.True(exception.ToString().Contains(detailsText), string.Format("FAILED: SqlException.ToString does not contain the error number, state and severity information"));
+                Assert.True(exception.ToString().Contains(detailsText), string.Format("FAILED: PgException.ToString does not contain the error number, state and severity information"));
             }
 
             // verify that the this[] function on the collection works, as well as the All function
-            SqlError[] errors = new SqlError[exception.Errors.Count];
+            PgError[] errors = new PgError[exception.Errors.Count];
             exception.Errors.CopyTo(errors, 0);
             Assert.True((errors[0].Message).Equals(exception.Errors[0].Message), string.Format("FAILED: verification of Exception! ErrorCollection indexer/CopyTo resulted in incorrect value."));
 
