@@ -53,21 +53,34 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override int  Depth           => 0;
         public override bool IsClosed        => !_open;
         public override int  RecordsAffected => IsClosed ? _recordsAffected : -1;
-        public override bool HasRows         => _command.Statement.HasRows;
+        public override bool HasRows         => _statement?.HasRows ?? false;
 
         public override bool NextResult()
         {
+            // Reset position
+            _position = STARTPOS;
+
+            // Close the active statement
+            _statement.Close();
+
+            // Clear current row data
+            _row = null;
+            
+            // Reset records affected
+            _recordsAffected = -1;
+            
+            // Query for next result
             if (_refCursors.Count != 0 /*&& _connection.InnerConnection.HasActiveTransaction*/)
             {
                 return NextResultFromRefCursor();
             }
             
-            return false;
+            return NextResultFromMars();
         }
 
         public override bool Read()
         {
-            if ((_behavior.HasBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_command.Statement.HasRows)
+            if ((_behavior.HasBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_statement.HasRows)
             {
                 return false;
             }
@@ -308,12 +321,8 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             if (_command != null && !_command.IsDisposed)
             {
-                if (_command.Statement != null)
-                {
-                    // Set values of output parameters
-                    _command.InternalSetOutputParameters();
-                }
-
+                // Set values of output parameters
+                _command.InternalSetOutputParameters();
                 _command.ActiveDataReader = null;
             }
 
@@ -339,9 +348,9 @@ namespace PostgreSql.Data.PostgreSqlClient
         private void Initialize()
         {
             // Ref cursors can be fetched only if there is an active transaction
-            if (_command.CommandType                   == CommandType.StoredProcedure
-             && _command.Statement.RowDescriptor.Count == 1
-             && _command.Statement.RowDescriptor[0].Type.IsRefCursor)
+            if (_command.CommandType           == CommandType.StoredProcedure
+             && _statement.RowDescriptor.Count == 1
+             && _statement.RowDescriptor[0].Type.IsRefCursor)
             {
                 // Clear refcursor's queue
                 _refCursors.Clear();
@@ -368,12 +377,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             string sql = $"fetch all in \"{_refCursors.Dequeue()}\"";
 
-            // Reset position
-            _position = STARTPOS;
-
-            // Close the active statement
-            _statement.Close();
-
             // Create a new statement to fetch the current refcursor
             string statementName = Guid.NewGuid().ToString();
 
@@ -384,7 +387,19 @@ namespace PostgreSql.Data.PostgreSqlClient
             _statement.Bind();
             _statement.Execute();
                 
-            return true;            
+            return true;
+        }
+        
+        private bool NextResultFromMars()
+        {
+            bool result = _command.NextResult();
+            
+            if (result)
+            {
+                _statement = _command.Statement;
+            }
+            
+            return result;
         }
 
         private void CheckIndex(int i)
@@ -407,28 +422,28 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
             
-            return _command.Statement.RowDescriptor[i].Type.Size;
+            return _statement.RowDescriptor[i].Type.Size;
         }
         
         private PgDbType GetProviderDbType(int i)
         {
             CheckIndex(i);
 
-            return (PgDbType)_command.Statement.RowDescriptor[i].Type.DataType;
+            return (PgDbType)_statement.RowDescriptor[i].Type.DataType;
         }
 
         private bool IsNumeric(int i)
         {
             CheckIndex(i);
 
-            return _command.Statement.RowDescriptor[i].Type.IsNumeric;
+            return _statement.RowDescriptor[i].Type.IsNumeric;
         }
 
         private bool IsBinary(int i)
         {
             CheckIndex(i);
 
-            return _command.Statement.RowDescriptor[i].Type.IsBinary;
+            return _statement.RowDescriptor[i].Type.IsBinary;
         }
 
         private bool IsAliased(int i)
@@ -441,8 +456,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return (_command.Statement.RowDescriptor[i].TableOid == 0
-                  & _command.Statement.RowDescriptor[i].ColumnId == 0);
+            return (_statement.RowDescriptor[i].TableOid == 0
+                  & _statement.RowDescriptor[i].ColumnId == 0);
         }
 
         private void UpdateRecordsAffected()

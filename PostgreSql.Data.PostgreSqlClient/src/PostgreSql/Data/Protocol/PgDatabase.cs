@@ -105,7 +105,7 @@ namespace PostgreSql.Data.Protocol
 
                 _stream.Open(_connectionOptions.DataSource
                            , _connectionOptions.PortNumber
-                           , _connectionOptions.Ssl);
+                           , _connectionOptions.Encrypt);
                                                                             
                 // Send startup packet
                 SendStartupPacket();
@@ -420,6 +420,17 @@ namespace PostgreSql.Data.Protocol
             // Select ISO date style
             packet.WriteNullString("DateStyle");
             packet.WriteNullString(PgCodes.DATE_STYLE);
+
+            if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
+            {
+                packet.WriteNullString("search_path");
+                packet.WriteNullString(_connectionOptions.SearchPath);
+            }
+
+            // Terminator
+            packet.WriteByte(0);
+
+            _stream.WritePacket(packet);
                      
 #warning TODO: look if it's worth to send any of these:
             // http://www.postgresql.org/docs/current/static/protocol-flow.html#PROTOCOL-ASYNC
@@ -434,9 +445,9 @@ namespace PostgreSql.Data.Protocol
             // session_authorization
             // DateStyle
             // IntervalStyle
-            // TimeZone, 
+            // TimeZone
             // integer_datetimes
-            // standard_conforming_strings.
+            // standard_conforming_strings
             // search_path
             // 
             // (server_encoding, TimeZone, and integer_datetimes were not reported by releases before 8.0; 
@@ -446,12 +457,7 @@ namespace PostgreSql.Data.Protocol
             // 
             // Note that server_version, server_encoding and integer_datetimes are pseudo-parameters that cannot change after startup.
             // This set might change in the future, or even become configurable. 
-            // Accordingly, a frontend should simply ignore ParameterStatus for parameters that it does not understand or care about.                               
-            
-            // Terminator
-            packet.WriteByte(0);
-
-            _stream.WritePacket(packet);
+            // Accordingly, a frontend should simply ignore ParameterStatus for parameters that it does not understand or care about.                                           
         }
 
         private void HandleParameterStatus(PgInputPacket packet) 

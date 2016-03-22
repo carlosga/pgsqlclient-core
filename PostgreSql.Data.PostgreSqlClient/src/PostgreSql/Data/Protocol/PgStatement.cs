@@ -17,7 +17,6 @@ namespace PostgreSql.Data.Protocol
         private string            _tag;
         private string            _parseName;
         private string            _portalName;
-        private int               _fetchSize;
         private bool              _allRowsFetched;
         private PgRowDescriptor   _rowDescriptor;
         private Queue<object[]>   _rows;
@@ -61,13 +60,12 @@ namespace PostgreSql.Data.Protocol
             _parseName       = parseName;
             _portalName      = portalName;
             _recordsAffected = -1;
-            _fetchSize       = 200;
             _hasRows         = false;
             _allRowsFetched  = false;
             _outParameter    = new PgParameter();
             _parameters      = new List<PgParameter>();
             _rowDescriptor   = new PgRowDescriptor();
-            _rows            = new Queue<object[]>(_fetchSize);
+            _rows            = new Queue<object[]>(_database.ConnectionOptions.FetchSize);
         }
 
         #region IDisposable Support
@@ -209,7 +207,7 @@ namespace PostgreSql.Data.Protocol
                 var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
 
                 packet.WriteNullString(_portalName);
-                packet.Write(_fetchSize);	// Rows to retrieve ( 0 = nolimit )
+                packet.Write(_database.ConnectionOptions.FetchSize);	// Rows to retrieve ( 0 = nolimit )
 
                 // Send packet to the server
                 _database.Send(packet);
@@ -326,8 +324,6 @@ namespace PostgreSql.Data.Protocol
 
         internal void Query()
         {
-            int currentFetchSize = _fetchSize;
-
             try
             {
                 // Update Status
@@ -339,9 +335,6 @@ namespace PostgreSql.Data.Protocol
 
                 // Send packet to the server
                 _database.Send(packet);
-
-                // Set fetch size
-                _fetchSize = 1;
 
                 // Receive response
                 PgInputPacket response = null;
@@ -367,11 +360,6 @@ namespace PostgreSql.Data.Protocol
             {
                 _status = PgStatementStatus.Error;
                 throw;
-            }
-            finally
-            {
-                // restore fetch size
-                _fetchSize = currentFetchSize;
             }
         }
 

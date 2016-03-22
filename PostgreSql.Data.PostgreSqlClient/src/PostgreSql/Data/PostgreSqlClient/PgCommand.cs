@@ -27,6 +27,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         private CommandBehavior       _commandBehavior;
         private CommandType           _commandType;
         private List<string>          _namedParameters;
+        private List<string>          _queries;
+        private int                   _queryIndex;
         private bool                  _disposed;
         private string                _commandText;
         private int                   _commandTimeout;
@@ -134,6 +136,11 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal int             RecordsAffected => (_statement?.RecordsAffected ?? -1);
         internal bool            IsDisposed      => _disposed;
 
+        internal string CurrentCommandText
+        {
+            get { return ((_queries != null) ? _queries[_queryIndex] : _commandText); }
+        }
+
         public PgCommand()
             : base()
         {
@@ -211,8 +218,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RecordsAffected;            
         }
 
-        public new PgDataReader ExecuteReader() => InternalExecuteReader(CommandBehavior.Default);
-        public new PgDataReader ExecuteReader(CommandBehavior behavior) => InternalExecuteReader(behavior);
+        public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
+        
+        public new PgDataReader ExecuteReader(CommandBehavior behavior) 
+        {
+            CheckCommand();
+            
+            return InternalExecuteReader(behavior);
+        }
         
         public override object ExecuteScalar()
         {
@@ -224,7 +237,11 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.ExecuteScalar();            
         }
 
-        public override void Prepare() => InternalPrepare();
+        public override void Prepare() 
+        {
+            CheckCommand();
+            InternalPrepare();
+        } 
 
         protected override void Dispose(bool disposing)
         {
@@ -265,26 +282,27 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void InternalPrepare()
         {
-            CheckCommand();
-            
             try
             {
                 if (_statement        == null
                  || _statement.Status == PgStatementStatus.Initial
                  || _statement.Status == PgStatementStatus.Error)
                 {
-                    string sql = _commandText;
+                    if (_connection.MultipleActiveResultSets && _queries == null)
+                    {
+                        _queries = _commandText.SplitQueries();
+                    }
+                    
+                    string statementName = GetStmtName();
+                    string prepareName   = $"PS{statementName}";
+                    string portalName    = $"PR{statementName}";                   
+                    string stmtText      = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
 
                     if (_commandType == CommandType.StoredProcedure)
                     {
-                        sql = BuildStoredProcedureSql(sql);
+                        stmtText = stmtText.ToStoredProcedureCall(_parameters);
                     }
-
-                    string statementName = GetStmtName();
-                    string prepareName   = $"PS{statementName}";
-                    string portalName    = $"PR{statementName}";
-                    string stmtText      = ParseNamedParameters(sql);
-
+                    
                     _statement = _connection.InnerConnection.CreateStatement(prepareName, portalName, stmtText);
 
                     // Parse statement
@@ -293,8 +311,11 @@ namespace PostgreSql.Data.PostgreSqlClient
                     // Describe statement
                     _statement.Describe();
                     
-                    // Add the command to the internal connection prepared statements
-                    _connection.InnerConnection.AddPreparedCommand(this);
+                    if (_queryIndex == 0)
+                    {
+                        // Add the command to the internal connection prepared statements
+                        _connection.InnerConnection.AddPreparedCommand(this);                        
+                    }
                 }
                 else
                 {
@@ -310,8 +331,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private PgDataReader InternalExecuteReader(CommandBehavior behavior)
         {
-            CheckCommand();
-
             _commandBehavior = behavior;
 
             InternalPrepare();
@@ -347,6 +366,36 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
+        internal bool NextResult()
+        {
+            try
+            {
+                if (!_connection.MultipleActiveResultSets)
+                {
+                    return false;
+                }
+                
+                // Try to advance to the next query
+                ++_queryIndex;                
+                if (_queryIndex >= _queries.Count)
+                {
+                    return false;
+                }
+
+                // Prepare and execute the next result query
+                // the statement has already been closed by
+                // the current data reader.
+                InternalPrepare();
+                InternalExecute();
+                
+                return true;
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
+            }            
+        }
+
         internal void InternalClose()
         {
             try
@@ -363,6 +412,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _statement        = null;
                 _activeDataReader = null;
+                _queries          = null;
+                _queryIndex       = 0;
            }
         }
 
@@ -412,104 +463,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw new InvalidOperationException("The command text for this Command has not been set.");
             }
-        }
-
-        private string BuildStoredProcedureSql(string commandText)
-        {
-            if (commandText.Trim().ToLower().StartsWith("select "))
-            {
-                return commandText;
-            }
-
-            var paramsText = new StringBuilder();
-
-            // Append the stored proc parameter name
-            paramsText.Append(commandText);
-            paramsText.Append("(");
-
-            for (int i = 0; i < _parameters.Count; ++i)
-            {
-                var parameter = _parameters[i];
-
-                if (parameter.Direction == ParameterDirection.Input
-                 || parameter.Direction == ParameterDirection.InputOutput)
-                {
-                    // Append parameter name to parameter list
-                    paramsText.Append(Parameters[i].ParameterName);
-
-                    if (i != Parameters.Count - 1)
-                    {
-                        paramsText.Append(",");
-                    }
-                }
-            }
-
-            paramsText.Append(")");
-            paramsText.Replace(",)", ")");
-
-            return $"SELECT * FROM {paramsText.ToString()}";
-        }
-
-        private string ParseNamedParameters(string sql)
-        {
-            var builder      = new StringBuilder();
-            var paramBuilder = new StringBuilder();
-            var inCommas     = false;
-            var inParam      = false;
-            int paramIndex   = 0;
-
-            _namedParameters.Clear();
-
-            if (sql.IndexOf('@') == -1)
-            {
-                return sql;
-            }
-            
-            char sym = '\0';
-
-            for (int i = 0; i < sql.Length; ++i)
-            {
-                sym = sql[i];
-
-                if (inParam)
-                {
-                    if (Char.IsLetterOrDigit(sym) || sym == '_' || sym == '$')
-                    {
-                        paramBuilder.Append(sym);
-                    }
-                    else
-                    {
-                        _namedParameters.Add(paramBuilder.ToString());
-                        paramBuilder.Length = 0;
-                        builder.AppendFormat("${0}", ++paramIndex);
-                        builder.Append(sym);
-                        inParam = false;
-                    }
-                }
-                else
-                {
-                    if (sym == '\'' || sym == '\"')
-                    {
-                        inCommas = !inCommas;
-                    }
-                    else if (!inCommas && sym == '@')
-                    {
-                        inParam = true;
-                        paramBuilder.Append(sym);
-                        continue;
-                    }
-
-                    builder.Append(sym);
-                }
-            }
-
-            if (inParam)
-            {
-                _namedParameters.Add(paramBuilder.ToString());
-                builder.AppendFormat("${0}", ++paramIndex);
-            }
-
-            return builder.ToString();
         }
 
         private void SetParameterValues()

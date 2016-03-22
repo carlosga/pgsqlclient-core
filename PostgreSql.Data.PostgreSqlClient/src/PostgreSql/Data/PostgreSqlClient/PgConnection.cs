@@ -19,7 +19,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
         private PgConnectionInternal _innerConnection;
-        private PgConnectionOptions  _options;
+        private PgConnectionOptions  _connectionOptions;
         private ConnectionState      _state;
         private bool                 _disposed;
         private string               _connectionString;
@@ -31,28 +31,31 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 if (IsClosed)
                 {
-                    _options          = new PgConnectionOptions(value);
-                    _connectionString = value;
-                }
+                    _connectionOptions = new PgConnectionOptions(value);
+                    _connectionString  = value;
+                } 
             }
         }
 
-        public override string          Database          => _options?.Database;
-        public override string          DataSource        => _options?.DataSource;
-        public override string          ServerVersion     => _innerConnection?.ServerVersion;
-        public override ConnectionState State             => _state;
-        public override int             ConnectionTimeout => (_options?.ConnectionTimeout ?? 15);
-        public          int             PacketSize        => (_options?.PacketSize ?? 8192);
+        public override string          Database                 => _connectionOptions?.Database;
+        public override string          DataSource               => _connectionOptions?.DataSource;
+        public override string          ServerVersion            => _innerConnection?.ServerVersion;
+        public override ConnectionState State                    => _state;
+        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
+        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
+        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
+        public          string          SearchPath               => (_connectionOptions?.SearchPath);
+        public          int             FetchSize                => (_connectionOptions?.FetchSize ?? 200);
 
         internal PgConnectionInternal InnerConnection
         {
             get { return _innerConnection; }
-            set { _innerConnection = value; }
+            // set { _innerConnection = value; }
         }
 
         internal bool IsClosed      => (_state == ConnectionState.Closed);
         internal bool IsOpen        => (_state == ConnectionState.Open);
-        internal bool IsConnecting  => (_state == ConnectionState.Connecting);
+        internal bool IsConnecting  => (_state == ConnectionState.Connecting);        
 
         public PgConnection()
             : this(null)
@@ -110,7 +113,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 ChangeState(ConnectionState.Connecting);
 
                 // Open connection
-                if (_options.Pooling)
+                if (_connectionOptions.Pooling)
                 {
                     _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
                 }
@@ -119,7 +122,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     _innerConnection = new PgConnectionInternal(_connectionString);
                 }
 
-                if (_options.Ssl)
+                if (_connectionOptions.Encrypt)
                 {
                     // Add SSL callback handlers
                     _innerConnection.Database.UserCertificateValidationCallback = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
@@ -162,9 +165,9 @@ namespace PostgreSql.Data.PostgreSqlClient
             finally
             {
                 // Cleanup
-                _innerConnection  = null;
-                _connectionString = null;
-                _options          = null;
+                _innerConnection   = null;
+                _connectionString  = null;
+                _connectionOptions = null;
                 
                 ChangeState(ConnectionState.Closed);
             }

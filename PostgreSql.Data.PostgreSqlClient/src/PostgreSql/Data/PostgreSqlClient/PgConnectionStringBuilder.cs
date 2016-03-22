@@ -2,120 +2,108 @@
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Data.Common;
+using PostgreSql.Data.Protocol;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
     public sealed class PgConnectionStringBuilder
         : DbConnectionStringBuilder
     {
-        private static readonly Dictionary<string, string> s_synonyms = InitializeSynonyms();
-
-        private static Dictionary<string, string> InitializeSynonyms()
-        {
-            var synonyms = new Dictionary<string, string>(new CaseInsensitiveEqualityComparer());
-
-            synonyms.Add("data source"          , "data source");
-            synonyms.Add("server"               , "data source");
-            synonyms.Add("host"                 , "data source");
-            synonyms.Add("database"             , "initial catalog");
-            synonyms.Add("initial catalog"      , "initial catalog");
-            synonyms.Add("user id"              , "user id");
-            synonyms.Add("user name"            , "user id");
-            synonyms.Add("user"                 , "user id");
-            synonyms.Add("user password"        , "password");
-            synonyms.Add("password"             , "password");
-            synonyms.Add("port number"          , "port number");
-            synonyms.Add("port"                 , "port number");
-            synonyms.Add("packet size"          , "packet size");
-            synonyms.Add("connection timeout"   , "connection timeout");
-            synonyms.Add("pooling"              , "pooling");
-            synonyms.Add("connection lifetime"  , "connection lifetime");
-            synonyms.Add("min pool size"        , "min pool size");
-            synonyms.Add("max pool size"        , "max pool size");
-            synonyms.Add("ssl"                  , "ssl");
-            synonyms.Add("use database oids"    , "use database oids");
-
-            return synonyms;
-        }
-
         public string DataSource
         {
-            get { return GetString("Data Source"); }
-            set { SetValue("Data Source", value); }
+            get { return GetString(ConnectionStringKeywords.DataSource); }
+            set { SetValue(ConnectionStringKeywords.DataSource, value); }
         }
 
         public string InitialCatalog
         {
-            get { return GetString("Initial Catalog"); }
-            set { SetValue("Initial Catalog", value); }
+            get { return GetString(ConnectionStringKeywords.InitialCatalog); }
+            set { SetValue(ConnectionStringKeywords.InitialCatalog, value); }
         }
 
-        public string UserID
+        public string UserId
         {
-            get { return GetString("User ID"); }
-            set { SetValue("User ID", value); }
+            get { return GetString(ConnectionStringKeywords.UserId); }
+            set { SetValue(ConnectionStringKeywords.UserId, value); }
         }
 
         public string Password
         {
-            get { return GetString("Password"); }
-            set { SetValue("Password", value); }
+            get { return GetString(ConnectionStringKeywords.Password); }
+            set { SetValue(ConnectionStringKeywords.Password, value); }
         }
 
         public int PortNumber
         {
-            get { return GetInt32("Port Number"); }
-            set { SetValue("Port Number", value); }
+            get { return GetInt32(ConnectionStringKeywords.PortNumber); }
+            set { SetValue(ConnectionStringKeywords.PortNumber, value); }
         }
 
         public int PacketSize
         {
-            get { return GetInt32("Packet Size"); }
-            set { SetValue("Packet Size", value); }
+            get { return GetInt32(ConnectionStringKeywords.PacketSize); }
+            set { SetValue(ConnectionStringKeywords.PacketSize, value); }
         }
 
         public int ConnectionTimeout
         {
-            get { return GetInt32("Connection Timeout"); }
-            set { SetValue("Connection Timeout", value); }
+            get { return GetInt32(ConnectionStringKeywords.ConnectionTimeout); }
+            set { SetValue(ConnectionStringKeywords.ConnectionTimeout, value); }
         }
 
         public bool Pooling
         {
-            get { return GetBoolean("Pooling"); }
-            set { SetValue("Pooling", value); }
+            get { return GetBoolean(ConnectionStringKeywords.Pooling); }
+            set { SetValue(ConnectionStringKeywords.Pooling, value); }
         }
 
         public int ConnectionLifeTime
         {
-            get { return GetInt32("Connection Lifetime"); }
-            set { SetValue("Connection Lifetime", value); }
+            get { return GetInt32(ConnectionStringKeywords.ConnectionLifetime); }
+            set { SetValue(ConnectionStringKeywords.ConnectionLifetime, value); }
         }
 
         public int MinPoolSize
         {
-            get { return GetInt32("Min Pool Size"); }
-            set { SetValue("Min Pool Size", value); }
+            get { return GetInt32(ConnectionStringKeywords.MinPoolSize); }
+            set { SetValue(ConnectionStringKeywords.MinPoolSize, value); }
         }
 
         public int MaxPoolSize
         {
-            get { return GetInt32("Max Pool Size"); }
-            set { SetValue("Max Pool Size", value); }
+            get { return GetInt32(ConnectionStringKeywords.MaxPoolSize); }
+            set { SetValue(ConnectionStringKeywords.MaxPoolSize, value); }
         }
 
-        public bool Ssl
+        public bool Encrypt
         {
-            get { return GetBoolean("Ssl"); }
-            set { SetValue("Ssl", value); }
+            get { return GetBoolean(ConnectionStringKeywords.Encrypt); }
+            set { SetValue(ConnectionStringKeywords.Encrypt, value); }
         }
-
+        
         public bool UseDatabaseOids
         {
-            get { return GetBoolean("use database oids"); }
-            set { SetValue("use database oids", value); }
+            get { return GetBoolean(ConnectionStringKeywords.UseDatabaseOids); }
+            set { SetValue(ConnectionStringKeywords.UseDatabaseOids, value); }
+        }
+        
+        public bool MultipleActiveResultSets
+        {
+            get { return GetBoolean(ConnectionStringKeywords.MultipleActiveResultSets); }
+            set { SetValue(ConnectionStringKeywords.MultipleActiveResultSets, value); }
+        }
+        
+        public string SearchPath
+        {
+            get { return GetString(ConnectionStringKeywords.SearchPath); }
+            set { SetValue(ConnectionStringKeywords.SearchPath, value); }
+        }
+
+        public int FetchSize
+        {
+            get { return GetInt32(ConnectionStringKeywords.FetchSize); }
+            set { SetValue(ConnectionStringKeywords.FetchSize, value); }
         }
 
         public PgConnectionStringBuilder()
@@ -127,20 +115,21 @@ namespace PostgreSql.Data.PostgreSqlClient
             ConnectionString = connectionString;
         }
 
-        private int    GetInt32(string keyword)   => Convert.ToInt32(GetKey(keyword));
-        private string GetString(string keyword)  => Convert.ToString(GetKey(keyword));
-        private bool   GetBoolean(string keyword) => Convert.ToBoolean(GetKey(keyword));
+        private int    GetInt32(string keyword)   => Convert.ToInt32(GetValue(keyword));
+        private string GetString(string keyword)  => Convert.ToString(GetValue(keyword));
+        private bool   GetBoolean(string keyword) => Convert.ToBoolean(GetValue(keyword));
         
-        private void SetValue(string keyword, object value) => this[GetKey(keyword)] = value;
-
-        private string GetKey(string keyword)
+        private void SetValue(string keyword, object value) => this[GetValue(keyword)] = value;
+        
+        internal string GetValue(string keyword)
         {
-            string synonymKey = s_synonyms[keyword];
+            string synonymKey = ConnectionStringSynonyms.Synonyms[keyword];
 
             // First check if there are yet a property for the requested keyword
             foreach (string key in Keys)
             {
-                if (s_synonyms.ContainsKey(key) && s_synonyms[key] == synonymKey)
+                if (ConnectionStringSynonyms.Synonyms.ContainsKey(key) 
+                 && ConnectionStringSynonyms.Synonyms[key] == synonymKey)
                 {
                     synonymKey = key;
                     break;
@@ -148,6 +137,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             return synonymKey;
-        }
+        }        
     }
 }

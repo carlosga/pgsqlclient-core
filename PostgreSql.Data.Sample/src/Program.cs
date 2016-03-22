@@ -12,13 +12,14 @@ namespace ConsoleApplication
         {
             var csb = new PgConnectionStringBuilder();
 
-            csb.DataSource      = "localhost";
-            csb.InitialCatalog  = "northwind";
-            csb.UserID          = "northwind";
-            csb.Password        = "northwind@2";
-            csb.PortNumber      = 5432;
-            csb.Ssl             = false;
-            csb.Pooling         = false;
+            csb.DataSource               = "localhost";
+            csb.InitialCatalog           = "northwind";
+            csb.UserId                   = "northwind";
+            csb.Password                 = "northwind@2";
+            csb.PortNumber               = 5432;
+            csb.Encrypt                  = false;
+            csb.Pooling                  = false;
+            csb.MultipleActiveResultSets = true;
 
             // Ported from the Microsoft System.Data.SqlClient test suite.
             // ---------------------------------------------------------------------
@@ -29,22 +30,23 @@ namespace ConsoleApplication
             {
                 conn.Open();
                 string query =
-                    "select orderid from orders where orderid < @id order by orderid;"; 
-                //   + "select * from shippers order by shipperid;" 
-                //   + "select * from shippers order by shipperid;" 
-                //   + "select * from region order by regionid;" 
-                //   + "select lastname from employees order by lastname";
+                    "select orderid from orders where orderid < @id order by orderid;" 
+                  + "select * from shippers order by shipperid;" 
+                  + "select * from region order by regionid;" 
+                  + "select lastname from employees order by lastname";
 
                 // Each array in the expectedResults is a separate query result
                 string[][] expectedResults =
                 {
                     new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
-                    new string[] { "" }, // Empty query result
                     new string[]
                     {
-                        "1", "Speedy Express"  , "(503) 555-9831",  // Query Row 1
-                        "2", "United Package"  , "(503) 555-3199",  // Query Row 2
-                        "3", "Federal Shipping", "(503) 555-9931"   // Query Row 3
+                        "1", "Speedy Express"   , "(503) 555-9831",  // Query Row 1
+                        "2", "United Package"   , "(503) 555-3199",  // Query Row 2
+                        "3", "Federal Shipping" , "(503) 555-9931",  // Query Row 3
+                        "4", "Alliance Shippers", "1-800-222-0451",  // Query Row 4
+                        "5", "UPS"              , "1-800-782-7892",  // Query Row 5
+                        "6", "DHL"              , "1-800-225-5345",  // Query Row 6        
                     },
                     new string[]
                     {

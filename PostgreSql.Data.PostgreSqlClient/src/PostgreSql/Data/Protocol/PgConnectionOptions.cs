@@ -2,6 +2,7 @@
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace PostgreSql.Data.Protocol
@@ -19,22 +20,28 @@ namespace PostgreSql.Data.Protocol
         private int    _minPoolSize;
         private int    _maxPoolSize;
         private bool   _pooling;
-        private bool   _ssl;
+        private bool   _encrypt;
         private bool   _useDatabaseOids;
+        private bool   _multipleActiveResultSets;
+        private string _searchPath;
+        private int    _fetchSize;
 
-        internal string DataSource         => _dataSource;
-        internal string Database           => _database;
-        internal string UserID             => _userId;
-        internal string Password           => _password;
-        internal int    PacketSize         => _packetSize;
-        internal int    PortNumber         => _portNumber;
-        internal int    ConnectionTimeout  => _connectionTimeout;
-        internal long   ConnectionLifeTime => _connectionLifetime;
-        internal int    MinPoolSize        => _minPoolSize;
-        internal int    MaxPoolSize        => _maxPoolSize;
-        internal bool   Pooling            => _pooling;
-        internal bool   Ssl                => _ssl;
-        internal bool   UseDatabaseOids    => _useDatabaseOids;
+        internal string DataSource               => _dataSource;
+        internal string Database                 => _database;
+        internal string UserID                   => _userId;
+        internal string Password                 => _password;
+        internal int    PacketSize               => _packetSize;
+        internal int    PortNumber               => _portNumber;
+        internal int    ConnectionTimeout        => _connectionTimeout;
+        internal long   ConnectionLifeTime       => _connectionLifetime;
+        internal int    MinPoolSize              => _minPoolSize;
+        internal int    MaxPoolSize              => _maxPoolSize;
+        internal bool   Pooling                  => _pooling;
+        internal bool   Encrypt                  => _encrypt;
+        internal bool   UseDatabaseOids          => _useDatabaseOids;
+        internal bool   MultipleActiveResultSets => _multipleActiveResultSets;
+        internal string SearchPath               => _searchPath;
+        internal int    FetchSize                => _fetchSize;
 
         internal PgConnectionOptions(string connectionString)
         {
@@ -43,18 +50,21 @@ namespace PostgreSql.Data.Protocol
                 throw new InvalidOperationException("connectionString cannot be null.");
             }
 
-            _dataSource         = "localhost";
-            _userId             = "postgres";
-            _password           = null;
-            _portNumber         = 5432;
-            _packetSize         = 8192;
-            _pooling            = true;
-            _connectionTimeout  = 15;
-            _connectionLifetime = 0;
-            _minPoolSize        = 0;
-            _maxPoolSize        = 100;
-            _ssl                = false;
-            _useDatabaseOids    = false;
+            _dataSource               = "localhost";
+            _userId                   = "postgres";
+            _password                 = null;
+            _portNumber               = 5432;
+            _packetSize               = 8192;
+            _pooling                  = true;
+            _connectionTimeout        = 15;
+            _connectionLifetime       = 0;
+            _minPoolSize              = 0;
+            _maxPoolSize              = 100;
+            _encrypt                  = false;
+            _useDatabaseOids          = false;
+            _multipleActiveResultSets = false;
+            _searchPath               = null;
+            _fetchSize                = 200;
             
             ParseConnectionString(connectionString);
         }
@@ -66,66 +76,83 @@ namespace PostgreSql.Data.Protocol
 
             foreach (Match element in elements)
             {
-                if (!String.IsNullOrEmpty(element.Groups[2].Value))
+                var currentValue = element.Groups[2].Value?.Trim(); 
+                
+                if (!String.IsNullOrEmpty(currentValue))
                 {
                     switch (element.Groups[1].Value.Trim().ToLower())
                     {
-                        case "data source":
-                        case "server":
-                        case "host":
-                            _dataSource = element.Groups[2].Value.Trim();
+                        case ConnectionStringSynonyms.DataSource:
+                        case ConnectionStringSynonyms.Server:
+                        case ConnectionStringSynonyms.Host:
+                            _dataSource = currentValue;
                             break;
 
-                        case "database":
-                        case "initial catalog":
-                            _database = element.Groups[2].Value.Trim();
+                        case ConnectionStringSynonyms.Database:
+                        case ConnectionStringSynonyms.InitialCatalog:
+                            _database = currentValue;
                             break;
 
-                        case "user name":
-                        case "user id":
-                        case "user":
-                            _userId = element.Groups[2].Value.Trim();
+                        case ConnectionStringSynonyms.UserName:
+                        case ConnectionStringSynonyms.UserId:
+                        case ConnectionStringSynonyms.User:
+                            _userId = currentValue;
                             break;
 
-                        case "user password":
-                        case "password":
-                            _password = element.Groups[2].Value.Trim();
+                        case ConnectionStringSynonyms.UserPassword:
+                        case ConnectionStringSynonyms.Password:
+                            _password = currentValue;
                             break;
 
-                        case "port number":
-                            _portNumber = Int32.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.PortNumber:
+                        case ConnectionStringSynonyms.Port:
+                            _portNumber = Int32.Parse(currentValue);
                             break;
 
-                        case "connection timeout":
-                            _connectionTimeout = Int32.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.ConnectionTimeout:
+                        case ConnectionStringSynonyms.ConnectTimeout:
+                        case ConnectionStringSynonyms.Timeout:
+                            _connectionTimeout = Int32.Parse(currentValue);
                             break;
 
-                        case "packet size":
-                            _packetSize = Int32.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.PacketSize:
+                            _packetSize = Int32.Parse(currentValue);
                             break;
 
-                        case "pooling":
-                            _pooling = Boolean.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.Pooling:
+                            _pooling = Boolean.Parse(currentValue);
                             break;
 
-                        case "connection lifetime":
-                            _connectionLifetime = Int64.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.ConnectionLifetime:
+                            _connectionLifetime = Int64.Parse(currentValue);
                             break;
 
-                        case "min pool size":
-                            _minPoolSize = Int32.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.MinPoolSize:
+                            _minPoolSize = Int32.Parse(currentValue);
                             break;
 
-                        case "max pool size":
-                            _maxPoolSize = Int32.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.MaxPoolSize:
+                            _maxPoolSize = Int32.Parse(currentValue);
                             break;
 
-                        case "ssl":
-                            _ssl = Boolean.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.Encrypt:
+                            _encrypt = Boolean.Parse(currentValue);
                             break;
 
-                        case "use database oids":
-                            _useDatabaseOids = Boolean.Parse(element.Groups[2].Value.Trim());
+                        case ConnectionStringSynonyms.UseDatabaseOids:
+                            _useDatabaseOids = Boolean.Parse(currentValue);
+                            break;
+                            
+                        case ConnectionStringSynonyms.MultipleActiveResultSets:
+                            _multipleActiveResultSets = Boolean.Parse(currentValue);
+                            break;
+                            
+                        case ConnectionStringSynonyms.SearchPath:
+                            _searchPath = currentValue;
+                            break;
+                        
+                        case ConnectionStringSynonyms.FetchSize:
+                            _fetchSize = Int32.Parse(currentValue);
                             break;
                     }
                 }
@@ -135,14 +162,17 @@ namespace PostgreSql.Data.Protocol
             {
                 throw new ArgumentException("An invalid connection string argument has been supplied or a required connection string argument has not been supplied.");
             }
-            else
+            else if (_packetSize < 512 || _packetSize > 32767)
             {
-                if (_packetSize < 512 || _packetSize > 32767)
-                {
-                    string msg = $"'Packet Size' value of {_packetSize} is not valid.\r\nThe value should be an integer >= 512 and <= 32767.";
+                string msg = $"'Packet Size' value of {_packetSize} is not valid.\r\nThe value should be an integer >= 512 and <= 32767.";
 
-                    throw new ArgumentException(msg);
-                }
+                throw new ArgumentException(msg);
+            }
+            else if (_connectionTimeout < 0 || _connectionTimeout > 2147483647)
+            {
+                string msg = $"'Connection Timeout' value of {_connectionTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
+
+                throw new ArgumentException(msg);                
             }
         }
     }
