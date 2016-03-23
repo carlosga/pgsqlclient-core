@@ -236,7 +236,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
-        
+               
         public new PgDataReader ExecuteReader(CommandBehavior behavior) 
         {
             CheckCommand();

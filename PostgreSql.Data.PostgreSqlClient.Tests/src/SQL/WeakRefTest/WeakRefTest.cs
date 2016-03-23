@@ -136,14 +136,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             using (PgDataReader rdr = cmd.ExecuteReader())
                             {
                                 rdr.Read();
-                                Assert.Equal(rdr.FieldCount, 1);
-                                Assert.Equal(rdr.GetName(0), COLUMN_NAME_2);
+                                Assert.AreEqual(rdr.FieldCount, 1);
+                                Assert.AreEqual(rdr.GetName(0), COLUMN_NAME_2);
                             }
                             break;
 
                         case ReaderVerificationType.ChangeDatabase:
                             con.ChangeDatabase(DATABASE_NAME);
-                            Assert.Equal(con.Database, DATABASE_NAME);
+                            Assert.AreEqual(con.Database, DATABASE_NAME);
                             break;
 
                         case ReaderVerificationType.BeginTransaction:
@@ -151,7 +151,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             // cmd.Transaction = con.BeginTransaction();
                             // cmd.CommandText = "select @@trancount";
                             // int tranCount = (int)cmd.ExecuteScalar();
-                            // Assert.Equal(tranCount, 1);
+                            // Assert.AreEqual(tranCount, 1);
                             break;
                     }
                 }
@@ -218,7 +218,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 #warning TODO: See how to port to postgresql
                     // cmd.CommandText = "select @@trancount";
                     // int tranCount = (int)cmd.ExecuteScalar();
-                    // Assert.Equal(tranCount, 0);
+                    // Assert.AreEqual(tranCount, 0);
                 }
             }
         }

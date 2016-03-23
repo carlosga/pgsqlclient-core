@@ -21,20 +21,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             foreach (PgClientError error in ex?.Errors)
             {
-                var newError = new PgError
-                {
-                    Severity = error.Severity
-                  , Code     = error.Code
-                  , Message  = error.Message
-                  , Detail   = error.Detail
-                  , Hint     = error.Hint
-                  , Line     = error.Line
-                  , Where    = error.Where
-                  , Position = error.Position
-                  , Routine  = error.Routine
-                };
-
-                _errors.Add(newError);
+                _errors.Add(new PgError(error));
             }
         }
     }

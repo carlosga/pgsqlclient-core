@@ -123,14 +123,43 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         // SQL Server supports long names (up to 128 characters), add extra info for troubleshooting
-        public static string GetUniqueNameForSqlServer(string prefix)
+        // public static string GetUniqueNameForSqlServer(string prefix)
+        // {
+        //     string userName       = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+        //     string hostName       = System.Net.Dns.GetHostName();
+        //     string extendedPrefix = string.Format(
+        //         "{0}_{1}@{2}"
+        //       , prefix
+        //       , userName
+        //       , hostName
+        //       , DateTime.Now.ToString("yyyy_MM_dd", CultureInfo.InvariantCulture));
+        //     string name = GetUniqueName(extendedPrefix, "[", "]");
+            
+        //     if (name.Length > 128)
+        //     {
+        //         throw new ArgumentOutOfRangeException("the name is too long - SQL Server names are limited to 128");
+        //     }
+            
+        //     return name;
+        // }
+
+        // Oracle database does not support long names (names are limited to 30 characters)
+        // public static string GetUniqueNameForOracle(string prefix)
+        // {
+        //     string name = GetUniqueName(prefix, string.Empty, string.Empty);
+        //     if (name.Length > 30)
+        //     {
+        //         throw new ArgumentOutOfRangeException("prefix should be short - Oracle does not support long names");
+        //     }
+        //     return name;
+        // }
+
+        public static string GetUniqueNameForPostgreSql(string prefix)
         {
-            string userName       = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
             string hostName       = System.Net.Dns.GetHostName();
             string extendedPrefix = string.Format(
-                "{0}_{1}@{2}"
+                "{1}_{2}"
               , prefix
-              , userName
               , hostName
               , DateTime.Now.ToString("yyyy_MM_dd", CultureInfo.InvariantCulture));
             string name = GetUniqueName(extendedPrefix, "[", "]");
@@ -143,19 +172,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             return name;
         }
 
-        // Oracle database does not support long names (names are limited to 30 characters)
-        public static string GetUniqueNameForOracle(string prefix)
-        {
-            string name = GetUniqueName(prefix, string.Empty, string.Empty);
-            if (name.Length > 30)
-            {
-                throw new ArgumentOutOfRangeException("prefix should be short - Oracle does not support long names");
-            }
-            return name;
-        }
-
         // creates temporary table name for PostgreSql Server
-        public static string UniqueTempTableName => GetUniqueNameForSqlServer("#T");
+        // public static string UniqueTempTableName => GetUniqueNameForSqlServer("#T");
+        public static string UniqueTempTableName => GetUniqueNameForPostgreSql("#T");
 
         public static void PrintException(Type expected, Exception e, params string[] values)
         {
@@ -217,7 +236,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             {
                 byte precision = p.Precision;
                 byte scale = p.Scale;
-                Console.WriteLine("\t\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.SqlDbType.ToString("G") + " FOR " + p.SourceColumn + "\"");
+                Console.WriteLine("\t\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.PgDbType.ToString("G") + " FOR " + p.SourceColumn + "\"");
                 Console.WriteLine("\t\t" + p.Size.ToString() + ", " + precision.ToString() + ", " + scale.ToString() + ", " + p.Direction.ToString("G") + ", " + DBConvertToString(p.Value));
             }
         }
@@ -711,7 +730,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         public static TException AssertThrowsWrapper<TException>(
-            Action                 actionThatFails
+            TestDelegate           actionThatFails
           , string                 exceptionMessage         = null
           , bool                   innerExceptionMustBeNull = false
           , Func<TException, bool> customExceptionVerifier  = null) where TException : Exception
@@ -737,7 +756,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         public static TException AssertThrowsWrapper<TException, TInnerException>(
-            Action                 actionThatFails
+            TestDelegate           actionThatFails
           , string                 exceptionMessage         = null
           , string                 innerExceptionMessage    = null
           , bool                   innerExceptionMustBeNull = false
@@ -756,13 +775,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         public static TException AssertThrowsWrapper<TException, TInnerException, TInnerInnerException>(
-            Action actionThatFails
-          , string exceptionMessage                   = null
-          , string innerExceptionMessage              = null
-          , string innerInnerExceptionMessage         = null
-          , bool   innerInnerInnerExceptionMustBeNull = false) where TException      : Exception 
-                                                               where TInnerException : Exception 
-                                                               where TInnerInnerException : Exception
+            TestDelegate actionThatFails
+          , string       exceptionMessage                   = null
+          , string       innerExceptionMessage              = null
+          , string       innerInnerExceptionMessage         = null
+          , bool         innerInnerInnerExceptionMustBeNull = false) where TException      : Exception 
+                                                                     where TInnerException : Exception 
+                                                                     where TInnerInnerException : Exception
         {
             TException ex = AssertThrowsWrapper<TException, TInnerException>(actionThatFails, exceptionMessage, innerExceptionMessage);
             if (innerInnerInnerExceptionMustBeNull)

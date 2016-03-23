@@ -49,7 +49,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3210', 'Doe', 'Jane' , '882-8080', 'One Microsoft Way', 'Redmond', 'WA', '98052', 0)";
                         cmd.ExecuteNonQuery();
                         
-                        cmd.CommandText = $"insert into {tmpTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3211', 'Doe', 'John' , '882-8181', NULL, NULL, NULL, NULL, 0)";
+                        cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3211', 'Doe', 'John' , '882-8181', NULL, NULL, NULL, NULL, 0)";
                         cmd.ExecuteNonQuery();
 
                         tx.Commit();

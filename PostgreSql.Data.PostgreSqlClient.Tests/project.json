@@ -9,8 +9,9 @@
         "netstandardapp1.5": {
             "imports":  "dotnet5.6",
             "dependencies": {
-                "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",                
                 "NETStandard.Library": "1.5.0-rc3-*",
+                "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",
+                "Microsoft.CSharp": "4.0.1-rc3-*",
                 "System.Collections": "4.0.11-rc3-*",
                 "System.Collections.Concurrent": "4.0.12-rc3-*",
                 "System.Collections.NonGeneric": "4.0.1-rc3-*",
@@ -37,6 +38,7 @@
                 "System.Threading": "4.0.11-rc3-*",
                 "System.Threading.Tasks": "4.0.11-rc3-*",
                 "System.Threading.Thread": "4.0.0-rc3-*",
+                "System.Xml.XmlDocument": "4.0.0-rc3-*",
                 "nunit": "3.2.0",
                 "nunit.runners": "3.2.0",
                 "nunit.console": "3.2.0.1",

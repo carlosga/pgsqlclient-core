@@ -9,7 +9,7 @@ namespace PostgreSql.Data.PostgreSqlClient
     public sealed class PgException
         : DbException
     {
-        private PgErrorCollection _errors;
+        private readonly PgErrorCollection _errors;
 
         public PgErrorCollection Errors => _errors;
 
@@ -30,27 +30,9 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             _errors = new PgErrorCollection();
 
-            GetPgExceptionErrors(ex);
-        }
-
-        private void GetPgExceptionErrors(PgClientException ex)
-        {
             foreach (PgClientError error in ex?.Errors)
             {
-                var newError = new PgError
-                {
-                    Severity = error.Severity
-                  , Code     = error.Code
-                  , Message  = error.Message
-                  , Detail   = error.Detail
-                  , Hint     = error.Hint
-                  , Line     = error.Line
-                  , Where    = error.Where
-                  , Position = error.Position
-                  , Routine  = error.Routine
-                };
-
-                _errors.Add(newError);
+                _errors.Add(new PgError(error));
             }
         }
     }

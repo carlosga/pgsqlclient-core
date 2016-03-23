@@ -28,6 +28,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
         public static void RunAllTestsForSingleServer(string connectionString)
         {
+#warning TODO: Review the commented tests
             RowBuffer(connectionString);
             InvalidRead(connectionString);
             VariantRead(connectionString);
@@ -43,7 +44,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             HasRowsTest(connectionString);
             CloseConnection(connectionString);
             OpenConnection(connectionString);
-            SqlCharsBytesTest(connectionString);
+            // SqlCharsBytesTest(connectionString);
             GetStream(connectionString);
             GetTextReader(connectionString);
             // GetXmlReader(connectionString);
@@ -89,7 +90,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 using (PgCommand cmd = new PgCommand(query, conn))
                 {
-                    cmd.Parameters.Add(new PgParameter("@id", SqlDbType.Int)).Value = 10255;
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10255;
                     using (PgDataReader r1 = cmd.ExecuteReader())
                     {
                         int numBatches = 0;
@@ -203,7 +204,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     s = rdr.GetString(10);  // ShipCity;
                                             // should get an exception here
                     string errorMessage = SystemDataResourceManager.Instance.SqlMisc_NullValueMessage;
-                    DataTestClass.AssertThrowsWrapper<SqlNullValueException>(() => rdr.GetString(11), errorMessage);
+                    DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetString(11), errorMessage);
 
                     s = rdr.GetString(12); //ShipPostalCode;
                     s = rdr.GetString(13); //ShipCountry;
@@ -217,7 +218,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection conn = new PgConnection(connectionString))
             {
                 conn.Open();
-                string sqlBatch = "select *, CAST(N'<test>Hello, World</test>' AS XML), CAST(NULL AS XML) from orders where orderid < 10253 and shipregion is null";
+                string sqlBatch = "select * from orders where orderid < 10253 and shipregion is null";
                 using (PgCommand cmd = new PgCommand(sqlBatch, conn))
                 using (PgDataReader rdr = cmd.ExecuteReader())
                 {
@@ -229,7 +230,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     rdr.GetFieldValue<string>(1);       // customer id
                     rdr.GetFieldValue<int>(2);          // employee id
                     rdr.GetFieldValue<DateTime>(3);     // OrderDate
-                    rdr.GetFieldValue<SqlDateTime>(4);  // RequiredDate
+                    rdr.GetFieldValue<DateTime>(4);     // RequiredDate
                     rdr.GetFieldValue<DateTime>(5);     // ShippedDate;
                     rdr.GetFieldValue<int>(6);          // ShipVia;
                     rdr.GetFieldValue<decimal>(7);      // Freight;
@@ -239,16 +240,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     rdr.IsDBNull(10);
                     rdr.GetFieldValue<string>(10);      // ShipCity;
                     // should get an exception here
-                    DataTestClass.AssertThrowsWrapper<SqlNullValueException>(() => rdr.GetFieldValue<string>(11), errorMessage);
+                    DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetFieldValue<string>(11), errorMessage);
                     rdr.IsDBNull(11);
                     rdr.GetFieldValue<string>(11);
                     rdr.IsDBNull(11);
                     rdr.IsDBNull(12);
                     rdr.GetChars(12, 0, null, 0, 0);
                     rdr.IsDBNull(12);
-                    rdr.GetFieldValue<INullable>(13);//ShipCountry;
-                    rdr.GetFieldValue<string>(14);
-                    DataTestClass.AssertThrowsWrapper<SqlNullValueException>(() => rdr.GetFieldValue<string>(15), errorMessage);
+#warning TODO: Implement INullable                    
+                    // rdr.GetFieldValue<INullable>(13);//ShipCountry;
 
                     rdr.Read();
                     // read data out of buffer
@@ -256,7 +256,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     rdr.GetFieldValueAsync<string>(1).Wait();       // customer id
                     rdr.GetFieldValueAsync<int>(2).Wait();          // employee id
                     rdr.GetFieldValueAsync<DateTime>(3).Wait();     // OrderDate
-                    rdr.GetFieldValueAsync<SqlDateTime>(4).Wait();  // RequiredDate
+                    rdr.GetFieldValueAsync<DateTime>(4).Wait();     // RequiredDate
                     rdr.GetFieldValueAsync<DateTime>(5).Wait();     // ShippedDate;
                     rdr.GetFieldValueAsync<int>(6).Wait();          // ShipVia;
                     rdr.GetFieldValueAsync<decimal>(7).Wait();      // Freight;
@@ -265,7 +265,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     Assert.False(rdr.IsDBNullAsync(10).Result, "FAILED: IsDBNull was true for a non-null value");
                     rdr.GetFieldValueAsync<string>(10).Wait();      // ShipCity;
                     // should get an exception here
-                    DataTestClass.AssertThrowsWrapper<AggregateException, SqlNullValueException>(() => rdr.GetFieldValueAsync<string>(11).Wait(), innerExceptionMessage: errorMessage);
+                    DataTestClass.AssertThrowsWrapper<AggregateException, PgNullValueException>(() => rdr.GetFieldValueAsync<string>(11).Wait(), innerExceptionMessage: errorMessage);
                     Assert.True(rdr.IsDBNullAsync(11).Result, "FAILED: IsDBNull was false for a null value");
 
                     rdr.IsDBNullAsync(11).Wait();
@@ -274,11 +274,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     rdr.IsDBNullAsync(12).Wait();
                     rdr.GetChars(12, 0, null, 0, 0);
                     rdr.IsDBNullAsync(12).Wait();
-                    rdr.GetFieldValueAsync<INullable>(13).Wait(); //ShipCountry;
-                    rdr.GetFieldValue<SqlXml>(14);
-                    rdr.GetFieldValue<SqlXml>(15);
-                    rdr.GetFieldValue<string>(14);
-                    rdr.GetFieldValue<string>(15);
+#warning TODO: Implement INullable                    
+                    //rdr.GetFieldValueAsync<INullable>(13).Wait(); //ShipCountry;
 
                     rdr.Read();
                     Assert.True(rdr.IsDBNullAsync(11).Result, "FAILED: IsDBNull was false for a null value");
@@ -417,9 +414,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         byte[] b = (byte[])o;
                         DataTestClass.AssertEqualsWithDescription(8, b.Length, "FAILED: Retrieved byte array had incorrect length");
 
-                        PgBinary sqlBin = reader.GetPgBinary(1);
-                        b = sqlBin.Value;
-                        DataTestClass.AssertEqualsWithDescription(8, b.Length, "FAILED: Retrieved PgBinary value had incorrect length");
+#warning TODO: Implement PgBinary
+                        // var sqlBin = reader.GetPgBinary(1);
+                        // b = sqlBin.Value;
+                        // DataTestClass.AssertEqualsWithDescription(8, b.Length, "FAILED: Retrieved PgBinary value had incorrect length");
                     }
                 }
             }
@@ -432,7 +430,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid<@id", conn))
                 {
-                    cmd.Parameters.Add(new PgParameter("@id", SqlDbType.Int)).Value = 10252;
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10252;
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         // smaller buffer
@@ -445,8 +443,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             // alternate buffers
                             reader.GetValues(buf);
                             string bufEntry1 = (string)buf[1];
-                            reader.GetSqlValues(buf);
-                            string bufEntry2 = ((string)buf[1]).Value;
+#warning TODO: Implement GetPgValues ??                            
+                            // reader.GetSqlValues(buf);
+#warning TODO: Implement PgString ??                            
+                            // string bufEntry2 = ((SqlString)buf[1]).Value;
+                            string bufEntry2 = (string)buf[1];
 
                             Assert.True(bufEntry1.Equals(bufEntry2.ToString()),
                                 string.Format("FAILED: Should have same value with both buffer entries. Buf2 value: {0}. Buf2 value: {1}", bufEntry1, bufEntry2));
@@ -530,12 +531,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             long   cbTotal = 0;
             object o;
             int    i;
-            PgBinary sqlbin;
+#warning TODO: Implement PgBinary
+            //PgBinary sqlbin;
 
             using (PgConnection conn = new PgConnection(connectionString))
             {
                 conn.Open();
-                using (PgCommand cmd = new PgCommand("select * from orders for xml auto", conn))
+#warning TODO: Original query "select * from orders for xml auto"
+                using (PgCommand cmd = new PgCommand("select * from orders", conn))
                 {
                     // Simple reads
                     using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
@@ -659,16 +662,17 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
 
                     // test GetPgBinary special case
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        reader.Read();
+#warning TODO: Implement PgBinary
+                    // using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
+                    // {
+                    //     reader.Read();
 
-                        i = reader.GetOrdinal("photo");
-                        long actualLength = reader.GetBytes(i, 0, null, 0, 0);
-                        cb = reader.GetBytes(i, 0, data, 0, 13);
-                        sqlbin = reader.GetPgBinary(i);
-                        DataTestClass.AssertEqualsWithDescription((actualLength - 13), (long)sqlbin.Length, "FAILED: Did not receive expected number of bytes");
-                    }
+                    //     i = reader.GetOrdinal("photo");
+                    //     long actualLength = reader.GetBytes(i, 0, null, 0, 0);
+                    //     cb = reader.GetBytes(i, 0, data, 0, 13);
+                    //     sqlbin = reader.GetPgBinary(i);
+                    //     DataTestClass.AssertEqualsWithDescription((actualLength - 13), (long)sqlbin.Length, "FAILED: Did not receive expected number of bytes");
+                    // }
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
                     {
@@ -681,10 +685,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                         // Tests GetValue before GetBytes\Chars
                         reader.Read();
-                        i = reader.GetOrdinal("photo");
-                        reader.GetPgBinary(i);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, i, i + 1);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetBytes(i, 0, data, 0, 13), errorMessage);
+#warning TODO: Implement PgBinary
+                        // i = reader.GetOrdinal("photo");
+                        // reader.GetPgBinary(i);
+                        // errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, i, i + 1);
+                        // DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetBytes(i, 0, data, 0, 13), errorMessage);
 
                         i = reader.GetOrdinal("notes");
                         reader.GetString(i);
@@ -857,48 +862,48 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void SqlCharsBytesTest(string connectionString)
-        {
-            using (PgConnection conn = new PgConnection(connectionString))
-            {
-                conn.Open();
+        // private static void SqlCharsBytesTest(string connectionString)
+        // {
+        //     using (PgConnection conn = new PgConnection(connectionString))
+        //     {
+        //         conn.Open();
 
-                // select with SqlChars	parameter
-                PgCommand cmd;
-                PgDataReader reader;
-                using (cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where Title = @vm ";
+        //         // select with SqlChars	parameter
+        //         PgCommand cmd;
+        //         PgDataReader reader;
+        //         using (cmd = conn.CreateCommand())
+        //         {
+        //             cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where Title = @vm ";
 
-                    (cmd.Parameters.Add("@vm", SqlDbType.VarChar)).Value = new SqlChars("Vice President, Sales");
+        //             (cmd.Parameters.Add("@vm", SqlDbType.VarChar)).Value = new SqlChars("Vice President, Sales");
 
-                    using (reader = cmd.ExecuteReader())
-                    {
-                        Assert.True(reader.Read(), "FAILED: No results were returned from read()");
-                        DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
-                        DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
-                        DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
-                    }
-                }
+        //             using (reader = cmd.ExecuteReader())
+        //             {
+        //                 Assert.True(reader.Read(), "FAILED: No results were returned from read()");
+        //                 DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
+        //                 DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
+        //                 DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
+        //             }
+        //         }
 
-                // select with SqlBytes	parameter
-                using (cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where EmployeeID = 2 and Convert(binary(5), Photo) = @bn ";
+        //         // select with SqlBytes	parameter
+        //         using (cmd = conn.CreateCommand())
+        //         {
+        //             cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where EmployeeID = 2 and Convert(binary(5), Photo) = @bn ";
 
-                    byte[] barr = new byte[5] { 0x15, 0x1c, 0x2F, 0x00, 0x02 };
-                    (cmd.Parameters.Add("@bn", SqlDbType.VarBinary)).Value = new SqlBytes(barr);
+        //             byte[] barr = new byte[5] { 0x15, 0x1c, 0x2F, 0x00, 0x02 };
+        //             (cmd.Parameters.Add("@bn", SqlDbType.VarBinary)).Value = new SqlBytes(barr);
 
-                    using (reader = cmd.ExecuteReader())
-                    {
-                        Assert.True(reader.Read(), "FAILED: No results were returned from read()");
-                        DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
-                        DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
-                        DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
-                    }
-                }
-            }
-        }
+        //             using (reader = cmd.ExecuteReader())
+        //             {
+        //                 Assert.True(reader.Read(), "FAILED: No results were returned from read()");
+        //                 DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
+        //                 DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
+        //                 DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
+        //             }
+        //         }
+        //     }
+        // }
 
         private static void CloseConnection(string connectionString)
         {
@@ -933,7 +938,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void SeqAccessFailureWrapper<TException>(Action action, CommandBehavior behavior) where TException : Exception
+        private static void SeqAccessFailureWrapper<TException>(TestDelegate action, CommandBehavior behavior) where TException : Exception
         {
             if (behavior == CommandBehavior.SequentialAccess)
                 DataTestClass.AssertThrowsWrapper<TException>(action);
@@ -946,7 +951,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(connectionString))
             {
                 connection.Open();
-                using (PgCommand cmd = new PgCommand("SELECT 0x12341234, 0x12341234, 12, CAST(NULL AS VARBINARY(MAX)), 0x12341234, 0x12341234, 0x12341234, CAST(REPLICATE('a', 8000) AS VARBINARY(MAX)), 0x12341234", connection))
+                using (PgCommand cmd = new PgCommand("SELECT x'12341234'::BIGINT, x'12341234'::BIGINT, 12, CAST(NULL AS bytea), x'12341234'::BIGINT, x'12341234'::BIGINT, x'12341234'::BIGINT, CAST(REPLICATE('a', 8000) AS bytea), x'12341234'::BIGINT", connection))
                 {
                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
                     foreach (CommandBehavior behavior in behaviors)
@@ -957,6 +962,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             reader.Read();
 
                             // Basic success paths
+#warning TODO: Implement PgDataReader.GetStream ??                            
                             reader.GetStream(0);
                             reader.GetStream(1);
 
@@ -967,7 +973,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             Assert.False(stream.Read(buffer, 0, buffer.Length) > 0, "FAILED: Read more than 0 bytes from a null stream");
 
                             // Get column before current column
-                            Action action = (() => reader.GetStream(0));
+                            TestDelegate action = (() => reader.GetStream(0));
                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
 
                             // Two streams on same column
@@ -1078,7 +1084,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 Assert.False(textReader.Read(buffer, 0, buffer.Length) > 0, "FAILED: Read more than 0 chars from a null TextReader");
 
                                 // Get column before current column
-                                Action action = (() => reader.GetTextReader(0));
+                                TestDelegate action = (() => reader.GetTextReader(0));
                                 SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
 
                                 // Two TextReaders on same column
@@ -1223,8 +1229,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     byte[] buffer = new byte[16];
                     byte[] largeBuffer = new byte[9000];
                     Stream stream = null;
-                    Action action = null;
-                    using (PgCommand cmd = new PgCommand("SELECT 0x12341234", connection))
+                    TestDelegate action = null;
+                    using (PgCommand cmd = new PgCommand("SELECT x'12341234'::bigint", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1397,7 +1403,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         char[] buffer = new char[16];
                         char[] largeBuffer = new char[9000];
                         TextReader textReader = null;
-                        Action action = null;
+                        TestDelegate action = null;
                         using (PgCommand cmd = new PgCommand(string.Format("SELECT {0}", correctString), connection))
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))

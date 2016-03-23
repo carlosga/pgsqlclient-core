@@ -78,7 +78,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     iteration++;
 
-                    PgConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
+#warning TODO: WTF !
+                    // PgConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
 
                     // These queries should return warnings because AND here is a noise word.
                     PgCommand cmd = new PgCommand("select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
@@ -228,7 +229,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static TException VerifyConnectionFailure<TException>(Action connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
+        private static TException VerifyConnectionFailure<TException>(TestDelegate connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
         {
             TException ex = Assert.Throws<TException>(connectAction);
             Assert.True(ex.Message.Contains(expectedExceptionMessage), string.Format("FAILED: PgException did not contain expected error message. Actual message: {0}", ex.Message));
@@ -237,7 +238,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             return ex;
         }
 
-        private static TException VerifyConnectionFailure<TException>(Action connectAction, string expectedExceptionMessage) where TException : Exception
+        private static TException VerifyConnectionFailure<TException>(TestDelegate connectAction, string expectedExceptionMessage) where TException : Exception
         {
             return VerifyConnectionFailure<TException>(connectAction, expectedExceptionMessage, (ex) => true);
         }
@@ -256,30 +257,31 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             // Ensure that all errors have an error-level severity
             for (int i = 0; i < count; i++)
             {
-                Assert.True(exception.Errors[i].Class >= 10, "FAILED: verification of Exception!  Exception contains a warning!");
+                Assert.True(!exception.Errors[i].Code.StartsWith("01"), "FAILED: verification of Exception!  Exception contains a warning!");
             }
 
             // Check the properties of the exception populated by the server are correct
-            if (errorNumber.HasValue)
-            {
-                Assert.True(errorNumber.Value == exception.Number, string.Format("FAILED: Error number of exception is incorrect. Expected: {0}. Actual: {1}.", errorNumber.Value, exception.Number));
-            }
+#warning TODO: Modify PgException ??
+            // if (severity != null)
+            // {
+            //     Assert.True(severity == exception.Severity, string.Format("FAILED: Severity of exception is incorrect. Expected: {0}. Actual: {1}.", severity, exception.Number));
+            // }
 
-            if (errorState.HasValue)
-            {
-                Assert.True(errorState.Value == exception.State, string.Format("FAILED: Error state of exception is incorrect. Expected: {0}. Actual: {1}.", errorState.Value, exception.State));
-            }
+            // if (errorState.HasValue)
+            // {
+            //     Assert.True(errorState.Value == exception.State, string.Format("FAILED: Error state of exception is incorrect. Expected: {0}. Actual: {1}.", errorState.Value, exception.State));
+            // }
 
-            if (severity.HasValue)
-            {
-                Assert.True(severity.Value == exception.Class, string.Format("FAILED: Severity of exception is incorrect. Expected: {0}. Actual: {1}.", severity.Value, exception.Class));
-            }
+            // if (severity.HasValue)
+            // {
+            //     Assert.True(severity.Value == exception.Class, string.Format("FAILED: Severity of exception is incorrect. Expected: {0}. Actual: {1}.", severity.Value, exception.Class));
+            // }
 
-            if ((errorNumber.HasValue) && (errorState.HasValue) && (severity.HasValue))
-            {
-                string detailsText = string.Format("Error Number:{0},State:{1},Class:{2}", errorNumber.Value, errorState.Value, severity.Value);
-                Assert.True(exception.ToString().Contains(detailsText), string.Format("FAILED: PgException.ToString does not contain the error number, state and severity information"));
-            }
+            // if ((errorNumber.HasValue) && (errorState.HasValue) && (severity.HasValue))
+            // {
+            //     string detailsText = string.Format("Error Number:{0},State:{1},Class:{2}", errorNumber.Value, errorState.Value, severity.Value);
+            //     Assert.True(exception.ToString().Contains(detailsText), string.Format("FAILED: PgException.ToString does not contain the error number, state and severity information"));
+            // }
 
             // verify that the this[] function on the collection works, as well as the All function
             PgError[] errors = new PgError[exception.Errors.Count];

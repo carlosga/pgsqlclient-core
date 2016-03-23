@@ -34,6 +34,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal void Add(string severity, string message, string code) => Add(new PgError(severity, code, message));
         internal void Add(PgError error)                                => _innerList.Add(error);
         
-        void ICollection.CopyTo(Array array, int index) => (_innerList as ICollection).CopyTo(array, index);
+        public void CopyTo(Array array, int index) => (_innerList as ICollection).CopyTo(array, index);
     }
 }

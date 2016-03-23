@@ -5,6 +5,7 @@
 // See the LICENSE file in the project root for more information.
 
 using NUnit.Framework;
+using System.Data;
 using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
@@ -126,7 +127,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     int count = 0;
                     while (reader.Read()) { count++; }
                     Assert.True(count == 1, "Error: incorrect number of rows in table after update.");
-                    Assert.Equal(count, 1);
+                    Assert.AreEqual(count, 1);
                 }
             }
         }
@@ -150,7 +151,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     command2.Transaction = tx;
 
-                    command2.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
+                    command2.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command2.ExecuteNonQuery();
                 }
 
@@ -161,7 +162,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     Assert.False(reader.HasRows, "Error Rollback Test : incorrect number of rows in table after rollback.");
                     int count = 0;
                     while (reader.Read()) count++;
-                    Assert.Equal(count, 0);
+                    Assert.AreEqual(count, 0);
                 }
 
                 connection.Close();
@@ -209,7 +210,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     Assert.True(reader.HasRows, "Error Scoped Transaction Test : incorrect number of rows in table after rollback to save state one.");
                     int count = 0;
                     while (reader.Read()) count++;
-                    Assert.Equal(count, 1);
+                    Assert.AreEqual(count, 1);
                 }
 
                 tx.Rollback();
@@ -279,10 +280,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        public static void AssertException<T>(Action action, string expectedErrorMessage) where T : Exception
+        public static void AssertException<T>(TestDelegate action, string expectedErrorMessage) where T : Exception
         {
             var exception = Assert.Throws<T>(action);
-            Assert.Equal(exception.Message, expectedErrorMessage);
+            Assert.AreEqual(exception.Message, expectedErrorMessage);
         }
 
         private void ReadUncommitedIsolationLevel_ShouldReturnUncommitedData()
@@ -348,7 +349,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     PgTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadCommitted);
                     command2.Transaction = tx2;
 
-                    AssertException<SqlException>(() => command2.ExecuteReader(), SystemDataResourceManager.Instance.SQL_Timeout as string);
+                    AssertException<PgException>(() => command2.ExecuteReader(), SystemDataResourceManager.Instance.SQL_Timeout as string);
 
                     tx2.Rollback();
                     connection2.Close();

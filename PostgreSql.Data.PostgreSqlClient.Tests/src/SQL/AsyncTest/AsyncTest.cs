@@ -27,11 +27,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             con.Open();
 
+#warning TODO: Needs implementation in the provider to return it as PgDataReader
             Task<DbDataReader> readerTask = com.ExecuteReaderAsync();
             bool taskCompleted = readerTask.Wait(TaskTimeout);
             Assert.True(taskCompleted, "FAILED: ExecuteReaderAsync Task did not complete successfully.");
 
-            PgDataReader reader = readerTask.Result;
+            DbDataReader reader = readerTask.Result;
 
             int rows;
             for (rows = 0; reader.Read(); rows++) ;
@@ -78,7 +79,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             taskCompleted = nonQueryTask.Wait(TaskTimeout);
             Assert.True(taskCompleted, "FAILED: ExecuteNonQueryAsync Task did not complete successfully.");
 
-            Task<PgDataReader> readerTask = com.ExecuteReaderAsync();
+#warning TODO: Needs implementation in the provider to return it as PgDataReader
+            Task<DbDataReader> readerTask = com.ExecuteReaderAsync();
             try
             {
                 com.ExecuteReaderAsync().Wait(TaskTimeout);
