@@ -5,6 +5,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using System.Data.Common;
+using System;
 using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
@@ -25,7 +27,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             con.Open();
 
-            Task<PgDataReader> readerTask = com.ExecuteReaderAsync();
+            Task<DbDataReader> readerTask = com.ExecuteReaderAsync();
             bool taskCompleted = readerTask.Wait(TaskTimeout);
             Assert.True(taskCompleted, "FAILED: ExecuteReaderAsync Task did not complete successfully.");
 

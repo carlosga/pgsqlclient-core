@@ -5,6 +5,7 @@
 // See the LICENSE file in the project root for more information.
 
 using NUnit.Framework;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
@@ -15,13 +16,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Test]
         public void BasicParallelTest_ShouldThrowsUnsupported_Yukon()
         {
-            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.SQL2005_Pubs);
+            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
         }
 
         [Test]
         public void BasicParallelTest_ShouldThrowsUnsupported_Katmai()
         {
-            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.SQL2008_Pubs);
+            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
         }
 
         private void BasicParallelTest_shouldThrowsUnsupported(string connectionString)
@@ -81,13 +82,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Test]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Yukon()
         {
-            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.SQL2005_Pubs);
+            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
         }
 
         [Test]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Katmai()
         {
-            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.SQL2008_Northwind);
+            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Northwind);
         }
 
         private void MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(string connectionString)
@@ -141,7 +142,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 PgCommand com4 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com4.Transaction = trans1;
-                SqlDataReader reader4 = com4.ExecuteReader();
+                PgDataReader reader4 = com4.ExecuteReader();
                 reader4.Dispose();
                 com4.Dispose();
 

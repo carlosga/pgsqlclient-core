@@ -6,6 +6,7 @@
 
 using NUnit.Framework;
 using System.Data.Common;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
@@ -36,7 +37,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     {
                         Console.WriteLine("*** SQL CONNECTION INFO MESSAGE : {0} ****", args.Message);
                     };
-                    expectedException = typeof(SqlException);
+                    expectedException = typeof(PgException);
                 }
                 connection.Open();
 

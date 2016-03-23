@@ -29,7 +29,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             string connectionString = DataTestClass.PostgreSql9_Northwind;
 
             Action<object, PgInfoMessageEventArgs> warningCallback =
-                (object sender, SqlInfoMessageEventArgs imevent) =>
+                (object sender, PgInfoMessageEventArgs imevent) =>
                 {
                     for (int i = 0; i < imevent.Errors.Count; i++)
                     {
@@ -58,8 +58,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             var hitWarnings      = false;
             int iteration        = 0;
             
-            Action<object, SqlInfoMessageEventArgs> warningCallback =
-                (object sender, SqlInfoMessageEventArgs imevent) =>
+            Action<object, PgInfoMessageEventArgs> warningCallback =
+                (object sender, PgInfoMessageEventArgs imevent) =>
                 {
                     for (int i = 0; i < imevent.Errors.Count; i++)
                     {
@@ -82,9 +82,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                     // These queries should return warnings because AND here is a noise word.
                     PgCommand cmd = new PgCommand("select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    using (PgDataReader reader = cmd.ExecuteReader())
                     {
-                        Assert.True(reader.HasRows, "FAILED: SqlDataReader.HasRows is not correct (should be TRUE)");
+                        Assert.True(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be TRUE)");
 
                         bool receivedRows = false;
                         while (reader.Read())
@@ -99,7 +99,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     cmd.CommandText = "select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"NotARealPerson AND\"')" + orderClause;
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
-                        Assert.False(reader.HasRows, "FAILED: SqlDataReader.HasRows is not correct (should be FALSE)");
+                        Assert.False(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be FALSE)");
 
                         bool receivedRows = false;
                         while (reader.Read())

@@ -5,9 +5,11 @@
 // See the LICENSE file in the project root for more information.
 
 using NUnit.Framework;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {

@@ -15,7 +15,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests.SystemDataInternals
 {
     internal static class ConnectionPoolHelper
     {
-        private static Assembly s_systemDotData = Assembly.Load(new AssemblyName(typeof(SqlConnection).GetTypeInfo().Assembly.FullName));
+        private static Assembly s_systemDotData = Assembly.Load(new AssemblyName(typeof(PgConnection).GetTypeInfo().Assembly.FullName));
         private static Type s_dbConnectionPool = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionPool");
         private static Type s_dbConnectionPoolGroup = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionPoolGroup");
         private static Type s_dbConnectionPoolIdentity = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionPoolIdentity");

@@ -22,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             set { SetValue(ConnectionStringKeywords.InitialCatalog, value); }
         }
 
-        public string UserId
+        public string UserID
         {
             get { return GetString(ConnectionStringKeywords.UserId); }
             set { SetValue(ConnectionStringKeywords.UserId, value); }
@@ -46,7 +46,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             set { SetValue(ConnectionStringKeywords.PacketSize, value); }
         }
 
-        public int ConnectionTimeout
+        public int ConnectTimeout
         {
             get { return GetInt32(ConnectionStringKeywords.ConnectionTimeout); }
             set { SetValue(ConnectionStringKeywords.ConnectionTimeout, value); }

@@ -12,7 +12,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests.SystemDataInternals
 {
     internal static class ConnectionHelper
     {
-        private static Assembly     s_systemDotData                         = Assembly.Load(new AssemblyName(typeof(PfConnection).GetTypeInfo().Assembly.FullName));
+        private static Assembly     s_systemDotData                         = Assembly.Load(new AssemblyName(typeof(PgConnection).GetTypeInfo().Assembly.FullName));
         private static Type         s_sqlConnection                         = s_systemDotData.GetType("PostgreSql.Data.PostgreSqlClient.PgConnection");
         private static Type         s_sqlInternalConnection                 = s_systemDotData.GetType("PostgreSql.Data.PostgreSqlClient.PgInternalConnection");
         private static Type         s_sqlInternalConnectionTds              = s_systemDotData.GetType("PostgreSql.Data.PostgreSqlClient.PgInternalConnectionTds");

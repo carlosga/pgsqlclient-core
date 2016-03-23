@@ -24,7 +24,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
         
         private SystemDataResourceManager() 
-            : base(typeof(PostgreSql.Data.PostgreSqlClient).GetTypeInfo().Assembly)
+            : base(typeof(PostgreSql.Data.PostgreSqlClient.PgConnection).GetTypeInfo().Assembly)
         {
         }
     }

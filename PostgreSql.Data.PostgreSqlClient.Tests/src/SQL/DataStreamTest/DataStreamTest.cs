@@ -756,10 +756,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "CheckDataIsReady");
                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetValue(i), errorMessage);
                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<byte[]>(i), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<PgBinary>(i), errorMessage);
+                        // DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<PgBinary>(i), errorMessage);
                         errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "GetFieldValueAsync");
                         DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<byte[]>(i).Wait(), innerExceptionMessage: errorMessage);
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<PgBinary>(i).Wait(), innerExceptionMessage: errorMessage);
+                        // DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<PgBinary>(i).Wait(), innerExceptionMessage: errorMessage);
                     }
                 }
             }
@@ -786,8 +786,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     {
                         reader.Read();
 
-                        object  o = reader.GetSqlValue(0);
-                        decimal n = reader.GetSqlDecimal(1);
+                        object  o = reader.GetValue(0);
+                        decimal n = reader.GetDecimal(1);
 
                         Assert.True(o is decimal, "FAILED: Query result was not a decimal value");
                         DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789012345678", ((decimal)o).ToString(), "FAILED: Decimal did not have expected value");
@@ -1551,30 +1551,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 DataTestClass.AssertEqualsWithDescription(correctStrings[j], stringRead.TrimEnd(), "FAILED: Strings to not match");
                             }
                         }
-                    }
-
-                    // GetXmlReader
-                    string correctXml = "<test><subtest>asdf</subtest><subtest /></test>";
-                    byte[] correctXmlAsBytes = System.Text.Encoding.Unicode.GetBytes(correctXml);
-                    XmlReader correctXmlReader = XmlReader.Create(new StringReader(correctXml), new XmlReaderSettings() { ConformanceLevel = System.Xml.ConformanceLevel.Fragment, CloseInput = true });
-                    queryString = string.Format("SELECT CAST(N'{0}' AS XML)", correctXml);
-                    using (PgCommand cmd = new PgCommand(queryString, connection))
-                    using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                    {
-                        reader.Read();
-                        XmlReader xmlReader = reader.GetXmlReader(0);
-                        bool match = true;
-                        while ((match) && (xmlReader.Read()))
-                        {
-                            match = correctXmlReader.Read();
-                            if (match)
-                            {
-                                match &= (correctXmlReader.Name == xmlReader.Name);
-                                match &= (correctXmlReader.Value == xmlReader.Value);
-                            }
-                        }
-
-                        Assert.True(match, "FAILED: XmlReaders do not match");
                     }
                 }
             }

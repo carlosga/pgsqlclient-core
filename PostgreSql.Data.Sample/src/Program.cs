@@ -14,7 +14,7 @@ namespace ConsoleApplication
 
             csb.DataSource               = "localhost";
             csb.InitialCatalog           = "northwind";
-            csb.UserId                   = "northwind";
+            csb.UserID                   = "northwind";
             csb.Password                 = "northwind@2";
             csb.PortNumber               = 5432;
             csb.Encrypt                  = false;

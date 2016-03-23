@@ -48,6 +48,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
+        public PgParameter AddWithValue(string parameterName, object value)  => Add(new PgParameter(parameterName, value));
         public PgParameter Add(string parameterName, object value)  => Add(new PgParameter(parameterName, value));
         public PgParameter Add(string parameterName, PgDbType type) => Add(parameterName, type, 0);
         public PgParameter Add(string parameterName, PgDbType providerType, int size) => Add(parameterName, providerType, size, null);

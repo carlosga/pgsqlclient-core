@@ -13,10 +13,10 @@ namespace PostgreSql.Data.PostgreSqlClient
     public sealed class PgConnection
         : DbConnection
     {
-        public event EventHandler<PgInfoMessageEventArgs>  InfoMessage;
-        public event EventHandler<PgNotificationEventArgs> Notification;
-        public event RemoteCertificateValidationCallback   UserCertificateValidation;
-        public event LocalCertificateSelectionCallback     UserCertificateSelection;
+        public event PgInfoMessageEventHandler           InfoMessage;
+        public event PgNotificationEventHandler          Notification;
+        public event RemoteCertificateValidationCallback UserCertificateValidation;
+        public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
         private PgConnectionInternal _innerConnection;
         private PgConnectionOptions  _connectionOptions;

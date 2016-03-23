@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using System;
 using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
@@ -59,7 +60,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             
             var cmd = new PgCommand(cmdText, conn);
 
-            using (PgDataReader reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection))
+            using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection))
             {
                 while (await reader.ReadAsync())
                 {
