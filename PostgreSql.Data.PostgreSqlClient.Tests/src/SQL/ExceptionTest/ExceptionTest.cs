@@ -6,10 +6,12 @@
 
 using System.Collections;
 using System.Globalization;
-using Xunit;
+using System;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class ExceptionTest
     {
         // data value and server consts
@@ -21,12 +23,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         private const string warningInfoMessage = "Test of info messages";
         private const string orderIdQuery = "select orderid from orders where orderid < 10250";
 
-        [Fact]
+        [Test]
         public static void WarningTest()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
 
-            Action<object, SqlInfoMessageEventArgs> warningCallback =
+            Action<object, PgInfoMessageEventArgs> warningCallback =
                 (object sender, SqlInfoMessageEventArgs imevent) =>
                 {
                     for (int i = 0; i < imevent.Errors.Count; i++)
@@ -35,8 +37,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
                 };
 
-            SqlInfoMessageEventHandler handler = new SqlInfoMessageEventHandler(warningCallback);
-            using (PgConnection PgConnection = new PgConnection(connectionString + ";pooling=false;"))
+            PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
+            using (PgConnection PgConnection  = new PgConnection(connectionString + ";pooling=false;"))
             {
                 PgConnection.InfoMessage += handler;
                 PgConnection.Open();
@@ -49,13 +51,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void WarningsBeforeRowsTest()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind;
-            bool hitWarnings = false;
-
-            int iteration = 0;
+            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var hitWarnings      = false;
+            int iteration        = 0;
+            
             Action<object, SqlInfoMessageEventArgs> warningCallback =
                 (object sender, SqlInfoMessageEventArgs imevent) =>
                 {
@@ -66,8 +68,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     hitWarnings = true;
                 };
 
-            SqlInfoMessageEventHandler handler = new SqlInfoMessageEventHandler(warningCallback);
-            PgConnection PgConnection = new PgConnection(connectionString);
+            var handler      = new PgInfoMessageEventHandler(warningCallback);
+            var PgConnection = new PgConnection(connectionString);
             PgConnection.InfoMessage += handler;
             PgConnection.Open();
             foreach (string orderClause in new string[] { "", " order by FirstName" })
@@ -95,7 +97,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     hitWarnings = false;
 
                     cmd.CommandText = "select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"NotARealPerson AND\"')" + orderClause;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         Assert.False(reader.HasRows, "FAILED: SqlDataReader.HasRows is not correct (should be FALSE)");
 
@@ -135,7 +137,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             return true;
         }
 
-        [Fact]
+        [Test]
         public static void ExceptionTests()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -165,7 +167,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
         }
 
-        [Fact]
+        [Test]
         public static void VariousExceptionTests()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -192,7 +194,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void IndependentConnectionExceptionTest()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;

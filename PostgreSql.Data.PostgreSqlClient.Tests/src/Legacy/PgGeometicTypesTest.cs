@@ -1,16 +1,18 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
-using Xunit;
+using NUnit.Framework;
 using PostgreSql.Data.PgTypes;
 using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.UnitTests
 {
+    [TestFixture]
+    [Ignore("Needs configuration")]
     public class PgGeometricTypesTest
         : PgBaseTest
     {
-        [Fact]
+        [Test]
         public void PointTest()
         {
             using (var command = new PgCommand("select point_field from public.geometric_table where pk = @pk", Connection))
@@ -26,7 +28,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void BoxTest()
         {
             using (var command = new PgCommand("SELECT box_field FROM public.geometric_table WHERE pk = @pk", Connection))
@@ -37,7 +39,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
 
                 Console.WriteLine("Box value: {0}", box.ToString());
 
-                Assert.AreEqual(0, box.LowerLeft.X, "Invalid X coord in Lower Left corner");
+                Assert.AreEqual( 0, box.LowerLeft.X, "Invalid X coord in Lower Left corner");
                 Assert.AreEqual(70, box.LowerLeft.Y, "Invalid Y coord in Lower Left corner");
 
                 Assert.AreEqual(70, box.UpperRight.X, "Invalid X coord in Upper Right corner");
@@ -45,7 +47,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void CircleTest()
         {
             using (var command = new PgCommand("select circle_field from public.geometric_table where pk = @pk", Connection))
@@ -57,12 +59,12 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
                 Console.WriteLine("Circle value: {0}", circle.ToString());
 
                 Assert.AreEqual(30, circle.Center.X, "Invalid X coord in circle");
-                Assert.AreEqual(0, circle.Center.Y, "Invalid Y coord in circle");
+                Assert.AreEqual( 0, circle.Center.Y, "Invalid Y coord in circle");
                 Assert.AreEqual(30, circle.Radius, "Invalid RADIUS coord in circle");
             }
         }
 
-        [Fact]
+        [Test]
         public void LineSegmentTest()
         {
             using (var command = new PgCommand("select lseg_field from public.geometric_table where pk = @pk", Connection))
@@ -81,7 +83,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void PathTest()
         {
             using (var command = new PgCommand("select path_field from public.geometric_table where pk = @pk", Connection))
@@ -100,7 +102,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void PolygonTest()
         {
             using (var command = new PgCommand("select polygon_field from public.geometric_table where pk = @pk", Connection))

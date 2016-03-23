@@ -42,7 +42,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
             else
             {
-                throw new ArgumentException(string.Format("colonSplit of string {0} has length {1}", ProtocolAndServerName, colonSplit.Length));
+                throw new ArgumentException(string.Format("colonSplit of string {0} has length {1}", protocolAndServerName, colonSplit.Length));
             }
         }
 

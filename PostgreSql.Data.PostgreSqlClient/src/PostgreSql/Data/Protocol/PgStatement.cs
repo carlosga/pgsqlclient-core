@@ -12,7 +12,7 @@ namespace PostgreSql.Data.Protocol
         : IDisposable
     {
         private PgDatabase        _database;
-        private string            _stmtText;
+        private string            _statementText;
         private bool              _hasRows;
         private string            _tag;
         private string            _parseName;
@@ -31,34 +31,41 @@ namespace PostgreSql.Data.Protocol
         internal PgRowDescriptor    RowDescriptor   => _rowDescriptor;
         internal IList<PgParameter> Parameters      => _parameters;
         internal PgStatementStatus  Status          => _status;
-
-        internal PgStatement()
-            : this(null)
+        
+        internal string StatementText
         {
+            get { return _statementText; }
+            set 
+            {
+                if (_statementText != value)
+                {
+                    Close();
+                    _statementText = value;                    
+                }
+            }
+        }
+        
+        internal bool IsPrepared
+        {
+            get 
+            {
+                return (_status == PgStatementStatus.Parsed 
+                     || _status == PgStatementStatus.Described
+                     || _status == PgStatementStatus.Binded
+                     || _status == PgStatementStatus.Executed);                
+            }
         }
 
         internal PgStatement(PgDatabase database)
-            : this(database, null, null)
-        {
-        }
-
-        internal PgStatement(PgDatabase database, string parseName, string portalName)
-            : this(database, parseName, portalName, null)
+            : this(database, null)
         {
         }
 
         internal PgStatement(PgDatabase database, string stmtText)
-            : this(database, null, null, stmtText)
-        {
-        }
-
-        internal PgStatement(PgDatabase database, string parseName, string portalName, string stmtText)
         {
             _database        = database;
             _status          = PgStatementStatus.Initial;
-            _stmtText        = stmtText;
-            _parseName       = parseName;
-            _portalName      = portalName;
+            _statementText   = stmtText;
             _recordsAffected = -1;
             _hasRows         = false;
             _allRowsFetched  = false;
@@ -69,32 +76,30 @@ namespace PostgreSql.Data.Protocol
         }
 
         #region IDisposable Support
-
-        private bool _disposedValue = false; // To detect redundant calls
-
-        ~PgStatement()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
-        }
+        private bool _disposed = false; // To detect redundant calls
 
         private void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-
                     Close();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 
-                _disposedValue = true;
+                _disposed = true;
             }
         }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgStatement() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
@@ -102,158 +107,75 @@ namespace PostgreSql.Data.Protocol
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
-            GC.SuppressFinalize(this);
+            // GC.SuppressFinalize(this);
         }
-
         #endregion
-
-        internal void Parse()
+        
+        internal void Prepare()
         {
             try
             {
-                // Update status
-                _status = PgStatementStatus.Parsing;
+                if (_status != PgStatementStatus.Initial)
+                {
+                    Close();
+                }
 
-                // Clear actual row list
-                ClearRows();
-
-                // Initialize RowDescriptor and Parameters
-                _rowDescriptor.Clear();
-                _parameters.Clear();
-
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.PARSE);
-
-                packet.WriteNullString(_parseName);
-                packet.WriteNullString(_stmtText);
-                packet.Write((short)0);
+                _database.Lock();
+                                
+                string statementName = Guid.NewGuid().GetHashCode().ToString();
                 
-                // Send packet to the server
-                _database.Send(packet);
-
-                // Update status
-                _status = PgStatementStatus.Parsed;
-            }
-            catch
-            {
-                _status = PgStatementStatus.Error;
-                throw;
-            }
-        }
-
-        internal void Describe()        => Describe('S');
-        internal void DescribePortal()  => Describe('P');
-
-        internal void Bind()
-        {
-            try
-            {
-                // Update status
-                _status = PgStatementStatus.Binding;
-
-                // Clear row data
-                ClearRows();
-
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.BIND);
-
-                // Destination portal name
-                packet.WriteNullString(_portalName);
-
-                // Prepared statement name
-                packet.WriteNullString(_parseName);
-
-                // Send parameters format code.
-                packet.Write((short)_parameters.Count);
-                for (int i = 0; i < _parameters.Count; i++)
-                {
-                    packet.Write((short)_parameters[i].DataType.Format);
-                }
-
-                // Send parameter values
-                packet.Write((short)_parameters.Count);
-                for (int i = 0; i < _parameters.Count; i++)
-                {
-                    packet.Write(_parameters[i]);
-                }
-
-                // Send column information
-                packet.Write((short)_rowDescriptor.Count);
-                for (int i = 0; i < _rowDescriptor.Count; i++)
-                {
-                    packet.Write((short)_rowDescriptor[i].Type.Format);
-                }
-
-                // Send packet to the server
-                _database.Send(packet);
-
-                // Update status
-                _status = PgStatementStatus.Binded;
+                _parseName  = $"PS{statementName}";
+                _portalName = $"PR{statementName}";
+                
+                Parse();
+                Describe();
             }
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Error;
+                _status = PgStatementStatus.Broken;
                 // Throw exception
                 throw;
             }
+            finally
+            {
+                _database.ReleaseLock();
+            }
         }
-
+        
         internal void Execute()
         {
+            if (_status == PgStatementStatus.Initial)
+            {
+                Prepare();
+            }
+            
             try
             {
-                // Update status
-                _status = PgStatementStatus.Executing;
-
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
-
-                packet.WriteNullString(_portalName);
-                packet.Write(_database.ConnectionOptions.FetchSize);	// Rows to retrieve ( 0 = nolimit )
-
-                // Send packet to the server
-                _database.Send(packet);
-
-                // Flush pending messages
-                _database.Flush();
-
-                // Receive response
-                PgInputPacket response = null;
-
-                do
-                {
-                    response = _database.Read();
-                    
-                    HandleSqlMessage(response);
-                }
-                while (!response.IsReadyForQuery && !response.IsCommandComplete && !response.IsPortalSuspended);
-
-                // If the command is finished and has returned rows
-                // set all rows are received
-                if ((response.IsReadyForQuery || response.IsCommandComplete) && _hasRows)
-                {
-                    _allRowsFetched = true;
-                }
-
-                // If all rows are received or the command doesn't return
-                // rows perform a Sync.
-                if (!_hasRows || _allRowsFetched)
-                {
-                    _database.Sync();
-                }
-
-                // Update status
-                _status = PgStatementStatus.Executed;
+                _database.Lock();
+                
+                Bind();
+                InternalExecute();
             }
             catch
             {
-                _status = PgStatementStatus.Error;
+                // Update status
+                _status = PgStatementStatus.Broken;
+                // Throw exception
                 throw;
             }
+            finally
+            {
+                _database.ReleaseLock();
+            }            
         }
 
         internal void ExecuteFunction(int id)
         {
             try
             {
+                _database.Lock();
+                
                 // Update status
                 _status = PgStatementStatus.Executing;
 
@@ -301,9 +223,13 @@ namespace PostgreSql.Data.Protocol
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Error;
+                _status = PgStatementStatus.Broken;
                 // Throw exception
                 throw;
+            }
+            finally
+            {
+                _database.ReleaseLock();
             }
         }
 
@@ -317,7 +243,7 @@ namespace PostgreSql.Data.Protocol
             if (!_rows.IsEmpty())
             {
                 return _rows.Dequeue()[0];
-            }
+            }                
             
             return null;
         }                
@@ -326,12 +252,14 @@ namespace PostgreSql.Data.Protocol
         {
             try
             {
+                _database.Lock();
+                
                 // Update Status
                 _status = PgStatementStatus.OnQuery;
 
                 var packet = _database.CreateOutputPacket(PgFrontEndCodes.QUERY);
 
-                packet.WriteNullString(_stmtText);
+                packet.WriteNullString(_statementText);
 
                 // Send packet to the server
                 _database.Send(packet);
@@ -358,9 +286,13 @@ namespace PostgreSql.Data.Protocol
             }
             catch
             {
-                _status = PgStatementStatus.Error;
+                _status = PgStatementStatus.Broken;
                 throw;
             }
+            finally
+            {
+                _database.ReleaseLock();   
+            }           
         }
 
         internal object[] FetchRow()
@@ -368,7 +300,7 @@ namespace PostgreSql.Data.Protocol
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
-                Execute();
+                InternalExecute();
             }
 
             if (!_rows.IsEmpty())
@@ -379,8 +311,24 @@ namespace PostgreSql.Data.Protocol
             return null;
         }
 
-        internal void Close()       => Close('S');
-        internal void ClosePortal() => Close('P');
+        internal void Close()
+        {
+            try
+            {
+                _database.Lock();
+                
+                ClosePortal();
+                CloseStatement();                   
+            }
+            catch (System.Exception)
+            {                
+                throw;
+            }
+            finally
+            {
+                _database.ReleaseLock();
+            }
+        }
 
         internal string GetPlan(bool verbose)
         {
@@ -407,54 +355,153 @@ namespace PostgreSql.Data.Protocol
             return stmtPlan.ToString();
         }
 
-        private void ClearRows()
+        private void Parse()
         {
-            _rows.Clear();
+            // Update status
+            _status = PgStatementStatus.Parsing;
 
-            _hasRows        = false;
-            _allRowsFetched = false;
+            // Clear actual row list
+            ClearRows();
+
+            // Initialize RowDescriptor and Parameters
+            _rowDescriptor.Clear();
+            _parameters.Clear();
+
+            var packet = _database.CreateOutputPacket(PgFrontEndCodes.PARSE);
+
+            packet.WriteNullString(_parseName);
+            packet.WriteNullString(_statementText);
+            packet.Write((short)0);
+            
+            // Send packet to the server
+            _database.Send(packet);
+
+            // Update status
+            _status = PgStatementStatus.Parsed;
         }
+
+        private void Describe()        => Describe('S');
+        private void DescribePortal()  => Describe('P');
 
         private void Describe(char stmtType)
         {
-            try
+            // Update status
+            _status = PgStatementStatus.Describing;
+
+            var name   = ((stmtType == 'S') ? _parseName : _portalName);
+            var packet = _database.CreateOutputPacket(PgFrontEndCodes.DESCRIBE);
+
+            packet.Write(stmtType);
+            packet.WriteNullString(name);
+
+            // Send packet to the server
+            _database.Send(packet);
+
+            // Flush pending messages
+            _database.Flush();
+
+            // Receive Describe response
+            PgInputPacket response = null;
+            
+            do
             {
-                // Update status
-                _status = PgStatementStatus.Describing;
+                response = _database.Read();
+                HandleSqlMessage(response);                    
+            } while (!response.IsRowDescription && !response.IsNoData);
 
-                var name   = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.DESCRIBE);
+            DescribeParameters();                
 
-                packet.Write(stmtType);
-                packet.WriteNullString(name);
+            // Update status
+            _status = PgStatementStatus.Described;
+        }
+        
+        private void Bind()
+        {
+            // Update status
+            _status = PgStatementStatus.Binding;
 
-                // Send packet to the server
-                _database.Send(packet);
+            // Clear row data
+            ClearRows();
 
-                // Flush pending messages
-                _database.Flush();
+            var packet = _database.CreateOutputPacket(PgFrontEndCodes.BIND);
 
-                // Receive Describe response
-                PgInputPacket response = null;
+            // Destination portal name
+            packet.WriteNullString(_portalName);
+
+            // Prepared statement name
+            packet.WriteNullString(_parseName);
+
+            // Send parameters format code.
+            packet.Write((short)_parameters.Count);
+            for (int i = 0; i < _parameters.Count; i++)
+            {
+                packet.Write((short)_parameters[i].DataType.Format);
+            }
+
+            // Send parameter values
+            packet.Write((short)_parameters.Count);
+            for (int i = 0; i < _parameters.Count; i++)
+            {
+                packet.Write(_parameters[i]);
+            }
+
+            // Send column information
+            packet.Write((short)_rowDescriptor.Count);
+            for (int i = 0; i < _rowDescriptor.Count; i++)
+            {
+                packet.Write((short)_rowDescriptor[i].Type.Format);
+            }
+
+            // Send packet to the server
+            _database.Send(packet);
+
+            // Update status
+            _status = PgStatementStatus.Binded;
+        }
+
+        private void InternalExecute()
+        {
+            // Update status
+            _status = PgStatementStatus.Executing;
+
+            var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
+
+            packet.WriteNullString(_portalName);
+            packet.Write(_database.ConnectionOptions.FetchSize);	// Rows to retrieve ( 0 = nolimit )
+
+            // Send packet to the server
+            _database.Send(packet);
+
+            // Flush pending messages
+            _database.Flush();
+
+            // Receive response
+            PgInputPacket response = null;
+
+            do
+            {
+                response = _database.Read();
                 
-                do
-                {
-                    response = _database.Read();
-                    HandleSqlMessage(response);                    
-                } while (!response.IsRowDescription && !response.IsNoData);
-
-                DescribeParameters();                
-
-                // Update status
-                _status = PgStatementStatus.Described;
+                HandleSqlMessage(response);
             }
-            catch
+            while (!response.IsReadyForQuery && !response.IsCommandComplete && !response.IsPortalSuspended);
+
+            // If the command is finished and has returned rows
+            // set all rows are received
+            if ((response.IsReadyForQuery || response.IsCommandComplete) && _hasRows)
             {
-                // Update status
-                _status = PgStatementStatus.Error;
-                // Throw exception
-                throw;
+                _allRowsFetched = true;
             }
+
+            // If all rows are received or the command doesn't return
+            // rows perform a Sync.
+            if (!_hasRows || _allRowsFetched)
+            {
+                _database.Sync();
+            }
+
+            // Update status
+            _status = PgStatementStatus.Executed;
         }
         
         private void DescribeParameters()
@@ -490,42 +537,77 @@ namespace PostgreSql.Data.Protocol
             }            
         }
 
-        private void Close(char stmtType)
+        private void CloseStatement()
         {
-            try
+            if (_status == PgStatementStatus.Parsed 
+             || _status == PgStatementStatus.Described)
             {
-                var name   = ((stmtType == 'S') ? _parseName : _portalName);
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.CLOSE);
+                Close('S', _parseName);
 
-                packet.Write(stmtType);
-                packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
+                // Reset name
+                _parseName = null;
 
-                // Send packet to the server
-                _database.Send(packet);
-
-                // Sync server and client
-                _database.Flush();
-
-                // Read until CLOSE COMPLETE message is received
-                PgInputPacket response = null;
-
-                do
-                {
-                    response = _database.Read();
-                    HandleSqlMessage(response);
-                }
-                while (!response.IsCloseComplete);
-
-                // Clear rows
-                ClearRows();
+                // Clear parameters
+                _parameters.Clear();
 
                 // Update Status
                 _status = PgStatementStatus.Initial;
             }
+        }
+        
+        private void ClosePortal()
+        {
+            if (_status == PgStatementStatus.Binded
+             || _status == PgStatementStatus.Executed)
+            {
+                Close('P', _portalName);
+
+                // Reset name
+                _portalName = null;
+                
+                // Update Status
+                _status = PgStatementStatus.Described;
+            }
+        }   
+
+        private void Close(char type, string name)
+        {
+            try
+            {
+                if (name != null && name.Length > 0)
+                {
+                    var packet = _database.CreateOutputPacket(PgFrontEndCodes.CLOSE);
+
+                    packet.Write(type);
+                    packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
+
+                    // Send packet to the server
+                    _database.Send(packet);
+
+                    // Sync server and client
+                    _database.Flush();
+
+                    // Read until CLOSE COMPLETE message is received
+                    PgInputPacket response = null;
+
+                    do
+                    {
+                        response = _database.Read();
+                        HandleSqlMessage(response);
+                    }
+                    while (!response.IsCloseComplete);
+                }
+                
+                // Cleanup
+                ClearRows();
+                
+                _tag             = null;          
+                _recordsAffected = -1;      
+            }
             catch
             {
                 // Update Status
-                _status = PgStatementStatus.Error;
+                _status = PgStatementStatus.Broken;
 
                 // Throw exception
                 throw;
@@ -536,17 +618,22 @@ namespace PostgreSql.Data.Protocol
         {
             switch (packet.Message)
             {
-                case PgBackendCodes.FUNCTION_CALL_RESPONSE:
-                    ProcessFunctionResult(packet);
+                case PgBackendCodes.DATAROW:
+                    _hasRows = true;
+                    ProcessDataRow(packet);
                     break;
 
                 case PgBackendCodes.ROW_DESCRIPTION:
                     ProcessRowDescription(packet);
                     break;
 
-                case PgBackendCodes.DATAROW:
-                    _hasRows = true;
-                    ProcessDataRow(packet);
+                case PgBackendCodes.FUNCTION_CALL_RESPONSE:
+                    ProcessFunctionResult(packet);
+                    break;
+
+                case PgBackendCodes.COMMAND_COMPLETE:
+                    ClosePortal();
+                    ProcessTag(packet);
                     break;
 
                 case PgBackendCodes.EMPTY_QUERY_RESPONSE:
@@ -554,18 +641,14 @@ namespace PostgreSql.Data.Protocol
                     ClearRows();
                     break;
 
-                case PgBackendCodes.COMMAND_COMPLETE:
-                    ProcessTag(packet);
-                    break;
-
                 case PgBackendCodes.PARAMETER_DESCRIPTION:
                     ProcessParameterDescription(packet);
                     break;
-
-                case PgBackendCodes.BIND_COMPLETE:
-                case PgBackendCodes.PARSE_COMPLETE:
-                case PgBackendCodes.CLOSE_COMPLETE:
-                    break;
+                
+                // case PgBackendCodes.CLOSE_COMPLETE:
+                // case PgBackendCodes.BIND_COMPLETE:
+                // case PgBackendCodes.PARSE_COMPLETE:
+                //     break;
             }
         }
 
@@ -665,5 +748,13 @@ namespace PostgreSql.Data.Protocol
 
             _rows.Enqueue(values);
         }
+        
+        private void ClearRows()
+        {
+            _rows.Clear();
+
+            _hasRows        = false;
+            _allRowsFetched = false;
+        }        
     }
 }

@@ -5,22 +5,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
-using Xunit;
+using System;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public class WeakRefTestYukonSpecific
     {
-        private const string COMMAND_TEXT_1 = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax from Customers";
-        private const string COMMAND_TEXT_2 = "SELECT CompanyName from Customers";
-        private const string COLUMN_NAME_2 = "CompanyName";
-        private const string DATABASE_NAME = "pubs";
-        private const int CONCURRENT_COMMANDS = 5;
+        private const string COMMAND_TEXT_1      = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax from Customers";
+        private const string COMMAND_TEXT_2      = "SELECT CompanyName from Customers";
+        private const string COLUMN_NAME_2       = "CompanyName";
+        private const string DATABASE_NAME       = "pubs";
+        private const int    CONCURRENT_COMMANDS = 5;
 
-        [Fact]
+        [Test]
         public static void TestReaderMars()
         {
-            string connectionString = DataTestClass.SQL2005_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
 
             TestReaderMarsCase("Case 1: ExecuteReader*5 Close, ExecuteReader.", connectionString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
             TestReaderMarsCase("Case 2: ExecuteReader*5 Dispose, ExecuteReader.", connectionString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
@@ -41,10 +43,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             TestReaderMarsCase("Case 14: ExecuteReader*5 GC, Connection Close, BeginTransaction.", connectionString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.BeginTransaction);
         }
 
-        [Fact]
+        [Test]
         public static void TestTransactionSingle()
         {
-            string connectionString = DataTestClass.SQL2005_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
 
             TestTransactionSingleCase("Case 1: BeginTransaction, Rollback.", connectionString, TransactionTestType.TransactionRollback);
             TestTransactionSingleCase("Case 2: BeginTransaction, Dispose.", connectionString, TransactionTestType.TransactionDispose);
@@ -84,11 +86,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestReaderMarsCase(string caseName, string connectionString, ReaderTestType testType, ReaderVerificationType verificationType)
         {
-            WeakReference weak = null;
-            SqlCommand[] cmd = new SqlCommand[CONCURRENT_COMMANDS];
-            SqlDataReader[] gch = new SqlDataReader[CONCURRENT_COMMANDS];
+            WeakReference  weak = null;
+            PgCommand[]    cmd  = new PgCommand[CONCURRENT_COMMANDS];
+            PgDataReader[] gch  = new PgDataReader[CONCURRENT_COMMANDS];
 
-            using (SqlConnection con = new SqlConnection(connectionString))
+            using (PgConnection con = new PgConnection(connectionString))
             {
                 con.Open();
 
@@ -140,13 +142,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     cmd[i].Dispose();
                 }
 
-                SqlCommand verificationCmd = con.CreateCommand();
+                PgCommand verificationCmd = con.CreateCommand();
 
                 switch (verificationType)
                 {
                     case ReaderVerificationType.ExecuteReader:
                         verificationCmd.CommandText = COMMAND_TEXT_2;
-                        using (SqlDataReader rdr = verificationCmd.ExecuteReader())
+                        using (PgDataReader rdr = verificationCmd.ExecuteReader())
                         {
                             rdr.Read();
                             DataTestClass.AssertEqualsWithDescription(1, rdr.FieldCount, "Execute Reader should return expected Field count");
@@ -160,10 +162,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         break;
 
                     case ReaderVerificationType.BeginTransaction:
-                        verificationCmd.Transaction = con.BeginTransaction();
-                        verificationCmd.CommandText = "select @@trancount";
-                        int tranCount = (int)verificationCmd.ExecuteScalar();
-                        DataTestClass.AssertEqualsWithDescription(1, tranCount, "Begin Transaction should return expected Transaction count");
+#warning TODO: Port to PostgreSql
+                        // verificationCmd.Transaction = con.BeginTransaction();
+                        // verificationCmd.CommandText = "select @@trancount";
+                        // int tranCount = (int)verificationCmd.ExecuteScalar();
+                        // DataTestClass.AssertEqualsWithDescription(1, tranCount, "Begin Transaction should return expected Transaction count");
                         break;
                 }
 
@@ -171,10 +174,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static WeakReference OpenNullifyReader(SqlCommand command)
+        private static WeakReference OpenNullifyReader(PgCommand command)
         {
-            SqlDataReader reader = command.ExecuteReader();
-            WeakReference weak = new WeakReference(reader);
+            PgDataReader  reader = command.ExecuteReader();
+            WeakReference weak   = new WeakReference(reader);
             reader = null;
             return weak;
         }
@@ -184,11 +187,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             WeakReference weak = null;
 
-            using (SqlConnection con = new SqlConnection(connectionString))
+            using (PgConnection con = new PgConnection(connectionString))
             {
                 con.Open();
 
-                SqlTransaction gch = null;
+                PgTransaction gch = null;
                 if ((testType != TransactionTestType.TransactionGC) && (testType != TransactionTestType.TransactionGCConnectionClose))
                     gch = con.BeginTransaction();
 
@@ -225,18 +228,19 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         break;
                 }
 
-                using (SqlCommand cmd = con.CreateCommand())
+                using (PgCommand cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = "select @@trancount";
-                    int tranCount = (int)cmd.ExecuteScalar();
-                    DataTestClass.AssertEqualsWithDescription(0, tranCount, "TransactionSingle Case " + caseName + " should return expected trans count");
+#warning TODO: See how to port to postgresql
+                    // cmd.CommandText = "select @@trancount";
+                    // int tranCount = (int)cmd.ExecuteScalar();
+                    // DataTestClass.AssertEqualsWithDescription(0, tranCount, "TransactionSingle Case " + caseName + " should return expected trans count");
                 }
             }
         }
 
-        private static WeakReference OpenNullifyTransaction(SqlConnection connection)
+        private static WeakReference OpenNullifyTransaction(PgConnection connection)
         {
-            SqlTransaction transaction = connection.BeginTransaction();
+            PgTransaction transaction = connection.BeginTransaction();
             WeakReference weak = new WeakReference(transaction);
             transaction = null;
             return weak;

@@ -28,8 +28,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal bool HasActiveTransaction
         {
-            get { return (_activeTransaction != null 
-                       && _database.TransactionStatus != PgTransactionStatus.Default); }
+            get { return (_activeTransaction != null && _database.TransactionStatus != PgTransactionStatus.Default); }
         }
 
         internal long Lifetime
@@ -132,7 +131,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void DisposeActiveTransaction()
         {
-            // Rollback active transation
             if (HasActiveTransaction)
             {
                 _activeTransaction.Dispose();
@@ -143,16 +141,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal PgStatement CreateStatement() => _database.CreateStatement();
 
         internal PgStatement CreateStatement(string stmtText) => _database.CreateStatement(stmtText);
-
-        internal PgStatement CreateStatement(string parseName, string portalName)
-        {
-            return _database.CreateStatement(parseName, portalName);
-        }
-
-        internal PgStatement CreateStatement(string parseName, string portalName, string stmtText)
-        {
-            return _database.CreateStatement(parseName, portalName, stmtText);
-        }
 
         internal void ClosePreparedCommands()
         {
@@ -187,7 +175,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             try
             {
-                // Try to send a Sync message to the PostgreSQL Server
+                // Try to send a Sync message
                 _database.Sync();
             }
             catch

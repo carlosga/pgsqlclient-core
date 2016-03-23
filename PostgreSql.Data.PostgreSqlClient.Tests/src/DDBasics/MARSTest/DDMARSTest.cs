@@ -1,38 +1,42 @@
+// Ported from the Microsoft System.Data.SqlClient test suite.
+// ---------------------------------------------------------------------
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
+using NUnit.Framework;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class DDMARSTest
     {
-        [Fact]
+        [Test]
         public static void TestMain()
         {
-            string connstr = DataTestClass.SQL2005_Northwind + "multipleactiveresultsets=true;";
+            string connstr  = DataTestClass.PostgreSql9_Northwind + "multipleactiveresultsets=true;";
             string cmdText1 = "select * from Orders; select count(*) from Customers";
             string cmdText2 = "select * from Customers; select count(*) from Orders";
 
-            using (var conn = new SqlConnection(connstr))
+            using (var conn = new PgConnection(connstr))
             {
                 conn.Open();
 
-                using (SqlTransaction tran = conn.BeginTransaction())
+                using (PgTransaction tran = conn.BeginTransaction())
                 {
-                    SqlCommand cmd1 = conn.CreateCommand();
+#warning TODO: Should this be manually disposed ??
+                    PgCommand cmd1   = conn.CreateCommand();
                     cmd1.Transaction = tran;
                     cmd1.CommandText = cmdText1;
 
-                    using (SqlDataReader reader1 = cmd1.ExecuteReader())
+                    using (PgDataReader reader1 = cmd1.ExecuteReader())
                     {
-
-                        SqlCommand cmd2 = conn.CreateCommand();
+#warning TODO: Should this be manually disposed ??
+                        PgCommand cmd2 = conn.CreateCommand();
                         cmd2.Transaction = tran;
                         cmd2.CommandText = cmdText2;
 
-                        using (SqlDataReader reader2 = cmd2.ExecuteReader())
+                        using (PgDataReader reader2 = cmd2.ExecuteReader())
                         {
                             int actualOrderCount = 0;
                             while (reader1.Read())
@@ -61,9 +65,10 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                         }
                     }
 
-                    cmd1.CommandText = "select @@trancount";
-                    int tranCount = (int)cmd1.ExecuteScalar();
-                    Assert.True(tranCount == 1, "FAILED: Expected a transaction count of 1, but actually received " + tranCount);
+#warning TODO: see how to port this if possible, remove it if not. 
+                    // cmd1.CommandText = "select @@trancount";
+                    // int tranCount = (int)cmd1.ExecuteScalar();
+                    // Assert.True(tranCount == 1, "FAILED: Expected a transaction count of 1, but actually received " + tranCount);
 
                     tran.Commit();
                 }

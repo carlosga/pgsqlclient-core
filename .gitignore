@@ -45,3 +45,6 @@ CMakeLists.txt.user
 
 # Clion / IntelliJ IDEA
 .idea
+
+# Project files to be ignored
+ConnectionString.xml

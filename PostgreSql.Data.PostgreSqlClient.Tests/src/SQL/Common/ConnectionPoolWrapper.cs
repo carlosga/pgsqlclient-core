@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Data.SqlClient.ManualTesting.Tests.SystemDataInternals;
+using PostgreSql.Data.PostgreSqlClient.Tests.SystemDataInternals;
 
-namespace System.Data.SqlClient.ManualTesting.Tests
+namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     public class ConnectionPoolWrapper
     {
@@ -16,7 +16,7 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         /// NOTE: This only works for connections that are currently open
         /// </summary>
         /// <param name="connection"></param>
-        public ConnectionPoolWrapper(SqlConnection connection)
+        public ConnectionPoolWrapper(PgConnection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException("connection");
@@ -87,7 +87,6 @@ namespace System.Data.SqlClient.ManualTesting.Tests
                     select new ConnectionPoolWrapper() { _connectionPool = t.Item1 }).ToArray();
         }
 
-
         /// <summary>
         /// Invokes the cleanup timer code
         /// </summary>
@@ -97,11 +96,11 @@ namespace System.Data.SqlClient.ManualTesting.Tests
         }
 
         /// <summary>
-        /// Checks if the SqlConnection specified has an internal connection that belongs to this pool
+        /// Checks if the PgConnection specified has an internal connection that belongs to this pool
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public bool ContainsConnection(SqlConnection connection)
+        public bool ContainsConnection(PgConnection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException("connection");

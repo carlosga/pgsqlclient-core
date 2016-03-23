@@ -38,7 +38,6 @@ namespace PostgreSql.Data.Protocol
         internal void Reset()
         {
             _stream.SetLength(0);
-            _stream.Position = 0;
         }
 
         internal void Write(byte[] buffer)                       => Write(buffer, 0, buffer.Length);

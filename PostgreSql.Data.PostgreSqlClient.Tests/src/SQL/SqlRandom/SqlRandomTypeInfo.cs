@@ -7,6 +7,7 @@
 using System.Text;
 using System.Data.Common;
 using System.Globalization;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
@@ -23,9 +24,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         protected internal const int XmlRowUsage = 40; //
         protected const int VariantRowUsage = 40;
 
-        public readonly SqlDbType Type;
+        public readonly PgDbType Type;
 
-        protected SqlRandomTypeInfo(SqlDbType t)
+        protected SqlRandomTypeInfo(PgDbType t)
         {
             Type = t;
         }

@@ -7,7 +7,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -16,7 +15,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using System.Threading.Tasks;
-using Xunit;
+using System;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
@@ -106,7 +106,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }            
         }
 
-        public static string Postgresql9_Northwind { get { return GetConnectionString("Postgresql9_Northwind"); } }
+        public static string PostgreSql9_Northwind { get { return GetConnectionString("Postgresql9_Northwind"); } }
         public static string PostgreSql9_Pubs      { get { return GetConnectionString("PostgreSql9_Pubs"); } }
 
         // the name length will be no more then (16 + prefix.Length + escapeLeft.Length + escapeRight.Length)
@@ -206,14 +206,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
         public static void DumpParameters(DbCommand cmd)
         {
-            DumpParameters((SqlCommand)cmd);
+            DumpParameters((PgCommand)cmd);
         }
 
-        public static void DumpParameters(SqlCommand cmd)
+        public static void DumpParameters(PgCommand cmd)
         {
-            Debug.Assert(null != cmd, "DumpParameters: null SqlCommand");
+            Debug.Assert(null != cmd, "DumpParameters: null PgCommand");
 
-            foreach (SqlParameter p in cmd.Parameters)
+            foreach (PgParameter p in cmd.Parameters)
             {
                 byte precision = p.Precision;
                 byte scale = p.Scale;

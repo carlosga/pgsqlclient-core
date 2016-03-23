@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Protocol
 {
-    internal sealed class PgNetworkStream
+    internal sealed class PgNetworkChannel
         : IDisposable
     {
         internal RemoteCertificateValidationCallback UserCertificateValidationCallback
@@ -35,30 +35,53 @@ namespace PostgreSql.Data.Protocol
         private Stream        _stream;
         private byte[]        _buffer;
 
-        private SemaphoreSlim _asyncActiveSemaphore;
-
-        internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
-        {
-            // Lazily-initialize _asyncActiveSemaphore.  As we're never accessing the SemaphoreSlim's
-            // WaitHandle, we don't need to worry about Disposing it.
-            return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
-        }
-
-        internal PgNetworkStream()
+        internal PgNetworkChannel()
         {
             _buffer = new byte[8];
         }
 
-        internal void Open(string host, int portNumber, bool secureConnection)
-        {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            sem.Wait();
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
 
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                _disposed = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgNetworkStream() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
+        
+        internal void Open(string host, int port, bool secureChannel)
+        {
             try
             {
-                Connect(host, portNumber);
+                Connect(host, port);
 
-                if (secureConnection)
+                if (secureChannel)
                 {
                     bool secured = OpenSecureChannel(host);
                     if (!secured)
@@ -79,49 +102,8 @@ namespace PostgreSql.Data.Protocol
 
                 throw;
             }
-            finally
-            {
-                sem.Release();
-            }
         }
-
-        #region IDisposable Support
-
-        private bool disposedValue = false; // To detect redundant calls
-
-        void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects).
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgNetworkStream()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
-
+        
         internal void Close()
         {
             if (_stream == null)
@@ -146,33 +128,23 @@ namespace PostgreSql.Data.Protocol
 
         internal PgInputPacket ReadPacket(PgServerConfig serverConfig)
         {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            sem.Wait();
+            char type = (char)_stream.ReadByte();
 
-            try
+            if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
             {
-                char type = (char)_stream.ReadByte();
-
-                if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
-                {
-                    return null;
-                }
-
-                int    received = 0;
-                int    length   = ReadInt32() - 4;
-                byte[] buffer   = new byte[length];
-
-                while (received < length)
-                {
-                    received +=  _stream.Read(buffer, received, length - received);
-                }
-
-                return new PgInputPacket(type, buffer, serverConfig);
+                return null;
             }
-            finally
+
+            int    received = 0;
+            int    length   = ReadInt32() - 4;
+            byte[] buffer   = new byte[length];
+
+            while (received < length)
             {
-                sem.Release();
+                received +=  _stream.Read(buffer, received, length - received);
             }
+
+            return new PgInputPacket(type, buffer, serverConfig);
         }
 
         internal void WritePacket(char type)
@@ -187,29 +159,19 @@ namespace PostgreSql.Data.Protocol
 
         private void WritePacket(char type, byte[] buffer)
         {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            sem.Wait();
-
-            try
+            if (type != PgFrontEndCodes.UNTYPED)
             {
-                if (type != PgFrontEndCodes.UNTYPED)
-                {
-                    // Write packet Type
-                    _stream.WriteByte((byte)type);
-                }
-
-                // Write packet length
-                Write(((buffer == null) ? 4 : buffer.Length + 4));
-
-                // Write packet contents
-                if (buffer != null && buffer.Length > 0)
-                {
-                    _stream.Write(buffer, 0, buffer.Length);
-                }
+                // Write packet Type
+                _stream.WriteByte((byte)type);
             }
-            finally
+
+            // Write packet length
+            Write(((buffer == null) ? 4 : buffer.Length + 4));
+
+            // Write packet contents
+            if (buffer != null && buffer.Length > 0)
             {
-                sem.Release();
+                _stream.Write(buffer, 0, buffer.Length);
             }
         }
 
@@ -233,13 +195,13 @@ namespace PostgreSql.Data.Protocol
             _stream.Write(_buffer, 0, 4);
         }
 
-        private void Connect(string host, int portNumber)
+        private void Connect(string host, int port)
         {
             var remoteAddress = Task.Run<IPAddress>(async () => {
                 return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
             });
 
-            var remoteEP = new IPEndPoint(remoteAddress.Result, portNumber);
+            var remoteEP = new IPEndPoint(remoteAddress.Result, port);
 
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -252,6 +214,7 @@ namespace PostgreSql.Data.Protocol
             // Disables the Nagle algorithm for send coalescing.
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
+            // Connect to the host
             _socket.Connect(remoteEP);
 
             // Set the nework stream
@@ -283,18 +246,18 @@ namespace PostgreSql.Data.Protocol
             return false;
         }
 
-        internal bool RequestSecureChannel()
-        {
-            Write(PgCodes.SSL_REQUEST);
-
-            return ((char)_stream.ReadByte() == 'S');
-        }
-
         private async Task<IPAddress> GetIPAddressAsync(string dataSource, AddressFamily addressFamily)
         {
             IPAddress[] addresses = await Dns.GetHostAddressesAsync(dataSource).ConfigureAwait(false);
 
             return addresses.FirstOrDefault(a => a.AddressFamily == addressFamily) ?? addresses[0];
+        }
+
+        internal bool RequestSecureChannel()
+        {
+            Write(PgCodes.SSL_REQUEST);
+
+            return ((char)_stream.ReadByte() == 'S');
         }
 
         private void Detach()

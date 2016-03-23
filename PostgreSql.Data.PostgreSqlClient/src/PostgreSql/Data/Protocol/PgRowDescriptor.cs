@@ -9,41 +9,41 @@ namespace PostgreSql.Data.Protocol
     internal sealed class PgRowDescriptor
         : IEnumerable<PgFieldDescriptor>
     {
-        private readonly List<PgFieldDescriptor> _fields;
+        private readonly List<PgFieldDescriptor> _descriptors;
 
-        internal PgFieldDescriptor this[int index] => _fields[index];
+        internal PgFieldDescriptor this[int index] => _descriptors[index];
 
-        internal int Count => _fields.Count;
+        internal int Count => _descriptors.Count;
 
         internal PgRowDescriptor()
         {
-            _fields = new List<PgFieldDescriptor>();
+            _descriptors = new List<PgFieldDescriptor>();
         }
 
-        internal void Add(PgFieldDescriptor descriptor) => _fields.Add(descriptor);
+        internal void Add(PgFieldDescriptor descriptor) => _descriptors.Add(descriptor);
 
         internal int IndexOf(string name)
         {
             for (int i = 0; i < Count; ++i)
             {
-                if (_fields[i].Name.CaseInsensitiveCompare(name))
+                if (_descriptors[i].Name.CaseInsensitiveCompare(name))
                 {
                     return i;
                 }
             }
 
-            return -1;            
+            return -1;
         }
 
         internal void Resize(int count)
         {
-            _fields.Clear();
-            _fields.Capacity = count;
+            _descriptors.Clear();
+            _descriptors.Capacity = count;
         }
 
-        internal void Clear() => _fields.Clear();
+        internal void Clear() => _descriptors.Clear();
 
-        IEnumerator<PgFieldDescriptor> IEnumerable<PgFieldDescriptor>.GetEnumerator() => _fields.GetEnumerator();
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _fields.GetEnumerator();
+        IEnumerator<PgFieldDescriptor> IEnumerable<PgFieldDescriptor>.GetEnumerator() => _descriptors.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _descriptors.GetEnumerator();
     }
 }

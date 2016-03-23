@@ -6,6 +6,7 @@ namespace PostgreSql.Data.Protocol
     internal enum PgStatementStatus
     {
         Initial
+      , Broken
       , Parsing
       , Parsed
       , Describing
@@ -15,6 +16,5 @@ namespace PostgreSql.Data.Protocol
       , Executing
       , Executed
       , OnQuery
-      , Error
     }
 }

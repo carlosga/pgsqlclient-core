@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -316,7 +315,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         public static ProxyServer CreateAndStartProxy(string connectionString, out string newConnectionString)
         {
             // Build builders
-            SqlConnectionStringBuilder connStringbuilder = new SqlConnectionStringBuilder(connectionString);
+            PgConnectionStringBuilder connStringbuilder = new PgConnectionStringBuilder(connectionString);
             DataSourceBuilder dataSourceBuilder = new DataSourceBuilder(connStringbuilder.DataSource);
 
             // Setup proxy

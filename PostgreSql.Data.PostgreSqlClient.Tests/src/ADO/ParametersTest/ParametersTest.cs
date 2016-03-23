@@ -5,13 +5,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
-using Xunit;
+using System;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public class PgParametersTest
     {
-        [Fact]
+        [Test]
         public static void CodeCoverageSqlClient()
         {
             PgParameterCollection opc = new PgCommand().Parameters;
@@ -82,7 +84,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             new PgCommand().Parameters.Clear();
             new PgCommand().Parameters.CopyTo(new object[0], 0);
             
-            Assert.False(new SqlCommand().Parameters.GetEnumerator().MoveNext(), "FAILED: Expected MoveNext to be false");
+            Assert.False(new PgCommand().Parameters.GetEnumerator().MoveNext(), "FAILED: Expected MoveNext to be false");
 
             DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => new PgCommand().Parameters.Add(0)      , "The PgParameterCollection only accepts non-null PgParameter type objects, not Int32 objects.");
             DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => new PgCommand().Parameters.Insert(0, 0), "The PgParameterCollection only accepts non-null PgParameter type objects, not Int32 objects.");

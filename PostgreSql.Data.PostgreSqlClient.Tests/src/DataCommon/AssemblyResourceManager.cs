@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {

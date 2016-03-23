@@ -2,9 +2,8 @@
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.PgTypes;
-using Xunit;
+using NUnit.Framework;
 using System;
-using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Net.Security;
@@ -27,29 +26,29 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
 
         public void SetUp()
         {
-            DropDatabase();
-            CreateDatabase();
+            // DropDatabase();
+            // CreateDatabase();
 
-            // Build the connection string
-            var csb = new PgConnectionStringBuilder();
+            // // Build the connection string
+            // var csb = new PgConnectionStringBuilder();
 
-            csb.DataSource      = ConfigurationManager.AppSettings["Data Source"];
-            csb.InitialCatalog  = ConfigurationManager.AppSettings["Initial Catalog"];
-            csb.UserID          = ConfigurationManager.AppSettings["User ID"];
-            csb.Password        = ConfigurationManager.AppSettings["Password"];
-            csb.PortNumber      = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
-            csb.Ssl             = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
-            csb.Pooling         = false;
+            // csb.DataSource      = ConfigurationManager.AppSettings["Data Source"];
+            // csb.InitialCatalog  = ConfigurationManager.AppSettings["Initial Catalog"];
+            // csb.UserID          = ConfigurationManager.AppSettings["User ID"];
+            // csb.Password        = ConfigurationManager.AppSettings["Password"];
+            // csb.PortNumber      = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
+            // csb.Ssl             = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
+            // csb.Pooling         = false;
 
-            _connection = new PgConnection(csb.ToString());
+            // _connection = new PgConnection(csb.ToString());
 
-            _connection.StateChange               += new StateChangeEventHandler(StateChange);
-            _connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
+            // _connection.StateChange               += new StateChangeEventHandler(StateChange);
+            // _connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
 
-            _connection.Open();
+            // _connection.Open();
 
-            CreateTables();
-            CreateFunctions();
+            // CreateTables();
+            // CreateFunctions();
         }
 
         public void TearDown()
@@ -59,58 +58,58 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
 
         private void CreateDatabase()
         {
-            var csb = new PgConnectionStringBuilder();
+            // var csb = new PgConnectionStringBuilder();
 
-            csb.DataSource     = ConfigurationManager.AppSettings["Data Source"];
-            csb.UserID         = ConfigurationManager.AppSettings["User ID"];
-            csb.Password       = ConfigurationManager.AppSettings["Password"];
-            csb.PortNumber     = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
-            csb.Ssl            = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
-            csb.InitialCatalog = String.Empty;
-            csb.Pooling        = false;
+            // csb.DataSource     = ConfigurationManager.AppSettings["Data Source"];
+            // csb.UserID         = ConfigurationManager.AppSettings["User ID"];
+            // csb.Password       = ConfigurationManager.AppSettings["Password"];
+            // csb.PortNumber     = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
+            // csb.Ssl            = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
+            // csb.InitialCatalog = String.Empty;
+            // csb.Pooling        = false;
 
-            using (var connection = new PgConnection(csb.ToString()))
-            {
-                connection.StateChange               += new StateChangeEventHandler(StateChange);
-                connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
-                connection.Open();
+            // using (var connection = new PgConnection(csb.ToString()))
+            // {
+            //     connection.StateChange               += new StateChangeEventHandler(StateChange);
+            //     connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
+            //     connection.Open();
 
-                using (var createDatabase = new PgCommand($"CREATE DATABASE {ConfigurationManager.AppSettings["Initial Catalog"]} WITH ENCODING='UTF8'", connection))
-                {
-                    createDatabase.ExecuteNonQuery();
-                }
-            }
+            //     using (var createDatabase = new PgCommand($"CREATE DATABASE {ConfigurationManager.AppSettings["Initial Catalog"]} WITH ENCODING='UTF8'", connection))
+            //     {
+            //         createDatabase.ExecuteNonQuery();
+            //     }
+            // }
         }
 
         private void DropDatabase()
         {
-            var csb = new PgConnectionStringBuilder();
+            // var csb = new PgConnectionStringBuilder();
 
-            csb.DataSource     = ConfigurationManager.AppSettings["Data Source"];
-            csb.UserID         = ConfigurationManager.AppSettings["User ID"];
-            csb.Password       = ConfigurationManager.AppSettings["Password"];
-            csb.PortNumber     = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
-            csb.Ssl            = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
-            csb.InitialCatalog = String.Empty;
-            csb.Pooling        = false;
+            // csb.DataSource     = ConfigurationManager.AppSettings["Data Source"];
+            // csb.UserID         = ConfigurationManager.AppSettings["User ID"];
+            // csb.Password       = ConfigurationManager.AppSettings["Password"];
+            // csb.PortNumber     = Convert.ToInt32(ConfigurationManager.AppSettings["Port Number"]);
+            // csb.Ssl            = Convert.ToBoolean(ConfigurationManager.AppSettings["SSL"]);
+            // csb.InitialCatalog = String.Empty;
+            // csb.Pooling        = false;
 
-            try
-            {
-                using (var connection = new PgConnection(csb.ToString()))
-                {
-                    connection.StateChange += new StateChangeEventHandler(StateChange);
-                    connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
-                    connection.Open();
+            // try
+            // {
+            //     using (var connection = new PgConnection(csb.ToString()))
+            //     {
+            //         connection.StateChange += new StateChangeEventHandler(StateChange);
+            //         connection.UserCertificateValidation += new RemoteCertificateValidationCallback(connection_UserCertificateValidation);
+            //         connection.Open();
 
-                    using (var dropDatabase = new PgCommand($"drop database {ConfigurationManager.AppSettings["Initial Catalog"]}", connection))
-                    {
-                        dropDatabase.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch
-            {
-            }
+            //         using (var dropDatabase = new PgCommand($"drop database {ConfigurationManager.AppSettings["Initial Catalog"]}", connection))
+            //         {
+            //             dropDatabase.ExecuteNonQuery();
+            //         }
+            //     }
+            // }
+            // catch
+            // {
+            // }
         }
 
         private void CreateTables()
@@ -294,7 +293,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
                         command.Parameters["@date_field"].Value = DateTime.Now;
                         command.Parameters["@time_field"].Value = DateTime.Now;
                         command.Parameters["@timestamp_field"].Value = DateTime.Now;
-                        command.Parameters["@blob_field"].Value = Encoding.Default.GetBytes("IRow " + i.ToString());
+                        command.Parameters["@blob_field"].Value = Encoding.UTF8.GetBytes("IRow " + i.ToString());
                         command.Parameters["@bool_field"].Value = true;
 
                         command.ExecuteNonQuery();

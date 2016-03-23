@@ -14,7 +14,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         private PgConnection          _connection;
         private IsolationLevel        _isolationLevel;
         private PgTransactionInternal _innerTransaction;
-        private bool                  _disposed;
 
         public override IsolationLevel IsolationLevel => _isolationLevel;
        
@@ -37,11 +36,56 @@ namespace PostgreSql.Data.PostgreSqlClient
             _innerTransaction = connection.InnerConnection.Database.CreateTransaction(IsolationLevel);
         }
 
-        ~PgTransaction()
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
+
+        protected override void Dispose(bool disposing)
         {
-            Dispose(false);
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    try  
+                    {
+                        if (_connection?.InnerConnection != null
+                         && _connection.InnerConnection.HasActiveTransaction)
+                        {
+                            // Implicitly roll back if the transaction still valid.
+                            Rollback();
+                        }
+                    }
+                    finally
+                    {
+                        _connection       = null;
+                        _innerTransaction = null; 
+                        _disposed         = true;
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                _disposed = true;
+            }
         }
 
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgTransaction() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        // public void Dispose()
+        // {
+        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //     Dispose(true);
+        //     // TODO: uncomment the following line if the finalizer is overridden above.
+        //     // GC.SuppressFinalize(this);
+        // }
+        #endregion
+        
         public override void Commit()
         {
             CheckTransaction();
@@ -81,31 +125,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             _innerTransaction.Begin();
             _innerTransaction.Save(transactionName);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    try
-                    {
-                        if (_connection?.InnerConnection != null
-                         && _connection.InnerConnection.HasActiveTransaction)
-                        {
-                            // Implicitly roll back if the transaction still valid.
-                            Rollback();
-                        }
-                    }
-                    finally
-                    {
-                        _connection       = null;
-                        _innerTransaction = null; 
-                        _disposed         = true;
-                    }
-                }
-            }
         }
 
         private void CheckTransaction()

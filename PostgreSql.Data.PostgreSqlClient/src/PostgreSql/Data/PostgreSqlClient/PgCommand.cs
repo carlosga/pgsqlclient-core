@@ -13,11 +13,6 @@ namespace PostgreSql.Data.PostgreSqlClient
     public sealed class PgCommand
         : DbCommand
     {
-        private static string GetStmtName()
-        {
-            return Guid.NewGuid().GetHashCode().ToString();
-        }
-
         private PgConnection          _connection;
         private PgTransaction         _transaction;
         private PgParameterCollection _parameters;
@@ -29,7 +24,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         private List<string>          _namedParameters;
         private List<string>          _queries;
         private int                   _queryIndex;
-        private bool                  _disposed;
         private string                _commandText;
         private int                   _commandTimeout;
         private bool                  _designTimeVisible;
@@ -172,35 +166,58 @@ namespace PostgreSql.Data.PostgreSqlClient
             _transaction = transaction;
         }
 
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    try
+                    {
+                        InternalClose();
+                    }
+                    catch
+                    {
+                    }
+                    finally
+                    {
+                        _connection       = null;
+                        _transaction      = null;
+                        _parameters       = null;
+                        _namedParameters  = null;
+                        _commandText      = null;
+                    }                    
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                _disposed = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgCommand() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        // public void Dispose()
+        // {
+        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //     Dispose(true);
+        //     // TODO: uncomment the following line if the finalizer is overridden above.
+        //     // GC.SuppressFinalize(this);
+        // }
+        #endregion
+        
         public override void Cancel()
         {
-            // 50.2.7. Canceling Requests in Progress
-
-            // During the processing of a query, the frontend might request cancellation of the query. The cancel request is not sent directly on the open connection 
-            // to the backend for reasons of implementation efficiency: we don't want to have the backend constantly checking for new input from the frontend during 
-            // query processing. Cancel requests should be relatively infrequent, so we make them slightly cumbersome in order to avoid a penalty in the normal case.
-
-            // To issue a cancel request, the frontend opens a new connection to the server and sends a CancelRequest message, 
-            // rather than the StartupMessage message that would ordinarily be sent across a new connection.
-            // The server will process this request and then close the connection. For security reasons, no direct reply is made to the cancel request message.
-
-            // A CancelRequest message will be ignored unless it contains the same key data (PID and secret key) passed to the frontend during connection start-up. 
-            // If the request matches the PID and secret key for a currently executing backend, the processing of the current query is aborted. 
-            // (In the existing implementation, this is done by sending a special signal to the backend process that is processing the query.)
-
-            // The cancellation signal might or might not have any effect — for example, if it arrives after the backend has finished processing the query,
-            // then it will have no effect. If the cancellation is effective, it results in the current command being terminated early with an error message.
-
-            // The upshot of all this is that for reasons of both security and efficiency, the frontend has no direct way to tell whether a cancel request has succeeded. 
-            // It must continue to wait for the backend to respond to the query. Issuing a cancel simply improves the odds that the current query will finish soon, 
-            // and improves the odds that it will fail with an error message instead of succeeding.
-
-            // Since the cancel request is sent across a new connection to the server and not across the regular frontend/backend communication link,
-            // it is possible for the cancel request to be issued by any process, not just the frontend whose query is to be canceled. 
-            // This might provide additional flexibility when building multiple-process applications. It also introduces a security risk, 
-            // in that unauthorized persons might try to cancel queries. 
-            // The security risk is addressed by requiring a dynamically generated secret key to be supplied in cancel requests.            
-
             throw new NotSupportedException();
         }
         
@@ -243,36 +260,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             InternalPrepare();
         } 
 
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    try
-                    {
-                        InternalClose();
-                    }
-                    catch
-                    {
-                    }
-                    finally
-                    {
-                        _namedParameters?.Clear();
-
-                        _connection       = null;
-                        _transaction      = null;
-                        _parameters       = null;
-                        _namedParameters  = null;
-                        _commandText      = null;
-                    }
-                }
-
-                // release any unmanaged resources
-                _disposed = true;
-            }
-        }
-
         protected override DbParameter CreateDbParameter() => CreateParameter();
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
@@ -282,46 +269,42 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void InternalPrepare()
         {
+            if (_statement != null && _statement.IsPrepared)
+            {
+                // Current statement portal will be closed on next statement execution.
+                return;
+            }
+            
             try
             {
-                if (_statement        == null
-                 || _statement.Status == PgStatementStatus.Initial
-                 || _statement.Status == PgStatementStatus.Error)
+                if (_connection.MultipleActiveResultSets && _queries == null)
                 {
-                    if (_connection.MultipleActiveResultSets && _queries == null)
-                    {
-                        _queries = _commandText.SplitQueries();
-                    }
-                    
-                    string statementName = GetStmtName();
-                    string prepareName   = $"PS{statementName}";
-                    string portalName    = $"PR{statementName}";                   
-                    string stmtText      = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
+                    _queries = _commandText.SplitQueries();
+                }
+                
+                string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
 
-                    if (_commandType == CommandType.StoredProcedure)
-                    {
-                        stmtText = stmtText.ToStoredProcedureCall(_parameters);
-                    }
-                    
-                    _statement = _connection.InnerConnection.CreateStatement(prepareName, portalName, stmtText);
-
-                    // Parse statement
-                    _statement.Parse();
-                    
-                    // Describe statement
-                    _statement.Describe();
-                    
-                    if (_queryIndex == 0)
-                    {
-                        // Add the command to the internal connection prepared statements
-                        _connection.InnerConnection.AddPreparedCommand(this);                        
-                    }
+                if (_commandType == CommandType.StoredProcedure)
+                {
+                    stmtText = stmtText.ToStoredProcedureCall(_parameters);
+                }
+                
+                if (_queryIndex == 0)
+                {
+                    _statement = _connection.InnerConnection.CreateStatement(stmtText);                        
                 }
                 else
                 {
-                    // Close existent portal
-                    _statement.ClosePortal();
+                    _statement.StatementText = stmtText;    
                 }
+
+                _statement.Prepare();
+                                    
+                if (_queryIndex == 0)
+                {
+                    // Add the command to the internal connection prepared statements
+                    _connection.InnerConnection.AddPreparedCommand(this);                        
+                }                
             }
             catch (PgClientException ex)
             {
@@ -329,35 +312,11 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
-        {
-            _commandBehavior = behavior;
-
-            InternalPrepare();
-
-            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
-             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
-             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
-            {
-                InternalExecute();
-            }
-
-            return _activeDataReader = new PgDataReader(_connection, this);
-        }
-
         internal void InternalExecute()
         {
             try
             {
-                // Set parameter values
                 SetParameterValues();
-
-                // Bind Statement
-                _statement.Bind();
-                                
-                // Execute Statement
                 _statement.Execute();
             }
             catch (PgClientException ex)
@@ -410,6 +369,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
             finally
             {
+                _namedParameters?.Clear();
+                
                 _statement        = null;
                 _activeDataReader = null;
                 _queries          = null;
@@ -436,6 +397,24 @@ namespace PostgreSql.Data.PostgreSqlClient
                     }
                 }
             }
+        }
+
+        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
+        {
+            _commandBehavior = behavior;
+
+            InternalPrepare();
+
+            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
+             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
+             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
+            {
+                InternalExecute();
+            }
+
+            return _activeDataReader = new PgDataReader(_connection, this);
         }
 
         private void CheckCommand()

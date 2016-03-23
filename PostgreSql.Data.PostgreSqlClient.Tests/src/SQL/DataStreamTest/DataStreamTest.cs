@@ -4,20 +4,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using namespace PostgreSql.Data.PostgreSqlClient.PgTypes;
+using NUnit.Framework;
+using PostgreSql.Data.PgTypes;
+using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Xunit;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class DataStreamTest
     {
-        [Fact]
+        [Test]
         public static void RunAllTestsForSingleServer_nwnd10SqlClient()
         {
             RunAllTestsForSingleServer(DataTestClass.PostgreSql9_Northwind);
@@ -43,7 +46,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             SqlCharsBytesTest(connectionString);
             GetStream(connectionString);
             GetTextReader(connectionString);
-            GetXmlReader(connectionString);
+            // GetXmlReader(connectionString);
             ReadStream(connectionString);
             ReadTextReader(connectionString);
             StreamingBlobDataTypes(connectionString);
@@ -57,7 +60,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 conn.Open();
                 string query =
                     "select orderid from orders where orderid < @id order by orderid;" +
-                    "set no_browsetable on set fmtonly on select * from shippers order by shipperid set fmtonly off;" +
                     "select * from shippers order by shipperid;" +
                     "select * from region order by regionid set no_browsetable off;" +
                     "select lastname from employees order by lastname";
@@ -66,12 +68,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string[][] expectedResults =
                 {
                     new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
-                    new string[] { "" }, // Empty query result
                     new string[]
                     {
-                        "1", "Speedy Express"  , "(503) 555-9831",  // Query Row 1
-                        "2", "United Package"  , "(503) 555-3199",  // Query Row 2
-                        "3", "Federal Shipping", "(503) 555-9931"   // Query Row 3
+                        "1", "Speedy Express"   , "(503) 555-9831",  // Query Row 1
+                        "2", "United Package"   , "(503) 555-3199",  // Query Row 2
+                        "3", "Federal Shipping" , "(503) 555-9931",  // Query Row 3
+                        "4", "Alliance Shippers", "1-800-222-0451",  // Query Row 4
+                        "5", "UPS"              , "1-800-782-7892",  // Query Row 5
+                        "6", "DHL"              , "1-800-225-5345",  // Query Row 6    
                     },
                     new string[]
                     {
@@ -1044,7 +1048,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             string[] queryStrings =
             {
-                "SELECT N'Hello World', N'Hello World', 12, CAST(NULL AS NVARCHAR(MAX)), N'Hello World', N'Hello World', N'Hello World', CAST(REPLICATE('a', 8000) AS NVARCHAR(MAX)), N'Hello World'",
                 "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS VARCHAR(MAX)), 'Hello World', 'Hello World', 'Hello World', CAST(REPLICATE('a', 8000) AS VARCHAR(MAX)), 'Hello World' COLLATE Latin1_General_CI_AS",
                 string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS VARCHAR(MAX)), {0} {1}, {0} {1}, {0} {1}, CAST(REPLICATE(('\uFF8A' {1}), 8000) AS VARCHAR(MAX)), {0} {1}", "'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE Japanese_CI_AS")
             };
@@ -1154,59 +1157,59 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void GetXmlReader(string connectionString)
-        {
-            using (PgConnection connection = new PgConnection(connectionString))
-            {
-                connection.Open();
-                string xml = "CAST('<test><subtest /><subtest>asdfasdfasdf</subtest></test>' AS XML)";
-                string queryString = string.Format("SELECT {0}, {0}, 12, CAST(NULL AS XML), {0}, CAST(('<test>' + REPLICATE(CAST('a' AS VARCHAR(MAX)), 10000) + '</test>') AS XML), {0}", xml);
-                using (PgCommand cmd = new PgCommand(queryString, connection))
-                {
-                    CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
-                    foreach (CommandBehavior behavior in behaviors)
-                    {
-                        using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                        {
-                            reader.Read();
+//         private static void GetXmlReader(string connectionString)
+//         {
+//             using (PgConnection connection = new PgConnection(connectionString))
+//             {
+//                 connection.Open();
+//                 string xml = "CAST('<test><subtest /><subtest>asdfasdfasdf</subtest></test>' AS XML)";
+//                 string queryString = string.Format("SELECT {0}, {0}, 12, CAST(NULL AS XML), {0}, CAST(('<test>' + REPLICATE(CAST('a' AS VARCHAR(MAX)), 10000) + '</test>') AS XML), {0}", xml);
+//                 using (PgCommand cmd = new PgCommand(queryString, connection))
+//                 {
+//                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
+//                     foreach (CommandBehavior behavior in behaviors)
+//                     {
+//                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
+//                         {
+//                             reader.Read();
 
-                            // Basic success paths
-                            reader.GetXmlReader(0);
-                            reader.GetXmlReader(1);
+//                             // Basic success paths
+//                             reader.GetXmlReader(0);
+//                             reader.GetXmlReader(1);
 
-                            // Bad values
-                            DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => reader.GetXmlReader(2));
-                            // Null stream
-                            XmlReader xmlReader = reader.GetXmlReader(3);
-                            Assert.False(xmlReader.Read(), "FAILED: Successfully read on a null XmlReader");
+//                             // Bad values
+//                             DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => reader.GetXmlReader(2));
+//                             // Null stream
+//                             XmlReader xmlReader = reader.GetXmlReader(3);
+//                             Assert.False(xmlReader.Read(), "FAILED: Successfully read on a null XmlReader");
 
-                            // Get column before current column
-                            Action action = (() => reader.GetXmlReader(0));
-                            SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
+//                             // Get column before current column
+//                             Action action = (() => reader.GetXmlReader(0));
+//                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
 
-                            // Two XmlReaders on same column
-                            reader.GetXmlReader(4);
-                            action = (() => reader.GetXmlReader(4));
-                            SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-#if DEBUG
-                            // GetXmlReader while async is pending
-                            Task t = null;
-                            using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-                            {
-                                t = reader.ReadAsync();
-                                Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
-                                DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(6));
-                            }
-                            t.Wait();
+//                             // Two XmlReaders on same column
+//                             reader.GetXmlReader(4);
+//                             action = (() => reader.GetXmlReader(4));
+//                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
+// #if DEBUG
+//                             // GetXmlReader while async is pending
+//                             Task t = null;
+//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
+//                             {
+//                                 t = reader.ReadAsync();
+//                                 Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
+//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(6));
+//                             }
+//                             t.Wait();
 
-                            // GetXmlReader after Read 
-                            DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(0));
-#endif
-                        }
-                    }
-                }
-            }
-        }
+//                             // GetXmlReader after Read 
+//                             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(0));
+// #endif
+//                         }
+//                     }
+//                 }
+//             }
+//         }
 
         private static void ReadStream(string connectionString)
         {

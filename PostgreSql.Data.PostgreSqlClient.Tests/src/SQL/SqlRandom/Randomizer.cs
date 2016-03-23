@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Runtime.Serialization;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {

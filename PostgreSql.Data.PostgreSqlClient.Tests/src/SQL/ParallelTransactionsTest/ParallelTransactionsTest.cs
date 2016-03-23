@@ -4,20 +4,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public class ParallelTransactionsTest
     {
         #region <<Basic Parallel Test>>
-        [Fact]
+        [Test]
         public void BasicParallelTest_ShouldThrowsUnsupported_Yukon()
         {
             BasicParallelTest_shouldThrowsUnsupported(DataTestClass.SQL2005_Pubs);
         }
 
-        [Fact]
+        [Test]
         public void BasicParallelTest_ShouldThrowsUnsupported_Katmai()
         {
             BasicParallelTest_shouldThrowsUnsupported(DataTestClass.SQL2008_Pubs);
@@ -77,13 +78,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         #endregion
 
         #region <<MultipleExecutesInSameTransactionTest>>
-        [Fact]
+        [Test]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Yukon()
         {
             MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.SQL2005_Pubs);
         }
 
-        [Fact]
+        [Test]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Katmai()
         {
             MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.SQL2008_Northwind);
@@ -170,7 +171,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection con1 = new PgConnection(connectionString))
             {
                 con1.Open();
-                PgCommand cmd = new PgCommand("Drop table " + tempTableName, con1);
+                PgCommand cmd = new PgCommand($"drop table {tempTableName}", con1);
                 cmd.ExecuteNonQuery();
             }
         }

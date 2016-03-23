@@ -13,15 +13,14 @@ namespace PostgreSql.Data.PostgreSqlClient
     public sealed class PgConnection
         : DbConnection
     {
-        public event PgInfoMessageEventHandler           InfoMessage;
-        public event PgNotificationEventHandler          Notification;
-        public event RemoteCertificateValidationCallback UserCertificateValidation;
-        public event LocalCertificateSelectionCallback   UserCertificateSelection;
+        public event EventHandler<PgInfoMessageEventArgs>  InfoMessage;
+        public event EventHandler<PgNotificationEventArgs> Notification;
+        public event RemoteCertificateValidationCallback   UserCertificateValidation;
+        public event LocalCertificateSelectionCallback     UserCertificateSelection;
 
         private PgConnectionInternal _innerConnection;
         private PgConnectionOptions  _connectionOptions;
         private ConnectionState      _state;
-        private bool                 _disposed;
         private string               _connectionString;
 
         public override string ConnectionString
@@ -47,11 +46,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         public          string          SearchPath               => (_connectionOptions?.SearchPath);
         public          int             FetchSize                => (_connectionOptions?.FetchSize ?? 200);
 
-        internal PgConnectionInternal InnerConnection
-        {
-            get { return _innerConnection; }
-            // set { _innerConnection = value; }
-        }
+        internal PgConnectionInternal InnerConnection => _innerConnection;
 
         internal bool IsClosed      => (_state == ConnectionState.Closed);
         internal bool IsOpen        => (_state == ConnectionState.Open);
@@ -69,6 +64,49 @@ namespace PostgreSql.Data.PostgreSqlClient
             ConnectionString = connectionString ?? String.Empty;
         }
 
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    try
+                    {
+                        // release any managed resources
+                        Close();
+                    }
+                    finally
+                    {
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                _disposed = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgConnection() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        // public void Dispose()
+        // {
+        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //     Dispose(true);
+        //     // TODO: uncomment the following line if the finalizer is overridden above.
+        //     // GC.SuppressFinalize(this);
+        // }
+        #endregion
+        
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted, null);
         
         public new PgTransaction BeginTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel, null);
@@ -170,27 +208,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _connectionOptions = null;
                 
                 ChangeState(ConnectionState.Closed);
-            }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    try
-                    {
-                        // release any managed resources
-                        Close();
-                    }
-                    finally
-                    {
-                    }
-                }
-
-                // release any unmanaged resources
-                _disposed = true;
             }
         }
 

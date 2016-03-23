@@ -4,22 +4,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using NUnit.Framework;
 using System.Data.Common;
 using System.IO;
 using System.Text;
-using Xunit;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class ReaderTest
     {
-        [Fact]
+        [Test]
         public static void TestMain()
         {
             string connectionString = DataTestClass.PostgreSql9_Pubs;
-
-            string tempTable = DataTestClass.GetUniqueName("T", "[", "]");
-            string tempKey   = DataTestClass.GetUniqueName("K", "[", "]");
+            string tempTable        = DataTestClass.GetUniqueName("T", "[", "]");
+            string tempKey          = DataTestClass.GetUniqueName("K", "[", "]");
 
             var provider = PgClientFactory.Instance;
             try

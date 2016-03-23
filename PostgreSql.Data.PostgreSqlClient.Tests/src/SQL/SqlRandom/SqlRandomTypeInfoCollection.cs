@@ -14,7 +14,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     /// Defines a collection of types to be used by the test. Tests can start with CreateSql2005Collection or 
     /// CreateSql2008Collection and add/remove types, as needed.
     /// </summary>
-    public sealed class SqlRandomTypeInfoCollection : System.Collections.ObjectModel.KeyedCollection<SqlDbType, SqlRandomTypeInfo>
+    public sealed class SqlRandomTypeInfoCollection : System.Collections.ObjectModel.KeyedCollection<PgDbType, SqlRandomTypeInfo>
     {
         private static readonly SqlRandomTypeInfo[] s_sql2005Types =
         {

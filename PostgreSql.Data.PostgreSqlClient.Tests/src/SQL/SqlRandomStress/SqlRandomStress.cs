@@ -4,15 +4,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
-using Xunit;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class SqlRandomStress
     {
         private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);
@@ -37,7 +39,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         private static long _totalTicks;
         private static RandomizerPool _randPool;
 
-        [Fact]
+        [Test]
         public static void TestMain()
         {
             _operationCanceledErrorMessage = SystemDataResourceManager.Instance.SQL_OperationCancelled;
@@ -46,7 +48,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             // pure random
             _randPool = new RandomizerPool();
 
-            SqlConnectionStringBuilder regularConnectionString = new SqlConnectionStringBuilder();
+            PgConnectionStringBuilder regularConnectionString = new PgConnectionStringBuilder();
 
             regularConnectionString.ConnectionString = DataTestClass.SQL2008_Master;
             regularConnectionString.MultipleActiveResultSets = false;
@@ -79,7 +81,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void NextConnection(ref SqlConnection con, Randomizer rand)
+        private static void NextConnection(ref PgConnection con, Randomizer rand)
         {
             if (con != null)
             {
@@ -88,7 +90,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             string connString = _connectionStrings[rand.Next(_connectionStrings.Length)];
 
-            con = new SqlConnection(connString);
+            con = new PgConnection(connString);
             con.Open();
         }
 
@@ -99,7 +101,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (var rootScope = _randPool.RootScope<SqlRandomizer>())
                 {
                     Stopwatch watch = new Stopwatch();
-                    SqlConnection con = null;
+                    PgConnection con = null;
                     try
                     {
                         NextConnection(ref con, rootScope.Current);
@@ -163,7 +165,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void RunTest(SqlConnection con, RandomizerPool.Scope<SqlRandomizer> testScope, SqlRandomTypeInfoCollection types, Stopwatch watch)
+        private static void RunTest(PgConnection con, RandomizerPool.Scope<SqlRandomizer> testScope, SqlRandomTypeInfoCollection types, Stopwatch watch)
         {
             Exception pendingException = null;
             string tempTableName = null;
@@ -222,7 +224,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 if (pendingException == null && tempTableName != null)
                 {
                     // destroy the temp table to free resources on the server
-                    SqlCommand cmd = con.CreateCommand();
+                    PgCommand cmd = con.CreateCommand();
                     cmd.CommandType = CommandType.Text;
                     cmd.CommandText = "DROP TABLE " + tempTableName;
                     try
@@ -236,7 +238,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void RunTestIteration(SqlConnection con, SqlRandomizer rand, SqlRandomTable table, string tableName)
+        private static void RunTestIteration(PgConnection con, SqlRandomizer rand, SqlRandomTable table, string tableName)
         {
             // random list of columns
             int columnCount = table.Columns.Count;
@@ -245,7 +247,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             StringBuilder selectBuilder = new StringBuilder();
             table.GenerateSelectFromTableTSql(tableName, selectBuilder, columnIndicies, 0, selectedCount);
-            SqlCommand cmd = con.CreateCommand();
+            PgCommand cmd = con.CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = selectBuilder.ToString();
 
@@ -279,7 +281,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 readerBehavior = CommandBehavior.SequentialAccess;
             try
             {
-                using (SqlDataReader reader = cmd.ExecuteReader(readerBehavior))
+                using (PgDataReader reader = cmd.ExecuteReader(readerBehavior))
                 {
                     int row = 0;
                     while (reader.Read())
@@ -326,14 +328,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 // keep last - this will stop the cancel task, if it is still active
                 cancel = false;
             }
-            catch (SqlException e)
+            catch (PgException e)
             {
                 if (!cancel)
                     throw;
 
                 bool expected = false;
 
-                foreach (SqlError error in e.Errors)
+                foreach (PgError error in e.Errors)
                 {
                     if (error.Message == _operationCanceledErrorMessage)
                     {
@@ -352,7 +354,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 if (!expected)
                 {
                     // rethrow to the user
-                    foreach (SqlError error in e.Errors)
+                    foreach (PgError error in e.Errors)
                     {
                         Console.WriteLine("{0} {1}", error.Number, error.Message);
                     }
@@ -365,7 +367,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 if (e.Message == _operationCanceledErrorMessage)
                 {
-                    // "Operation canceled" exception is raised as a SqlException (as one of SqlError objects) and as InvalidOperationException
+                    // "Operation canceled" exception is raised as a PgException (as one of PgError objects) and as InvalidOperationException
                     expected = true;
                 }
 

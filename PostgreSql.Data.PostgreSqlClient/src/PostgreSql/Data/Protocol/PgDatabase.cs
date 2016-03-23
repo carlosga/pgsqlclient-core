@@ -8,13 +8,14 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
+using System.Threading;
 
 namespace PostgreSql.Data.Protocol
 {
     internal sealed class PgDatabase
         : IDisposable
     {
-        private PgNetworkStream     _stream;
+        private PgNetworkChannel    _channel;
         private PgConnectionOptions _connectionOptions;
         private PgServerConfig      _serverConfiguration;
         private int                 _handle;
@@ -50,26 +51,26 @@ namespace PostgreSql.Data.Protocol
         internal PgConnectionOptions ConnectionOptions   => _connectionOptions;
         internal PgTransactionStatus TransactionStatus   => _transactionStatus;
         
+        private SemaphoreSlim _asyncActiveSemaphore;
+        internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
+        {
+            // Lazily-initialize _asyncActiveSemaphore.  As we're never accessing the SemaphoreSlim's
+            // WaitHandle, we don't need to worry about Disposing it.
+            return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
+        }
+        
         internal PgDatabase(string connectionString)
         {
             _connectionOptions = new PgConnectionOptions(connectionString);
-            _stream            = new PgNetworkStream();
+            _channel           = new PgNetworkChannel();
         }
 
         #region IDisposable Support
-
-        private bool _disposedValue = false; // To detect redundant calls
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgDatabase()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(false);
-        // }
+        private bool _disposed = false; // To detect redundant calls
 
         private void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
@@ -80,9 +81,15 @@ namespace PostgreSql.Data.Protocol
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 
-                _disposedValue = true;
+                _disposed = true;
             }
         }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgDatabase() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
@@ -90,35 +97,38 @@ namespace PostgreSql.Data.Protocol
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
-            GC.SuppressFinalize(this);
+            // GC.SuppressFinalize(this);
         }
-
         #endregion
        
+        internal void Lock()
+        {
+            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
+            sem.Wait();            
+        }
+
+        internal void ReleaseLock()
+        {
+            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
+            sem.Release();
+        }
+               
         internal void Open()
         {
             try
             {
+                Lock();
+                
                 // Reset instance data
                 _authenticated       = false;
                 _serverConfiguration = new PgServerConfig();
 
-                _stream.Open(_connectionOptions.DataSource
+                _channel.Open(_connectionOptions.DataSource
                            , _connectionOptions.PortNumber
                            , _connectionOptions.Encrypt);
                                                                             
                 // Send startup packet
                 SendStartupPacket();
-                
-                // Read startup response
-                PgInputPacket response = null;
-                               
-                do 
-                {
-                    response = Read();
-                    
-                    HandlePacket(response);
-                } while (!response.IsReadyForQuery);
             }
             catch (IOException ex)
             {
@@ -132,13 +142,19 @@ namespace PostgreSql.Data.Protocol
                  
                 throw;
             }
+            finally
+            {
+                ReleaseLock();
+            }
         }
 
         internal void Close()
         {
             try
             {
-                _stream.Close();
+                Lock();
+                
+                _channel.Close();
             }
             catch
             {
@@ -150,7 +166,7 @@ namespace PostgreSql.Data.Protocol
                 _transactionStatus   = PgTransactionStatus.Default;
                 _handle              = -1;
                 _secretKey           = -1;
-                _stream              = null;
+                _channel              = null;
                 _authenticated       = false;
 
                 // Remove info message callback
@@ -158,6 +174,8 @@ namespace PostgreSql.Data.Protocol
 
                 // Remove notification callback
                 Notification = null;
+                
+                ReleaseLock();
             }
         }
 
@@ -168,21 +186,16 @@ namespace PostgreSql.Data.Protocol
 
         internal PgStatement CreateStatement(string stmtText) => new PgStatement(this, stmtText);
 
-        internal PgStatement CreateStatement(string parseName, string portalName) => new PgStatement(this, parseName, portalName);
-
-        internal PgStatement CreateStatement(string parseName, string portalName, string stmtText)
-            => new PgStatement(this, parseName, portalName, stmtText);
-
-        internal void Flush() => _stream.WritePacket(PgFrontEndCodes.FLUSH);
+        internal void Flush() => _channel.WritePacket(PgFrontEndCodes.FLUSH);
 
         internal void Sync()
         {
             if (!_authenticated)
             {
                 return; 
-            }          
-              
-            _stream.WritePacket(PgFrontEndCodes.SYNC);
+            }
+                         
+            _channel.WritePacket(PgFrontEndCodes.SYNC);
             
             PgInputPacket response = null;
             
@@ -204,49 +217,50 @@ namespace PostgreSql.Data.Protocol
             packet.Write(_secretKey);
 
             // Send packet to the server
-            _stream.WritePacket(packet);
+            _channel.WritePacket(packet);
         }
         
         internal PgOutputPacket CreateOutputPacket(char type) => new PgOutputPacket(type, _serverConfiguration);
         
         internal PgInputPacket Read()
         {
-            var packet = _stream.ReadPacket(_serverConfiguration);
+            var packet = _channel.ReadPacket(_serverConfiguration);
             
-            if (packet.Message == PgBackendCodes.READY_FOR_QUERY)
+            switch (packet.Message)
             {
-                switch (packet.ReadChar())
-                {
-                    case 'T':
-                        _transactionStatus = PgTransactionStatus.Active;
-                        break;
+                case PgBackendCodes.READY_FOR_QUERY:
+                    switch (packet.ReadChar())
+                    {
+                        case 'T':
+                            _transactionStatus = PgTransactionStatus.Active;
+                            break;
 
-                    case 'E':
-                        _transactionStatus = PgTransactionStatus.Broken;
-                        break;                    
-                    
-                    case 'I':
-                    default:
-                        _transactionStatus = PgTransactionStatus.Default;
-                        break;
-                }
-            }
-            else if (packet.Message == PgBackendCodes.ERROR_RESPONSE)
-            {
-                // Read the error message and trow the exception
-                var ex = HandleErrorMessage(packet);
+                        case 'E':
+                            _transactionStatus = PgTransactionStatus.Broken;
+                            break;                    
+                        
+                        case 'I':
+                        default:
+                            _transactionStatus = PgTransactionStatus.Default;
+                            break;
+                    }
+                    break;
+    
+                case PgBackendCodes.ERROR_RESPONSE:               
+                    // Read the error message and trow the exception
+                    var ex = HandleErrorMessage(packet);
 
-                // Perform a sync
-                Sync();
+                    // Perform a sync
+                    Sync();
 
-                // Throw the PostgreSQL exception
-                throw ex;
+                    // Throw the PostgreSQL exception
+                    throw ex;
             }
             
             return packet;
         }
        
-        internal void Send(PgOutputPacket packet) => _stream.WritePacket(packet);
+        internal void Send(PgOutputPacket packet) => _channel.WritePacket(packet);
 
         private void HandlePacket(PgInputPacket packet)
         {
@@ -294,7 +308,7 @@ namespace PostgreSql.Data.Protocol
                     break;
                    
                 case PgCodes.AUTH_MD5_PASSWORD:
-                    // First read salt to use when encrypting the password
+                    // Read salt used when encrypting the password
                     var salt = packet.ReadBytes(4);
                     var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
                     authPacket.WriteNullString(hash);             
@@ -332,7 +346,7 @@ namespace PostgreSql.Data.Protocol
             }
             
             // Send the packet to the server
-            _stream.WritePacket(authPacket);            
+            _channel.WritePacket(authPacket);            
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)
@@ -407,20 +421,23 @@ namespace PostgreSql.Data.Protocol
             // Send Startup message
             var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
 
+            // user name 
             packet.Write(PgCodes.PROTOCOL_VERSION3);
             packet.WriteNullString("user");
             packet.WriteNullString(_connectionOptions.UserID);
 
+            // database
             if (!String.IsNullOrEmpty(_connectionOptions.Database))
             {
                 packet.WriteNullString("database");
                 packet.WriteNullString(_connectionOptions.Database);
             }
 
-            // Select ISO date style
+            // select ISO date style
             packet.WriteNullString("DateStyle");
             packet.WriteNullString(PgCodes.DATE_STYLE);
 
+            // search path
             if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
             {
                 packet.WriteNullString("search_path");
@@ -430,34 +447,17 @@ namespace PostgreSql.Data.Protocol
             // Terminator
             packet.WriteByte(0);
 
-            _stream.WritePacket(packet);
-                     
-#warning TODO: look if it's worth to send any of these:
-            // http://www.postgresql.org/docs/current/static/protocol-flow.html#PROTOCOL-ASYNC
-            //
-            // At present there is a hard-wired set of parameters for which ParameterStatus will be generated, they are:
-            //
-            // server_version
-            // server_encoding
-            // client_encoding
-            // application_name
-            // is_superuser
-            // session_authorization
-            // DateStyle
-            // IntervalStyle
-            // TimeZone
-            // integer_datetimes
-            // standard_conforming_strings
-            // search_path
-            // 
-            // (server_encoding, TimeZone, and integer_datetimes were not reported by releases before 8.0; 
-            //  standard_conforming_strings was not reported by releases before 8.1;
-            //  IntervalStyle was not reported by releases before 8.4; 
-            //  application_name was not reported by releases before 9.0.)
-            // 
-            // Note that server_version, server_encoding and integer_datetimes are pseudo-parameters that cannot change after startup.
-            // This set might change in the future, or even become configurable. 
-            // Accordingly, a frontend should simply ignore ParameterStatus for parameters that it does not understand or care about.                                           
+            _channel.WritePacket(packet);
+            
+            // Read startup response
+            PgInputPacket response = null;
+                            
+            do 
+            {
+                response = Read();
+                
+                HandlePacket(response);
+            } while (!response.IsReadyForQuery);
         }
 
         private void HandleParameterStatus(PgInputPacket packet) 

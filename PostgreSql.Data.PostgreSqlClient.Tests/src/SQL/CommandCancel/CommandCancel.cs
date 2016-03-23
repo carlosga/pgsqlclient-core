@@ -5,7 +5,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Xunit;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {

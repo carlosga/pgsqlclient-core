@@ -92,35 +92,17 @@ namespace PostgreSql.Data.Protocol
             set { _oid = value; }
         }
 
-        internal PgDataType DataType
-        {
-            get { return _dataType; }
-        }
-
-        internal string Name
-        {
-            get { return _name; }
-        }
-
-        internal Type SystemType
-        {
-            get { return _systemType; }
-        }
-
-        internal int ElementType
-        {
-            get { return _elementType; }
-        }
-
-        internal PgTypeFormat Format
-        {
-            get { return _format; }
-        }
-
-        internal int Size
-        {
-            get { return _size; }
-        }
+        internal PgDataType   DataType    => _dataType;
+        internal string       Name        => _name;
+        internal Type         SystemType  => _systemType;
+        internal int          ElementType => _elementType; 
+        internal PgTypeFormat Format      => _format;
+        internal int          Size        => _size;
+        internal bool         IsArray     => (_dataType == PgDataType.Array);
+        internal bool         IsBinary    => (_dataType == PgDataType.Binary);
+        internal bool         IsRefCursor => (_dataType == PgDataType.Refcursor);
+        internal string       Delimiter   => _delimiter;
+        internal string       Prefix      => _prefix;
 
         internal bool IsNumeric
         {
@@ -150,31 +132,6 @@ namespace PostgreSql.Data.Protocol
                      || _dataType == PgDataType.Double
                      || _dataType == PgDataType.Float);
             }
-        }
-
-        internal bool IsArray
-        {
-            get { return (_dataType == PgDataType.Array); }
-        }
-
-        internal bool IsBinary
-        {
-            get { return (_dataType == PgDataType.Binary); }
-        }
-
-        internal bool IsRefCursor
-        {
-            get { return (_dataType == PgDataType.Refcursor); }
-        }
-
-        internal string Delimiter
-        {
-            get { return _delimiter; }
-        }
-
-        internal string Prefix
-        {
-            get { return _prefix; }
         }
 
         internal PgType(int oid, string name, PgDataType dataType, int elementType, PgTypeFormat format, int size)

@@ -9,6 +9,8 @@ namespace PostgreSql.Data.Protocol
 {
     internal sealed class PgConnectionOptions
     {
+        private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);        
+        
         private string _dataSource;
         private string _database;
         private string _userId;
@@ -71,16 +73,15 @@ namespace PostgreSql.Data.Protocol
 
         private void ParseConnectionString(string connectionString)
         {
-            var search   = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)");
-            var elements = search.Matches(connectionString);
+            var tokens = s_tokenizer.Matches(connectionString);
 
-            foreach (Match element in elements)
+            foreach (Match token in tokens)
             {
-                var currentValue = element.Groups[2].Value?.Trim(); 
+                var currentValue = token.Groups[2].Value?.Trim(); 
                 
                 if (!String.IsNullOrEmpty(currentValue))
                 {
-                    switch (element.Groups[1].Value.Trim().ToLower())
+                    switch (token.Groups[1].Value.Trim().ToLower())
                     {
                         case ConnectionStringSynonyms.DataSource:
                         case ConnectionStringSynonyms.Server:

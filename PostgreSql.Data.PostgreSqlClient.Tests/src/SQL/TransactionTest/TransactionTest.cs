@@ -4,13 +4,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Xunit;
+using NUnit.Framework;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public class TransactionTest
     {
-        [Fact]
+        [Test]
         public void TestPostgreSql9()
         {
             new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;").StartTest();
@@ -66,7 +68,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 conn.Open();
                 PgCommand command = new PgCommand(string.Format("CREATE TABLE [{0}]([CustomerID] [nchar](5) NOT NULL PRIMARY KEY, [CompanyName] [nvarchar](40) NOT NULL, [ContactName] [nvarchar](30) NULL)", s_tempTableName1), conn);
                 command.ExecuteNonQuery();
-                command.CommandText = "create table " + s_tempTableName2 + "(col1 int, col2 varchar(32))";
+                command.CommandText = $"CREATE TABLE {s_tempTableName2}(col1 int, col2 varchar(32))";
                 command.ExecuteNonQuery();
             }
         }
@@ -75,8 +77,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             using (var conn = new PgConnection(_connectionString))
             {
-                PgCommand command = new PgCommand(
-                        string.Format("DROP TABLE [{0}]; DROP TABLE [{1}]", s_tempTableName1, s_tempTableName2), conn);
+                var command = new PgCommand($"DROP TABLE {s_tempTableName1}; DROP TABLE {s_tempTableName2}", conn);
                 conn.Open();
                 command.ExecuteNonQuery();
             }
@@ -84,10 +85,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
         public void ResetTables()
         {
-            using (PgConnection connection = new PgConnection(_connectionString))
+            using (var connection = new PgConnection(_connectionString))
             {
                 connection.Open();
-                using (PgCommand command = new PgCommand(string.Format("TRUNCATE TABLE [{0}]; TRUNCATE TABLE [{1}]", s_tempTableName1, s_tempTableName2), connection))
+                using (var command = new PgCommand($"TRUNCATE TABLE {s_tempTableName1}; TRUNCATE TABLE {s_tempTableName2}", connection))
                 {
                     command.ExecuteNonQuery();
                 }
@@ -98,11 +99,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             using (PgConnection connection = new PgConnection(_connectionString))
             {
-                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'", connection);
+                var command = new PgCommand($"SELECT * FROM {s_tempTableName1} WHERE CustomerID='ZYXWV'", connection);
 
                 connection.Open();
 
-                SqlTransaction tx = connection.BeginTransaction();
+                PgTransaction tx = connection.BeginTransaction();
                 command.Transaction = tx;
 
                 using (PgDataReader reader = command.ExecuteReader())
@@ -114,7 +115,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     command2.Transaction = tx;
 
-                    command2.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
+                    command2.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command2.ExecuteNonQuery();
                 }
 
@@ -132,13 +133,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
         private void RollbackTransactionTest()
         {
-            using (PgConnection connection = new PgConnection(_connectionString))
+            using (var connection = new PgConnection(_connectionString))
             {
-                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
-                    connection);
+                var command = new PgCommand($"SELECT * FROM {s_tempTableName1} WHERE CustomerID='ZYXWV'", connection);
                 connection.Open();
 
-                SqlTransaction tx = connection.BeginTransaction();
+                PgTransaction tx = connection.BeginTransaction();
                 command.Transaction = tx;
 
                 using (PgDataReader reader = command.ExecuteReader())
@@ -168,17 +168,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-
         private void ScopedTransactionTest()
         {
             using (PgConnection connection = new PgConnection(_connectionString))
             {
-                PgCommand command = new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                PgCommand command = new PgCommand($"SELECT * FROM {s_tempTableName1} WHERE CustomerID='ZYXWV'",
                     connection);
 
                 connection.Open();
 
-                SqlTransaction tx = connection.BeginTransaction("transName");
+                PgTransaction tx = connection.BeginTransaction("transName");
                 command.Transaction = tx;
 
                 using (PgDataReader reader = command.ExecuteReader())
@@ -189,7 +188,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     command2.Transaction = tx;
 
-                    command2.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
+                    command2.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command2.ExecuteNonQuery();
                 }
                 tx.Save("saveName");
@@ -199,7 +198,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     command2.Transaction = tx;
 
-                    command2.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXW2', 'XY2', 'KK' );";
+                    command2.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXW2', 'XY2', 'KK' );";
                     command2.ExecuteNonQuery();
                 }
 
@@ -219,14 +218,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-
         private void ExceptionTest()
         {
             using (PgConnection connection = new PgConnection(_connectionString))
             {
                 connection.Open();
 
-                SqlTransaction tx = connection.BeginTransaction();
+                PgTransaction tx = connection.BeginTransaction();
 
                 string invalidSaveStateMessage = SystemDataResourceManager.Instance.SQL_NullEmptyTransactionName;
                 string executeCommandWithoutTransactionMessage = SystemDataResourceManager.Instance.ADP_TransactionRequired("ExecuteNonQuery");
@@ -235,16 +233,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 AssertException<InvalidOperationException>(() =>
                 {
-                    PgCommand command = new PgCommand("sql", connection);
+                    var command = new PgCommand("sql", connection);
                     command.ExecuteNonQuery();
                 }, executeCommandWithoutTransactionMessage);
 
                 AssertException<InvalidOperationException>(() =>
                 {
-                    PgConnection con1 = new PgConnection(_connectionString);
+                    var con1 = new PgConnection(_connectionString);
                     con1.Open();
 
-                    PgCommand command = new PgCommand("sql", con1);
+                    var command = new PgCommand("sql", con1);
                     command.Transaction = tx;
                     command.ExecuteNonQuery();
                 }, transactionConflictErrorMessage);
@@ -292,22 +290,22 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection1 = new PgConnection(_connectionString))
             {
                 connection1.Open();
-                SqlTransaction tx1 = connection1.BeginTransaction();
+                PgTransaction tx1 = connection1.BeginTransaction();
 
                 using (PgCommand command1 = connection1.CreateCommand())
                 {
                     command1.Transaction = tx1;
 
-                    command1.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
+                    command1.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command1.ExecuteNonQuery();
                 }
                 using (PgConnection connection2 = new PgConnection(_connectionString))
                 {
-                    PgCommand command2 =
-                        new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                    var command2 =
+                        new PgCommand($"SELECT * FROM {s_tempTableName1} WHERE CustomerID='ZYXWV'",
                             connection2);
                     connection2.Open();
-                    SqlTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadUncommitted);
+                    PgTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadUncommitted);
                     command2.Transaction = tx2;
 
                     using (PgDataReader reader = command2.ExecuteReader())
@@ -331,23 +329,23 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection1 = new PgConnection(_connectionString))
             {
                 connection1.Open();
-                SqlTransaction tx1 = connection1.BeginTransaction();
+                PgTransaction tx1 = connection1.BeginTransaction();
 
                 using (PgCommand command1 = connection1.CreateCommand())
                 {
                     command1.Transaction = tx1;
-                    command1.CommandText = "INSERT INTO " + s_tempTableName1 + " VALUES ( 'ZYXWV', 'XYZ', 'John' );";
+                    command1.CommandText = $"INSERT INTO {s_tempTableName1} VALUES ( 'ZYXWV', 'XYZ', 'John' );";
                     command1.ExecuteNonQuery();
                 }
 
                 using (PgConnection connection2 = new PgConnection(_connectionString))
                 {
                     PgCommand command2 =
-                        new PgCommand("select * from " + s_tempTableName1 + " where CustomerID='ZYXWV'",
+                        new PgCommand($"SELECT * FROM {s_tempTableName1} WHERE CustomerID='ZYXWV'",
                             connection2);
 
                     connection2.Open();
-                    SqlTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadCommitted);
+                    PgTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadCommitted);
                     command2.Transaction = tx2;
 
                     AssertException<SqlException>(() => command2.ExecuteReader(), SystemDataResourceManager.Instance.SQL_Timeout as string);

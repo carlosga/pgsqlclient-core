@@ -4,6 +4,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     /// <summary>
@@ -18,10 +20,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         public readonly SqlRandomColumnOptions Options;
 
         // useful shortcuts
-        public SqlDbType Type { get { return TypeInfo.Type; } }
+        public PgDbType Type { get { return TypeInfo.Type; } }
         public string GetTSqlTypeDefinition() { return TypeInfo.GetTSqlTypeDefinition(this); }
         public object CreateRandomValue(SqlRandomizer rand) { return TypeInfo.CreateRandomValue(rand, this); }
-        public object Read(SqlDataReader reader, int ordinal, Type asType) { return TypeInfo.Read(reader, ordinal, this, asType); }
+        public object Read(PgDataReader reader, int ordinal, Type asType) { return TypeInfo.Read(reader, ordinal, this, asType); }
         public bool CanCompareValues { get { return TypeInfo.CanCompareValues(this); } }
         public bool CompareValues(object expected, object actual) { return TypeInfo.CompareValues(this, expected, actual); }
         public string BuildErrorMessage(object expected, object actual) { return TypeInfo.BuildErrorMessage(this, expected, actual); }
@@ -43,7 +45,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     throw new ArgumentException("Must not be sparse", nameof(options));
                 }
 
-                if (typeInfo.Type != SqlDbType.Xml)
+                if (typeInfo.Type != PgDbType.Xml)
                 {
                     throw new ArgumentException("columnset column must be an XML column");
                 }

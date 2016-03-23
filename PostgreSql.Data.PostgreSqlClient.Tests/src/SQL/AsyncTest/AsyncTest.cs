@@ -5,20 +5,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;
 
-        [Fact]
+        [Test]
         public static void ExecuteTest()
         {
             var connStr = DataTestClass.PostgreSql9_Northwind;
-            var com = new PgCommand("select * from Orders");
-            var con = new PgConnection(connStr);
+            var com     = new PgCommand("select * from Orders");
+            var con     = new PgConnection(connStr);
 
             com.Connection = con;
 
@@ -39,7 +40,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             con.Close();
         }
 
-        [Fact]
+        [Test]
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql9_Northwind;

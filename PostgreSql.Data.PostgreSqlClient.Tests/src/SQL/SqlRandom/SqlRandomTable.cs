@@ -318,10 +318,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             return false;
         }
 
-        public void GenerateTableOnServer(SqlConnection con, string tableName)
+        public void GenerateTableOnServer(PgConnection con, string tableName)
         {
             // create table
-            SqlCommand cmd = con.CreateCommand();
+            PgCommand cmd = con.CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = GenerateCreateTableTSql(tableName);
             try
@@ -348,7 +348,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             InsertRows(con, tableName, 0, _rows.Count);
         }
 
-        public void InsertRows(SqlConnection con, string tableName, int rowFrom, int rowToExclusive)
+        public void InsertRows(PgConnection con, string tableName, int rowFrom, int rowToExclusive)
         {
             if (con == null || tableName == null)
             {
@@ -365,15 +365,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 throw new ArgumentOutOfRangeException("rowFrom", rowFrom, "cannot be less than 0 or greater than rowToExclusive");
             }
 
-            SqlCommand cmd = null;
-            SqlParameter[] parameters = null;
+            PgCommand cmd = null;
+            PgParameter[] parameters = null;
             for (int r = rowFrom; r < rowToExclusive; r++)
             {
                 InsertRowInternal(con, ref cmd, ref parameters, tableName, r);
             }
         }
 
-        public void InsertRow(SqlConnection con, string tableName, int row)
+        public void InsertRow(PgConnection con, string tableName, int row)
         {
             if (con == null || tableName == null)
             {
@@ -385,12 +385,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 throw new ArgumentOutOfRangeException("row", row, "cannot be less than 0 or greater than or equal to row count");
             }
 
-            SqlCommand cmd = null;
-            SqlParameter[] parameters = null;
+            PgCommand cmd = null;
+            PgParameter[] parameters = null;
             InsertRowInternal(con, ref cmd, ref parameters, tableName, row);
         }
 
-        private void InsertRowInternal(SqlConnection con, ref SqlCommand cmd, ref SqlParameter[] parameters, string tableName, int row)
+        private void InsertRowInternal(PgConnection con, ref PgCommand cmd, ref PgParameter[] parameters, string tableName, int row)
         {
             // cannot use DataTable: it does not handle well char[] values and variant and also does not support sparse/column set ones
             StringBuilder columnsText = new StringBuilder();
@@ -410,7 +410,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             if (parameters == null)
             {
-                parameters = new SqlParameter[_columns.Length];
+                parameters = new PgParameter[_columns.Length];
             }
 
             object[] rowValues = _rows[row];
@@ -443,7 +443,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     continue;
                 }
 
-                SqlParameter p = parameters[ci];
+                PgParameter p = parameters[ci];
 
                 // construct column list
                 if (columnsText.Length > 0)

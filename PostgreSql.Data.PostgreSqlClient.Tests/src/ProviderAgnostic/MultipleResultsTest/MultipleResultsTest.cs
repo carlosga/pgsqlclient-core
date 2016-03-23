@@ -4,15 +4,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using NUnit.Framework;
 using System.Data.Common;
-using Xunit;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public class MultipleResultsTest 
         : DataTestClass
     {
-        [Fact]
+        [Test]
         public static void TestMain()
         {
             Assert.True((new MultipleResultsTest()).RunTestCoreAndCompareWithBaseline());
@@ -42,27 +43,27 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (DbCommand command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        "PRINT N'0';\n" +
+                        "RAISE NOTICE '0';\n" +
                         "SELECT num = 1, str = 'ABC';\n" +
-                        "PRINT N'1';\n" +
+                        "RAISE NOTICE '1';\n" +
                         "RAISERROR('Error 1', 15, 1);\n" +
-                        "PRINT N'3';\n" +
+                        "RAISE NOTICE '3';\n" +
                         "SELECT num = 2, str = 'ABC';\n" +
-                        "PRINT N'4';\n" +
+                        "RAISE NOTICE '4';\n" +
                         "RAISERROR('Error 2', 15, 1);\n" +
-                        "PRINT N'5';\n" +
+                        "RAISE NOTICE '5';\n" +
                         "SELECT num = 3, str = 'ABC';\n" +
-                        "PRINT N'6';\n" +
+                        "RAISE NOTICE '6';\n" +
                         "RAISERROR('Error 3', 15, 1);\n" +
-                        "PRINT N'7';\n" +
+                        "RAISE NOTICE '7';\n" +
                         "SELECT num = 4, str = 'ABC';\n" +
-                        "PRINT N'8';\n" +
+                        "RAISE NOTICE '8';\n" +
                         "RAISERROR('Error 4', 15, 1);\n" +
-                        "PRINT N'9';\n" +
+                        "RAISE NOTICE '9';\n" +
                         "SELECT num = 5, str = 'ABC';\n" +
-                        "PRINT N'10';\n" +
+                        "RAISE NOTICE '10';\n" +
                         "RAISERROR('Error 5', 15, 1);\n" +
-                        "PRINT N'11';\n";
+                        "RAISE NOTICE '11';\n";
 
                     try
                     {

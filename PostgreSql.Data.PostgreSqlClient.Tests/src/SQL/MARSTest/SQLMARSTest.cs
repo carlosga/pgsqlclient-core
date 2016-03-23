@@ -4,25 +4,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
-using Xunit;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class MARSTest
     {
-        private static readonly string s_yukonConnectionString = (new SqlConnectionStringBuilder(DataTestClass.SQL2005_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+        private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
-        [Fact]
+        [Test]
         public static void MARSAsyncTimeoutTest()
         {
-            using (SqlConnection connection = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                SqlCommand command = new SqlCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                PgCommand command = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
                 command.CommandTimeout = 1;
                 Task<object> result = command.ExecuteScalarAsync();
 
@@ -30,7 +31,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
                 Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                Type type = typeof(SqlDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
+                Type type = typeof(PgDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
                 FieldInfo field = type.GetField("_skipSendAttention", BindingFlags.NonPublic | BindingFlags.Static);
 
                 Assert.True(field != null, "Error: This test cannot succeed on retail builds because it uses the _skipSendAttention test hook");
@@ -38,7 +39,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 field.SetValue(null, true);
                 try
                 {
-                    SqlCommand command2 = new SqlCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                    PgCommand command2 = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
                     command2.CommandTimeout = 1;
                     result = command2.ExecuteScalarAsync();
 
@@ -56,13 +57,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void MARSSyncTimeoutTest()
         {
-            using (SqlConnection connection = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                SqlCommand command = new SqlCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                PgCommand command = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
                 command.CommandTimeout = 1;
                 bool hitException = false;
                 try
@@ -71,14 +72,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 }
                 catch (Exception e)
                 {
-                    Assert.True(e is SqlException, "Expected SqlException but found " + e);
+                    Assert.True(e is PgException, "Expected PgException but found " + e);
                     hitException = true;
                 }
                 Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
 
                 Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                Type type = typeof(SqlDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
+                Type type = typeof(PgDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
                 FieldInfo field = type.GetField("_skipSendAttention", BindingFlags.NonPublic | BindingFlags.Static);
 
                 Assert.True(field != null, "Error: This test cannot succeed on retail builds because it uses the _skipSendAttention test hook");
@@ -87,7 +88,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 hitException = false;
                 try
                 {
-                    SqlCommand command2 = new SqlCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                    PgCommand command2 = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
                     command2.CommandTimeout = 1;
                     try
                     {
@@ -95,7 +96,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
                     catch (Exception e)
                     {
-                        Assert.True(e is SqlException, "Expected SqlException but found " + e);
+                        Assert.True(e is PgException, "Expected PgException but found " + e);
                         hitException = true;
                     }
                     Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
@@ -110,14 +111,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 #endif
 
-        [Fact]
+        [Test]
         public static void MARSSyncBusyReaderTest()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlDataReader reader1 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
                 {
                     int rows1 = 0;
                     while (reader1.Read())
@@ -128,7 +129,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
                     Assert.True(rows1 == 415, "MARSSyncBusyReaderTest Failure, #1");
 
-                    using (SqlDataReader reader2 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
+                    using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
                     {
                         int rows2 = 0;
                         while (reader2.Read())
@@ -154,18 +155,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void MARSSyncExecuteNonQueryTest()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlCommand comm1 = new SqlCommand("select * from Orders", conn))
-                using (SqlCommand comm2 = new SqlCommand("select * from Orders", conn))
-                using (SqlCommand comm3 = new SqlCommand("select * from Orders", conn))
-                using (SqlCommand comm4 = new SqlCommand("select * from Orders", conn))
-                using (SqlCommand comm5 = new SqlCommand("select * from Orders", conn))
+                using (PgCommand comm1 = new PgCommand("select * from Orders", conn))
+                using (PgCommand comm2 = new PgCommand("select * from Orders", conn))
+                using (PgCommand comm3 = new PgCommand("select * from Orders", conn))
+                using (PgCommand comm4 = new PgCommand("select * from Orders", conn))
+                using (PgCommand comm5 = new PgCommand("select * from Orders", conn))
                 {
                     comm1.ExecuteNonQuery();
                     comm2.ExecuteNonQuery();
@@ -176,18 +177,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void MARSSyncExecuteReaderTest1()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlDataReader reader1 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader2 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader3 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader4 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader5 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
                 {
                     int rows = 0;
                     while (reader1.Read())
@@ -228,18 +229,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
 
-        [Fact]
+        [Test]
         public static void MARSSyncExecuteReaderTest2()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlDataReader reader1 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader2 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader3 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader4 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader5 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
                 {
                     for (int i = 0; i < 830; i++)
                     {
@@ -251,18 +252,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void MARSSyncExecuteReaderTest3()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlDataReader reader1 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader2 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader3 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader4 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
-                using (SqlDataReader reader5 = (new SqlCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
                 {
                     for (int i = 0; i < 830; i++)
                     {
@@ -286,16 +287,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public static void MARSSyncExecuteReaderTest4()
         {
-            using (SqlConnection conn = new SqlConnection(s_yukonConnectionString))
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
             {
                 conn.Open();
 
-                using (SqlDataReader reader1 = (new SqlCommand("select * from Orders where OrderID = 10248", conn)).ExecuteReader())
-                using (SqlDataReader reader2 = (new SqlCommand("select * from Orders where OrderID = 10249", conn)).ExecuteReader())
-                using (SqlDataReader reader3 = (new SqlCommand("select * from Orders where OrderID = 10250", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders where OrderID = 10248", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders where OrderID = 10249", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders where OrderID = 10250", conn)).ExecuteReader())
                 {
                     Assert.True(reader1.Read() && reader2.Read() && reader3.Read(), "MARSSyncExecuteReaderTest4 failure #1");
 

@@ -1,17 +1,19 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
-using Xunit;
+using NUnit.Framework;
 using System;
 using System.Data;
 using System.Diagnostics;
 
 namespace PostgreSql.Data.PostgreSqlClient.UnitTests
 {
+    [TestFixture]
+    [Ignore("Needs configuration")]    
     public class PgCommandTest
         : PgBaseTest
     {
-        [Fact]
+        [Test]
         public void ExecuteNonQueryTest()
         {
             Console.WriteLine("\r\nPgCommandTest.ExecuteNonQueryTest");
@@ -23,15 +25,15 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
                 using (var command = new PgCommand(commandText, Connection, transaction))
                 {
                     // Add command parameters
-                    command.Parameters.Add("@char_field", PgDbType.Char);
-                    command.Parameters.Add("@varchar_field", PgDbType.VarChar);
-                    command.Parameters.Add("@int4_field", PgDbType.Int4);
+                    command.Parameters.Add("@char_field"    , PgDbType.Char);
+                    command.Parameters.Add("@varchar_field" , PgDbType.VarChar);
+                    command.Parameters.Add("@int4_field"    , PgDbType.Int4);
 
                     for (int i = 0; i < 100; i++)
                     {
-                        command.Parameters["@char_field"].Value = "Row " + i.ToString();
-                        command.Parameters["@varchar_field"].Value = "Row Number" + i.ToString();
-                        command.Parameters["@int4_field"].Value = i;
+                        command.Parameters["@char_field"].Value    = $"Row {i}";
+                        command.Parameters["@varchar_field"].Value = $"Row Number {i}";
+                        command.Parameters["@int4_field"].Value    = i;
 
                         Assert.AreEqual(1, command.ExecuteNonQuery());
                     }
@@ -42,7 +44,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void ExecuteReaderTest()
         {
             Console.WriteLine("\r\nPgCommandTest.ExecuteReaderTest");
@@ -74,7 +76,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void ExecuteScalarTest()
         {
             using (PgCommand command = Connection.CreateCommand())
@@ -89,7 +91,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void PrepareTest()
         {
             using (PgCommand command = Connection.CreateCommand())
@@ -101,7 +103,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void NamedParametersTest()
         {
             using (PgCommand command = Connection.CreateCommand())
@@ -126,7 +128,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void ExecuteStoredProcTest()
         {
             using (PgCommand command = new PgCommand("TestCount", Connection))
@@ -141,7 +143,7 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void RecordsAffectedTest()
         {
             int recordsAffected = 0;
@@ -150,20 +152,18 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             using (PgCommand selectCommand = new PgCommand("SELECT * FROM public.test_table WHERE int4_field = 100", Connection))
             {
                 recordsAffected = selectCommand.ExecuteNonQuery();
-                Debug.WriteLine($"\r\nRecords Affected by SELECT command: {recordsAffected}");
-                Assert.IsTrue(recordsAffected == -1);
+                Assert.AreEqual(-1, recordsAffected, "Invalid records affected value, expected -1");
             }
 
             // Execute a DELETE command
             using (PgCommand deleteCommand = new PgCommand("DELETE FROM public.test_table WHERE int4_field = 45", Connection))
             {
                 recordsAffected = deleteCommand.ExecuteNonQuery();
-                Debug.WriteLine($"\r\nRecords Affected by DELETE command: {recordsAffected}");
-                Assert.IsTrue(recordsAffected == 1);
+                Assert.AreEqual(1, recordsAffected, "Invalid records affected value, expected 1");
             }
         }
 
-        [Fact]
+        [Test]
         public void TestError782096()
         {
             Console.WriteLine("\r\nPgCommandTest.TestError782096");
@@ -194,14 +194,16 @@ namespace PostgreSql.Data.PostgreSqlClient.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void TestCase3()
         {
             using (PgCommand cmd = Connection.CreateCommand())
             {
                 cmd.CommandText = @"SELECT int4_field FROM test_table WHERE varchar_field = @parameter";
                 cmd.Parameters.Add("@parameter", "IRow Number10");
-                cmd.ExecuteScalar();
+                int value = (int)cmd.ExecuteScalar();
+                
+                Assert.AreEqual(10, value, "ExecuteScalar returned an invalid value. Expected 10.");
             }
         }
     }

@@ -5,6 +5,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
