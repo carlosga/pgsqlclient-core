@@ -157,6 +157,8 @@ namespace PostgreSql.Data.Protocol
                 Bind();
                 InternalExecute(0);
                 
+                ClosePortal();
+                
                 return _recordsAffected;
             }
             catch
@@ -168,9 +170,7 @@ namespace PostgreSql.Data.Protocol
             }
             finally
             {
-                _database.ReleaseLock();
-                
-                ClosePortal();
+                _database.ReleaseLock();                
             }
         }
                
@@ -215,10 +215,16 @@ namespace PostgreSql.Data.Protocol
                 Bind();
                 InternalExecute(1);
                 
+                object value = null;              
+                  
                 if (!_rows.IsEmpty())
                 {
-                    return _rows.Dequeue()[0];
+                    value = _rows.Dequeue()[0];
                 }
+                
+                ClosePortal();
+                
+                return value;                
             }
             catch
             {
@@ -230,11 +236,7 @@ namespace PostgreSql.Data.Protocol
             finally
             {
                 _database.ReleaseLock();
-
-                ClosePortal();
             }
-                        
-            return null;
         }                
 
         internal void ExecuteFunction(int id)

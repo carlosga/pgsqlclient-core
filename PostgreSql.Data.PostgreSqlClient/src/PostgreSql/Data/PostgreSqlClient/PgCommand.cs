@@ -346,7 +346,8 @@ namespace PostgreSql.Data.PostgreSqlClient
              || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
             {
                 SetParameterValues();
-                _statement.ExecuteNonQuery();
+                
+                _statement.ExecuteReader();
             }
 
             return _activeDataReader = new PgDataReader(_connection, this);
