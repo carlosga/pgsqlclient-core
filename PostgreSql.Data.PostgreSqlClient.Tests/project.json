@@ -1,7 +1,7 @@
 {
     "version": "0.0.1",
     "compilationOptions": {
-        "emitEntryPoint": false,
+        "emitEntryPoint": true,
         "allowUnsafe": false,
         "warningsAsErrors" : false       
     },
@@ -39,9 +39,7 @@
                 "System.Threading.Tasks": "4.0.11-rc3-*",
                 "System.Threading.Thread": "4.0.0-rc3-*",
                 "System.Xml.XmlDocument": "4.0.0-rc3-*",
-                "nunit": "3.2.0",
-                "nunit.runners": "3.2.0",
-                "nunit.console": "3.2.0.1",
+                "NUnitLite": "3.2.0-*",
                 "PostgreSql.Data.PostgreSqlClient": {
                     "target"  : "project",
                     "version" : "0.0.1"
@@ -76,5 +74,8 @@
         "src/**/SqlRandom/**",
         "src/**/SqlRandomStress/**"
     ],
-    "testRunner": "nunit"
+    "commands": {
+        "test": "PostgreSql.Data.PostgreSqlClient.Tests"
+    },    
+    "testRunner": "PostgreSql.Data.PostgreSqlClient.Tests"
 }

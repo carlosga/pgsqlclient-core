@@ -116,7 +116,7 @@
           "System.Xml.XDocument": "4.0.11-rc3-23923"
         }
       },
-      "nunit/3.2.0": {
+      "NUnit/3.2.0": {
         "type": "package",
         "compile": {
           "lib/dotnet/nunit.framework.dll": {}
@@ -125,39 +125,16 @@
           "lib/dotnet/nunit.framework.dll": {}
         }
       },
-      "nunit.console/3.2.0.1": {
+      "NUnitLite/3.2.0": {
         "type": "package",
         "dependencies": {
-          "NUnit.ConsoleRunner": "[3.2.0]",
-          "NUnit.Extension.NUnitProjectLoader": "[3.2.0]",
-          "NUnit.Extension.NUnitV2Driver": "[3.2.0]",
-          "NUnit.Extension.NUnitV2ResultWriter": "[3.2.0]",
-          "NUnit.Extension.VSProjectLoader": "[3.2.0]"
-        }
-      },
-      "NUnit.ConsoleRunner/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitProjectLoader/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitV2Driver/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitV2ResultWriter/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.VSProjectLoader/3.2.0": {
-        "type": "package"
-      },
-      "nunit.runners/3.2.0": {
-        "type": "package",
-        "dependencies": {
-          "NUnit.ConsoleRunner": "[3.2.0]",
-          "NUnit.Extension.NUnitProjectLoader": "[3.2.0]",
-          "NUnit.Extension.NUnitV2Driver": "[3.2.0]",
-          "NUnit.Extension.NUnitV2ResultWriter": "[3.2.0]",
-          "NUnit.Extension.VSProjectLoader": "[3.2.0]"
+          "NUnit": "[3.2.0]"
+        },
+        "compile": {
+          "lib/dotnet/nunitlite.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/nunitlite.dll": {}
         }
       },
       "runtime.native.System/4.0.0-rc3-23923": {
@@ -1498,7 +1475,7 @@
           "System.Xml.XDocument": "4.0.11-rc3-23923"
         }
       },
-      "nunit/3.2.0": {
+      "NUnit/3.2.0": {
         "type": "package",
         "compile": {
           "lib/dotnet/nunit.framework.dll": {}
@@ -1507,39 +1484,16 @@
           "lib/dotnet/nunit.framework.dll": {}
         }
       },
-      "nunit.console/3.2.0.1": {
+      "NUnitLite/3.2.0": {
         "type": "package",
         "dependencies": {
-          "NUnit.ConsoleRunner": "[3.2.0]",
-          "NUnit.Extension.NUnitProjectLoader": "[3.2.0]",
-          "NUnit.Extension.NUnitV2Driver": "[3.2.0]",
-          "NUnit.Extension.NUnitV2ResultWriter": "[3.2.0]",
-          "NUnit.Extension.VSProjectLoader": "[3.2.0]"
-        }
-      },
-      "NUnit.ConsoleRunner/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitProjectLoader/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitV2Driver/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.NUnitV2ResultWriter/3.2.0": {
-        "type": "package"
-      },
-      "NUnit.Extension.VSProjectLoader/3.2.0": {
-        "type": "package"
-      },
-      "nunit.runners/3.2.0": {
-        "type": "package",
-        "dependencies": {
-          "NUnit.ConsoleRunner": "[3.2.0]",
-          "NUnit.Extension.NUnitProjectLoader": "[3.2.0]",
-          "NUnit.Extension.NUnitV2Driver": "[3.2.0]",
-          "NUnit.Extension.NUnitV2ResultWriter": "[3.2.0]",
-          "NUnit.Extension.VSProjectLoader": "[3.2.0]"
+          "NUnit": "[3.2.0]"
+        },
+        "compile": {
+          "lib/dotnet/nunitlite.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/nunitlite.dll": {}
         }
       },
       "runtime.any.System.AppContext/4.1.0-rc3-23923": {
@@ -3279,13 +3233,14 @@
         "dotnet_library_license.txt"
       ]
     },
-    "nunit/3.2.0": {
+    "NUnit/3.2.0": {
       "sha512": "kJf/lxyi7AAW5B/2Vkn9lyAvqJlmAEVABAu3V/nvwmZFQxiaCq9mJt81VbhK13QJPc1jnyjh5D5mHeL1ivQJLA==",
       "type": "package",
       "files": [
         "CHANGES.txt",
         "LICENSE.txt",
         "NOTICES.txt",
+        "NUnit.3.2.0.nupkg.sha512",
         "NUnit.nuspec",
         "lib/dotnet/nunit.framework.dll",
         "lib/dotnet/nunit.framework.xml",
@@ -3296,96 +3251,30 @@
         "lib/net45/nunit.framework.dll",
         "lib/net45/nunit.framework.xml",
         "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.dll",
-        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.xml",
-        "nunit.3.2.0.nupkg.sha512",
-        "nunit.nuspec"
+        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.xml"
       ]
     },
-    "nunit.console/3.2.0.1": {
-      "sha512": "qiucxpX8IgLnJZluhfqL1vkSFwgMcKagnO0Nu4/Luszg/3E9Q0usnCfF1EUC9/atRuqpIUcHWerzfDbjn/QQtQ==",
-      "type": "package",
-      "files": [
-        "NUnit.Console.nuspec",
-        "nunit.console.3.2.0.1.nupkg.sha512",
-        "nunit.console.nuspec"
-      ]
-    },
-    "NUnit.ConsoleRunner/3.2.0": {
-      "sha512": "0dYfm/KIOJD+bZQFIk1YdOe910pHYV1Uo0/WsgC4Dn3nt1ggRr2z2yr+qNGwMKZh1ewWOOilaDBgB/vDGTkkUA==",
+    "NUnitLite/3.2.0": {
+      "sha512": "d/ATj9IgUqMFGh0FBkWpWf0newv7FnUd6kLm3A0vANJwfkHcpECxEU+1APrCYlcUiCA+cVfqF4trwY04ycnRlw==",
       "type": "package",
       "files": [
         "CHANGES.txt",
         "LICENSE.txt",
         "NOTICES.txt",
-        "NUnit.ConsoleRunner.3.2.0.nupkg.sha512",
-        "NUnit.ConsoleRunner.nuspec",
-        "tools/Mono.Cecil.dll",
-        "tools/nunit-agent-x86.exe",
-        "tools/nunit-agent-x86.exe.config",
-        "tools/nunit-agent.exe",
-        "tools/nunit-agent.exe.config",
-        "tools/nunit.engine.api.dll",
-        "tools/nunit.engine.api.xml",
-        "tools/nunit.engine.dll",
-        "tools/nunit.nuget.addins",
-        "tools/nunit3-console.exe",
-        "tools/nunit3-console.exe.config"
-      ]
-    },
-    "NUnit.Extension.NUnitProjectLoader/3.2.0": {
-      "sha512": "PNO3c70QkG1HUDYE7+Ma9PANiZ/QaTi5WJ2hA7h0VK5K2n6mYMd2CnfJl8goAT0ddscE7biU4O5c/wqs/k5HiA==",
-      "type": "package",
-      "files": [
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnit.Extension.NUnitProjectLoader.3.2.0.nupkg.sha512",
-        "NUnit.Extension.NUnitProjectLoader.nuspec",
-        "tools/nunit-project-loader.dll"
-      ]
-    },
-    "NUnit.Extension.NUnitV2Driver/3.2.0": {
-      "sha512": "WDxer6FA+BPMJlo2Igq1r10j/pRE9kwf6w65RWzGNjLuBdwrqJFEqgiaGSeiDg2PWDYrIR5XO2QzMwF3dTh+qA==",
-      "type": "package",
-      "files": [
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnit.Extension.NUnitV2Driver.3.2.0.nupkg.sha512",
-        "NUnit.Extension.NUnitV2Driver.nuspec",
-        "tools/nunit.core.dll",
-        "tools/nunit.core.interfaces.dll",
-        "tools/nunit.v2.driver.addins",
-        "tools/nunit.v2.driver.dll"
-      ]
-    },
-    "NUnit.Extension.NUnitV2ResultWriter/3.2.0": {
-      "sha512": "Z59v5oRXJnJ+BKrfvURA/V4vhg7CAcnSP1pWBzIc9+YnTjHswIcFTNoaxaR+Lj6evAQZjLF66JqF8x/3KVDRug==",
-      "type": "package",
-      "files": [
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnit.Extension.NUnitV2ResultWriter.3.2.0.nupkg.sha512",
-        "NUnit.Extension.NUnitV2ResultWriter.nuspec",
-        "tools/nunit-v2-result-writer.dll"
-      ]
-    },
-    "NUnit.Extension.VSProjectLoader/3.2.0": {
-      "sha512": "FMPb7mBDLke+/dwFrFW3OfD5O1w/9pkEagf9+MQLd/yRIkOHvd2H5csUPncTLx7vk3fmzwdhs8wiDQ1vsP3RoQ==",
-      "type": "package",
-      "files": [
-        "LICENSE.txt",
-        "NOTICES.txt",
-        "NUnit.Extension.VSProjectLoader.3.2.0.nupkg.sha512",
-        "NUnit.Extension.VSProjectLoader.nuspec",
-        "tools/vs-project-loader.dll"
-      ]
-    },
-    "nunit.runners/3.2.0": {
-      "sha512": "oXP5oPhtQ7t8mSd3nNkgrM1hb5M8JEYa4vyvJEJ48DcJOOmwMvClF1imk+3r9cmtf0Mis8QEHo/8f3TstUVitQ==",
-      "type": "package",
-      "files": [
-        "NUnit.Runners.nuspec",
-        "nunit.runners.3.2.0.nupkg.sha512",
-        "nunit.runners.nuspec"
+        "NUnitLite.3.2.0.nupkg.sha512",
+        "NUnitLite.nuspec",
+        "content/Program.cs",
+        "content/Program.vb",
+        "lib/dotnet/nunitlite.dll",
+        "lib/net20/nunitlite.dll",
+        "lib/net40/nunitlite.dll",
+        "lib/net45/nunitlite.dll",
+        "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac/nunitlite.dll",
+        "tools/install.ps1",
+        "tools/net20/nunitlite-runner.exe",
+        "tools/net40/nunitlite-runner.exe",
+        "tools/net45/nunitlite-runner.exe",
+        "tools/portable/nunitlite-runner.exe"
       ]
     },
     "runtime.any.System.AppContext/4.1.0-rc3-23923": {
@@ -7234,6 +7123,7 @@
       "Microsoft.CSharp >= 4.0.1-rc3-*",
       "Microsoft.NETCore.Platforms >= 1.0.1-rc3-*",
       "NETStandard.Library >= 1.5.0-rc3-*",
+      "NUnitLite >= 3.2.0-*",
       "PostgreSql.Data.PostgreSqlClient >= 0.0.1",
       "System.Collections >= 4.0.11-rc3-*",
       "System.Collections.Concurrent >= 4.0.12-rc3-*",
@@ -7261,10 +7151,7 @@
       "System.Threading >= 4.0.11-rc3-*",
       "System.Threading.Tasks >= 4.0.11-rc3-*",
       "System.Threading.Thread >= 4.0.0-rc3-*",
-      "System.Xml.XmlDocument >= 4.0.0-rc3-*",
-      "nunit >= 3.2.0",
-      "nunit.console >= 3.2.0.1",
-      "nunit.runners >= 3.2.0"
+      "System.Xml.XmlDocument >= 4.0.0-rc3-*"
     ]
   }
 }
