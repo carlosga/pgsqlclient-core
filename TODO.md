@@ -17,8 +17,6 @@ https://github.com/aspnet/Configuration/
 
   Custom DbColumn (https://github.com/dotnet/corefx/blob/master/src/System.Data.Common/src/System/Data/Common/DbColumn.cs) class.
 
-## TO BE DONE
-
 - Write unit tests ( port the .net core sql client ones ?? ).
 
         https://github.com/dotnet/corefx/pull/7164
@@ -31,13 +29,17 @@ https://github.com/aspnet/Configuration/
     - COPY protocol
     - ...
 
+## TO BE DONE
+
 - Complext types support & unit tests.
 - COPY support & unit tests.
 - Custom struct types for postgresql types ?? ( PgDecimal, PgString, PgBinary, PgDateTime, PgTimestamp, ... )
 - Query cancellation.
 - Provider statistics ( SqlClient reference https://msdn.microsoft.com/en-us/library/7h2ahss8(v=vs.110).aspx )
-- Wire up SSL support ( TLS 1.2 only if possible ).
 - Look at the missing authentication methods and see if they can be implemented.
+  SSPI auth ??. If it gets implemented implement a new Authentication connection string parameter.
+- Add ApplicationName as a new connection string parameter 
+  (https://msdn.microsoft.com/es-es/library/system.data.sqlclient.sqlconnectionstringbuilder.applicationname(v=vs.110).aspx)).
 - Reimplement connection pooling
     ==> https://blogs.msdn.microsoft.com/dhuba/2011/05/01/concurrent-object-pool/
     ==> https://dpaoliello.wordpress.com/2014/03/30/connection-resiliency-in-ado-net-2/
@@ -48,7 +50,7 @@ https://github.com/aspnet/Configuration/
 - Time zone support.
 - Implement an EF 7 provider ??.
 - Async support ??.
-- SSPI auth ??.
+  (https://msdn.microsoft.com/es-es/library/system.data.sqlclient.sqlconnectionstringbuilder.authentication(v=vs.110).aspx)
 - Thread safety ??.
 
 ## DONE
@@ -60,6 +62,7 @@ https://github.com/aspnet/Configuration/
     - MultipleActiveResultSets.
 - Renamed connection string options:    
     - ssl -> Encrypt.
+- Wire up SSL support ( TLS 1.2 only if possible ).
     
 ## 50.2.7. Canceling Requests in Progress
 

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace PostgreSql.Data.Protocol
 {
-    internal sealed class PgServerConfig
+    internal sealed class SessionData
     {
         private string           _serverVersion;
         private Encoding         _serverEncoding;
@@ -34,7 +34,7 @@ namespace PostgreSql.Data.Protocol
         internal string           StandardConformingStrings => _standardConformingStrings;
         internal PgTypeCollection DataTypes                 => _dataTypes;
 
-        internal PgServerConfig()
+        internal SessionData()
         {
             _clientEncoding = Encoding.UTF8;
             _dataTypes      = PgType.GetSupportedTypes();

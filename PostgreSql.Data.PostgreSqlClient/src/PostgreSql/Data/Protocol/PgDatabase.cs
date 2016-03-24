@@ -18,7 +18,7 @@ namespace PostgreSql.Data.Protocol
     {
         private PgNetworkChannel    _channel;
         private PgConnectionOptions _connectionOptions;
-        private PgServerConfig      _serverConfiguration;
+        private SessionData         _sessionData;
         private int                 _handle;
         private int                 _secretKey;
         private PgTransactionStatus _transactionStatus;
@@ -48,7 +48,7 @@ namespace PostgreSql.Data.Protocol
             set;
         }
         
-        internal PgServerConfig      ServerConfiguration => _serverConfiguration;
+        internal SessionData         ServerConfiguration => _sessionData;
         internal PgConnectionOptions ConnectionOptions   => _connectionOptions;
         internal PgTransactionStatus TransactionStatus   => _transactionStatus;
         
@@ -121,8 +121,8 @@ namespace PostgreSql.Data.Protocol
                 Lock();
                 
                 // Reset instance data
-                _authenticated       = false;
-                _serverConfiguration = new PgServerConfig();
+                _authenticated = false;
+                _sessionData   = new SessionData();
 
                 // Wire up SSL callbacks
                 if (_connectionOptions.Encrypt)
@@ -164,13 +164,13 @@ namespace PostgreSql.Data.Protocol
             }
             finally
             {
-                _connectionOptions   = null;
-                _serverConfiguration = null;
-                _transactionStatus   = PgTransactionStatus.Default;
-                _handle              = -1;
-                _secretKey           = -1;
-                _channel             = null;
-                _authenticated       = false;
+                _connectionOptions = null;
+                _sessionData       = null;
+                _transactionStatus = PgTransactionStatus.Default;
+                _handle            = -1;
+                _secretKey         = -1;
+                _channel           = null;
+                _authenticated     = false;
 
                 // Callback cleanup
                 InfoMessage               = null;
@@ -231,11 +231,11 @@ namespace PostgreSql.Data.Protocol
             _channel.WritePacket(packet);
         }
         
-        internal PgOutputPacket CreateOutputPacket(char type) => new PgOutputPacket(type, _serverConfiguration);
+        internal PgOutputPacket CreateOutputPacket(char type) => new PgOutputPacket(type, _sessionData);
         
         internal PgInputPacket Read()
         {
-            var packet = _channel.ReadPacket(_serverConfiguration);
+            var packet = _channel.ReadPacket(_sessionData);
             
             switch (packet.Message)
             {
@@ -472,6 +472,6 @@ namespace PostgreSql.Data.Protocol
         }
 
         private void HandleParameterStatus(PgInputPacket packet) 
-            => _serverConfiguration.SetValue(packet.ReadNullString(), packet.ReadNullString());            
+            => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());            
     }
 }

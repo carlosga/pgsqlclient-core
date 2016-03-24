@@ -27,9 +27,9 @@ namespace PostgreSql.Data.Protocol
         //     return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
         // }
         
-        private readonly char           _message;
-        private readonly byte[]         _contents;
-        private readonly PgServerConfig _serverConfig;
+        private readonly char        _message;
+        private readonly byte[]      _contents;
+        private readonly SessionData _sessionData;
         
         private int _position;
 
@@ -44,12 +44,12 @@ namespace PostgreSql.Data.Protocol
         internal bool IsCloseComplete   => (_message == PgBackendCodes.CLOSE_COMPLETE);
         internal bool IsRowDescription  => (_message == PgBackendCodes.ROW_DESCRIPTION);
 
-        internal PgInputPacket(char message, byte[] contents, PgServerConfig serverConfig)
+        internal PgInputPacket(char message, byte[] contents, SessionData sessionData)
         {
-            _message      = message;
-            _contents     = contents;
-            _serverConfig = serverConfig;
-            _position     = 0;
+            _message     = message;
+            _contents    = contents;
+            _sessionData = sessionData;
+            _position    = 0;
         }
 
         internal byte[] ReadBytes(int count)
@@ -84,12 +84,12 @@ namespace PostgreSql.Data.Protocol
                 _position++;
             }
                                     
-            return (count == 0) ? String.Empty : _serverConfig.ClientEncoding.GetString(_contents, start, count);
+            return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_contents, start, count);
         }
 
         internal string ReadString(int count)
         {
-            var data = _serverConfig.ClientEncoding.GetString(_contents, _position, count);
+            var data = _sessionData.ClientEncoding.GetString(_contents, _position, count);
 
             _position += count;
 
@@ -176,7 +176,7 @@ namespace PostgreSql.Data.Protocol
 
         internal DateTimeOffset ReadTimestampWithTZ(int length)
         {
-            if (!_serverConfig.IntegerDateTimes)
+            if (!_sessionData.IntegerDateTimes)
             {
                 throw new NotSupportedException("non integer datetimes are no supported.");
             }
@@ -184,7 +184,7 @@ namespace PostgreSql.Data.Protocol
             var value = ReadInt64();           
             var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));          
             
-            return TimeZoneInfo.ConvertTime(dt, _serverConfig.TimeZoneInfo);
+            return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }        
         
         internal Array ReadArray(PgType type, int length)
@@ -210,7 +210,7 @@ namespace PostgreSql.Data.Protocol
 
             // Read array element type
             int    oid         = ReadInt32();
-            PgType elementType = _serverConfig.DataTypes.Single(x => x.Oid == oid);
+            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -232,7 +232,7 @@ namespace PostgreSql.Data.Protocol
 
         internal Array ReadVector(PgType type, int length)
         {
-            var elementType = _serverConfig.DataTypes.Single(x => x.Oid == type.ElementType);
+            var elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
             var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
 
             for (int i = 0; i < data.Length; ++i)
@@ -523,7 +523,7 @@ namespace PostgreSql.Data.Protocol
         {
             string   contents    = ReadString(length);
             string[] elements    = contents.Substring(1, contents.Length - 2).Split(',');
-            PgType   elementType = _serverConfig.DataTypes.Single(x => x.Oid == type.ElementType);
+            PgType   elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
             Array    data        = Array.CreateInstance(elementType.SystemType, elements.Length);
 
             for (int i = 0; i < elements.Length; ++i)

@@ -17,22 +17,22 @@ namespace PostgreSql.Data.Protocol
 #warning TODO: restore dependency
         // private static readonly RecyclableMemoryStreamManager s_memoryStreamManager = new RecyclableMemoryStreamManager();
 
-        private readonly byte[]         _buffer;
-        private readonly MemoryStream   _stream;
-        private readonly PgServerConfig _serverConfig;
-        private readonly char           _packetType;
+        private readonly byte[]       _buffer;
+        private readonly MemoryStream _stream;
+        private readonly SessionData  _sessionData;
+        private readonly char         _packetType;
 
         internal char PacketType => _packetType;
         internal int  Position   => (int)_stream.Position;
         internal int  Length     => (int)_stream.Length;
 
-        internal PgOutputPacket(char packetType, PgServerConfig serverConfig)
+        internal PgOutputPacket(char packetType, SessionData sessionData)
         {
             // _stream      = s_memoryStreamManager.GetStream("PgOutputPacket");
-            _packetType   = packetType;
-            _stream       = new MemoryStream();
-            _buffer       = new byte[8];
-            _serverConfig = serverConfig;
+            _packetType  = packetType;
+            _stream      = new MemoryStream();
+            _buffer      = new byte[8];
+            _sessionData = sessionData;
         }
 
         internal void Reset()
@@ -46,13 +46,13 @@ namespace PostgreSql.Data.Protocol
 
         internal void WriteNullString(string value)
         {
-            Write(_serverConfig.ClientEncoding.GetBytes(value));
+            Write(_sessionData.ClientEncoding.GetBytes(value));
             WriteByte(0);
         }
 
         internal void WriteString(string value)
         {
-            byte[] buffer = _serverConfig.ClientEncoding.GetBytes(value);
+            byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
 
             Write(buffer.Length);
             Write(buffer);
@@ -196,9 +196,9 @@ namespace PostgreSql.Data.Protocol
             System.Array array = parameter.Value as System.Array;
 
             // Get array element type
-            PgType elementType = _serverConfig.DataTypes.Single(x => x.Oid == parameter.DataType.ElementType);
+            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.DataType.ElementType);
 
-            var packet = new PgOutputPacket(' ', _serverConfig);
+            var packet = new PgOutputPacket(' ', _sessionData);
 
             // Write the number of dimensions
             packet.Write(array.Rank);
@@ -280,7 +280,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDataType.Decimal:
                     {
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_serverConfig.ClientEncoding.GetByteCount(paramValue));
+                        packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
                         packet.WriteString(paramValue);
                     }
                     break;
@@ -293,7 +293,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDataType.Float:
                     {
                         string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_serverConfig.ClientEncoding.GetByteCount(paramValue));
+                        packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
                         packet.WriteString(paramValue);
                     }
                     break;

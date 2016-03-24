@@ -127,7 +127,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal PgInputPacket ReadPacket(PgServerConfig serverConfig)
+        internal PgInputPacket ReadPacket(SessionData sessionData)
         {
             char type = (char)_stream.ReadByte();
 
@@ -145,7 +145,7 @@ namespace PostgreSql.Data.Protocol
                 received +=  _stream.Read(buffer, received, length - received);
             }
 
-            return new PgInputPacket(type, buffer, serverConfig);
+            return new PgInputPacket(type, buffer, sessionData);
         }
 
         internal void WritePacket(char type)
