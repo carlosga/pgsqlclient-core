@@ -227,12 +227,14 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckCommand();
 
-            InternalPrepare();
-            InternalExecute();
-            
-            InternalSetOutputParameters();
-
-            return _statement.RecordsAffected;            
+            try
+            {
+                return InternalExecuteNonQuery();                
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
+            }                        
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
@@ -240,24 +242,43 @@ namespace PostgreSql.Data.PostgreSqlClient
         public new PgDataReader ExecuteReader(CommandBehavior behavior) 
         {
             CheckCommand();
-            
-            return InternalExecuteReader(behavior);
+
+            try
+            {
+                return InternalExecuteReader(behavior);
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
+            }
         }
         
         public override object ExecuteScalar()
         {
             CheckCommand();
 
-            InternalPrepare();
-            InternalExecute();
-            
-            return _statement.ExecuteScalar();            
+            try
+            {
+                return InternalExecuteScalar();
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
+            }
         }
 
         public override void Prepare() 
         {
             CheckCommand();
-            InternalPrepare();
+
+            try
+            {
+                InternalPrepare();
+            }
+            catch (PgClientException ex)
+            {
+                throw new PgException(ex);
+            }            
         } 
 
         protected override DbParameter CreateDbParameter() => CreateParameter();
@@ -269,54 +290,75 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void InternalPrepare()
         {
-            try
+            if (_connection.MultipleActiveResultSets && _queries == null)
             {
-                if (_connection.MultipleActiveResultSets && _queries == null)
-                {
-                    _queries = _commandText.SplitQueries();
-                }
-                
-                string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
-
-                if (_commandType == CommandType.StoredProcedure)
-                {
-                    stmtText = stmtText.ToStoredProcedureCall(_parameters);
-                }
-                
-                if (_queryIndex == 0)
-                {
-                    _statement = _connection.InnerConnection.CreateStatement(stmtText);                        
-                }
-                else
-                {
-                    _statement.StatementText = stmtText;    
-                }
-
-                _statement.Prepare();
-                                    
-                if (_queryIndex == 0)
-                {
-                    // Add the command to the internal connection prepared statements
-                    _connection.InnerConnection.AddPreparedCommand(this);                        
-                }                
+                _queries = _commandText.SplitQueries();
             }
-            catch (PgClientException ex)
+            
+            string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
+
+            if (_commandType == CommandType.StoredProcedure)
             {
-                throw new PgException(ex);
+                stmtText = stmtText.ToStoredProcedureCall(_parameters);
             }
+            
+            if (_queryIndex == 0)
+            {
+                _statement = _connection.InnerConnection.CreateStatement(stmtText);                        
+            }
+            else
+            {
+                _statement.StatementText = stmtText;    
+            }
+
+            _statement.Prepare();
+                                
+            if (_queryIndex == 0)
+            {
+                // Add the command to the internal connection prepared statements
+                _connection.InnerConnection.AddPreparedCommand(this);                        
+            }                
         }
 
-        internal void InternalExecute()
+        internal int InternalExecuteNonQuery()
         {
-            try
+            InternalPrepare();
+            
+            SetParameterValues();
+            
+            var recordsAffected = _statement.ExecuteNonQuery();
+            
+            InternalSetOutputParameters();
+            
+            return recordsAffected;
+        }
+
+        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
+        {
+            _commandBehavior = behavior;
+
+            InternalPrepare();
+
+            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
+             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
+             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
+             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
             {
                 SetParameterValues();
-                _statement.Execute();
+                _statement.ExecuteNonQuery();
             }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+
+            return _activeDataReader = new PgDataReader(_connection, this);
+        }
+        
+        internal object InternalExecuteScalar()
+        {
+            InternalPrepare();
+                            
+            SetParameterValues();
+            
+            return _statement.ExecuteScalar();
         }
 
         internal bool NextResult()
@@ -335,18 +377,14 @@ namespace PostgreSql.Data.PostgreSqlClient
                     return false;
                 }
 
-                // Prepare and execute the next result query
-                // the statement has already been closed by
-                // the current data reader.
-                InternalPrepare();
-                InternalExecute();
+                InternalExecuteReader(_commandBehavior);
                 
                 return true;
             }
             catch (PgClientException ex)
             {
                 throw new PgException(ex);
-            }            
+            }
         }
 
         internal void InternalClose()
@@ -391,24 +429,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                     }
                 }
             }
-        }
-
-        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
-        {
-            _commandBehavior = behavior;
-
-            InternalPrepare();
-
-            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
-             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
-             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
-            {
-                InternalExecute();
-            }
-
-            return _activeDataReader = new PgDataReader(_connection, this);
         }
 
         private void CheckCommand()

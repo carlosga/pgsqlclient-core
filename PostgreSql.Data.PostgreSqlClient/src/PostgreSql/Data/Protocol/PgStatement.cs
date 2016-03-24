@@ -143,7 +143,38 @@ namespace PostgreSql.Data.Protocol
             }
         }
         
-        internal void Execute()
+        internal int ExecuteNonQuery()
+        {
+            if (_status == PgStatementStatus.Initial)
+            {
+                Prepare();
+            }
+            
+            try
+            {
+                _database.Lock();
+                
+                Bind();
+                InternalExecute(0);
+                
+                return _recordsAffected;
+            }
+            catch
+            {
+                // Update status
+                _status = PgStatementStatus.Broken;
+                // Throw exception
+                throw;
+            }
+            finally
+            {
+                _database.ReleaseLock();
+                
+                ClosePortal();
+            }
+        }
+               
+        internal void ExecuteReader()
         {
             if (_status == PgStatementStatus.Initial)
             {
@@ -167,8 +198,44 @@ namespace PostgreSql.Data.Protocol
             finally
             {
                 _database.ReleaseLock();
-            }            
+            }
         }
+
+        internal object ExecuteScalar()
+        {
+            if (_status == PgStatementStatus.Initial)
+            {
+                Prepare();
+            }
+            
+            try
+            {
+                _database.Lock();
+                
+                Bind();
+                InternalExecute(1);
+                
+                if (!_rows.IsEmpty())
+                {
+                    return _rows.Dequeue()[0];
+                }
+            }
+            catch
+            {
+                // Update status
+                _status = PgStatementStatus.Broken;
+                // Throw exception
+                throw;
+            }
+            finally
+            {
+                _database.ReleaseLock();
+
+                ClosePortal();
+            }
+                        
+            return null;
+        }                
 
         internal void ExecuteFunction(int id)
         {
@@ -233,21 +300,6 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal object ExecuteScalar()
-        {
-            if (!_allRowsFetched && _rows.IsEmpty())
-            {
-                Query();
-            }
-            
-            if (!_rows.IsEmpty())
-            {
-                return _rows.Dequeue()[0];
-            }                
-            
-            return null;
-        }                
-
         internal void Query()
         {
             try
@@ -282,7 +334,7 @@ namespace PostgreSql.Data.Protocol
                 }               
 
                 // Update status
-                _status = PgStatementStatus.Executed;
+                _status = PgStatementStatus.Initial;
             }
             catch
             {
@@ -461,13 +513,18 @@ namespace PostgreSql.Data.Protocol
 
         private void InternalExecute()
         {
+            InternalExecute(_database.ConnectionOptions.FetchSize);
+        }
+
+        private void InternalExecute(int fetchSize)
+        {
             // Update status
             _status = PgStatementStatus.Executing;
 
             var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
 
             packet.WriteNullString(_portalName);
-            packet.Write(_database.ConnectionOptions.FetchSize);	// Rows to retrieve ( 0 = nolimit )
+            packet.Write(fetchSize);	// Rows to retrieve ( 0 = nolimit )
 
             // Send packet to the server
             _database.Send(packet);
@@ -544,14 +601,15 @@ namespace PostgreSql.Data.Protocol
             {
                 Close('S', _parseName);
 
-                // Reset name
-                _parseName = null;
-
                 // Clear parameters
                 _parameters.Clear();
 
                 // Update Status
                 _status = PgStatementStatus.Initial;
+                
+                // Reset names
+                _parseName  = null;
+                _portalName = null;                
             }
         }
         
@@ -561,9 +619,6 @@ namespace PostgreSql.Data.Protocol
              || _status == PgStatementStatus.Executed)
             {
                 Close('P', _portalName);
-
-                // Reset name
-                _portalName = null;
                 
                 // Update Status
                 _status = PgStatementStatus.Described;

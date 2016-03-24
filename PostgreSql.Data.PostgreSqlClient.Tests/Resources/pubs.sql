@@ -108,8 +108,8 @@ CREATE TABLE authors(
 	city character varying(20) NULL,
 	state char(2) NULL,
 	zip char(5) NULL,
-	contract bit NOT NULL,
-    CONSTRAINT UPKCL_auidind PRIMARY KEY (au_id);
+	contract boolean NOT NULL,
+    CONSTRAINT UPKCL_auidind PRIMARY KEY (au_id));
     
 ALTER TABLE public.authors OWNER TO pubs;            
 
@@ -148,7 +148,7 @@ CREATE TABLE titleauthor(
 	title_id tid NOT NULL,
 	au_ord smallint NULL,
 	royaltyper integer NULL,
-    CONSTRAINT UPKCL_taind PRIMARY KEY (au_id, title_id);
+    CONSTRAINT UPKCL_taind PRIMARY KEY (au_id, title_id));
 
 ALTER TABLE public.titleauthor OWNER TO pubs;
     
@@ -1490,29 +1490,29 @@ INSERT INTO employee (emp_id, fname, minit, lname, job_id, job_lvl, pub_id, hire
 INSERT INTO employee (emp_id, fname, minit, lname, job_id, job_lvl, pub_id, hire_date) VALUES ('GHT50241M', 'Gary', 'H', 'Thomas', 9, 170, '0736'    , '1988-08-09 00:00:00.000');
 INSERT INTO employee (emp_id, fname, minit, lname, job_id, job_lvl, pub_id, hire_date) VALUES ('DBT39435M', 'Daniel', 'B', 'Tonini', 11, 75, '0877'  , '1990-01-01 00:00:00.000');
 
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('172-32-1176', 'White', 'Johnson', '408 496-7223', '10932 Bigge Rd.', 'Menlo Park', 'CA', '94025', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('213-46-8915', 'Green', 'Marjorie', '415 986-7020', '309 63rd St. #411', 'Oakland', 'CA', '94618', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('238-95-7766', 'Carson', 'Cheryl', '415 548-7723', '589 Darwin Ln.', 'Berkeley', 'CA', '94705', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('267-41-2394', 'O''Leary', 'Michael', '408 286-2428', '22 Cleveland Av. #14', 'San Jose', 'CA', '95128', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('274-80-9391', 'Straight', 'Dean', '415 834-2919', '5420 College Av.', 'Oakland', 'CA', '94609', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('341-22-1782', 'Smith', 'Meander', '913 843-0462', '10 Mississippi Dr.', 'Lawrence', 'KS', '66044', 0);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('409-56-7008', 'Bennet', 'Abraham', '415 658-9932', '6223 Bateman St.', 'Berkeley', 'CA', '94705', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('427-17-2319', 'Dull', 'Ann', '415 836-7128', '3410 Blonde St.', 'Palo Alto', 'CA', '94301', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('472-27-2349', 'Gringlesby', 'Burt', '707 938-6445', 'PO Box 792', 'Covelo', 'CA', '95428', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('486-29-1786', 'Locksley', 'Charlene', '415 585-4620', '18 Broadway Av.', 'San Francisco', 'CA', '94130', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('527-72-3246', 'Greene', 'Morningstar', '615 297-2723', '22 Graybar House Rd.', 'Nashville', 'TN', '37215', 0);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('648-92-1872', 'Blotchet-Halls', 'Reginald', '503 745-6402', '55 Hillsdale Bl.', 'Corvallis', 'OR', '97330', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('672-71-3249', 'Yokomoto', 'Akiko', '415 935-4228', '3 Silver Ct.', 'Walnut Creek', 'CA', '94595', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('712-45-1867', 'del Castillo', 'Innes', '615 996-8275', '2286 Cram Pl. #86', 'Ann Arbor', 'MI', '48105', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('722-51-5454', 'DeFrance', 'Michel', '219 547-9982', '3 Balding Pl.', 'Gary', 'IN', '46403', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('724-08-9931', 'Stringer', 'Dirk', '415 843-2991', '5420 Telegraph Av.', 'Oakland', 'CA', '94609', 0);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('724-80-9391', 'MacFeather', 'Stearns', '415 354-7128', '44 Upland Hts.', 'Oakland', 'CA', '94612', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('756-30-7391', 'Karsen', 'Livia', '415 534-9219', '5720 McAuley St.', 'Oakland', 'CA', '94609', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('807-91-6654', 'Panteley', 'Sylvia', '301 946-8853', '1956 Arlington Pl.', 'Rockville', 'MD', '20853', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('846-92-7186', 'Hunter', 'Sheryl', '415 836-7128', '3410 Blonde St.', 'Palo Alto', 'CA', '94301', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('893-72-1158', 'McBadden', 'Heather', '707 448-4982', '301 Putnam', 'Vacaville', 'CA', '95688', 0);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('899-46-2035', 'Ringer', 'Anne', '801 826-0752', '67 Seventh Av.', 'Salt Lake City', 'UT', '84152', 1);
-INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('998-72-3567', 'Ringer', 'Albert', '801 826-0752', '67 Seventh Av.', 'Salt Lake City', 'UT', '84152', 1);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('172-32-1176', 'White', 'Johnson', '408 496-7223', '10932 Bigge Rd.', 'Menlo Park', 'CA', '94025', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('213-46-8915', 'Green', 'Marjorie', '415 986-7020', '309 63rd St. #411', 'Oakland', 'CA', '94618', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('238-95-7766', 'Carson', 'Cheryl', '415 548-7723', '589 Darwin Ln.', 'Berkeley', 'CA', '94705', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('267-41-2394', 'O''Leary', 'Michael', '408 286-2428', '22 Cleveland Av. #14', 'San Jose', 'CA', '95128', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('274-80-9391', 'Straight', 'Dean', '415 834-2919', '5420 College Av.', 'Oakland', 'CA', '94609', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('341-22-1782', 'Smith', 'Meander', '913 843-0462', '10 Mississippi Dr.', 'Lawrence', 'KS', '66044', false);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('409-56-7008', 'Bennet', 'Abraham', '415 658-9932', '6223 Bateman St.', 'Berkeley', 'CA', '94705', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('427-17-2319', 'Dull', 'Ann', '415 836-7128', '3410 Blonde St.', 'Palo Alto', 'CA', '94301', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('472-27-2349', 'Gringlesby', 'Burt', '707 938-6445', 'PO Box 792', 'Covelo', 'CA', '95428', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('486-29-1786', 'Locksley', 'Charlene', '415 585-4620', '18 Broadway Av.', 'San Francisco', 'CA', '94130', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('527-72-3246', 'Greene', 'Morningstar', '615 297-2723', '22 Graybar House Rd.', 'Nashville', 'TN', '37215', false);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('648-92-1872', 'Blotchet-Halls', 'Reginald', '503 745-6402', '55 Hillsdale Bl.', 'Corvallis', 'OR', '97330', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('672-71-3249', 'Yokomoto', 'Akiko', '415 935-4228', '3 Silver Ct.', 'Walnut Creek', 'CA', '94595', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('712-45-1867', 'del Castillo', 'Innes', '615 996-8275', '2286 Cram Pl. #86', 'Ann Arbor', 'MI', '48105', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('722-51-5454', 'DeFrance', 'Michel', '219 547-9982', '3 Balding Pl.', 'Gary', 'IN', '46403', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('724-08-9931', 'Stringer', 'Dirk', '415 843-2991', '5420 Telegraph Av.', 'Oakland', 'CA', '94609', false);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('724-80-9391', 'MacFeather', 'Stearns', '415 354-7128', '44 Upland Hts.', 'Oakland', 'CA', '94612', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('756-30-7391', 'Karsen', 'Livia', '415 534-9219', '5720 McAuley St.', 'Oakland', 'CA', '94609', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('807-91-6654', 'Panteley', 'Sylvia', '301 946-8853', '1956 Arlington Pl.', 'Rockville', 'MD', '20853', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('846-92-7186', 'Hunter', 'Sheryl', '415 836-7128', '3410 Blonde St.', 'Palo Alto', 'CA', '94301', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('893-72-1158', 'McBadden', 'Heather', '707 448-4982', '301 Putnam', 'Vacaville', 'CA', '95688', false);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('899-46-2035', 'Ringer', 'Anne', '801 826-0752', '67 Seventh Av.', 'Salt Lake City', 'UT', '84152', true);
+INSERT INTO authors (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) VALUES ('998-72-3567', 'Ringer', 'Albert', '801 826-0752', '67 Seventh Av.', 'Salt Lake City', 'UT', '84152', true);
 
 INSERT INTO discounts (discounttype, stor_id, lowqty, highqty, discount) VALUES ('Initial Customer', NULL, NULL, NULL, CAST(10.50 AS decimal(4, 2)));
 INSERT INTO discounts (discounttype, stor_id, lowqty, highqty, discount) VALUES ('Volume Discount', NULL, 100, 1000, CAST(6.70 AS decimal(4, 2)));
@@ -1660,31 +1660,31 @@ INSERT INTO titleauthor (au_id, title_id, au_ord, royaltyper) VALUES ('998-72-35
 ALTER TABLE jobs        ALTER COLUMN job_desc   SET DEFAULT ('New Position - title not formalized yet');
 ALTER TABLE publishers  ALTER COLUMN country    SET DEFAULT ('USA');
 ALTER TABLE titles      ALTER COLUMN type       SET DEFAULT ('UNDECIDED');
-ALTER TABLE titles      ALTER COLUMN pubdate    SET DEFAULT (getdate());
+ALTER TABLE titles      ALTER COLUMN pubdate    SET DEFAULT (now());
 ALTER TABLE employee    ALTER COLUMN job_id     SET DEFAULT ((1));
 ALTER TABLE employee    ALTER COLUMN job_lvl    SET DEFAULT ((10));
 ALTER TABLE employee    ALTER COLUMN pub_id     SET DEFAULT ('9952');
-ALTER TABLE employee    ALTER COLUMN hire_date  SET DEFAULT (getdate());
+ALTER TABLE employee    ALTER COLUMN hire_date  SET DEFAULT (now());
 ALTER TABLE authors     ALTER COLUMN phone      SET DEFAULT ('UNKNOWN');
 
 ALTER TABLE jobs        ADD CONSTRAINT CK_max_lvl CHECK ((max_lvl<=(250)));
 ALTER TABLE jobs        ADD CONSTRAINT CK_min_lvl CHECK ((min_lvl>=(10)));
-ALTER TABLE publishers  ADD CONSTRAINT CK_pub_id  CHECK ((pub_id='1756' OR pub_id='1622' OR pub_id='0877' OR pub_id='0736' OR pub_id='1389' OR pub_id like '990-90-9'));
-ALTER TABLE employee    ADD CONSTRAINT CK_emp_id  CHECK ((emp_id like 'A-ZA-ZA-Z1-90-90-90-90-9FM' OR emp_id like 'A-Z-A-Z1-90-90-90-90-9FM'));
-ALTER TABLE authors     ADD CONSTRAINT CK_au_id   CHECK ((au_id like '0-90-90-9-0-90-9-0-90-90-90-9'));
-ALTER TABLE authors     ADD CONSTRAINT CK_zip     CHECK ((zip like '0-90-90-90-90-9'));
+-- ALTER TABLE publishers  ADD CONSTRAINT CK_pub_id  CHECK ((pub_id='1756' OR pub_id='1622' OR pub_id='0877' OR pub_id='0736' OR pub_id='1389' OR pub_id like '990-90-9'));
+-- ALTER TABLE employee    ADD CONSTRAINT CK_emp_id  CHECK ((emp_id like 'A-ZA-ZA-Z1-90-90-90-90-9FM' OR emp_id like 'A-Z-A-Z1-90-90-90-90-9FM'));
+-- ALTER TABLE authors     ADD CONSTRAINT CK_au_id   CHECK ((au_id like '0-90-90-9-0-90-9-0-90-90-90-9'));
+-- ALTER TABLE authors     ADD CONSTRAINT CK_zip     CHECK ((zip like '0-90-90-90-90-9'));
 
 --
 -- INDEXES
 --
 
-CREATE INDEX titleind ON titles (title);
-CREATE INDEX employee_ind ON employee (lname ASC, fname ASC, minit ASC);
-CREATE INDEX aunmind ON authors (au_lname ASC, au_fname ASC);
-CREATE INDEX titleidind ON sales (title_id ASC);
-CREATE INDEX titleidind ON roysched (title_id ASC);
-CREATE INDEX auidind ON titleauthor (au_id ASC);
-CREATE INDEX titleidind ON titleauthor (title_id ASC);
+CREATE INDEX titles_titleind ON titles (title);
+CREATE INDEX employee_employee_ind ON employee (lname ASC, fname ASC, minit ASC);
+CREATE INDEX authors_aunmind ON authors (au_lname ASC, au_fname ASC);
+CREATE INDEX sales_titleidind ON sales (title_id ASC);
+CREATE INDEX roysched_titleidind ON roysched (title_id ASC);
+CREATE INDEX titleauthor_auidind ON titleauthor (au_id ASC);
+CREATE INDEX titleauthor_titleidind ON titleauthor (title_id ASC);
 
 --
 -- FOREIGN KEYS
