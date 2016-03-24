@@ -20,6 +20,8 @@ namespace ConsoleApplication
             csb.Encrypt                  = false;
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
+            
+            Console.WriteLine(csb.ToString());
 
             var com = new PgCommand("select * from Orders");
             var con = new PgConnection(csb.ToString());

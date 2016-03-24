@@ -7,7 +7,7 @@
 			"request": "launch",
 			"preLaunchTask": "build",
             "justMyCode": false,
-			"program": "${workspaceRoot}/bin/Debug/netstandardapp1.5/ubuntu.14.04-x64/connection",
+			"program": "${workspaceRoot}/bin/Debug/netstandardapp1.5/ubuntu.14.04-x64/PostgreSql.Data.PostgreSqlClient.Tests",
 			"args": [],
 			"cwd": "${workspaceRoot}",
 			"stopAtEntry": true
