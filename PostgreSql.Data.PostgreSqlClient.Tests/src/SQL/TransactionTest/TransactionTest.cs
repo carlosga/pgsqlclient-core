@@ -67,9 +67,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (var conn = new PgConnection(_connectionString))
             {
                 conn.Open();
-                PgCommand command = new PgCommand(string.Format("CREATE TABLE [{0}]([CustomerID] [nchar](5) NOT NULL PRIMARY KEY, [CompanyName] [nvarchar](40) NOT NULL, [ContactName] [nvarchar](30) NULL)", s_tempTableName1), conn);
+                PgCommand command = new PgCommand(string.Format("CREATE TABLE {0} (CustomerID char(5) NOT NULL PRIMARY KEY, CompanyName varchar(40) NOT NULL, ContactName varchar(30) NULL)", s_tempTableName1), conn);
                 command.ExecuteNonQuery();
-                command.CommandText = $"CREATE TABLE {s_tempTableName2}(col1 int, col2 varchar(32))";
+                command.CommandText = $"CREATE TABLE {s_tempTableName2} (col1 int, col2 varchar(32))";
                 command.ExecuteNonQuery();
             }
         }

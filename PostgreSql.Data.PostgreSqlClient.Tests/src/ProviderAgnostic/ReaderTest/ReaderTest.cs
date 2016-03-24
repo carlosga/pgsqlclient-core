@@ -198,8 +198,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     // GetStream
                     byte[] correctBytes = { 0x12, 0x34, 0x56, 0x78 };
                     string queryString;
-                    string correctBytesAsString = "0x12345678";
-                    queryString = string.Format("SELECT CAST({0} AS BINARY(20)), CAST({0} AS IMAGE), CAST({0} AS VARBINARY(20))", correctBytesAsString);
+                    string correctBytesAsString = "E'\\x12345678'";
+                    queryString = string.Format("SELECT {0}::bytea", correctBytesAsString);
                     using (var command = provider.CreateCommand())
                     {
                         command.CommandText = queryString;
@@ -222,13 +222,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
 
                     // GetTextReader
-                    string[] correctStrings = { "Hello World", "\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E" };
-                    string[] collations     = { "Latin1_General_CI_AS", "Japanese_CI_AS" };
+#warning TODO: Collations aren't the equivalents of the original ones
+                    string[] correctStrings = { "'Hello World'", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'" };
+                    string[] collations     = { "en_GB.utf8", "C.UTF-8" };
 
                     for (int j = 0; j < collations.Length; j++)
                     {
-                        string substring = string.Format("(N'{0}' COLLATE {1})", correctStrings[j], collations[j]);
-                        queryString = string.Format("SELECT CAST({0} AS CHAR(20)), CAST({0} AS NCHAR(20)), CAST({0} AS NTEXT), CAST({0} AS NVARCHAR(20)), CAST({0} AS TEXT), CAST({0} AS VARCHAR(20))", substring);
+                        string substring = string.Format("({0} COLLATE \"{1}\")", correctStrings[j], collations[j]);
+                        queryString = string.Format("SELECT CAST({0} AS CHAR(20)), CAST({0} AS VARCHAR(20)), CAST({0} AS TEXT)", substring);
                         using (var command = provider.CreateCommand())
                         {
                             command.CommandText = queryString;

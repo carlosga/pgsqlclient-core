@@ -43,7 +43,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 PgConnection.InfoMessage += handler;
                 PgConnection.Open();
 
-                PgCommand cmd = new PgCommand(string.Format("PRINT N'{0}'", warningInfoMessage), PgConnection);
+                PgCommand cmd = new PgCommand(string.Format("RAISE NOTICE '{0}'", warningInfoMessage), PgConnection);
                 cmd.ExecuteNonQuery();
 
                 PgConnection.InfoMessage -= handler;
@@ -82,7 +82,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     // PgConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
 
                     // These queries should return warnings because AND here is a noise word.
-                    PgCommand cmd = new PgCommand("select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
+                    PgCommand cmd = new PgCommand("select FirstName from Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         Assert.True(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be TRUE)");
@@ -97,7 +97,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
                     hitWarnings = false;
 
-                    cmd.CommandText = "select FirstName from Northwind.dbo.Employees where contains(FirstName, '\"NotARealPerson AND\"')" + orderClause;
+                    cmd.CommandText = "select FirstName from Employees where contains(FirstName, '\"NotARealPerson AND\"')" + orderClause;
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         Assert.False(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be FALSE)");

@@ -25,7 +25,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                PgCommand command = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
                 command.CommandTimeout = 1;
                 Task<object> result = command.ExecuteScalarAsync();
 
@@ -33,29 +33,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
                 Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                Type type = typeof(PgDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
-                FieldInfo field = type.GetField("_skipSendAttention", BindingFlags.NonPublic | BindingFlags.Static);
+                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                command2.CommandTimeout = 1;
+                result = command2.ExecuteScalarAsync();
 
-                Assert.True(field != null, "Error: This test cannot succeed on retail builds because it uses the _skipSendAttention test hook");
+                Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");
+                Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
 
-                field.SetValue(null, true);
-                try
-                {
-                    PgCommand command2 = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
-                    command2.CommandTimeout = 1;
-                    result = command2.ExecuteScalarAsync();
-
-                    Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");
-                    Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
-
-                    // Pause here to ensure that the async closing is completed
-                    Thread.Sleep(200);
-                    Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
-                }
-                finally
-                {
-                    field.SetValue(null, false);
-                }
+                // Pause here to ensure that the async closing is completed
+                Thread.Sleep(200);
+                Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
         }
 
@@ -65,7 +52,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                PgCommand command = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
+                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
                 command.CommandTimeout = 1;
                 bool hitException = false;
                 try
@@ -81,34 +68,22 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                Type type = typeof(PgDataReader).GetTypeInfo().Assembly.GetType("System.Data.SqlClient.TdsParserStateObject");
-                FieldInfo field = type.GetField("_skipSendAttention", BindingFlags.NonPublic | BindingFlags.Static);
-
-                Assert.True(field != null, "Error: This test cannot succeed on retail builds because it uses the _skipSendAttention test hook");
-
-                field.SetValue(null, true);
                 hitException = false;
+
+                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                command2.CommandTimeout = 1;
                 try
                 {
-                    PgCommand command2 = new PgCommand("WAITFOR DELAY '01:00:00';SELECT 1", connection);
-                    command2.CommandTimeout = 1;
-                    try
-                    {
-                        object result = command2.ExecuteScalar();
-                    }
-                    catch (Exception e)
-                    {
-                        Assert.True(e is PgException, "Expected PgException but found " + e);
-                        hitException = true;
-                    }
-                    Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
-
-                    Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
+                    object result = command2.ExecuteScalar();
                 }
-                finally
+                catch (Exception e)
                 {
-                    field.SetValue(null, false);
+                    Assert.True(e is PgException, "Expected PgException but found " + e);
+                    hitException = true;
                 }
+                Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
+
+                Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
         }
 #endif

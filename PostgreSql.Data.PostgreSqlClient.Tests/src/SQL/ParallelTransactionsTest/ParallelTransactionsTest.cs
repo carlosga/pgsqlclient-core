@@ -54,15 +54,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 PgTransaction trans2 = connection.BeginTransaction();
                 PgTransaction trans3 = connection.BeginTransaction();
 
-                PgCommand com1 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com1 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com1.Transaction = trans1;
                 com1.ExecuteNonQuery();
 
-                PgCommand com2 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com2 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com2.Transaction = trans2;
                 com2.ExecuteNonQuery();
 
-                PgCommand com3 = new PgCommand("select top 1 au_id from " + tempTableName, connection);
+                PgCommand com3 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
                 com3.Transaction = trans3;
                 com3.ExecuteNonQuery();
 
@@ -158,7 +158,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (var conn = new PgConnection(connectionString))
             {
                 conn.Open();
-                PgCommand cmd = new PgCommand(string.Format("SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {0} from pubs.dbo.authors", tempTableName), conn);
+                PgCommand cmd = new PgCommand(string.Format("SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {0} from authors", tempTableName), conn);
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = string.Format("alter table {0} add constraint au_id_{1} primary key (au_id)", tempTableName, uniqueKey);
                 cmd.ExecuteNonQuery();
@@ -178,5 +178,3 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
     }
 }
-
-

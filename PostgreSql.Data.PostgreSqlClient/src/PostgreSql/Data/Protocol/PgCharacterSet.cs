@@ -11,6 +11,7 @@ namespace PostgreSql.Data.Protocol
 
         static PgCharacterSet()
         {
+            // http://www.postgresql.org/docs/9.1/static/multibyte.html
             Charsets.Add("SQL_ASCII" , "ascii");		    // ASCII
             // Charsets.Add("EUC_JP"    , "euc-jp");		// Japanese EUC
             // Charsets.Add("EUC_CN"    , "euc-cn");		// Chinese EUC

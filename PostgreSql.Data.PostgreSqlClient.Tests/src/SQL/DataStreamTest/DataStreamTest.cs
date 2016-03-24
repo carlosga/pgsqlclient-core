@@ -370,7 +370,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 conn.Open();
                 using (PgCommand cmdDefault = new PgCommand("", conn))
                 {
-                    cmdDefault.CommandText = $"create table {tempTable} c1 int, c2 timestamp)";
+                    cmdDefault.CommandText = $"create table {tempTable} (c1 integer, c2 timestamp)";
                     cmdDefault.ExecuteNonQuery();
 
                     cmdDefault.CommandText = $"insert into {tempTable} (c1) values (1)";
@@ -758,13 +758,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("", conn))
                 {
-                    cmd.CommandText = $"create table {tempTable} (c1 sql_variant, c2 numeric(38,23))";
+#warning TODO: PostgreSql has no sql_variant data type
+                    cmd.CommandText = $"create table {tempTable} (c1 varchar, c2 numeric(38,23))";
                     cmd.ExecuteNonQuery();
 
                     cmd.CommandText = $"insert into {tempTable} values (convert(numeric(38,23), -123456789012345.67890123456789012345678), convert(numeric(38,23), -123456789012345.67890123456789012345678))";
                     cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = "select * from " + tempTable;
+                    cmd.CommandText = $"select * from {tempTable}";
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         reader.Read();
@@ -796,9 +797,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             {
                 conn.Open();
                 string sqlBatch =
-                    "select top 10 * from orders;" +
-                    "select top  5 * from orders;" +
-                    "select top  0 * from orders;";
+                    "select * from orders limit 10;" +
+                    "select * from orders limit  5;" +
+                    "select * from orders limit  0;";
+                    
                 using (PgCommand cmd = new PgCommand(sqlBatch, conn))
                 {
                     PgDataReader reader;
@@ -933,7 +935,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
-                using (PgCommand cmd = new PgCommand("SELECT x'12341234'::BIGINT, x'12341234'::BIGINT, 12, CAST(NULL AS bytea), x'12341234'::BIGINT, x'12341234'::BIGINT, x'12341234'::BIGINT, CAST(REPLICATE('a', 8000) AS bytea), x'12341234'::BIGINT", connection))
+                using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234'::bytea, E'\\x12341234'::bytea, 12, CAST(NULL AS bytea), E'\\x12341234'::bytea, E'\\x12341234'::bytea, E'\\x12341234'::bytea, REPEAT('a', 8000)::bytea), E'\\x12341234'", connection))
                 {
                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
                     foreach (CommandBehavior behavior in behaviors)
@@ -1037,8 +1039,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             string[] queryStrings =
             {
-                "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS VARCHAR(MAX)), 'Hello World', 'Hello World', 'Hello World', CAST(REPLICATE('a', 8000) AS VARCHAR(MAX)), 'Hello World' COLLATE Latin1_General_CI_AS",
-                string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS VARCHAR(MAX)), {0} {1}, {0} {1}, {0} {1}, CAST(REPLICATE(('\uFF8A' {1}), 8000) AS VARCHAR(MAX)), {0} {1}", "'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE Japanese_CI_AS")
+                "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS TEXT), 'Hello World', 'Hello World', 'Hello World', CAST(REPEAT('a', 8000) AS TEXT), 'Hello World' COLLATE \"en_GB.utf8\"",
+                string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS TEXT), {0} {1}, {0} {1}, {0} {1}, CAST(REPLICATE((e'\uFF8A' {1}), 8000) AS TEXT), {0} {1}", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE \"C.UTF-8\"")
             };
 
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1214,7 +1216,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     byte[] largeBuffer = new byte[9000];
                     Stream stream = null;
                     TestDelegate action = null;
-                    using (PgCommand cmd = new PgCommand("SELECT x'12341234'::bigint", connection))
+                    using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234'::bytea", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1271,7 +1273,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         SeqAccessFailureWrapper<ObjectDisposedException>(action, behavior);
                     }
 
-                    using (PgCommand cmd = new PgCommand("SELECT 0x12341234, 12", connection))
+                    using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234', 12", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1287,7 +1289,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                     if (behavior == CommandBehavior.SequentialAccess)
                     {
-                        using (PgCommand cmd = new PgCommand("SELECT CAST(REPLICATE('a', 8000) AS VARBINARY(MAX)), CAST(REPLICATE('a', 8000) AS VARBINARY(MAX))", connection))
+                        using (PgCommand cmd = new PgCommand("SELECT REPEAT('a', 8000)::bytea, REPEAT('a', 8000)::bytea)", connection))
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
                             {
@@ -1375,20 +1377,22 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             foreach (CommandBehavior behavior in behaviors)
             {
                 string[] correctStrings = {
-                    "CAST(('Hello world' COLLATE Latin1_General_CI_AS) AS VARCHAR(MAX))",
-                    string.Format("CAST(N'{0}Hello world' AS NVARCHAR(MAX))", unicodeString),
-                    "CAST((N'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E' COLLATE Japanese_CI_AS) AS VARCHAR(MAX))" };
+                    "CAST(('Hello world' COLLATE \"en_GB.utf8\") AS TEXT)",
+                    string.Format("CAST('{0}Hello world' AS TEXT)", unicodeString),
+                    "CAST(('\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E' COLLATE \"C.UTF-8\") AS TEXT)" };
 
                 foreach (string correctString in correctStrings)
                 {
                     using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
                     {
                         connection.Open();
-                        char[] smallBuffer = new char[2];
-                        char[] buffer = new char[16];
-                        char[] largeBuffer = new char[9000];
-                        TextReader textReader = null;
-                        TestDelegate action = null;
+                        
+                        char[]       smallBuffer = new char[2];
+                        char[]       buffer      = new char[16];
+                        char[]       largeBuffer = new char[9000];
+                        TextReader   textReader  = null;
+                        TestDelegate action      = null;
+                        
                         using (PgCommand cmd = new PgCommand(string.Format("SELECT {0}", correctString), connection))
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -1447,7 +1451,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                         if (behavior == CommandBehavior.SequentialAccess)
                         {
-                            using (PgCommand cmd = new PgCommand(string.Format("SELECT REPLICATE({0}, 1500), REPLICATE({0}, 1500)", correctString), connection))
+                            using (PgCommand cmd = new PgCommand(string.Format("SELECT REPEAT({0}, 1500), REPEAT({0}, 1500)", correctString), connection))
                             {
                                 using (PgDataReader reader = cmd.ExecuteReader(behavior))
                                 {
@@ -1505,7 +1509,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     // GetStream
                     byte[] correctBytes = { 0x12, 0x34, 0x56, 0x78 };
                     string correctBytesAsString = "12345678";
-                    string queryString = string.Format("SELECT CAST(x'{0}' AS bytea)", correctBytesAsString);
+                    string queryString = string.Format("SELECT E'\\x{0}'::bytea)", correctBytesAsString);
                     using (PgCommand cmd = new PgCommand(queryString, connection))
                     using (PgDataReader reader = cmd.ExecuteReader(behavior))
                     {
@@ -1524,12 +1528,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                     // GetTextReader
                     string[] correctStrings = { "Hello World", "\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E" };
-                    string[] collations = { "Latin1_General_CI_AS", "Japanese_CI_AS" };
+                    string[] collations = { "en_GB.utf8", "C.UTF-8" };
 
                     for (int j = 0; j < collations.Length; j++)
                     {
-                        string substring = string.Format("(N'{0}' COLLATE {1})", correctStrings[j], collations[j]);
-                        queryString = string.Format("SELECT CAST({0} AS CHAR(20)), CAST({0} AS NCHAR(20)), CAST({0} AS NTEXT), CAST({0} AS NVARCHAR(20)), CAST({0} AS NVARCHAR(MAX)), CAST({0} AS TEXT), CAST({0} AS NVARCHAR(20)), CAST({0} AS VARCHAR(MAX)), CAST({0} AS SQL_VARIANT)", substring);
+                        string substring = string.Format("('{0}' COLLATE \"{1}\")", correctStrings[j], collations[j]);
+                        queryString = string.Format("SELECT CAST({0} AS CHAR(20)), CAST({0} AS CHAR(20)), CAST({0} AS TEXT), CAST({0} AS VARCHAR(20)), CAST({0} AS TEXT), CAST({0} AS TEXT), CAST({0} AS VARCHAR(20)), CAST({0} AS TEXT), CAST({0} AS TEXT)", substring);
                         using (PgCommand cmd = new PgCommand(queryString, connection))
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1551,32 +1555,33 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Test]
         public static void VariantCollationsTest()
         {
-            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-            {
-                connection.Open();
-                using (PgCommand cmd = new PgCommand())
-                {
-                    cmd.Connection = connection;
+#warning TODO: Port or remove ??
+            // using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            // {
+            //     connection.Open();
+            //     using (PgCommand cmd = new PgCommand())
+            //     {
+            //         cmd.Connection = connection;
 
-                    // Setup japanese database
-                    cmd.CommandText = "USE master; IF EXISTS (SELECT * FROM sys.databases WHERE name='japaneseCollationTest') DROP DATABASE japaneseCollationTest; CREATE DATABASE japaneseCollationTest COLLATE Japanese_90_BIN;";
-                    cmd.ExecuteNonQuery();
-                    cmd.CommandText = "USE japaneseCollationTest; CREATE TABLE japaneseCollationTest.dbo.tVar (c1 SQL_VARIANT);INSERT INTO japaneseCollationTest.dbo.tVar VALUES (CAST(0xA6 AS VARCHAR(2)) COLLATE Japanese_90_bin);";
-                    cmd.ExecuteNonQuery();
+            //         // Setup japanese database
+            //         cmd.CommandText = "USE master; IF EXISTS (SELECT * FROM sys.databases WHERE name='japaneseCollationTest') DROP DATABASE japaneseCollationTest; CREATE DATABASE japaneseCollationTest COLLATE Japanese_90_BIN;";
+            //         cmd.ExecuteNonQuery();
+            //         cmd.CommandText = "USE japaneseCollationTest; CREATE TABLE japaneseCollationTest.dbo.tVar (c1 SQL_VARIANT);INSERT INTO japaneseCollationTest.dbo.tVar VALUES (CAST(0xA6 AS VARCHAR(2)) COLLATE Japanese_90_bin);";
+            //         cmd.ExecuteNonQuery();
 
-                    // Select the same string - once using japaneseCollationTest context and the second time using master context
-                    cmd.CommandText = "SELECT c1 FROM japaneseCollationTest.dbo.tVar;";
-                    connection.ChangeDatabase("japaneseCollationTest");
-                    string fromJapaneseDb = (string)cmd.ExecuteScalar();
-                    connection.ChangeDatabase("master");
-                    string fromMasterDb = (string)cmd.ExecuteScalar();
+            //         // Select the same string - once using japaneseCollationTest context and the second time using master context
+            //         cmd.CommandText = "SELECT c1 FROM japaneseCollationTest.dbo.tVar;";
+            //         connection.ChangeDatabase("japaneseCollationTest");
+            //         string fromJapaneseDb = (string)cmd.ExecuteScalar();
+            //         connection.ChangeDatabase("master");
+            //         string fromMasterDb = (string)cmd.ExecuteScalar();
 
-                    Assert.True(fromJapaneseDb == fromMasterDb, "FAILED: Variant collations strings do not match");
+            //         Assert.True(fromJapaneseDb == fromMasterDb, "FAILED: Variant collations strings do not match");
 
-                    // drop japanese database
-                    cmd.CommandText = "USE master; DROP DATABASE japaneseCollationTest;";
-                }
-            }
+            //         // drop japanese database
+            //         cmd.CommandText = "USE master; DROP DATABASE japaneseCollationTest;";
+            //     }
+            // }
         }
 
         [Test]
