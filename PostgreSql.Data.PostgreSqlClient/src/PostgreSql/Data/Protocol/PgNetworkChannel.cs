@@ -28,8 +28,6 @@ namespace PostgreSql.Data.Protocol
             set;
         }
 
-        private static readonly byte[] s_buffer = new byte[0];
-
         private Socket        _socket;
         private NetworkStream _networkStream;
         private SslStream     _secureStream;
@@ -142,7 +140,7 @@ namespace PostgreSql.Data.Protocol
 
             while (received < length)
             {
-                received +=  _stream.Read(buffer, received, length - received);
+                received += _stream.Read(buffer, received, length - received);
             }
 
             return new PgInputPacket(type, buffer, sessionData);
@@ -150,30 +148,13 @@ namespace PostgreSql.Data.Protocol
 
         internal void WritePacket(char type)
         {
-            WritePacket(type, s_buffer);
+            _stream.WriteByte((byte)type);
+            Write(4);
         }
 
         internal void WritePacket(PgOutputPacket packet)
         {
-            WritePacket(packet.PacketType, packet.ToArray());
-        }
-
-        private void WritePacket(char type, byte[] buffer)
-        {
-            if (type != PgFrontEndCodes.UNTYPED)
-            {
-                // Write packet Type
-                _stream.WriteByte((byte)type);
-            }
-
-            // Write packet length
-            Write(((buffer == null) ? 4 : buffer.Length + 4));
-
-            // Write packet contents
-            if (buffer != null && buffer.Length > 0)
-            {
-                _stream.Write(buffer, 0, buffer.Length);
-            }
+            packet.WriteTo(_stream);
         }
 
         private int ReadInt32()
@@ -186,7 +167,7 @@ namespace PostgreSql.Data.Protocol
                  | (_buffer[0] << 24);
         }
 
-        public void Write(int value)
+        private void Write(int value)
         {
             _buffer[0] = (byte)(value >> 24);
             _buffer[1] = (byte)(value >> 16);

@@ -187,7 +187,7 @@ namespace PostgreSql.Data.Protocol
                 }
             }
         }
-
+        
         internal byte[] ToArray() => _stream.ToArray();
 
         private void WriteArray(PgParameter parameter)
@@ -362,5 +362,27 @@ namespace PostgreSql.Data.Protocol
                     break;
             }
         }
+        
+        public void WriteTo(Stream stream)
+        {
+            if (_packetType != PgFrontEndCodes.UNTYPED)
+            {
+                // Write packet Type
+                stream.WriteByte((byte)_packetType);
+            }
+
+            // Write packet length
+            var length = _stream.Length + 4;
+            
+            _buffer[0] = (byte)(length >> 24);
+            _buffer[1] = (byte)(length >> 16);
+            _buffer[2] = (byte)(length >> 8);
+            _buffer[3] = (byte)(length);
+
+            stream.Write(_buffer, 0, 4);        
+            
+            // Write packet contents
+            _stream.WriteTo(stream);
+        }        
     }
 }
