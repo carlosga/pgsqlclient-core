@@ -29,8 +29,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             var executedProcessList = new List<string>();
 
-            var task1 = ExecuteCommandWithNewConnectionAsync("A", "SELECT top 10 * FROM Orders"  , executedProcessList);            
-            var task2 = ExecuteCommandWithNewConnectionAsync("B", "SELECT top 10 * FROM Products", executedProcessList);
+            var task1 = ExecuteCommandWithNewConnectionAsync("A", "SELECT * FROM Orders limit 10"   , executedProcessList);            
+            var task2 = ExecuteCommandWithNewConnectionAsync("B", "SELECT * FROM Products  limit 10", executedProcessList);
             
             //wait all before verifing the results
             Task.WaitAll(task1, task2);

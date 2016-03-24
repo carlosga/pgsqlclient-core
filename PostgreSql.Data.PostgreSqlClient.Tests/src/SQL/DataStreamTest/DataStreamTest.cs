@@ -21,42 +21,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     public static class DataStreamTest
     {
         [Test]
-        public static void RunAllTestsForSingleServer_nwnd10SqlClient()
+        public static void MultipleResults()
         {
-            RunAllTestsForSingleServer(DataTestClass.PostgreSql9_Northwind);
-        }
-
-        public static void RunAllTestsForSingleServer(string connectionString)
-        {
-#warning TODO: Review the commented tests
-            RowBuffer(connectionString);
-            InvalidRead(connectionString);
-            VariantRead(connectionString);
-            TypeRead(connectionString);
-            // SQLTypeRead(connectionString);
-            GetValueOfTRead(connectionString);
-            MultipleResults(connectionString);
-            NumericRead(connectionString);
-            TimestampRead(connectionString);
-            OrphanReader(connectionString);
-            BufferSize(connectionString);
-            SequentialAccess(connectionString);
-            HasRowsTest(connectionString);
-            CloseConnection(connectionString);
-            OpenConnection(connectionString);
-            // SqlCharsBytesTest(connectionString);
-            GetStream(connectionString);
-            GetTextReader(connectionString);
-            // GetXmlReader(connectionString);
-            ReadStream(connectionString);
-            ReadTextReader(connectionString);
-            StreamingBlobDataTypes(connectionString);
-            OutOfOrderGetChars(connectionString);
-        }
-
-        private static void MultipleResults(string connectionString)
-        {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string query =
@@ -121,9 +88,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void InvalidRead(string connectionString)
+        [Test]
+        public static void InvalidRead()
         {
-            using (PgConnection c = new PgConnection(connectionString))
+            using (PgConnection c = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 c.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
@@ -136,9 +104,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void VariantRead(string connectionString)
+        [Test]
+        public static void VariantRead()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
@@ -174,9 +143,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void TypeRead(string connectionString)
+        [Test]
+        public static void TypeRead()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
@@ -213,9 +183,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void GetValueOfTRead(string connectionString)
+        [Test]
+        public static void GetValueOfTRead()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253 and shipregion is null";
@@ -283,9 +254,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void OutOfOrderGetChars(string connectionString)
+        [Test]
+        public static void OutOfOrderGetChars()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
 
@@ -324,9 +296,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        // private static void SQLTypeRead(string connectionString)
+        // private static void SQLTypeRead()
         // {
-        //     using (PgConnection conn = new PgConnection(connectionString))
+        //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
         //     {
         //         conn.Open();
         //         using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
@@ -359,9 +331,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //     }
         // }
 
-        private static void RowBuffer(string connectionString)
+        [Test]
+        public static void RowBuffer()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
@@ -386,12 +359,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void TimestampRead(string connectionString)
+        [Test]
+        public static void TimestampRead()
         {
             string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
             tempTable = tempTable.Replace('-', '_');
 
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmdDefault = new PgCommand("", conn))
@@ -423,9 +397,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void BufferSize(string connectionString)
+        [Test]
+        public static void BufferSize()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid<@id", conn))
@@ -459,9 +434,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void OrphanReader(string connectionString)
+        [Test]
+        public static void OrphanReader()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
@@ -519,7 +495,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void SequentialAccess(string connectionString)
+        [Test]
+        public static void SequentialAccess()
         {
             PgDataReader reader;
             string s;
@@ -534,7 +511,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 #warning TODO: Implement PgBinary
             //PgBinary sqlbin;
 
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
 #warning TODO: Original query "select * from orders for xml auto"
@@ -770,12 +747,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void NumericRead(string connectionString)
+        [Test]
+        public static void NumericRead()
         {
             string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
             tempTable = tempTable.Replace('-', '_');
 
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("", conn))
@@ -811,9 +789,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void HasRowsTest(string connectionString)
+        [Test]
+        public static void HasRowsTest()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch =
@@ -862,9 +841,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        // private static void SqlCharsBytesTest(string connectionString)
+        // private static void SqlCharsBytesTest()
         // {
-        //     using (PgConnection conn = new PgConnection(connectionString))
+        //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
         //     {
         //         conn.Open();
 
@@ -905,9 +884,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //     }
         // }
 
-        private static void CloseConnection(string connectionString)
+        [Test]
+        public static void CloseConnection()
         {
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
@@ -928,10 +908,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void OpenConnection(string connectionString)
+        [Test]
+        public static void OpenConnection()
         {
             // Isolates OpenConnection behavior for sanity testing on x-plat
-            using (PgConnection conn = new PgConnection(connectionString))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 DataTestClass.AssertEqualsWithDescription(ConnectionState.Open, conn.State, "FAILED: Connection should be in open state");
@@ -946,9 +927,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 action();
         }
 
-        private static void GetStream(string connectionString)
+        [Test]
+        public static void GetStream()
         {
-            using (PgConnection connection = new PgConnection(connectionString))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
                 using (PgCommand cmd = new PgCommand("SELECT x'12341234'::BIGINT, x'12341234'::BIGINT, 12, CAST(NULL AS bytea), x'12341234'::BIGINT, x'12341234'::BIGINT, x'12341234'::BIGINT, CAST(REPLICATE('a', 8000) AS bytea), x'12341234'::BIGINT", connection))
@@ -1050,7 +1032,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void GetTextReader(string connectionString)
+        [Test]
+        public static void GetTextReader()
         {
             string[] queryStrings =
             {
@@ -1058,7 +1041,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS VARCHAR(MAX)), {0} {1}, {0} {1}, {0} {1}, CAST(REPLICATE(('\uFF8A' {1}), 8000) AS VARCHAR(MAX)), {0} {1}", "'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE Japanese_CI_AS")
             };
 
-            using (PgConnection connection = new PgConnection(connectionString))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
                 foreach (string query in queryStrings)
@@ -1163,9 +1146,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-//         private static void GetXmlReader(string connectionString)
+//         private static void GetXmlReader()
 //         {
-//             using (PgConnection connection = new PgConnection(connectionString))
+//             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
 //             {
 //                 connection.Open();
 //                 string xml = "CAST('<test><subtest /><subtest>asdfasdfasdf</subtest></test>' AS XML)";
@@ -1217,9 +1200,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 //             }
 //         }
 
-        private static void ReadStream(string connectionString)
+        [Test]
+        public static void ReadStream()
         {
-            using (PgConnection connection = new PgConnection(connectionString))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
                 CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
@@ -1379,7 +1363,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void ReadTextReader(string connectionString)
+        [Test]
+        public static void ReadTextReader()
         {
             CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
 
@@ -1396,7 +1381,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 foreach (string correctString in correctStrings)
                 {
-                    using (PgConnection connection = new PgConnection(connectionString))
+                    using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
                     {
                         connection.Open();
                         char[] smallBuffer = new char[2];
@@ -1508,9 +1493,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void StreamingBlobDataTypes(string connectionString)
+        [Test]
+        public static void StreamingBlobDataTypes()
         {
-            using (PgConnection connection = new PgConnection(connectionString))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
                 CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
@@ -1518,8 +1504,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     // GetStream
                     byte[] correctBytes = { 0x12, 0x34, 0x56, 0x78 };
-                    string correctBytesAsString = "0x12345678";
-                    string queryString = string.Format("SELECT CAST({0} AS BINARY(20)), CAST({0} AS IMAGE), CAST({0} AS VARBINARY(20)), CAST({0} AS VARBINARY(MAX)), CAST({0} AS SQL_VARIANT)", correctBytesAsString);
+                    string correctBytesAsString = "12345678";
+                    string queryString = string.Format("SELECT CAST(x'{0}' AS bytea)", correctBytesAsString);
                     using (PgCommand cmd = new PgCommand(queryString, connection))
                     using (PgDataReader reader = cmd.ExecuteReader(behavior))
                     {
@@ -1562,9 +1548,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void VariantCollationsTest(string connectionString)
+        [Test]
+        public static void VariantCollationsTest()
         {
-            using (PgConnection connection = new PgConnection(connectionString))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
                 using (PgCommand cmd = new PgCommand())
@@ -1592,15 +1579,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void TimeoutDuringReadAsyncWithClosedReaderTest(string connectionString)
+        [Test]
+        public static void TimeoutDuringReadAsyncWithClosedReaderTest()
         {
             // Create the proxy
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
+            
             ProxyServer proxy = ProxyServer.CreateAndStartProxy(connectionString, out connectionString);
             proxy.SimulatedPacketDelay = 100;
             proxy.SimulatedOutDelay = true;
             try
             {
-                using (PgConnection conn = new PgConnection(connectionString))
+                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
                 {
                     // Start the command
                     conn.Open();
@@ -1633,15 +1623,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void NonFatalTimeoutDuringRead(string connectionString)
+        [Test]
+        public static void NonFatalTimeoutDuringRead()
         {
+            string connectionString = DataTestClass.PostgreSql9_Northwind;
+            
             // Create the proxy
             ProxyServer proxy = ProxyServer.CreateAndStartProxy(connectionString, out connectionString);
             proxy.SimulatedPacketDelay = 100;
             proxy.SimulatedOutDelay = true;
             try
             {
-                using (PgConnection conn = new PgConnection(connectionString))
+                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
                 {
                     // Start the command
                     conn.Open();
@@ -1679,8 +1672,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             string[] expectedColNames =
             {
-                "OrderID", "CustomerID", "EmployeeID", "OrderDate", "RequiredDate", "ShippedDate", "ShipVia",
-                "Freight", "ShipName", "ShipAddress", "ShipCity", "ShipRegion", "ShipPostalCode", "ShipCountry"
+                "orderid", "customerid", "employeeid", "orderdate", "requireddate", "shippeddate", "shipvia",
+                "freight", "shipname", "shipaddress", "shipcity", "shipregion", "shippostalcode", "shipcountry"
             };
             string[] expectedColTypeNames =
             {

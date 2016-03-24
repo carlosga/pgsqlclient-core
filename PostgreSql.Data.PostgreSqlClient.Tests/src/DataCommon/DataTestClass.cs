@@ -106,7 +106,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }            
         }
 
-        public static string PostgreSql9_Northwind { get { return GetConnectionString("Postgresql9_Northwind"); } }
+        public static string PostgreSql9_Northwind { get { return GetConnectionString("PostgreSql9_Northwind"); } }
         public static string PostgreSql9_Pubs      { get { return GetConnectionString("PostgreSql9_Pubs"); } }
 
         // the name length will be no more then (16 + prefix.Length + escapeLeft.Length + escapeRight.Length)

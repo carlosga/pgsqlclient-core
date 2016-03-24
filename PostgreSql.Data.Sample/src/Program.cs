@@ -21,74 +21,51 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            // Ported from the Microsoft System.Data.SqlClient test suite.
-            // ---------------------------------------------------------------------
-            // Licensed to the .NET Foundation under one or more agreements.
-            // The .NET Foundation licenses this file to you under the MIT license.
-            // See the LICENSE file in the project root for more information.
-            using (PgConnection conn = new PgConnection(csb.ToString()))
+            var com = new PgCommand("select * from Orders");
+            var con = new PgConnection(csb.ToString());
+            
+            com.Connection = con;
+            con.Open();
+
+            Task<int> nonQueryTask = com.ExecuteNonQueryAsync();
+            
+            try
             {
-                conn.Open();
-                string query =
-                    "select orderid from orders where orderid < @id order by orderid;" 
-                  + "select * from shippers order by shipperid;" 
-                  + "select * from region order by regionid;" 
-                  + "select lastname from employees order by lastname";
+                com.ExecuteNonQueryAsync().Wait();
+            }
+            catch (AggregateException agrEx)
+            {
+            }
+            
+//             Assert.True(failure, "FAILED: No exception thrown after trying second ExecuteNonQueryAsync.");
+//             failure = false;
 
-                // Each array in the expectedResults is a separate query result
-                string[][] expectedResults =
-                {
-                    new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
-                    new string[]
-                    {
-                        "1", "Speedy Express"   , "(503) 555-9831",  // Query Row 1
-                        "2", "United Package"   , "(503) 555-3199",  // Query Row 2
-                        "3", "Federal Shipping" , "(503) 555-9931",  // Query Row 3
-                        "4", "Alliance Shippers", "1-800-222-0451",  // Query Row 4
-                        "5", "UPS"              , "1-800-782-7892",  // Query Row 5
-                        "6", "DHL"              , "1-800-225-5345",  // Query Row 6        
-                    },
-                    new string[]
-                    {
-                        "1", "Eastern                                           ", // Query Row 1
-                        "2", "Western                                           ", // Query Row 2
-                        "3", "Northern                                          ", // Query Row 3
-                        "4", "Southern                                          "  // Query Row 4
-                    },
-                    new string[] { "Buchanan", "Callahan", "Davolio", "Dodsworth", "Fuller", "King", "Leverling", "Peacock", "Suyama" } // All separate rows
-                };
+//             taskCompleted = nonQueryTask.Wait(TaskTimeout);
+//             Assert.True(taskCompleted, "FAILED: ExecuteNonQueryAsync Task did not complete successfully.");
 
-                using (PgCommand cmd = new PgCommand(query, conn))
-                {
-                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10255;
-                    using (PgDataReader r1 = cmd.ExecuteReader())
-                    {
-                        int numBatches = 0;
-                        do
-                        {
-                            // Assert.True(numBatches < expectedResults.Length, "ERROR: Received more batches than were expected.");
-                            object[] values = new object[r1.FieldCount];
-                            // Current "column" in expected row is (valuesChecked MOD FieldCount), since 
-                            // expected rows for current batch are appended together for easy formatting
-                            int valuesChecked = 0;
-                            while (r1.Read())
-                            {
-                                r1.GetValues(values);
+// #warning TODO: Needs implementation in the provider to return it as PgDataReader
+//             Task<DbDataReader> readerTask = com.ExecuteReaderAsync();
+//             try
+//             {
+//                 com.ExecuteReaderAsync().Wait(TaskTimeout);
+//             }
+//             catch (AggregateException agrEx)
+//             {
+//                 agrEx.Handle(
+//                     (ex) =>
+//                     {
+//                         Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteReaderAsync was not an InvalidOperationException: " + ex.Message);
+//                         failure = true;
+//                         return true;
+//                     });
+//             }
+//             Assert.True(failure, "FAILED: No exception thrown after trying second ExecuteReaderAsync.");
 
-                                for (int col = 0; col < values.Length; col++, valuesChecked++)
-                                {
-                                    // Assert.True(valuesChecked < expectedResults[numBatches].Length, "ERROR: Received more results for this batch than was expected");
-                                    string expectedVal = expectedResults[numBatches][valuesChecked];
-                                    string actualVal = values[col].ToString();
+//             taskCompleted = readerTask.Wait(TaskTimeout);
+//             Assert.True(taskCompleted, "FAILED: ExecuteReaderAsync Task did not complete successfully.");
 
-                                    // DataTestClass.AssertEqualsWithDescription(expectedVal, actualVal, "FAILED: Received a different value than expected.");
-                                }
-                            }
-                            numBatches++;
-                        } while (r1.NextResult());
-                    }
-                }
-            }                                   
+//            readerTask.Result.Dispose();
+            con.Close();
         } 
     }
 }

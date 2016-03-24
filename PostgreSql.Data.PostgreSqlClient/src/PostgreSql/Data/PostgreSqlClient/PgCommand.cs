@@ -269,12 +269,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal void InternalPrepare()
         {
-            if (_statement != null && _statement.IsPrepared)
-            {
-                // Current statement portal will be closed on next statement execution.
-                return;
-            }
-            
             try
             {
                 if (_connection.MultipleActiveResultSets && _queries == null)

@@ -67,7 +67,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 agrEx.Handle(
                     (ex) =>
                     {
-                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteNonQueryAsync was not an InvalidOperationException");
+                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteNonQueryAsync was not an InvalidOperationException" + ex.Message);
                         failure = true;
                         return true;
                     });
@@ -90,7 +90,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 agrEx.Handle(
                     (ex) =>
                     {
-                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteReaderAsync was not an InvalidOperationException: " + ex);
+                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteReaderAsync was not an InvalidOperationException: " + ex.Message);
                         failure = true;
                         return true;
                     });
