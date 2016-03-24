@@ -8,6 +8,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace PostgreSql.Data.Protocol
@@ -35,13 +36,13 @@ namespace PostgreSql.Data.Protocol
             set;
         }
 
-        internal RemoteCertificateValidationCallback UserCertificateValidationCallback
+        internal RemoteCertificateValidationCallback UserCertificateValidation
         {
             get;
             set;
         }
 
-        internal LocalCertificateSelectionCallback UserCertificateSelectionCallback
+        internal LocalCertificateSelectionCallback UserCertificateSelection
         {
             get;
             set;
@@ -123,20 +124,22 @@ namespace PostgreSql.Data.Protocol
                 _authenticated       = false;
                 _serverConfiguration = new PgServerConfig();
 
+                // Wire up SSL callbacks
+                if (_connectionOptions.Encrypt)
+                {
+                    _channel.UserCertificateValidation = UserCertificateValidation;
+                    _channel.UserCertificateSelection  = UserCertificateSelection;                    
+                }
+                
+                // Open the channel
                 _channel.Open(_connectionOptions.DataSource
-                           , _connectionOptions.PortNumber
-                           , _connectionOptions.Encrypt);
-                                                                            
+                            , _connectionOptions.PortNumber
+                            , _connectionOptions.Encrypt);
+                        
                 // Send startup packet
                 SendStartupPacket();
             }
-            catch (IOException ex)
-            {
-                Close();
-                
-                throw new PgClientException(ex.Message);
-            }
-            catch (PgClientException)
+            catch (Exception)
             {
                 Close();
                  
@@ -166,17 +169,25 @@ namespace PostgreSql.Data.Protocol
                 _transactionStatus   = PgTransactionStatus.Default;
                 _handle              = -1;
                 _secretKey           = -1;
-                _channel              = null;
+                _channel             = null;
                 _authenticated       = false;
 
-                // Remove info message callback
-                InfoMessage = null;
-
-                // Remove notification callback
-                Notification = null;
+                // Callback cleanup
+                InfoMessage               = null;
+                Notification              = null;
+                UserCertificateValidation = null;
+                UserCertificateSelection  = null;
                 
                 ReleaseLock();
             }
+        }
+        
+        internal void ReleaseCallbacks()
+        {
+            UserCertificateValidation = null;
+            UserCertificateSelection  = null;
+            InfoMessage               = null;
+            Notification              = null;            
         }
 
         internal PgTransactionInternal CreateTransaction(IsolationLevel isolationLevel) 

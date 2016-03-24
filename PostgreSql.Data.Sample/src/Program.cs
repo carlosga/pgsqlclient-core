@@ -21,53 +21,30 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            Console.WriteLine(csb.ToString());
-
-            var com = new PgCommand("select * from Orders");
-            var con = new PgConnection(csb.ToString());
-            
-            com.Connection = con;
-            con.Open();
-
-            Task<int> nonQueryTask = com.ExecuteNonQueryAsync();
-            
-            try
+            using (PgConnection connection = new PgConnection(csb.ToString()))
             {
-                com.ExecuteNonQueryAsync().Wait();
-            }
-            catch (AggregateException agrEx)
-            {
+                connection.Open();
+                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                command.CommandTimeout = 1;
+                Task<object> result = command.ExecuteScalarAsync();
+
+                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after one second, but no results after 30 seconds");
+                //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
+                //Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
+
+                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                command2.CommandTimeout = 1;
+                result = command2.ExecuteScalarAsync();
+
+                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");
+                //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
+
+                // Pause here to ensure that the async closing is completed
+                // Thread.Sleep(200);
+                // Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
             
-//             Assert.True(failure, "FAILED: No exception thrown after trying second ExecuteNonQueryAsync.");
-//             failure = false;
-
-//             taskCompleted = nonQueryTask.Wait(TaskTimeout);
-//             Assert.True(taskCompleted, "FAILED: ExecuteNonQueryAsync Task did not complete successfully.");
-
-// #warning TODO: Needs implementation in the provider to return it as PgDataReader
-//             Task<DbDataReader> readerTask = com.ExecuteReaderAsync();
-//             try
-//             {
-//                 com.ExecuteReaderAsync().Wait(TaskTimeout);
-//             }
-//             catch (AggregateException agrEx)
-//             {
-//                 agrEx.Handle(
-//                     (ex) =>
-//                     {
-//                         Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteReaderAsync was not an InvalidOperationException: " + ex.Message);
-//                         failure = true;
-//                         return true;
-//                     });
-//             }
-//             Assert.True(failure, "FAILED: No exception thrown after trying second ExecuteReaderAsync.");
-
-//             taskCompleted = readerTask.Wait(TaskTimeout);
-//             Assert.True(taskCompleted, "FAILED: ExecuteReaderAsync Task did not complete successfully.");
-
-//            readerTask.Result.Dispose();
-            con.Close();
+            Console.WriteLine("Finished !");
         } 
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,13 +16,13 @@ namespace PostgreSql.Data.Protocol
     internal sealed class PgNetworkChannel
         : IDisposable
     {
-        internal RemoteCertificateValidationCallback UserCertificateValidationCallback
+        internal RemoteCertificateValidationCallback UserCertificateValidation
         {
             get;
             set;
         }
 
-        internal LocalCertificateSelectionCallback UserCertificateSelectionCallback
+        internal LocalCertificateSelectionCallback UserCertificateSelection
         {
             get;
             set;
@@ -231,10 +232,11 @@ namespace PostgreSql.Data.Protocol
                 {
                     _secureStream = new SslStream(_networkStream
                                                 , false
-                                                , UserCertificateValidationCallback
-                                                , UserCertificateSelectionCallback);
+                                                , UserCertificateValidation
+                                                , UserCertificateSelection
+                                                , EncryptionPolicy.RequireEncryption);
 
-                    _secureStream.AuthenticateAsClientAsync(host);
+                    _secureStream.AuthenticateAsClientAsync(host, null, SslProtocols.Tls11 | SslProtocols.Tls12, true);
 
                     return true;
                 }
@@ -289,6 +291,9 @@ namespace PostgreSql.Data.Protocol
             _secureStream   = null;
             _networkStream  = null;
             _socket         = null;
+            
+            UserCertificateValidation = null;
+            UserCertificateSelection  = null;            
         }
     }
 }

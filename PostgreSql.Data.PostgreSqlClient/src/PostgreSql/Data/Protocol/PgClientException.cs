@@ -15,7 +15,7 @@ namespace PostgreSql.Data.Protocol
         internal PgClientException(string message)
             : this(message, null)
         {
-        }
+        }                
 
         internal PgClientException(string message, PgClientError error)
             : base(message)

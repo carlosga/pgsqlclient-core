@@ -41,9 +41,6 @@
             }
         }
     },
-    "runtimes": {
-        "ubuntu.14.04-x64": { }
-    },    
     "configurations": {
         "Debug": {
             "compilationOptions": {

@@ -83,15 +83,13 @@ namespace PostgreSql.Data.PostgreSqlClient
     public sealed class PgDbColumn
         : DbColumn
     {
-        private readonly PgFieldDescriptor _descriptor;
-        
-        public bool? IsArray
+        public bool IsArray
         {
             get;
             private set;
         }
 
-        public bool? IsRefCursor
+        public bool IsRefCursor
         {
             get;
             private set;
@@ -99,21 +97,19 @@ namespace PostgreSql.Data.PostgreSqlClient
         
         internal PgDbColumn(PgFieldDescriptor descriptor)
         {
-            ColumnName       = _descriptor.Name;
-            ColumnOrdinal    = _descriptor.ColumnId;
-            ColumnSize       = _descriptor.Type.Size;
-            DataType         = _descriptor.Type.SystemType;
-            DataTypeName     = _descriptor.Type.Name;
-            IsArray          = _descriptor.Type.IsArray;
-            IsExpression     = (_descriptor.TableOid == 0 && _descriptor.ColumnId == 0);
-            IsLong           = _descriptor.Type.IsBinary;
-            IsRefCursor      = _descriptor.Type.IsRefCursor; 
-            NumericPrecision = _descriptor.NumericPrecision;
-            NumericScale     = _descriptor.NumericScale;
+            ColumnName       = descriptor.Name;
+            ColumnOrdinal    = descriptor.ColumnId;
+            ColumnSize       = descriptor.Type.Size;
+            DataType         = descriptor.Type.SystemType;
+            DataTypeName     = descriptor.Type.Name;
+            IsArray          = descriptor.Type.IsArray;
+            IsExpression     = (descriptor.TableOid == 0 && descriptor.ColumnId == 0);
+            IsLong           = descriptor.Type.IsBinary;
+            IsRefCursor      = descriptor.Type.IsRefCursor; 
+            NumericPrecision = descriptor.NumericPrecision;
+            NumericScale     = descriptor.NumericScale;
             
             // ProviderDbType = (PgDbType)_statement.RowDescriptor[i].Type.DataType;
-            
-            _descriptor = descriptor;
         }
     }
 }

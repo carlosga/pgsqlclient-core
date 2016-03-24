@@ -163,8 +163,8 @@ namespace PostgreSql.Data.PostgreSqlClient
                 if (_connectionOptions.Encrypt)
                 {
                     // Add SSL callback handlers
-                    _innerConnection.Database.UserCertificateValidationCallback = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
-                    _innerConnection.Database.UserCertificateSelectionCallback  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
+                    _innerConnection.Database.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
+                    _innerConnection.Database.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
                 }
 
                 // Add Info message event handler
@@ -206,7 +206,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _innerConnection   = null;
                 _connectionString  = null;
                 _connectionOptions = null;
-                
+                                
                 ChangeState(ConnectionState.Closed);
             }
         }
@@ -230,12 +230,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                                                , X509Chain       chain
                                                , SslPolicyErrors sslPolicyErrors)
         {
-            if (UserCertificateValidation != null)
-            {
-                return UserCertificateValidation(this, certificate, chain, sslPolicyErrors);
-            }
-
-            return false;
+            return UserCertificateValidation?.Invoke(this, certificate, chain, sslPolicyErrors) ?? false;
         }
 
         private X509Certificate OnUserCertificateSelection(object                    sender

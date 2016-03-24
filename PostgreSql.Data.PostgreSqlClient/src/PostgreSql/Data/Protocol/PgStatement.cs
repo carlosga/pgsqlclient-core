@@ -155,7 +155,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 Bind();
-                InternalExecute(0);
+                Execute(0);
                 
                 ClosePortal();
                 
@@ -186,7 +186,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 Bind();
-                InternalExecute();
+                Execute();
             }
             catch
             {
@@ -213,7 +213,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 Bind();
-                InternalExecute(1);
+                Execute(1);
                 
                 object value = null;              
                   
@@ -354,7 +354,7 @@ namespace PostgreSql.Data.Protocol
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
-                InternalExecute();
+                Execute();
             }
 
             if (!_rows.IsEmpty())
@@ -434,8 +434,8 @@ namespace PostgreSql.Data.Protocol
             _status = PgStatementStatus.Parsed;
         }
 
-        private void Describe()        => Describe('S');
-        private void DescribePortal()  => Describe('P');
+        private void Describe()       => Describe('S');
+        private void DescribePortal() => Describe('P');
 
         private void Describe(char stmtType)
         {
@@ -513,12 +513,12 @@ namespace PostgreSql.Data.Protocol
             _status = PgStatementStatus.Binded;
         }
 
-        private void InternalExecute()
+        private void Execute()
         {
-            InternalExecute(_database.ConnectionOptions.FetchSize);
+            Execute(_database.ConnectionOptions.FetchSize);
         }
 
-        private void InternalExecute(int fetchSize)
+        private void Execute(int fetchSize)
         {
             // Update status
             _status = PgStatementStatus.Executing;

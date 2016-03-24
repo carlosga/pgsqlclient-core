@@ -90,6 +90,8 @@ namespace PostgreSql.Data.PostgreSqlClient
                 // Close connection permanently or send it back to the pool
                 if (_pooled)
                 {
+                    _database.ReleaseCallbacks();
+                    
                     PgPoolManager.Instance.GetPool(_connectionString).CheckIn(this);
                 }
                 else
@@ -102,7 +104,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new PgException(ex);
             }
             finally
-            {
+            {                
                 _owner             = null;
                 _activeTransaction = null;
                 _database          = null;
