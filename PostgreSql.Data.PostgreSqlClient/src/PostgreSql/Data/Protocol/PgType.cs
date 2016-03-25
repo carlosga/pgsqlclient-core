@@ -67,6 +67,7 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add(1700, "numeric"    , PgDataType.Decimal        ,    0, PgTypeFormat.Text  , 8);
             dataTypes.Add(1790, "refcursor"  , PgDataType.Refcursor      ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(2205, "regclass"   , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(2278, "void"       , PgDataType.Void           ,    0, PgTypeFormat.Binary, 0);
                       
             // PostGIS datatypes         
             dataTypes.Add(17321, "box3d", PgDataType.Box3D, 0, PgTypeFormat.Text, 48, ",", "BOX3D");

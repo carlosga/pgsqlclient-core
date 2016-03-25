@@ -40,5 +40,6 @@ namespace PostgreSql.Data.Protocol
       , TimestampWithTZ
       , VarChar
       , Vector
+      , Void
     }
 }

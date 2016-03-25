@@ -508,7 +508,7 @@ namespace PostgreSql.Data.Protocol
 
             // Send packet to the server
             _database.Send(packet);
-
+            
             // Update status
             _status = PgStatementStatus.Binded;
         }
