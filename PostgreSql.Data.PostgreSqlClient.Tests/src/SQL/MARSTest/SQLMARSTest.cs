@@ -25,7 +25,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command.CommandTimeout = 1;
                 Task<object> result = command.ExecuteScalarAsync();
 
@@ -33,7 +33,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
                 Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command2 = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command2.CommandTimeout = 1;
                 result = command2.ExecuteScalarAsync();
 
@@ -52,7 +52,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(s_ConnectionString))
             {
                 connection.Open();
-                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command.CommandTimeout = 1;
                 bool hitException = false;
                 try
@@ -70,7 +70,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 hitException = false;
 
-                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command2 = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command2.CommandTimeout = 1;
                 try
                 {
