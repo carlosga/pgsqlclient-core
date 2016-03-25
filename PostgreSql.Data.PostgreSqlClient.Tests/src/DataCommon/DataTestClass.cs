@@ -718,7 +718,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
         public static void AssertEqualsWithDescription(object expectedValue, object actualValue, string failMessage)
         {
-            var msg = string.Format("{0}\nExpected: {1}\nActual: {2}", failMessage, expectedValue, actualValue);
+            var msg = $"{failMessage}{Environment.NewLine}Expected: {expectedValue}{Environment.NewLine}Actual: {actualValue}";
             if (expectedValue == null || actualValue == null)
             {
                 Assert.True(expectedValue == actualValue, msg);
