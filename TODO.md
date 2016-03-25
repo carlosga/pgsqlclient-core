@@ -10,9 +10,6 @@ https://github.com/aspnet/Configuration/
 
     - Check how it works when using several parametrized queries.
 
-- Merge PgStatement Parse & Describe in one single step, sending both packets in a single roundtrip.
-- Merge PgStatement Bind & Execute in one single step, sending both packets in a single roundtrip.
-
 - Implement IDbColumnSchemaGenerator on PgDataReader.
 
   Custom DbColumn (https://github.com/dotnet/corefx/blob/master/src/System.Data.Common/src/System/Data/Common/DbColumn.cs) class.
@@ -63,6 +60,8 @@ https://github.com/aspnet/Configuration/
 - Renamed connection string options:    
     - ssl -> Encrypt.
 - Wire up SSL support ( TLS 1.2 only if possible ).
+- Merge PgStatement Parse & Describe in one single step, sending both packets in a single roundtrip.
+- Merge PgStatement Bind & Execute in one single step, sending both packets in a single roundtrip.
     
 ## 50.2.7. Canceling Requests in Progress
 
