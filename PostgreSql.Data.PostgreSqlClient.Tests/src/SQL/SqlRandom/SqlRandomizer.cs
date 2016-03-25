@@ -222,7 +222,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         /// <summary>
-        /// used by random table generators to select random number of columns and rows. This method will return ver low numbers with high probability, 
+        /// used by random table generators to select random number of columns and rows. This method will return very low numbers with high probability, 
         /// </summary>
         public void NextTableDimentions(int maxRows, int maxColumns, int maxTotalSize, out int randRows, out int randColumns)
         {
@@ -533,7 +533,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         /// <summary>
-        /// generates random real value for SQL server. Note that real is a single precision floring number, mapped to 'float' in .Net.
+        /// generates random real value for SQL server. Note that real is a single precision floating point number, mapped to 'float' in .Net.
         /// </summary>
         public float NextReal()
         {

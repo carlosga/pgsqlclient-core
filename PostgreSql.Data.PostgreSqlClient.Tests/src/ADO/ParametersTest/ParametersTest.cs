@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    public class PgParametersTest
+    public class ParametersTest
     {
         [Test]
         public static void CodeCoveragePgSqlClient()

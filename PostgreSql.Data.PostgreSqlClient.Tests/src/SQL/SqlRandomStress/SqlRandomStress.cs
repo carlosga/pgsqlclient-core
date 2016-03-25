@@ -148,7 +148,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 if (!_randPool.ReproMode)
                 {
-                    // add .repro extention to enable easy delete on repro files
+                    // add .repro extension to enable easy delete on repro files
                     string reproFile = Path.GetRandomFileName() + ".repro";
                     _randPool.SaveLastThreadScopeRepro(reproFile);
                     output.AppendFormat("ReproFile (use with /repro:reproFilePath):{0}{1}{0}",

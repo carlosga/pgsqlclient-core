@@ -92,7 +92,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     //                     connection.Open();
     //                     // Prepare the query.
     //                     // Currently this does nothing until command.ExecuteReader is called.
-    //                     // Ideally this shoudl call sp_prepare up-front.
+    //                     // Ideally this should call sp_prepare up-front.
     //                     command.Prepare();
     //                     using (var reader = command.ExecuteReader(CommandBehavior.SingleResult))
     //                     {

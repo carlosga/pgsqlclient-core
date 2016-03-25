@@ -213,7 +213,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     //     //      1  : wstr1 > wstr2
     //     //
     //     //  Does a memory comparison.
-    //     //  NOTE: This comparison algorightm is different from BinraySory2. The algorithm is copied fro SqlString implementation
+    //     //  NOTE: This comparison algorithm is different from BinraySory2. The algorithm is copied fro SqlString implementation
     //     private static int CompareBinary(string x, string y)
     //     {
     //         byte[] rgDataX = s_unicodeEncoding.GetBytes(x);

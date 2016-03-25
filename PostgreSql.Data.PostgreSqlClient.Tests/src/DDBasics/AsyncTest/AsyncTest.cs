@@ -30,10 +30,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             var executedProcessList = new List<string>();
 
-            var task1 = ExecuteCommandWithNewConnectionAsync("A", "SELECT * FROM Orders limit 10"   , executedProcessList);            
+            var task1 = ExecuteCommandWithNewConnectionAsync("A", "SELECT * FROM Orders limit 10"  , executedProcessList);            
             var task2 = ExecuteCommandWithNewConnectionAsync("B", "SELECT * FROM Products limit 10", executedProcessList);
             
-            //wait all before verifing the results
+            //wait all before verifying the results
             Task.WaitAll(task1, task2);
 
             //verify whether it executed async
@@ -61,7 +61,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             
             var cmd = new PgCommand(cmdText, conn);
 
-            using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection))
+            using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 var task1 = ExecuteCommandWithSharedConnectionAsync(conn, "C", "SELECT * FROM Orders limit 10"  , executedProcessList);
                 var task2 = ExecuteCommandWithSharedConnectionAsync(conn, "D", "SELECT * FROM Products limit 10", executedProcessList);
                 
-                //wait all before verifing the results
+                //wait all before verifying the results
                 Task.WaitAll(task1, task2);
             }
 
@@ -99,7 +99,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             var cmd = new PgCommand(cmdText, conn);
 
-            using (PgDataReader reader = (PgDataReader)await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection))
+            using (PgDataReader reader = (PgDataReader)await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {

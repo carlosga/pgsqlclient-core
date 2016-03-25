@@ -50,10 +50,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 ExceptionTest();
                 ResetTables();
 
-                ReadUncommitedIsolationLevel_ShouldReturnUncommitedData();
+                ReadUncommittedIsolationLevel_ShouldReturnUncommittedData();
                 ResetTables();
 
-                ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommitedTransaction();
+                ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
                 ResetTables();
             }
             finally
@@ -287,7 +287,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             Assert.AreEqual(exception.Message, expectedErrorMessage);
         }
 
-        private void ReadUncommitedIsolationLevel_ShouldReturnUncommitedData()
+        private void ReadUncommittedIsolationLevel_ShouldReturnUncommittedData()
         {
             using (PgConnection connection1 = new PgConnection(_connectionString))
             {
@@ -314,7 +314,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     {
                         int count = 0;
                         while (reader.Read()) count++;
-                        Assert.True(count == 1, "Should Expected 1 row because Isolation Level is read uncommited which should return uncommited data.");
+                        Assert.True(count == 1, "Should Expected 1 row because Isolation Level is read uncommitted which should return uncommitted data.");
                     }
 
                     tx2.Rollback();
@@ -326,7 +326,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private void ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommitedTransaction()
+        private void ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction()
         {
             using (PgConnection connection1 = new PgConnection(_connectionString))
             {
