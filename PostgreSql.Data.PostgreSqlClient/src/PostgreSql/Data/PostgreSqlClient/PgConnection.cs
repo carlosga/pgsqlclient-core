@@ -81,6 +81,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                     }
                     finally
                     {
+                        // Cleanup
+                        _innerConnection   = null;
+                        _connectionString  = null;
+                        _connectionOptions = null;
                     }
                 }
 
@@ -202,11 +206,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
             finally
             {
-                // Cleanup
-                _innerConnection   = null;
-                _connectionString  = null;
-                _connectionOptions = null;
-                                
                 ChangeState(ConnectionState.Closed);
             }
         }

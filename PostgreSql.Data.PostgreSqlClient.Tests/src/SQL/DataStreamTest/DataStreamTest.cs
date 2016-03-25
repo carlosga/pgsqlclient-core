@@ -368,7 +368,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Ignore("Not ported yet")]
         public static void TimestampRead()
         {
-            string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
+            string tempTable = "__" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
             tempTable = tempTable.Replace('-', '_');
 
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -442,7 +442,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
+        // [Ignore("Not ported yet")]
         public static void OrphanReader()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -465,7 +465,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         reader.Read();
                         conn.Close();
 
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "CheckDataIsReady");
+                        errorMessage = "Invalid attempt to read when no data is present.";
                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => value = reader[0], errorMessage);
                         Assert.True(reader.IsClosed, "FAILED: Stream was not closed by connection close (Scenario: Read)");
                         conn.Open();
@@ -481,7 +481,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         Assert.True(reader.IsClosed, "FAILED: Stream was not closed by connection close (Scenario: Read Partial Data)");
                         conn.Open();
                     }
-
+                    
                     using (reader = cmd.ExecuteReader())
                     {
                         do

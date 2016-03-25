@@ -339,21 +339,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
 
-        private object GetValueWithNullCheck(int i)
-        {
-            CheckNull(i);
-            
-            return _row[i];
-        }
-
-        private T GetProviderSpecificValue<T>(int i)
-        {
-            CheckNull(i);
-
-            return (T)_row[i];
-        }
-
-        private void Close()
+        internal void Close()
         {
             if (!_open)
             {
@@ -379,6 +365,20 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             _open     = false;
             _position = STARTPOS;
+        }
+
+        private object GetValueWithNullCheck(int i)
+        {
+            CheckNull(i);
+            
+            return _row[i];
+        }
+
+        private T GetProviderSpecificValue<T>(int i)
+        {
+            CheckNull(i);
+
+            return (T)_row[i];
         }
 
         private void InitializeRefCursors()
@@ -434,7 +434,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (_position == STARTPOS)
             {
-                throw new InvalidOperationException("Invalid attempt to read when no data is present..");
+                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
             }
         }
         

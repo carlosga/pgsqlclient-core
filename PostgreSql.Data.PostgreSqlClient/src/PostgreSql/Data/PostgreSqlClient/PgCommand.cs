@@ -366,7 +366,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             try
             {
-                if (!_connection.MultipleActiveResultSets)
+                if (!_connection.MultipleActiveResultSets || _queries.IsEmpty())
                 {
                     return false;
                 }
@@ -392,6 +392,11 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             try
             {
+                if (_activeDataReader != null && !_activeDataReader.IsClosed)
+                {
+                    _activeDataReader.Close();
+                }
+                
                 _connection.InnerConnection.RemovePreparedCommand(this);
                 
                 // Closing the prepared statement closes all his portals too.
