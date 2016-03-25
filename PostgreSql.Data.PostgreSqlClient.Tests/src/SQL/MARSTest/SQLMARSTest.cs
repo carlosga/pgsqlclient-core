@@ -14,13 +14,14 @@ using System;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
+    //[Ignore("Not ported yet")]
     public static class MARSTest
     {
         private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
         [Test]
+        [Ignore("Enabled when async support available")]
         public static void MARSAsyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
@@ -48,6 +49,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Enabled when command timeouts are available")]
         public static void MARSSyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
