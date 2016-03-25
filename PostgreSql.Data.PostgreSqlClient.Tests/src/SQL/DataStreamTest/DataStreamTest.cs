@@ -896,7 +896,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         // }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void CloseConnection()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -921,7 +920,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void OpenConnection()
         {
             // Isolates OpenConnection behavior for sanity testing on x-plat
