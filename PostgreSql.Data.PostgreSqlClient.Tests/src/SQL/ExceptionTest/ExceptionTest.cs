@@ -4,6 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Data;
 using System.Collections;
 using System.Globalization;
 using System;
@@ -12,7 +13,6 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public static class ExceptionTest
     {
         // data value and server consts
@@ -25,6 +25,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         private const string orderIdQuery = "select orderid from orders where orderid < 10250";
 
         [Test]
+        // [Ignore("Not ported yet")]
         public static void WarningTest()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -39,20 +40,21 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 };
 
             PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
-            using (PgConnection PgConnection  = new PgConnection(connectionString + ";pooling=false;"))
+            using (PgConnection connection  = new PgConnection(connectionString + "pooling=false"))
             {
-                PgConnection.InfoMessage += handler;
-                PgConnection.Open();
+                connection.InfoMessage += handler;
+                connection.Open();
 
-                PgCommand cmd = new PgCommand(string.Format("RAISE NOTICE '{0}'", warningInfoMessage), PgConnection);
+                PgCommand cmd = new PgCommand(string.Format("SELECT RAISE_NOTICE('{0}')", warningInfoMessage), connection);
                 cmd.ExecuteNonQuery();
 
-                PgConnection.InfoMessage -= handler;
+                connection.InfoMessage -= handler;
                 cmd.ExecuteNonQuery();
             }
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void WarningsBeforeRowsTest()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -140,6 +142,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void ExceptionTests()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -170,6 +173,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void VariousExceptionTests()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -197,6 +201,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void IndependentConnectionExceptionTest()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;

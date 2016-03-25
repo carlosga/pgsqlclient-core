@@ -257,6 +257,15 @@ namespace PostgreSql.Data.Protocol
                             break;
                     }
                     break;
+
+                case PgBackendCodes.NOTICE_RESPONSE:
+                    // Read the notice message and raise an InfoMessage event
+                    InfoMessage?.Invoke(HandleErrorMessage(packet));
+                    break;
+
+                case PgBackendCodes.NOTIFICATION_RESPONSE:
+                    HandleNotificationMessage(packet);
+                    break;
     
                 case PgBackendCodes.ERROR_RESPONSE:               
                     // Read the error message and trow the exception
@@ -285,15 +294,6 @@ namespace PostgreSql.Data.Protocol
                 case PgBackendCodes.BACKEND_KEY_DATA:
                     _handle    = packet.ReadInt32();
                     _secretKey = packet.ReadInt32();
-                    break;
-
-                case PgBackendCodes.NOTICE_RESPONSE:
-                    // Read the notice message and raise an InfoMessage event
-                    InfoMessage?.Invoke(HandleErrorMessage(packet));
-                    break;
-
-                case PgBackendCodes.NOTIFICATION_RESPONSE:
-                    HandleNotificationMessage(packet);
                     break;
 
                 case PgBackendCodes.PARAMETER_STATUS:

@@ -21,44 +21,31 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            using (PgConnection conn = new PgConnection(csb.ToString()))
-            {
-                conn.Open();
-
-                string expectedFirstString  = "Hello, World!";
-                string expectedSecondString = "Another string";
-
-                // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
-#warning: The query is modified to set the parameter types, without them the parse + describe stage will fail.
-                using (PgCommand cmd = new PgCommand("SELECT @r::varchar, @p::varchar", conn))
+            Action<object, PgInfoMessageEventArgs> warningCallback =
+                (object sender, PgInfoMessageEventArgs imevent) =>
                 {
-                    cmd.Parameters.AddWithValue("@r", expectedFirstString);
-                    cmd.Parameters.AddWithValue("@p", expectedSecondString);
-                    
-                    // NOTE: Command behavior must NOT be sequential
-                    using (PgDataReader reader = cmd.ExecuteReader())
+                    for (int i = 0; i < imevent.Errors.Count; i++)
                     {
-                        char[] data = new char[20];
-                        reader.Read();
-
-                        // Read last column - this will read in all intermediate columns
-                        reader.GetValue(1);
-
-                        // Read in first column with GetChars
-                        // Since we've haven't called GetChars yet, this caches the value of the column into _columnDataChars
-                        long   charsRead         = reader.GetChars(0, 0, data, 0, data.Length);
-                        string actualFirstString = new string(data, 0, (int)charsRead);
-
-                        // Now read in the second column
-                        charsRead = reader.GetChars(1, 0, data, 0, data.Length);
-                        string actualSecondString = new string(data, 0, (int)charsRead);
-
-                        // Validate data
-                        // DataTestClass.AssertEqualsWithDescription(expectedFirstString, actualFirstString, "FAILED: First string did not match");
-                        // DataTestClass.AssertEqualsWithDescription(expectedSecondString, actualSecondString, "FAILED: Second string did not match");
+                        Console.WriteLine(imevent.Errors[i].Message);
                     }
-                }
+                };
+                
+            var warningInfoMessage = "DANGER !!!";                
+
+            PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
+            using (PgConnection connection  = new PgConnection(csb.ToString()))
+            {
+                connection.InfoMessage += handler;
+                connection.Open();
+
+                PgCommand cmd = new PgCommand(string.Format("SELECT RAISE_NOTICE('{0}')", warningInfoMessage), connection);
+                cmd.ExecuteNonQuery();
+
+                connection.InfoMessage -= handler;
+                cmd.ExecuteNonQuery();
             }
+
+            Thread.Sleep(10000);
             
             Console.WriteLine("Finished !");
         } 
