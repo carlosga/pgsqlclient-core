@@ -49,16 +49,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         {
             string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
 
-            TestReaderNonMarsCase("Case 1: ExecuteReader, Close, ExecuteReader.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
-            TestReaderNonMarsCase("Case 2: ExecuteReader, Dispose, ExecuteReader.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
-            TestReaderNonMarsCase("Case 3: ExecuteReader, GC, ExecuteReader.", connString, ReaderTestType.ReaderGC, ReaderVerificationType.ExecuteReader);
-            TestReaderNonMarsCase("Case 4: ExecuteReader, Connection Close, ExecuteReader.", connString, ReaderTestType.ConnectionClose, ReaderVerificationType.ExecuteReader);
-            TestReaderNonMarsCase("Case 5: ExecuteReader, GC, Connection Close, ExecuteReader.", connString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.ExecuteReader);
+            TestReaderNonMarsCase("Case  1: ExecuteReader, Close, ExecuteReader.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
+            TestReaderNonMarsCase("Case  2: ExecuteReader, Dispose, ExecuteReader.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
+            TestReaderNonMarsCase("Case  3: ExecuteReader, GC, ExecuteReader.", connString, ReaderTestType.ReaderGC, ReaderVerificationType.ExecuteReader);
+            TestReaderNonMarsCase("Case  4: ExecuteReader, Connection Close, ExecuteReader.", connString, ReaderTestType.ConnectionClose, ReaderVerificationType.ExecuteReader);
+            TestReaderNonMarsCase("Case  5: ExecuteReader, GC, Connection Close, ExecuteReader.", connString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.ExecuteReader);
 
-            TestReaderNonMarsCase("Case 6: ExecuteReader, Close, ChangeDatabase.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ChangeDatabase);
-            TestReaderNonMarsCase("Case 7: ExecuteReader, Dispose, ChangeDatabase.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ChangeDatabase);
-            TestReaderNonMarsCase("Case 8: ExecuteReader, GC, ChangeDatabase.", connString, ReaderTestType.ReaderGC, ReaderVerificationType.ChangeDatabase);
-            TestReaderNonMarsCase("Case 9: ExecuteReader, Connection Close, ChangeDatabase.", connString, ReaderTestType.ConnectionClose, ReaderVerificationType.ChangeDatabase);
+            TestReaderNonMarsCase("Case  6: ExecuteReader, Close, ChangeDatabase.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ChangeDatabase);
+            TestReaderNonMarsCase("Case  7: ExecuteReader, Dispose, ChangeDatabase.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ChangeDatabase);
+            TestReaderNonMarsCase("Case  8: ExecuteReader, GC, ChangeDatabase.", connString, ReaderTestType.ReaderGC, ReaderVerificationType.ChangeDatabase);
+            TestReaderNonMarsCase("Case  9: ExecuteReader, Connection Close, ChangeDatabase.", connString, ReaderTestType.ConnectionClose, ReaderVerificationType.ChangeDatabase);
             TestReaderNonMarsCase("Case 10: ExecuteReader, GC, Connection Close, ChangeDatabase.", connString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.ChangeDatabase);
 
             TestReaderNonMarsCase("Case 11: ExecuteReader, Close, BeginTransaction.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.BeginTransaction);

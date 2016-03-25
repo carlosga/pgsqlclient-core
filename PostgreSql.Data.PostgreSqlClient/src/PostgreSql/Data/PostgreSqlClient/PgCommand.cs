@@ -338,7 +338,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _commandBehavior = behavior;
 
             InternalPrepare();
-
+                        
             if (_commandBehavior.HasBehavior(CommandBehavior.Default)
              || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
              || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)

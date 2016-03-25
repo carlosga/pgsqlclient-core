@@ -21,29 +21,51 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            using (PgConnection connection = new PgConnection(csb.ToString()))
+            using (PgConnection conn = new PgConnection(csb.ToString()))
             {
-                connection.Open();
-                PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
-                command.CommandTimeout = 1;
-                Task<object> result = command.ExecuteScalarAsync();
+                conn.Open();
 
-                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after one second, but no results after 30 seconds");
-                //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
-                //Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                {
+                    int rows = 0;
+                    while (reader1.Read())
+                    {
+                        rows++;
+                    }
+                    Console.WriteLine($"#1 {rows}");
 
-                PgCommand command2 = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
-                command2.CommandTimeout = 1;
-                Task<object> result2 = command2.ExecuteScalarAsync();
+                    // rows = 0;
+                    // while (reader2.Read())
+                    // {
+                    //     rows++;
+                    // }
+                    // Console.WriteLine($"#2 {rows}");
 
-                Task.WaitAll(result, result2);
+                    // rows = 0;
+                    // while (reader3.Read())
+                    // {
+                    //     rows++;
+                    // }
+                    // Console.WriteLine($"#3 {rows}");
 
-                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");                
-                //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
+                    // rows = 0;
+                    // while (reader4.Read())
+                    // {
+                    //     rows++;
+                    // }
+                    // Console.WriteLine($"#4 {rows}");
 
-                // Pause here to ensure that the async closing is completed
-                Thread.Sleep(200);
-                // Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
+                    // rows = 0;
+                    // while (reader5.Read())
+                    // {
+                    //     rows++;
+                    // }
+                    // Console.WriteLine($"#5 {rows}");
+                }
             }
             
             Console.WriteLine("Finished !");

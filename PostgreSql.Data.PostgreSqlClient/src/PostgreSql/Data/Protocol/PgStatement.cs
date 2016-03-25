@@ -186,7 +186,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 Bind();
-                Execute();
+                Execute();                
             }
             catch
             {
@@ -350,7 +350,7 @@ namespace PostgreSql.Data.Protocol
         }
 
         internal object[] FetchRow()
-        {
+        {           
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
@@ -360,7 +360,7 @@ namespace PostgreSql.Data.Protocol
             if (!_rows.IsEmpty())
             {
                 return _rows.Dequeue();
-            }
+            }            
 
             return null;
         }
@@ -372,7 +372,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 ClosePortal();
-                CloseStatement();                   
+                CloseStatement();                
             }
             catch (System.Exception)
             {                
@@ -429,7 +429,7 @@ namespace PostgreSql.Data.Protocol
             
             // Send packet to the server
             _database.Send(packet);
-
+            
             // Update status
             _status = PgStatementStatus.Parsed;
         }
@@ -460,7 +460,7 @@ namespace PostgreSql.Data.Protocol
             do
             {
                 response = _database.Read();
-                HandleSqlMessage(response);                    
+                HandleSqlMessage(response);
             } while (!response.IsRowDescription && !response.IsNoData);
 
             DescribeParameters();                
@@ -547,7 +547,7 @@ namespace PostgreSql.Data.Protocol
 
             // If the command is finished and has returned rows
             // set all rows are received
-            if ((response.IsReadyForQuery || response.IsCommandComplete) && _hasRows)
+            if (response.IsReadyForQuery || response.IsCommandComplete)
             {
                 _allRowsFetched = true;
             }
@@ -603,6 +603,9 @@ namespace PostgreSql.Data.Protocol
             {
                 Close('S', _parseName);
 
+                // Clear remaing rows
+                ClearRows();
+
                 // Clear parameters
                 _parameters.Clear();
 
@@ -618,6 +621,7 @@ namespace PostgreSql.Data.Protocol
         private void ClosePortal()
         {
             if (_status == PgStatementStatus.Binded
+             || _status == PgStatementStatus.Executing
              || _status == PgStatementStatus.Executed)
             {
                 Close('P', _portalName);
@@ -654,10 +658,7 @@ namespace PostgreSql.Data.Protocol
                     }
                     while (!response.IsCloseComplete);
                 }
-                
-                // Cleanup
-                ClearRows();
-                
+                                
                 _tag             = null;          
                 _recordsAffected = -1;      
             }
@@ -670,7 +671,7 @@ namespace PostgreSql.Data.Protocol
                 throw;
             }
         }
-
+        
         private void HandleSqlMessage(PgInputPacket packet)
         {
             switch (packet.PacketType)
@@ -775,6 +776,8 @@ namespace PostgreSql.Data.Protocol
                 _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
             }
         }
+
+        private int _rowCount = 0;
 
         private void ProcessDataRow(PgInputPacket packet)
         {
