@@ -37,5 +37,6 @@ namespace PostgreSql.Data.PostgreSqlClient
       , TimestampWithTZ
       , VarChar
       , Vector
+      , Void
     }
 }
