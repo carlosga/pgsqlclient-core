@@ -74,11 +74,11 @@ namespace PostgreSql.Data.Protocol
         }
         #endregion
         
-        internal void Open(string host, int port, bool secureChannel)
+        internal void Open(string host, int port, bool secureChannel, int packetSize)
         {
             try
             {
-                Connect(host, port);
+                Connect(host, port, packetSize);
 
                 if (secureChannel)
                 {
@@ -177,7 +177,7 @@ namespace PostgreSql.Data.Protocol
             _stream.Write(_buffer, 0, 4);
         }
 
-        private void Connect(string host, int port)
+        private void Connect(string host, int port, int packetSize)
         {
             var remoteAddress = Task.Run<IPAddress>(async () => {
                 return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
@@ -188,12 +188,12 @@ namespace PostgreSql.Data.Protocol
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             // Set Receive Buffer size.
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 8192);
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, packetSize);
 
             // Set Send Buffer size.
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 8192);
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, packetSize);
 
-            // Disables the Nagle algorithm for send coalescing.
+            // Disables the Nagle algorithm.
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
             // Connect to the host

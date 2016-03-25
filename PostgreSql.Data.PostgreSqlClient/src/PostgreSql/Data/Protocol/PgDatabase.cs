@@ -134,7 +134,8 @@ namespace PostgreSql.Data.Protocol
                 // Open the channel
                 _channel.Open(_connectionOptions.DataSource
                             , _connectionOptions.PortNumber
-                            , _connectionOptions.Encrypt);
+                            , _connectionOptions.Encrypt
+                            , _connectionOptions.PacketSize);
                         
                 // Send startup packet
                 SendStartupPacket();
