@@ -25,46 +25,26 @@ namespace ConsoleApplication
             {
                 conn.Open();
 
-                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
-                using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
-                using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
-                using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
-                using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders where OrderID = 10248", conn)).ExecuteReader())
+                using (PgDataReader reader2 = (new PgCommand("select * from Orders where OrderID = 10249", conn)).ExecuteReader())
+                using (PgDataReader reader3 = (new PgCommand("select * from Orders where OrderID = 10250", conn)).ExecuteReader())
                 {
-                    int rows = 0;
-                    while (reader1.Read())
+                    if (!(reader1.Read() && reader2.Read() && reader3.Read()))
                     {
-                        rows++;
+                        throw new Exception("MARSSyncExecuteReaderTest4 failure #1");
                     }
-                    Console.WriteLine($"#1 {rows}");
 
-                    rows = 0;
-                    while (reader2.Read())
+                    if (!(reader1.GetInt32(0) == 10248 
+                       && reader2.GetInt32(0) == 10249 
+                       && reader3.GetInt32(0) == 10250))
                     {
-                        rows++;
+                        throw new Exception("MARSSyncExecuteReaderTest4 failure #2");                        
                     }
-                    Console.WriteLine($"#2 {rows}");
-
-                    rows = 0;
-                    while (reader3.Read())
+                                                       
+                    if (reader1.Read() || reader2.Read() || reader3.Read())
                     {
-                        rows++;
+                        throw new Exception("MARSSyncExecuteReaderTest4 failure #3");
                     }
-                    Console.WriteLine($"#3 {rows}");
-
-                    rows = 0;
-                    while (reader4.Read())
-                    {
-                        rows++;
-                    }
-                    Console.WriteLine($"#4 {rows}");
-
-                    rows = 0;
-                    while (reader5.Read())
-                    {
-                        rows++;
-                    }
-                    Console.WriteLine($"#5 {rows}");
                 }
             }
             

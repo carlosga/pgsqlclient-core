@@ -11,6 +11,7 @@ using System;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not ported yet")]
     public class TransactionTest
     {
         [Test]

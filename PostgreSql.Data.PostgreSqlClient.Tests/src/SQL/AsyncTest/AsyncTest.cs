@@ -12,6 +12,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not ported yet")]    
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;

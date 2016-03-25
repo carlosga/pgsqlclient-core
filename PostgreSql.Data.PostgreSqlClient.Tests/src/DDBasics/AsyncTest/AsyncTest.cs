@@ -13,6 +13,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not ported yet")]
     public class DDAsyncTest
     {
         [Test]

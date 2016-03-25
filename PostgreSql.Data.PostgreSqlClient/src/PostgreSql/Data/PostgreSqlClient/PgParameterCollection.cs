@@ -14,18 +14,19 @@ namespace PostgreSql.Data.PostgreSqlClient
     {
         private static readonly object SyncObject = new object();
         
-        private List<PgParameter> _parameters;
+        private readonly List<PgParameter> _parameters;
+        private int                        _paramCount;
 
         public new PgParameter this[string parameterName]
         {
-            get { return this[IndexOf(parameterName)]; }
-            set { this[IndexOf(parameterName)] = value; }
+            get { return GetParameter(parameterName) as PgParameter; }
+            set { SetParameter(parameterName, value); }
         }
 
         public new PgParameter this[int index]
         {
-            get { return _parameters[index]; }
-            set { _parameters[index] = value; }
+            get { return GetParameter(index) as PgParameter; }
+            set { SetParameter(index, value); }
         }
 
         public override int    Count    => _parameters.Count;
@@ -36,9 +37,15 @@ namespace PostgreSql.Data.PostgreSqlClient
             _parameters = new List<PgParameter>();
         }
 
-        public override void CopyTo(Array array, int index) => _parameters.CopyTo((PgParameter[])array, index);
-        public override void Clear()                        => _parameters.Clear();        
-        public override IEnumerator GetEnumerator()         => _parameters.GetEnumerator();
+        public override void CopyTo(Array array, int index) => (_parameters as ICollection).CopyTo(array, index);
+        
+        public override void Clear()
+        {
+            _parameters.ForEach(p => p.Parent = null);
+            _parameters.Clear();              
+        }      
+        
+        public override IEnumerator GetEnumerator() => _parameters.GetEnumerator();
 
         public override void AddRange(Array values)
         {
@@ -62,15 +69,15 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (value == null)
             {
-                throw new ArgumentException("The value parameter is null.");
+                throw new ArgumentNullException("The PgParameterCollection only accepts non-null PgParameter type objects.");
             }
             if (value.Parent != null)
             {
-                throw new ArgumentException("The PgParameter specified in the value parameter is already added to this or another FbParameterCollection.");
+                throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
             }
             if (value.ParameterName == null || value.ParameterName.Length == 0)
             {
-                //value.ParameterName = GenerateParameterName();
+                value.ParameterName = $"Parameter{++_paramCount}";
             }
             else
             {
@@ -80,6 +87,8 @@ namespace PostgreSql.Data.PostgreSqlClient
                 }
             }
 
+            value.Parent = this;
+
             _parameters.Add(value);
 
             return value;
@@ -87,11 +96,16 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override int Add(object value)
         {
-            var parameter = value as PgParameter;
-
             if (value == null)
             {
-                throw new InvalidCastException("The parameter passed was not a PgParameter.");
+                throw new ArgumentNullException($"The PgParameterCollection only accepts non-null PgParameter type objects.");
+            }
+
+            var parameter = value as PgParameter;
+
+            if (parameter == null)
+            {
+                throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
             }
 
             return IndexOf(Add(parameter));
@@ -116,19 +130,40 @@ namespace PostgreSql.Data.PostgreSqlClient
             return -1;
         }
 
-        public override void Insert(int index, object value) => _parameters.Insert(index, value as PgParameter);
+        public override void Insert(int index, object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException($"The PgParameterCollection only accepts non-null PgParameter type objects.");
+            }
+
+            var parameter = value as PgParameter;
+
+            if (parameter == null)
+            {
+                throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+            }
+            
+            _parameters.Insert(index, parameter);
+        }
 
         public override void Remove(object value)
         {
-            var parameter = value as PgParameter;
-
             if (value == null)
             {
-                throw new InvalidCastException("The parameter passed was not a PgParameter.");
+                throw new ArgumentNullException("The PgParameterCollection only accepts non-null PgParameter type objects.");
             }
+
+            var parameter = value as PgParameter;
+
+            if (parameter == null)
+            {
+                throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+            }
+
             if (!Contains(parameter))
             {
-                throw new Exception("The parameter does not exist in the collection.");
+                throw new ArgumentException("Attempted to remove an PgParameter that is not contained by this PgParameterCollection.");
             }
 
             _parameters.Remove(parameter);
@@ -149,17 +184,48 @@ namespace PostgreSql.Data.PostgreSqlClient
             _parameters.RemoveAt(index);
         }
 
-        protected override DbParameter GetParameter(string parameterName) => this[parameterName];
-        protected override DbParameter GetParameter(int index)            => _parameters[index];
+        protected override DbParameter GetParameter(string parameterName)
+        {
+            int index = IndexOf(parameterName);
+            
+            if (index == -1)
+            {
+                throw new IndexOutOfRangeException($"An PgParameter with ParameterName '{parameterName}' is not contained by this PgParameterCollection.");   
+            }
+
+            return _parameters[index];            
+        } 
+        
+        protected override DbParameter GetParameter(int index)
+        {
+            if (index < 0 || index >= _parameters.Count)
+            {
+                throw new IndexOutOfRangeException($"Invalid index {index} for this PgParameterCollection with Count={Count}.");
+            }
+            
+            return _parameters[index];
+        }
 
         protected override void SetParameter(int index, DbParameter value)
         {
+            if (index < 0 || index >= _parameters.Count)
+            {
+                throw new IndexOutOfRangeException($"Invalid index {index} for this PgParameterCollection with Count={Count}.");
+            }
+
             _parameters[index] = value as PgParameter;
         }
 
         protected override void SetParameter(string parameterName, DbParameter value)
         {
-            this[parameterName] = value as PgParameter;
+            int index = IndexOf(parameterName);
+            
+            if (index == -1)
+            {
+                throw new IndexOutOfRangeException($"An PgParameter with ParameterName '{parameterName}' is not contained by this PgParameterCollection.");   
+            }
+
+            _parameters[index] = value as PgParameter;
         }
     }
 }

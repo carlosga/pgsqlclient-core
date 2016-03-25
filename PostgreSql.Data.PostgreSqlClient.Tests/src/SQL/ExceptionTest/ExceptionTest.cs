@@ -12,6 +12,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not ported yet")]
     public static class ExceptionTest
     {
         // data value and server consts

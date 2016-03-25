@@ -14,7 +14,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     public class PgParametersTest
     {
         [Test]
-        public static void CodeCoverageSqlClient()
+        public static void CodeCoveragePgSqlClient()
         {
             PgParameterCollection opc = new PgCommand().Parameters;
 
@@ -29,7 +29,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 DataTestClass.AssertThrowsWrapper<IndexOutOfRangeException>(() => failValue = opc[0].ParameterName    , "Invalid index 0 for this PgParameterCollection with Count=0.");
                 DataTestClass.AssertThrowsWrapper<IndexOutOfRangeException>(() => failValue = opc["@p1"].ParameterName, "An PgParameter with ParameterName '@p1' is not contained by this PgParameterCollection.");
             }
-
+            
             DataTestClass.AssertThrowsWrapper<ArgumentNullException>(() => opc.Add(null), "The PgParameterCollection only accepts non-null PgParameter type objects.");
 
             opc.Add((object)new PgParameter());
@@ -83,7 +83,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             new PgCommand().Parameters.Clear();
             new PgCommand().Parameters.CopyTo(new object[0], 0);
-            
+                        
             Assert.False(new PgCommand().Parameters.GetEnumerator().MoveNext(), "FAILED: Expected MoveNext to be false");
 
             DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => new PgCommand().Parameters.Add(0)      , "The PgParameterCollection only accepts non-null PgParameter type objects, not Int32 objects.");

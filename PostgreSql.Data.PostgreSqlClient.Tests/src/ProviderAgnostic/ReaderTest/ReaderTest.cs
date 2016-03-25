@@ -12,6 +12,7 @@ using System.Text;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not ported yet")]    
     public static class ReaderTest
     {
         [Test]
