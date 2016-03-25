@@ -144,7 +144,7 @@ namespace System
                 namedParameters.Add(paramBuilder.ToString());
                 builder.AppendFormat("${0}", ++paramIndex);
             }
-
+            
             return builder.ToString();
         }
     }

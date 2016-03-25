@@ -17,8 +17,7 @@ using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
-    [TestFixture]
-    [Ignore("Not ported yet")]
+    [TestFixture]    
     public static class DataStreamTest
     {
         [Test]
@@ -30,7 +29,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string query =
                     "select orderid from orders where orderid < @id order by orderid;" +
                     "select * from shippers order by shipperid;" +
-                    "select * from region order by regionid set no_browsetable off;" +
+                    "select * from region order by regionid;" +
                     "select lastname from employees order by lastname";
 
                 // Each array in the expectedResults is a separate query result
@@ -48,10 +47,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     },
                     new string[]
                     {
-                        "1", "Eastern                                           ", // Query Row 1
-                        "2", "Western                                           ", // Query Row 2
-                        "3", "Northern                                          ", // Query Row 3
-                        "4", "Southern                                          "  // Query Row 4
+                        "1", "Eastern" , // Query Row 1
+                        "2", "Western" , // Query Row 2
+                        "3", "Northern", // Query Row 3
+                        "4", "Southern"  // Query Row 4
                     },
                     new string[] { "Buchanan", "Callahan", "Davolio", "Dodsworth", "Fuller", "King", "Leverling", "Peacock", "Suyama" } // All separate rows
                 };
@@ -99,13 +98,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (PgCommand cmd = new PgCommand(sqlBatch, c))
                 using (PgDataReader reader = cmd.ExecuteReader())
                 {
-                    string errorMessage = SystemDataResourceManager.Instance.SQL_InvalidRead;
+                    // string errorMessage = SystemDataResourceManager.Instance.SQL_InvalidRead;
+                    string errorMessage = "Invalid attempt to read when no data is present.";
                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(0), errorMessage);
                 }
             }
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void VariantRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -157,9 +158,9 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     rdr.Read();
 
                     DateTime d;
-                    decimal m;
-                    string s = null;
-                    int i;
+                    decimal  m;
+                    string   s = null;
+                    int      i;
 
                     // read data out of buffer
                     i = rdr.GetInt32(0);    // order id
@@ -168,13 +169,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     d = rdr.GetDateTime(3); // OrderDate
                     d = rdr.GetDateTime(4); // RequiredDate
                     d = rdr.GetDateTime(5); // ShippedDate;
-                    i = rdr.GetInt32(6);    // ShipVia;
-                    m = rdr.GetDecimal(7);  // Freight;
-                    s = rdr.GetString(8);   // ShipName;
-                    s = rdr.GetString(9);   // ShipAddres;
-                    s = rdr.GetString(10);  // ShipCity;
-                                            // should get an exception here
-                    string errorMessage = SystemDataResourceManager.Instance.SqlMisc_NullValueMessage;
+                    i = rdr.GetInt32(6);    // ShipVia
+                    m = rdr.GetDecimal(7);  // Freight
+                    s = rdr.GetString(8);   // ShipName
+                    s = rdr.GetString(9);   // ShipAddres
+                    s = rdr.GetString(10);  // ShipCity
+    
+                    // should get an exception here
+                    string errorMessage = "Data is Null. This method or property cannot be called on Null values.";
                     DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetString(11), errorMessage);
 
                     s = rdr.GetString(12); //ShipPostalCode;
@@ -185,6 +187,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void GetValueOfTRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -194,7 +197,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (PgCommand cmd = new PgCommand(sqlBatch, conn))
                 using (PgDataReader rdr = cmd.ExecuteReader())
                 {
-                    string errorMessage = SystemDataResourceManager.Instance.SqlMisc_NullValueMessage;
+                    string errorMessage = "Data is Null. This method or property cannot be called on Null values.";
 
                     rdr.Read();
                     // read data out of buffer
@@ -266,11 +269,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string expectedSecondString = "Another string";
 
                 // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
-                using (PgCommand cmd = new PgCommand("SELECT @r, @p", conn))
+#warning TODO: Query modified to add the parameter types, without them the query will fail at parse + describe stage.                
+                using (PgCommand cmd = new PgCommand("SELECT @r::varchar, @p::varchar", conn))
                 {
-                    cmd.Parameters.AddWithValue("r", expectedFirstString);
-                    cmd.Parameters.AddWithValue("p", expectedSecondString);
-
+                    cmd.Parameters.AddWithValue("@r", expectedFirstString);
+                    cmd.Parameters.AddWithValue("@p", expectedSecondString);
+                    
                     // NOTE: Command behavior must NOT be sequential
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
@@ -361,6 +365,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void TimestampRead()
         {
             string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
@@ -399,6 +404,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void BufferSize()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -436,6 +442,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void OrphanReader()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -497,6 +504,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void SequentialAccess()
         {
             PgDataReader reader;
@@ -749,6 +757,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void NumericRead()
         {
             string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
@@ -792,6 +801,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void HasRowsTest()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -888,6 +898,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         // }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void CloseConnection()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -912,6 +923,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void OpenConnection()
         {
             // Isolates OpenConnection behavior for sanity testing on x-plat
@@ -931,6 +943,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void GetStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1036,6 +1049,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void GetTextReader()
         {
             string[] queryStrings =
@@ -1204,6 +1218,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 //         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void ReadStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1367,6 +1382,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void ReadTextReader()
         {
             CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
@@ -1499,6 +1515,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void StreamingBlobDataTypes()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1554,6 +1571,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void VariantCollationsTest()
         {
 #warning TODO: Port or remove ??
@@ -1586,6 +1604,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void TimeoutDuringReadAsyncWithClosedReaderTest()
         {
             // Create the proxy
@@ -1630,6 +1649,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]
         public static void NonFatalTimeoutDuringRead()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -1683,8 +1703,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             };
             string[] expectedColTypeNames =
             {
-                "int", "nchar", "int", "datetime", "datetime", "datetime", "int",
-                "money", "nvarchar", "nvarchar", "nvarchar", "nvarchar", "nvarchar", "nvarchar"
+                "int2"  , "bpchar" , "int2"   , "date"    , "date"    , "date"    , "int2",
+                "float4", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
             };
 
             for (int i = 0; i < reader.FieldCount; i++)

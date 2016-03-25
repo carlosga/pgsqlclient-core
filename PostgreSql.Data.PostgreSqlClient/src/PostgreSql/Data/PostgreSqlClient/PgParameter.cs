@@ -96,8 +96,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 if (!_isTypeSet)
                 {          
-                    _providerType = TypeHelper.GetDbProviderType(value);
-                    _isTypeSet    = true;
+                    PgDbType = TypeHelper.GetDbProviderType(value);
                 }
             }
         }
@@ -121,19 +120,22 @@ namespace PostgreSql.Data.PostgreSqlClient
             _providerType  = PgDbType.VarChar;
         }
 
-        public PgParameter(string parameterName, object value) : this()
+        public PgParameter(string parameterName, object value) 
+            : this()
         {
             _parameterName = parameterName;
-            _value         = value;
+            Value          = value;
         }
 
-        public PgParameter(string parameterName, PgDbType dbType) : this()
+        public PgParameter(string parameterName, PgDbType dbType) 
+            : this()
         {
             _parameterName = parameterName;
             _providerType  = dbType;
         }
 
-        public PgParameter(string parameterName, PgDbType dbType, int size) : this()
+        public PgParameter(string parameterName, PgDbType dbType, int size) 
+            : this()
         {
             _parameterName = parameterName;
             _size          = size;

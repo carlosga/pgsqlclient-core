@@ -25,25 +25,37 @@ namespace ConsoleApplication
             {
                 conn.Open();
 
-                using (PgDataReader reader1 = (new PgCommand("select * from Orders where OrderID = 10248", conn)).ExecuteReader())
-                using (PgDataReader reader2 = (new PgCommand("select * from Orders where OrderID = 10249", conn)).ExecuteReader())
-                using (PgDataReader reader3 = (new PgCommand("select * from Orders where OrderID = 10250", conn)).ExecuteReader())
-                {
-                    if (!(reader1.Read() && reader2.Read() && reader3.Read()))
-                    {
-                        throw new Exception("MARSSyncExecuteReaderTest4 failure #1");
-                    }
+                string expectedFirstString  = "Hello, World!";
+                string expectedSecondString = "Another string";
 
-                    if (!(reader1.GetInt32(0) == 10248 
-                       && reader2.GetInt32(0) == 10249 
-                       && reader3.GetInt32(0) == 10250))
+                // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
+#warning: The query is modified to set the parameter types, without them the parse + describe stage will fail.
+                using (PgCommand cmd = new PgCommand("SELECT @r::varchar, @p::varchar", conn))
+                {
+                    cmd.Parameters.AddWithValue("@r", expectedFirstString);
+                    cmd.Parameters.AddWithValue("@p", expectedSecondString);
+                    
+                    // NOTE: Command behavior must NOT be sequential
+                    using (PgDataReader reader = cmd.ExecuteReader())
                     {
-                        throw new Exception("MARSSyncExecuteReaderTest4 failure #2");                        
-                    }
-                                                       
-                    if (reader1.Read() || reader2.Read() || reader3.Read())
-                    {
-                        throw new Exception("MARSSyncExecuteReaderTest4 failure #3");
+                        char[] data = new char[20];
+                        reader.Read();
+
+                        // Read last column - this will read in all intermediate columns
+                        reader.GetValue(1);
+
+                        // Read in first column with GetChars
+                        // Since we've haven't called GetChars yet, this caches the value of the column into _columnDataChars
+                        long   charsRead         = reader.GetChars(0, 0, data, 0, data.Length);
+                        string actualFirstString = new string(data, 0, (int)charsRead);
+
+                        // Now read in the second column
+                        charsRead = reader.GetChars(1, 0, data, 0, data.Length);
+                        string actualSecondString = new string(data, 0, (int)charsRead);
+
+                        // Validate data
+                        // DataTestClass.AssertEqualsWithDescription(expectedFirstString, actualFirstString, "FAILED: First string did not match");
+                        // DataTestClass.AssertEqualsWithDescription(expectedSecondString, actualSecondString, "FAILED: Second string did not match");
                     }
                 }
             }

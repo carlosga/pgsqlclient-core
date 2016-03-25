@@ -160,8 +160,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         }
 
         public override int  FieldCount        => _statement?.RowDescriptor.Count ?? -1;
-        public override bool GetBoolean(int i) => Convert.ToBoolean(GetValue(i));
-        public override byte GetByte(int i)    => Convert.ToByte(GetValue(i));
+        public override bool GetBoolean(int i) => Convert.ToBoolean(GetValueWithNullCheck(i));
+        public override byte GetByte(int i)    => Convert.ToByte(GetValueWithNullCheck(i));
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
@@ -203,7 +203,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return bytesRead;
         }
 
-        public override char GetChar(int i) => Convert.ToChar(GetValue(i));
+        public override char GetChar(int i) => Convert.ToChar(GetValueWithNullCheck(i));
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
@@ -255,9 +255,9 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RowDescriptor[i].Type.Name;
         }
 
-        public override DateTime GetDateTime(int i) => Convert.ToDateTime(GetValue(i));
-        public override Decimal  GetDecimal(int i)  => Convert.ToDecimal(GetValue(i));
-        public override double   GetDouble(int i)   => Convert.ToDouble(GetValue(i));
+        public override DateTime GetDateTime(int i) => Convert.ToDateTime(GetValueWithNullCheck(i));
+        public override Decimal  GetDecimal(int i)  => Convert.ToDecimal(GetValueWithNullCheck(i));
+        public override double   GetDouble(int i)   => Convert.ToDouble(GetValueWithNullCheck(i));
 
         public override Type GetFieldType(int i)
         {
@@ -273,9 +273,9 @@ namespace PostgreSql.Data.PostgreSqlClient
             throw new NotSupportedException("Guid datatype is not supported");
         }
 
-        public override Int16 GetInt16(int i) => Convert.ToInt16(GetValue(i));
-        public override Int32 GetInt32(int i) => Convert.ToInt32(GetValue(i));
-        public override Int64 GetInt64(int i) => Convert.ToInt64(GetValue(i));
+        public override Int16 GetInt16(int i) => Convert.ToInt16(GetValueWithNullCheck(i));
+        public override Int32 GetInt32(int i) => Convert.ToInt32(GetValueWithNullCheck(i));
+        public override Int64 GetInt64(int i) => Convert.ToInt64(GetValueWithNullCheck(i));
 
         public override String GetName(int i)
         {
@@ -294,7 +294,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RowDescriptor.IndexOf(name);
         }
 
-        public override string GetString(int i) => Convert.ToString(GetValue(i));
+        public override string GetString(int i) => Convert.ToString(GetValueWithNullCheck(i));
 
         public override object GetValue(int i)
         {
@@ -338,6 +338,20 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
         internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
+
+        private object GetValueWithNullCheck(int i)
+        {
+            CheckNull(i);
+            
+            return _row[i];
+        }
+
+        private T GetProviderSpecificValue<T>(int i)
+        {
+            CheckNull(i);
+
+            return (T)_row[i];
+        }
 
         private void Close()
         {
@@ -420,16 +434,16 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (_position == STARTPOS)
             {
-                throw new InvalidOperationException("There are no data to read.");
+                throw new InvalidOperationException("Invalid attempt to read when no data is present..");
             }
         }
-
-        private T GetProviderSpecificValue<T>(int i)
+        
+        private void CheckNull(int i)
         {
-            CheckPosition();
-            CheckIndex(i);
-
-            return (T)_row[i];
+            if (IsDBNull(i))
+            {
+                throw new PgNullValueException("Data is Null. This method or property cannot be called on Null values.");
+            }
         }
 
         private void UpdateRecordsAffected()
