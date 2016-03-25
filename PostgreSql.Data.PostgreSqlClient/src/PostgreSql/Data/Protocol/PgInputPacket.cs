@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using PostgreSql.Data.PgTypes;
+using PostgreSql.Data.PostgreSqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -297,86 +298,86 @@ namespace PostgreSql.Data.Protocol
         {
             switch (type.DataType)
             {
-                case PgDataType.Array:
+                case PgDbType.Array:
                     return ReadArray(type, length);
 
-                case PgDataType.Vector:
+                case PgDbType.Vector:
                     return ReadVector(type, length);
 
-                case PgDataType.Binary:
+                case PgDbType.Binary:
                     return ReadBytes(length);
 
-                case PgDataType.Char:
+                case PgDbType.Char:
                     return ReadString(length).TrimEnd();
 
-                case PgDataType.VarChar:
-                case PgDataType.Refcursor:
+                case PgDbType.VarChar:
+                case PgDbType.Refcursor:
                     return ReadString(length);
 
-                case PgDataType.Boolean:
+                case PgDbType.Boolean:
                     return ReadBoolean();
 
-                case PgDataType.Byte:
+                case PgDbType.Byte:
                     return ReadByte();
 
-                case PgDataType.Decimal:
+                case PgDbType.Decimal:
                     return Decimal.Parse(ReadString(length), NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Currency:
+                case PgDbType.Currency:
                     return ReadCurrency();
 
-                case PgDataType.Float:
+                case PgDbType.Float:
                     return ReadSingle();
 
-                case PgDataType.Double:
+                case PgDbType.Double:
                     return ReadDouble();
 
-                case PgDataType.Int2:
+                case PgDbType.Int2:
                     return ReadInt16();
 
-                case PgDataType.Int4:
+                case PgDbType.Int4:
                     return ReadInt32();
 
-                case PgDataType.Int8:
+                case PgDbType.Int8:
                     return ReadInt64();
 
-                case PgDataType.Interval:
+                case PgDbType.Interval:
                     return ReadInterval();
 
-                case PgDataType.Date:
+                case PgDbType.Date:
                     return ReadDate();
 
-                case PgDataType.Time:
+                case PgDbType.Time:
                     return ReadTime(length);
 
-                case PgDataType.TimeWithTZ:
+                case PgDbType.TimeWithTZ:
                     return ReadTimeWithTZ(length);
 
-                case PgDataType.Timestamp:
+                case PgDbType.Timestamp:
                     return ReadTimestamp(length);
 
-                case PgDataType.TimestampWithTZ:
+                case PgDbType.TimestampWithTZ:
                     return ReadTimestampWithTZ(length);
 
-                case PgDataType.Point:
+                case PgDbType.Point:
                    return ReadPoint();
 
-                case PgDataType.Circle:
+                case PgDbType.Circle:
                    return ReadCircle();
 
-                case PgDataType.Line:
+                case PgDbType.Line:
                    return ReadLine();
 
-                case PgDataType.LSeg:
+                case PgDbType.LSeg:
                    return ReadLSeg();
 
-                case PgDataType.Box:
+                case PgDbType.Box:
                    return ReadBox();
 
-                case PgDataType.Polygon:
+                case PgDbType.Polygon:
                    return ReadPolygon();
 
-                case PgDataType.Path:
+                case PgDbType.Path:
                    return ReadPath();
 
                 default:
@@ -395,18 +396,18 @@ namespace PostgreSql.Data.Protocol
 
             switch (type.DataType)
             {
-                case PgDataType.Binary:
+                case PgDbType.Binary:
                     return null;
 
-                case PgDataType.Char:
+                case PgDbType.Char:
                     return stringValue.TrimEnd();
 
-                case PgDataType.VarChar:
-                case PgDataType.Refcursor:
-                case PgDataType.Text:
+                case PgDbType.VarChar:
+                case PgDbType.Refcursor:
+                case PgDbType.Text:
                     return stringValue;
 
-                case PgDataType.Boolean:
+                case PgDbType.Boolean:
                     switch (stringValue.ToLower())
                     {
                         case "t":
@@ -420,63 +421,63 @@ namespace PostgreSql.Data.Protocol
                             return false;
                     }
 
-                case PgDataType.Byte:
+                case PgDbType.Byte:
                     return Byte.Parse(stringValue);
 
-                case PgDataType.Decimal:
+                case PgDbType.Decimal:
                     return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Currency:
-                case PgDataType.Float:
+                case PgDbType.Currency:
+                case PgDbType.Float:
                     return Single.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Double:
+                case PgDbType.Double:
                     return Double.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Int2:
+                case PgDbType.Int2:
                     return Int16.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Int4:
+                case PgDbType.Int4:
                     return Int32.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Int8:
+                case PgDbType.Int8:
                     return Int64.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDataType.Interval:
+                case PgDbType.Interval:
                     return null;
 
-                case PgDataType.Date:
-                case PgDataType.Timestamp:
-                case PgDataType.Time:
-                case PgDataType.TimeWithTZ:
-                case PgDataType.TimestampWithTZ:
+                case PgDbType.Date:
+                case PgDbType.Timestamp:
+                case PgDbType.Time:
+                case PgDbType.TimeWithTZ:
+                case PgDbType.TimestampWithTZ:
                     return DateTime.Parse(stringValue);
 
-                case PgDataType.Point:
+                case PgDbType.Point:
                    return PgPoint.Parse(stringValue);
 
-                case PgDataType.Circle:
+                case PgDbType.Circle:
                    return PgCircle.Parse(stringValue);
 
-                case PgDataType.Line:
+                case PgDbType.Line:
                    return PgLine.Parse(stringValue);
 
-                case PgDataType.LSeg:
+                case PgDbType.LSeg:
                    return PgLSeg.Parse(stringValue);
 
-                case PgDataType.Box:
+                case PgDbType.Box:
                    return PgBox.Parse(stringValue);
 
-                case PgDataType.Polygon:
+                case PgDbType.Polygon:
                    return PgPolygon.Parse(stringValue);
 
-                case PgDataType.Path:
+                case PgDbType.Path:
                    return PgPath.Parse(stringValue);
 
-                case PgDataType.Box2D:
+                case PgDbType.Box2D:
                    return PgBox2D.Parse(stringValue);
 
-                case PgDataType.Box3D:
+                case PgDbType.Box3D:
                    return PgBox3D.Parse(stringValue);
 
                 default:

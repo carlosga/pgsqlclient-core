@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using PostgreSql.Data.PostgreSqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -63,7 +64,7 @@ namespace PostgreSql.Data.Protocol
 
         public void Add(int          oid
                       , string       name
-                      , PgDataType   dataType
+                      , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size)                      
@@ -71,7 +72,7 @@ namespace PostgreSql.Data.Protocol
 
         public void Add(int          oid
                       , string       name
-                      , PgDataType   dataType
+                      , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size
@@ -80,7 +81,7 @@ namespace PostgreSql.Data.Protocol
 
         public void Add(int          oid
                       , string       name
-                      , PgDataType   dataType
+                      , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size

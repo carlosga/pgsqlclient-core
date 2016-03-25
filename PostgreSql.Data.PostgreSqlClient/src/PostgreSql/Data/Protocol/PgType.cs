@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using PostgreSql.Data.PostgreSqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -12,74 +13,74 @@ namespace PostgreSql.Data.Protocol
         {
             var dataTypes = new PgTypeCollection(60);
            
-            dataTypes.Add(  16, "bool"       , PgDataType.Boolean        ,    0, PgTypeFormat.Binary, 1);
-            dataTypes.Add(  17, "bytea"      , PgDataType.Binary         ,    0, PgTypeFormat.Binary, Int32.MaxValue);
-            dataTypes.Add(  18, "char"       , PgDataType.Char           ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(  19, "name"       , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(  20, "int8"       , PgDataType.Int8           ,    0, PgTypeFormat.Binary, 8);
-            dataTypes.Add(  21, "int2"       , PgDataType.Int2           ,    0, PgTypeFormat.Binary, 2);
-            dataTypes.Add(  22, "int2vector" , PgDataType.Vector         ,   21, PgTypeFormat.Binary, 2);
-            dataTypes.Add(  23, "int4"       , PgDataType.Int4           ,    0, PgTypeFormat.Binary, 4);
-            dataTypes.Add(  24, "regproc"    , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(  25, "text"       , PgDataType.Text           ,    0, PgTypeFormat.Text  , Int32.MaxValue);
-            dataTypes.Add(  26, "oid"        , PgDataType.Int4           ,    0, PgTypeFormat.Binary, 4);
-            dataTypes.Add(  30, "oidvector"  , PgDataType.Vector         ,   26, PgTypeFormat.Binary, 4);
-            dataTypes.Add( 600, "point"      , PgDataType.Point          ,  701, PgTypeFormat.Binary, 16, ",");
-            dataTypes.Add( 601, "lseg"       , PgDataType.LSeg           ,  600, PgTypeFormat.Binary, 32, ",");
-            dataTypes.Add( 602, "path"       , PgDataType.Path           ,    0, PgTypeFormat.Binary, 16, ",");
-            dataTypes.Add( 603, "box"        , PgDataType.Box            ,  600, PgTypeFormat.Binary, 32, ";");
-            dataTypes.Add( 604, "polygon"    , PgDataType.Polygon        ,    0, PgTypeFormat.Binary, 16, ",");
-            dataTypes.Add( 628, "line"       , PgDataType.Line           ,  701, PgTypeFormat.Binary, 32, ",");
-            dataTypes.Add( 629, "_line"      , PgDataType.Array          ,  628, PgTypeFormat.Binary, 32);
-            dataTypes.Add( 718, "circle"     , PgDataType.Circle         ,    0, PgTypeFormat.Binary, 24, ",");
-            dataTypes.Add( 719, "_circle"    , PgDataType.Array          ,  718, PgTypeFormat.Binary, 24);
-            dataTypes.Add( 700, "float4"     , PgDataType.Float          ,    0, PgTypeFormat.Text  , 4);
-            dataTypes.Add( 701, "float8"     , PgDataType.Double         ,    0, PgTypeFormat.Binary, 8);
-            dataTypes.Add( 705, "unknown"    , PgDataType.Text           ,    0, PgTypeFormat.Binary, 0);
-            dataTypes.Add( 790, "money"      , PgDataType.Currency       ,    0, PgTypeFormat.Binary, 4);
-            dataTypes.Add( 829, "macaddr"    , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 6);
-            dataTypes.Add( 869, "inet"       , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(1000, "_bool"      , PgDataType.Array          ,   16, PgTypeFormat.Binary, 1);
-            dataTypes.Add(1002, "_char"      , PgDataType.Array          ,   18, PgTypeFormat.Binary, 0);
-            dataTypes.Add(1005, "_int2"      , PgDataType.Array          ,   21, PgTypeFormat.Binary, 2);
-            dataTypes.Add(1007, "_int4"      , PgDataType.Array          ,   23, PgTypeFormat.Binary, 4);
-            dataTypes.Add(1009, "_text"      , PgDataType.Array          ,   25, PgTypeFormat.Binary, 0);
-            dataTypes.Add(1016, "_int8"      , PgDataType.Array          ,   20, PgTypeFormat.Binary, 8);
-            dataTypes.Add(1017, "_point"     , PgDataType.Array          ,  600, PgTypeFormat.Binary, 16);
-            dataTypes.Add(1018, "_lseg"      , PgDataType.Array          ,  601, PgTypeFormat.Binary, 32);
-            dataTypes.Add(1019, "_path"      , PgDataType.Array          ,  602, PgTypeFormat.Binary, -1);
-            dataTypes.Add(1020, "_box"       , PgDataType.Array          ,  603, PgTypeFormat.Binary, 32);
-            dataTypes.Add(1021, "_float4"    , PgDataType.Array          ,  700, PgTypeFormat.Binary, 4);
-            dataTypes.Add(1027, "_polygon"   , PgDataType.Array          ,  604, PgTypeFormat.Binary, 16);
-            dataTypes.Add(1028, "_oid"       , PgDataType.Array          ,   26, PgTypeFormat.Binary, 4);
-            dataTypes.Add(1033, "aclitem"    , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 12);
-            dataTypes.Add(1034, "_aclitem"   , PgDataType.Array          , 1033, PgTypeFormat.Text  , 0);
-            dataTypes.Add(1042, "bpchar"     , PgDataType.Char           ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(1043, "varchar"    , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(1082, "date"       , PgDataType.Date           ,    0, PgTypeFormat.Binary, 4);
-            dataTypes.Add(1083, "time"       , PgDataType.Time           ,    0, PgTypeFormat.Text  , 8);
-            dataTypes.Add(1114, "timestamp"  , PgDataType.Timestamp      ,    0, PgTypeFormat.Text  , 8);
-            dataTypes.Add(1184, "timestamptz", PgDataType.TimestampWithTZ,    0, PgTypeFormat.Binary, 8);
-            dataTypes.Add(1186, "interval"   , PgDataType.Interval       ,    0, PgTypeFormat.Binary, 12);
-            dataTypes.Add(1266, "timetz"     , PgDataType.TimeWithTZ     ,    0, PgTypeFormat.Binary, 12);
-            dataTypes.Add(1560, "bit"        , PgDataType.Byte           ,    0, PgTypeFormat.Text  , 1);
-            dataTypes.Add(1562, "varbit"     , PgDataType.Byte           ,    0, PgTypeFormat.Binary, 0);
-            dataTypes.Add(1700, "numeric"    , PgDataType.Decimal        ,    0, PgTypeFormat.Text  , 8);
-            dataTypes.Add(1790, "refcursor"  , PgDataType.Refcursor      ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(2205, "regclass"   , PgDataType.VarChar        ,    0, PgTypeFormat.Text  , 0);
-            dataTypes.Add(2278, "void"       , PgDataType.Void           ,    0, PgTypeFormat.Binary, 0);
+            dataTypes.Add(  16, "bool"       , PgDbType.Boolean        ,    0, PgTypeFormat.Binary, 1);
+            dataTypes.Add(  17, "bytea"      , PgDbType.Binary         ,    0, PgTypeFormat.Binary, Int32.MaxValue);
+            dataTypes.Add(  18, "char"       , PgDbType.Char           ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(  19, "name"       , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(  20, "int8"       , PgDbType.Int8           ,    0, PgTypeFormat.Binary, 8);
+            dataTypes.Add(  21, "int2"       , PgDbType.Int2           ,    0, PgTypeFormat.Binary, 2);
+            dataTypes.Add(  22, "int2vector" , PgDbType.Vector         ,   21, PgTypeFormat.Binary, 2);
+            dataTypes.Add(  23, "int4"       , PgDbType.Int4           ,    0, PgTypeFormat.Binary, 4);
+            dataTypes.Add(  24, "regproc"    , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(  25, "text"       , PgDbType.Text           ,    0, PgTypeFormat.Text  , Int32.MaxValue);
+            dataTypes.Add(  26, "oid"        , PgDbType.Int4           ,    0, PgTypeFormat.Binary, 4);
+            dataTypes.Add(  30, "oidvector"  , PgDbType.Vector         ,   26, PgTypeFormat.Binary, 4);
+            dataTypes.Add( 600, "point"      , PgDbType.Point          ,  701, PgTypeFormat.Binary, 16, ",");
+            dataTypes.Add( 601, "lseg"       , PgDbType.LSeg           ,  600, PgTypeFormat.Binary, 32, ",");
+            dataTypes.Add( 602, "path"       , PgDbType.Path           ,    0, PgTypeFormat.Binary, 16, ",");
+            dataTypes.Add( 603, "box"        , PgDbType.Box            ,  600, PgTypeFormat.Binary, 32, ";");
+            dataTypes.Add( 604, "polygon"    , PgDbType.Polygon        ,    0, PgTypeFormat.Binary, 16, ",");
+            dataTypes.Add( 628, "line"       , PgDbType.Line           ,  701, PgTypeFormat.Binary, 32, ",");
+            dataTypes.Add( 629, "_line"      , PgDbType.Array          ,  628, PgTypeFormat.Binary, 32);
+            dataTypes.Add( 718, "circle"     , PgDbType.Circle         ,    0, PgTypeFormat.Binary, 24, ",");
+            dataTypes.Add( 719, "_circle"    , PgDbType.Array          ,  718, PgTypeFormat.Binary, 24);
+            dataTypes.Add( 700, "float4"     , PgDbType.Float          ,    0, PgTypeFormat.Text  , 4);
+            dataTypes.Add( 701, "float8"     , PgDbType.Double         ,    0, PgTypeFormat.Binary, 8);
+            dataTypes.Add( 705, "unknown"    , PgDbType.Text           ,    0, PgTypeFormat.Binary, 0);
+            dataTypes.Add( 790, "money"      , PgDbType.Currency       ,    0, PgTypeFormat.Binary, 4);
+            dataTypes.Add( 829, "macaddr"    , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 6);
+            dataTypes.Add( 869, "inet"       , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(1000, "_bool"      , PgDbType.Array          ,   16, PgTypeFormat.Binary, 1);
+            dataTypes.Add(1002, "_char"      , PgDbType.Array          ,   18, PgTypeFormat.Binary, 0);
+            dataTypes.Add(1005, "_int2"      , PgDbType.Array          ,   21, PgTypeFormat.Binary, 2);
+            dataTypes.Add(1007, "_int4"      , PgDbType.Array          ,   23, PgTypeFormat.Binary, 4);
+            dataTypes.Add(1009, "_text"      , PgDbType.Array          ,   25, PgTypeFormat.Binary, 0);
+            dataTypes.Add(1016, "_int8"      , PgDbType.Array          ,   20, PgTypeFormat.Binary, 8);
+            dataTypes.Add(1017, "_point"     , PgDbType.Array          ,  600, PgTypeFormat.Binary, 16);
+            dataTypes.Add(1018, "_lseg"      , PgDbType.Array          ,  601, PgTypeFormat.Binary, 32);
+            dataTypes.Add(1019, "_path"      , PgDbType.Array          ,  602, PgTypeFormat.Binary, -1);
+            dataTypes.Add(1020, "_box"       , PgDbType.Array          ,  603, PgTypeFormat.Binary, 32);
+            dataTypes.Add(1021, "_float4"    , PgDbType.Array          ,  700, PgTypeFormat.Binary, 4);
+            dataTypes.Add(1027, "_polygon"   , PgDbType.Array          ,  604, PgTypeFormat.Binary, 16);
+            dataTypes.Add(1028, "_oid"       , PgDbType.Array          ,   26, PgTypeFormat.Binary, 4);
+            dataTypes.Add(1033, "aclitem"    , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 12);
+            dataTypes.Add(1034, "_aclitem"   , PgDbType.Array          , 1033, PgTypeFormat.Text  , 0);
+            dataTypes.Add(1042, "bpchar"     , PgDbType.Char           ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(1043, "varchar"    , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(1082, "date"       , PgDbType.Date           ,    0, PgTypeFormat.Binary, 4);
+            dataTypes.Add(1083, "time"       , PgDbType.Time           ,    0, PgTypeFormat.Text  , 8);
+            dataTypes.Add(1114, "timestamp"  , PgDbType.Timestamp      ,    0, PgTypeFormat.Text  , 8);
+            dataTypes.Add(1184, "timestamptz", PgDbType.TimestampWithTZ,    0, PgTypeFormat.Binary, 8);
+            dataTypes.Add(1186, "interval"   , PgDbType.Interval       ,    0, PgTypeFormat.Binary, 12);
+            dataTypes.Add(1266, "timetz"     , PgDbType.TimeWithTZ     ,    0, PgTypeFormat.Binary, 12);
+            dataTypes.Add(1560, "bit"        , PgDbType.Byte           ,    0, PgTypeFormat.Text  , 1);
+            dataTypes.Add(1562, "varbit"     , PgDbType.Byte           ,    0, PgTypeFormat.Binary, 0);
+            dataTypes.Add(1700, "numeric"    , PgDbType.Decimal        ,    0, PgTypeFormat.Text  , 8);
+            dataTypes.Add(1790, "refcursor"  , PgDbType.Refcursor      ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(2205, "regclass"   , PgDbType.VarChar        ,    0, PgTypeFormat.Text  , 0);
+            dataTypes.Add(2278, "void"       , PgDbType.Void           ,    0, PgTypeFormat.Binary, 0);
                       
             // PostGIS datatypes         
-            dataTypes.Add(17321, "box3d", PgDataType.Box3D, 0, PgTypeFormat.Text, 48, ",", "BOX3D");
-            dataTypes.Add(17335, "box2d", PgDataType.Box2D, 0, PgTypeFormat.Text, 16, ",", "BOX");
-            // dataTypes.Add(-1    , "polygon2d"   , PgDataType.Box2D      , 0, PgTypeFormat.Text, 16, ",", "POLYGON");
+            dataTypes.Add(17321, "box3d", PgDbType.Box3D, 0, PgTypeFormat.Text, 48, ",", "BOX3D");
+            dataTypes.Add(17335, "box2d", PgDbType.Box2D, 0, PgTypeFormat.Text, 16, ",", "BOX");
+            // dataTypes.Add(-1    , "polygon2d"   , PgDbType.Box2D      , 0, PgTypeFormat.Text, 16, ",", "POLYGON");
 
             return dataTypes;
         }
 
         private int                   _oid;
         private readonly string       _name;
-        private readonly PgDataType   _dataType;
+        private readonly PgDbType     _dataType;
         private readonly PgTypeFormat _format;
         private readonly Type         _systemType;
         private readonly int          _elementType;
@@ -93,15 +94,15 @@ namespace PostgreSql.Data.Protocol
             set { _oid = value; }
         }
 
-        internal PgDataType   DataType    => _dataType;
+        internal PgDbType     DataType    => _dataType;
         internal string       Name        => _name;
         internal Type         SystemType  => _systemType;
         internal int          ElementType => _elementType; 
         internal PgTypeFormat Format      => _format;
         internal int          Size        => _size;
-        internal bool         IsArray     => (_dataType == PgDataType.Array);
-        internal bool         IsBinary    => (_dataType == PgDataType.Binary);
-        internal bool         IsRefCursor => (_dataType == PgDataType.Refcursor);
+        internal bool         IsArray     => (_dataType == PgDbType.Array);
+        internal bool         IsBinary    => (_dataType == PgDbType.Binary);
+        internal bool         IsRefCursor => (_dataType == PgDbType.Refcursor);
         internal string       Delimiter   => _delimiter;
         internal string       Prefix      => _prefix;
 
@@ -109,14 +110,14 @@ namespace PostgreSql.Data.Protocol
         {
             get
             {
-                return (_dataType == PgDataType.Currency
-                     || _dataType == PgDataType.Int2
-                     || _dataType == PgDataType.Int4
-                     || _dataType == PgDataType.Int8
-                     || _dataType == PgDataType.Float
-                     || _dataType == PgDataType.Double
-                     || _dataType == PgDataType.Decimal
-                     || _dataType == PgDataType.Byte);
+                return (_dataType == PgDbType.Currency
+                     || _dataType == PgDbType.Int2
+                     || _dataType == PgDbType.Int4
+                     || _dataType == PgDbType.Int8
+                     || _dataType == PgDbType.Float
+                     || _dataType == PgDbType.Double
+                     || _dataType == PgDbType.Decimal
+                     || _dataType == PgDbType.Byte);
             }
         }
 
@@ -124,25 +125,25 @@ namespace PostgreSql.Data.Protocol
         {
             get
             {
-                return (_dataType == PgDataType.Boolean
-                     || _dataType == PgDataType.Byte
-                     || _dataType == PgDataType.Int2
-                     || _dataType == PgDataType.Int4
-                     || _dataType == PgDataType.Int8
-                     || _dataType == PgDataType.Char
-                     || _dataType == PgDataType.Double
-                     || _dataType == PgDataType.Float);
+                return (_dataType == PgDbType.Boolean
+                     || _dataType == PgDbType.Byte
+                     || _dataType == PgDbType.Int2
+                     || _dataType == PgDbType.Int4
+                     || _dataType == PgDbType.Int8
+                     || _dataType == PgDbType.Char
+                     || _dataType == PgDbType.Double
+                     || _dataType == PgDbType.Float);
             }
         }
 
-        internal PgType(int oid, string name, PgDataType dataType, int elementType, PgTypeFormat format, int size)
+        internal PgType(int oid, string name, PgDbType dataType, int elementType, PgTypeFormat format, int size)
             : this(oid, name, dataType, elementType, format, size, String.Empty)
         {
         }
 
         internal PgType(int          oid
                       , string       name
-                      , PgDataType   dataType
+                      , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat format
                       , int          size
@@ -153,7 +154,7 @@ namespace PostgreSql.Data.Protocol
 
         internal PgType(int          oid
                       , string       name
-                      , PgDataType   dataType
+                      , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat format
                       , int          size

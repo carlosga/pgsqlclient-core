@@ -109,7 +109,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             NumericPrecision = descriptor.NumericPrecision;
             NumericScale     = descriptor.NumericScale;
             
-            // ProviderDbType = (PgDbType)_statement.RowDescriptor[i].Type.DataType;
+            // ProviderDbType = _statement.RowDescriptor[i].Type.DataType;
         }
     }
 }

@@ -197,75 +197,75 @@ namespace PostgreSql.Data.Protocol
             return providerType;
         }
 
-        internal static Type GetSystemType(PgDataType dataType)
+        internal static Type GetSystemType(PgDbType dataType)
         {
             switch (dataType)
             {
-                case PgDataType.Array:
-                case PgDataType.Binary:
-                case PgDataType.Vector:
+                case PgDbType.Array:
+                case PgDbType.Binary:
+                case PgDbType.Vector:
                     return typeof(System.Array);
 
-                case PgDataType.Boolean:
+                case PgDbType.Boolean:
                     return typeof(System.Boolean);
 
-                case PgDataType.Box:
+                case PgDbType.Box:
                     return typeof(PostgreSql.Data.PgTypes.PgBox);
 
-                case PgDataType.Circle:
+                case PgDbType.Circle:
                     return typeof(PostgreSql.Data.PgTypes.PgCircle);
 
-                case PgDataType.Line:
+                case PgDbType.Line:
                     return typeof(PostgreSql.Data.PgTypes.PgLine);
 
-                case PgDataType.LSeg:
+                case PgDbType.LSeg:
                     return typeof(PostgreSql.Data.PgTypes.PgLSeg);
 
-                case PgDataType.Path:
+                case PgDbType.Path:
                     return typeof(PostgreSql.Data.PgTypes.PgPath);
 
-                case PgDataType.Point:
+                case PgDbType.Point:
                     return typeof(PostgreSql.Data.PgTypes.PgPoint);
 
-                case PgDataType.Polygon:
+                case PgDbType.Polygon:
                     return typeof(PostgreSql.Data.PgTypes.PgPolygon);
 
-                case PgDataType.Byte:
+                case PgDbType.Byte:
                     return typeof(System.Byte);
 
-                case PgDataType.Char:
-                case PgDataType.Text:
-                case PgDataType.VarChar:
+                case PgDbType.Char:
+                case PgDbType.Text:
+                case PgDbType.VarChar:
                     return typeof(System.String);
 
-                case PgDataType.Currency:
-                case PgDataType.Decimal:
-                case PgDataType.Numeric:
+                case PgDbType.Currency:
+                case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     return typeof(System.Decimal);
 
-                case PgDataType.Date:
-                case PgDataType.Time:
-                case PgDataType.TimeWithTZ:
-                case PgDataType.Timestamp:
-                case PgDataType.TimestampWithTZ:
+                case PgDbType.Date:
+                case PgDbType.Time:
+                case PgDbType.TimeWithTZ:
+                case PgDbType.Timestamp:
+                case PgDbType.TimestampWithTZ:
                     return typeof(System.DateTime);
 
-                case PgDataType.Double:
+                case PgDbType.Double:
                     return typeof(System.Double);
 
-                case PgDataType.Float:
+                case PgDbType.Float:
                     return typeof(System.Single);
 
-                case PgDataType.Int2:
+                case PgDbType.Int2:
                     return typeof(System.Int16);
 
-                case PgDataType.Int4:
+                case PgDbType.Int4:
                     return typeof(System.Int32);
 
-                case PgDataType.Int8:
+                case PgDbType.Int8:
                     return typeof(System.Int64);
 
-                case PgDataType.Refcursor:
+                case PgDbType.Refcursor:
                     return typeof(DataTable);
 
                 default:
