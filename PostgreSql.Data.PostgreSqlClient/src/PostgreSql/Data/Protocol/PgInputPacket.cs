@@ -27,26 +27,26 @@ namespace PostgreSql.Data.Protocol
         //     return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
         // }
         
-        private readonly char        _message;
+        private readonly char        _packetType;
         private readonly byte[]      _contents;
         private readonly SessionData _sessionData;
         
         private int _position;
 
-        internal char Message           => _message;
+        internal char PacketType        => _packetType;
         internal int  Length            => _contents.Length;
         internal int  Position          => _position;
         internal bool EOF               => (_position >= _contents.Length);
-        internal bool IsReadyForQuery   => (_message == PgBackendCodes.READY_FOR_QUERY);
-        internal bool IsCommandComplete => (_message == PgBackendCodes.COMMAND_COMPLETE);
-        internal bool IsPortalSuspended => (_message == PgBackendCodes.PORTAL_SUSPENDED);
-        internal bool IsNoData          => (_message == PgBackendCodes.NODATA);
-        internal bool IsCloseComplete   => (_message == PgBackendCodes.CLOSE_COMPLETE);
-        internal bool IsRowDescription  => (_message == PgBackendCodes.ROW_DESCRIPTION);
+        internal bool IsReadyForQuery   => (_packetType == PgBackendCodes.READY_FOR_QUERY);
+        internal bool IsCommandComplete => (_packetType == PgBackendCodes.COMMAND_COMPLETE);
+        internal bool IsPortalSuspended => (_packetType == PgBackendCodes.PORTAL_SUSPENDED);
+        internal bool IsNoData          => (_packetType == PgBackendCodes.NODATA);
+        internal bool IsCloseComplete   => (_packetType == PgBackendCodes.CLOSE_COMPLETE);
+        internal bool IsRowDescription  => (_packetType == PgBackendCodes.ROW_DESCRIPTION);
 
-        internal PgInputPacket(char message, byte[] contents, SessionData sessionData)
+        internal PgInputPacket(char packetType, byte[] contents, SessionData sessionData)
         {
-            _message     = message;
+            _packetType  = packetType;
             _contents    = contents;
             _sessionData = sessionData;
             _position    = 0;

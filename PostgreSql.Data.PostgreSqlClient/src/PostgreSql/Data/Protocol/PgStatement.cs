@@ -673,7 +673,7 @@ namespace PostgreSql.Data.Protocol
 
         private void HandleSqlMessage(PgInputPacket packet)
         {
-            switch (packet.Message)
+            switch (packet.PacketType)
             {
                 case PgBackendCodes.DATAROW:
                     _hasRows = true;

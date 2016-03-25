@@ -24,7 +24,7 @@ namespace ConsoleApplication
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
-                PgCommand command = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command.CommandTimeout = 1;
                 Task<object> result = command.ExecuteScalarAsync();
 
@@ -32,15 +32,17 @@ namespace ConsoleApplication
                 //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
                 //Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                PgCommand command2 = new PgCommand("pg_sleep(1);SELECT 1", connection);
+                PgCommand command2 = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
                 command2.CommandTimeout = 1;
-                result = command2.ExecuteScalarAsync();
+                Task<object> result2 = command2.ExecuteScalarAsync();
 
-                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");
+                Task.WaitAll(result, result2);
+
+                //Assert.True(((IAsyncResult)result).AsyncWaitHandle.WaitOne(30 * 1000), "Expected timeout after six or so seconds, but no results after 30 seconds");                
                 //Assert.True(result.IsFaulted, string.Format("Expected task result to be faulted, but instead it was {0}", result.Status));
 
                 // Pause here to ensure that the async closing is completed
-                // Thread.Sleep(200);
+                Thread.Sleep(200);
                 // Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
             

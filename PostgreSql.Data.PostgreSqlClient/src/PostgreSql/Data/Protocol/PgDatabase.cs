@@ -238,7 +238,7 @@ namespace PostgreSql.Data.Protocol
         {
             var packet = _channel.ReadPacket(_sessionData);
             
-            switch (packet.Message)
+            switch (packet.PacketType)
             {
                 case PgBackendCodes.READY_FOR_QUERY:
                     switch (packet.ReadChar())
@@ -276,7 +276,7 @@ namespace PostgreSql.Data.Protocol
 
         private void HandlePacket(PgInputPacket packet)
         {
-            switch (packet.Message)
+            switch (packet.PacketType)
             {
                 case PgBackendCodes.AUTHENTICATION:
                     HandleAuthPacket(packet);

@@ -363,7 +363,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
         
-        public void WriteTo(Stream stream)
+        internal void WriteTo(Stream stream)
         {
             if (_packetType != PgFrontEndCodes.UNTYPED)
             {
