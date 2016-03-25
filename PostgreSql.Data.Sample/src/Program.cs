@@ -38,33 +38,33 @@ namespace ConsoleApplication
                     }
                     Console.WriteLine($"#1 {rows}");
 
-                    // rows = 0;
-                    // while (reader2.Read())
-                    // {
-                    //     rows++;
-                    // }
-                    // Console.WriteLine($"#2 {rows}");
+                    rows = 0;
+                    while (reader2.Read())
+                    {
+                        rows++;
+                    }
+                    Console.WriteLine($"#2 {rows}");
 
-                    // rows = 0;
-                    // while (reader3.Read())
-                    // {
-                    //     rows++;
-                    // }
-                    // Console.WriteLine($"#3 {rows}");
+                    rows = 0;
+                    while (reader3.Read())
+                    {
+                        rows++;
+                    }
+                    Console.WriteLine($"#3 {rows}");
 
-                    // rows = 0;
-                    // while (reader4.Read())
-                    // {
-                    //     rows++;
-                    // }
-                    // Console.WriteLine($"#4 {rows}");
+                    rows = 0;
+                    while (reader4.Read())
+                    {
+                        rows++;
+                    }
+                    Console.WriteLine($"#4 {rows}");
 
-                    // rows = 0;
-                    // while (reader5.Read())
-                    // {
-                    //     rows++;
-                    // }
-                    // Console.WriteLine($"#5 {rows}");
+                    rows = 0;
+                    while (reader5.Read())
+                    {
+                        rows++;
+                    }
+                    Console.WriteLine($"#5 {rows}");
                 }
             }
             

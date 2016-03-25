@@ -122,7 +122,7 @@ namespace PostgreSql.Data.Protocol
 
                 _database.Lock();
                                 
-                string statementName = Guid.NewGuid().GetHashCode().ToString();
+                string statementName = Guid.NewGuid().ToString();
                 
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
@@ -551,13 +551,13 @@ namespace PostgreSql.Data.Protocol
             {
                 _allRowsFetched = true;
             }
-
+            
             // If all rows are received or the command doesn't return
             // rows perform a Sync.
-            if (!_hasRows || _allRowsFetched)
-            {
-                _database.Sync();
-            }
+            // if (!_hasRows || _allRowsFetched)
+            // {
+            //     _database.Sync();
+            // }            
 
             // Update status
             _status = PgStatementStatus.Executed;
@@ -776,8 +776,6 @@ namespace PostgreSql.Data.Protocol
                 _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
             }
         }
-
-        private int _rowCount = 0;
 
         private void ProcessDataRow(PgInputPacket packet)
         {
