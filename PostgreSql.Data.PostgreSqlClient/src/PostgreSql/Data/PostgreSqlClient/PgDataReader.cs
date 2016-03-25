@@ -36,7 +36,19 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override int  Depth           => 0;
         public override bool IsClosed        => !_open;
         public override int  RecordsAffected => IsClosed ? _recordsAffected : -1;
-        public override bool HasRows         => _statement?.HasRows ?? false;
+        
+        public override bool HasRows
+        {
+            get
+            {
+                if (_disposed)
+                {
+                    throw new InvalidOperationException("Invalid attempt to read when no data is present.");
+                }
+                
+                return _statement.HasRows;
+            }
+        }
 
         internal PgDataReader(PgConnection connection, PgCommand command)
         {
@@ -74,7 +86,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _refCursors      = null;
                         _row             = null;
                         _recordsAffected = -1;
-                        _position        = -1;
+                        _position        = STARTPOS;
                         _metadata        = null;
                     }
                 }

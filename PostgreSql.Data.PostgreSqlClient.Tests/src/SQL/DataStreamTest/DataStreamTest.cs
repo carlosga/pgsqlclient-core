@@ -442,7 +442,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        // [Ignore("Not ported yet")]
         public static void OrphanReader()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -801,7 +800,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void HasRowsTest()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -817,7 +815,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     PgDataReader reader;
                     using (reader = cmd.ExecuteReader())
                     {
-                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");
+                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");                        
                         while (reader.Read())
                         {
                             Assert.True(reader.HasRows, "FAILED: Failure #2: HasRows");
@@ -848,7 +846,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
 
                     bool result;
-                    string errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "HasRows");
+                    string errorMessage = "Invalid attempt to read when no data is present.";
                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => result = reader.HasRows, errorMessage);
                 }
             }
