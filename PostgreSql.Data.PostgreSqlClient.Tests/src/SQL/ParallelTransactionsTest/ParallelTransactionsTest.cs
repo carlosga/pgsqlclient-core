@@ -10,43 +10,31 @@ using System;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public class ParallelTransactionsTest
     {
-        #region <<Basic Parallel Test>>
         [Test]
-        public void BasicParallelTest_ShouldThrowsUnsupported_Yukon()
+        public void BasicParallelTestShouldThrowsUnsupported()
         {
-            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
+            string connectionString     = DataTestClass.PostgreSql9_Pubs;
+            string expectedErrorMessage = "A transaction is currently active. Parallel transactions are not supported.";
+            
+            DataTestClass.AssertThrowsWrapper<InvalidOperationException>(
+                actionThatFails: () => { BasicParallelTest(connectionString); },
+                exceptionMessage: expectedErrorMessage);
         }
 
         [Test]
-        public void BasicParallelTest_ShouldThrowsUnsupported_Katmai()
+        public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported()
         {
-            BasicParallelTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
+            string connectionString     = DataTestClass.PostgreSql9_Pubs;
+            string expectedErrorMessage = "A transaction is currently active. Parallel transactions are not supported.";
+            
+            DataTestClass.AssertThrowsWrapper<InvalidOperationException>(
+                actionThatFails: () => { MultipleExecutesInSameTransactionTest(connectionString); },
+                exceptionMessage: expectedErrorMessage);
         }
-
-        private void BasicParallelTest_shouldThrowsUnsupported(string connectionString)
-        {
-            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(PgConnection).Name);
-            string tempTableName = "";
-            try
-            {
-                tempTableName = CreateTempTable(connectionString);
-                DataTestClass.AssertThrowsWrapper<InvalidOperationException>(
-                    actionThatFails: () => { BasicParallelTest(connectionString, tempTableName); },
-                    exceptionMessage: expectedErrorMessage);
-            }
-            finally
-            {
-                if (!string.IsNullOrEmpty(tempTableName))
-                {
-                    DropTempTable(connectionString, tempTableName);
-                }
-            }
-        }
-
-        private void BasicParallelTest(string connectionString, string tempTableName)
+        
+        private void BasicParallelTest(string connectionString)
         {
             using (var connection = new PgConnection(connectionString))
             {
@@ -55,15 +43,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 PgTransaction trans2 = connection.BeginTransaction();
                 PgTransaction trans3 = connection.BeginTransaction();
 
-                PgCommand com1 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com1 = new PgCommand("select au_id from authors limit 1", connection);
                 com1.Transaction = trans1;
                 com1.ExecuteNonQuery();
 
-                PgCommand com2 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com2 = new PgCommand("select au_id from authors limit 1", connection);
                 com2.Transaction = trans2;
                 com2.ExecuteNonQuery();
 
-                PgCommand com3 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com3 = new PgCommand("select au_id from authors limit 1", connection);
                 com3.Transaction = trans3;
                 com3.ExecuteNonQuery();
 
@@ -77,42 +65,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        #endregion
-
-        #region <<MultipleExecutesInSameTransactionTest>>
-        [Test]
-        public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Yukon()
-        {
-            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Pubs);
-        }
-
-        [Test]
-        public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported_Katmai()
-        {
-            MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(DataTestClass.PostgreSql9_Northwind);
-        }
-
-        private void MultipleExecutesInSameTransactionTest_shouldThrowsUnsupported(string connectionString)
-        {
-            string expectedErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported(typeof(PgConnection).Name);
-            string tempTableName = "";
-            try
-            {
-                tempTableName = CreateTempTable(connectionString);
-                DataTestClass.AssertThrowsWrapper<InvalidOperationException>(
-                    actionThatFails: () => { MultipleExecutesInSameTransactionTest(connectionString, tempTableName); },
-                    exceptionMessage: expectedErrorMessage);
-            }
-            finally
-            {
-                if (!string.IsNullOrEmpty(tempTableName))
-                {
-                    DropTempTable(connectionString, tempTableName);
-                }
-            }
-        }
-
-        private void MultipleExecutesInSameTransactionTest(string connectionString, string tempTableName)
+        private void MultipleExecutesInSameTransactionTest(string connectionString)
         {
             using (var connection = new PgConnection(connectionString))
             {
@@ -121,15 +74,15 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 PgTransaction trans2 = connection.BeginTransaction();
                 PgTransaction trans3 = connection.BeginTransaction();
 
-                PgCommand com1 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com1 = new PgCommand("select au_id from authors limit 1", connection);
                 com1.Transaction = trans1;
                 com1.ExecuteNonQuery();
 
-                PgCommand com2 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com2 = new PgCommand("select au_id from authors limit 1", connection);
                 com2.Transaction = trans2;
                 com2.ExecuteNonQuery();
 
-                PgCommand com3 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com3 = new PgCommand("select au_id from authors limit 1", connection);
                 com3.Transaction = trans3;
                 com3.ExecuteNonQuery();
 
@@ -141,40 +94,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 com2.Dispose();
                 com3.Dispose();
 
-                PgCommand com4 = new PgCommand($"select au_id from {tempTableName} limit 1", connection);
+                PgCommand com4 = new PgCommand($"select au_id from authors limit 1", connection);
                 com4.Transaction = trans1;
                 PgDataReader reader4 = com4.ExecuteReader();
                 reader4.Dispose();
                 com4.Dispose();
 
                 trans1.Rollback();
-            }
-        }
-        #endregion
-
-        private string CreateTempTable(string connectionString)
-        {
-            var uniqueKey = string.Format("{0}_{1}_{2}", Environment.GetEnvironmentVariable("ComputerName"), Environment.TickCount, Guid.NewGuid()).Replace("-", "_");
-            var tempTableName = "TEMP_" + uniqueKey;
-            using (var conn = new PgConnection(connectionString))
-            {
-                conn.Open();
-                PgCommand cmd = new PgCommand(string.Format("SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {0} from authors", tempTableName), conn);
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = string.Format("alter table {0} add constraint au_id_{1} primary key (au_id)", tempTableName, uniqueKey);
-                cmd.ExecuteNonQuery();
-            }
-
-            return tempTableName;
-        }
-
-        private void DropTempTable(string connectionString, string tempTableName)
-        {
-            using (PgConnection con1 = new PgConnection(connectionString))
-            {
-                con1.Open();
-                PgCommand cmd = new PgCommand($"drop table {tempTableName}", con1);
-                cmd.ExecuteNonQuery();
             }
         }
     }
