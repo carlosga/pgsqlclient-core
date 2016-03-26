@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using PostgreSql.Data.Protocol;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
