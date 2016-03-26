@@ -156,6 +156,11 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override bool NextResult()
         {
+            if (IsClosed)
+            {
+                throw InvalidRead();
+            }
+            
             // Reset position
             _position = STARTPOS;
 
@@ -201,12 +206,17 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        public override bool GetBoolean(int i) => Convert.ToBoolean(GetValueWithNullCheck(i));
-        public override byte GetByte(int i)    => Convert.ToByte(GetValueWithNullCheck(i));
+        public override bool GetBoolean(int i) => GetValueWithNullCheck<bool>(i);
+        public override byte GetByte(int i)    => GetValueWithNullCheck<byte>(i);
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
-            if (IsDBNull(i))
+            if (IsClosed)
+            {
+                throw InvalidRead();
+            }
+            
+            if (IsDBNull(i))            
             {
                 return 0;
             }
@@ -242,10 +252,15 @@ namespace PostgreSql.Data.PostgreSqlClient
             return bytesRead;
         }
 
-        public override char GetChar(int i) => Convert.ToChar(GetValueWithNullCheck(i));
+        public override char GetChar(int i) => GetValueWithNullCheck<char>(i);
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
+            if (IsClosed)
+            {
+                throw InvalidRead();
+            }
+
             if (IsDBNull(i))
             {
                 return 0;
@@ -289,9 +304,9 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RowDescriptor[i].Type.Name;
         }
 
-        public override DateTime GetDateTime(int i) => Convert.ToDateTime(GetValueWithNullCheck(i));
-        public override Decimal  GetDecimal(int i)  => Convert.ToDecimal(GetValueWithNullCheck(i));
-        public override double   GetDouble(int i)   => Convert.ToDouble(GetValueWithNullCheck(i));
+        public override DateTime GetDateTime(int i) => GetValueWithNullCheck<DateTime>(i);
+        public override Decimal  GetDecimal(int i)  => GetValueWithNullCheck<decimal>(i);
+        public override double   GetDouble(int i)   => GetValueWithNullCheck<double>(i);
 
         public override Type GetFieldType(int i)
         {
@@ -300,16 +315,16 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RowDescriptor[i].Type.SystemType;
         }
 
-        public override float GetFloat(int i) => Convert.ToSingle(GetValue(i));
+        public override float GetFloat(int i) => GetValueWithNullCheck<float>(i);
         
         public override Guid  GetGuid(int i)
         {
             throw new NotSupportedException("Guid datatype is not supported");
         }
 
-        public override Int16 GetInt16(int i) => Convert.ToInt16(GetValueWithNullCheck(i));
-        public override Int32 GetInt32(int i) => Convert.ToInt32(GetValueWithNullCheck(i));
-        public override Int64 GetInt64(int i) => Convert.ToInt64(GetValueWithNullCheck(i));
+        public override Int16 GetInt16(int i) => GetValueWithNullCheck<Int16>(i);
+        public override Int32 GetInt32(int i) => GetValueWithNullCheck<Int32>(i);
+        public override Int64 GetInt64(int i) => GetValueWithNullCheck<Int64>(i);
 
         public override String GetName(int i)
         {
@@ -328,7 +343,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _statement.RowDescriptor.IndexOf(name);
         }
 
-        public override string GetString(int i) => Convert.ToString(GetValueWithNullCheck(i));
+        public override string GetString(int i) => GetValueWithNullCheck<string>(i);
 
         public override object GetValue(int i)
         {
@@ -401,11 +416,11 @@ namespace PostgreSql.Data.PostgreSqlClient
             _position = STARTPOS;
         }
 
-        private object GetValueWithNullCheck(int i)
+        private T GetValueWithNullCheck<T>(int i)
         {
             CheckNull(i);
             
-            return _row[i];
+            return (T)_row[i];
         }
 
         private T GetProviderSpecificValue<T>(int i)
@@ -466,6 +481,10 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private void CheckPosition()
         {
+            if (IsClosed)
+            {
+                throw InvalidRead();
+            }
             if (_position == STARTPOS)
             {
                 throw InvalidRead();
