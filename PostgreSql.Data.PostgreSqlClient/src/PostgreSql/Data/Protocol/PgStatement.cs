@@ -557,7 +557,7 @@ namespace PostgreSql.Data.Protocol
             // if (!_hasRows || _allRowsFetched)
             // {
             //     _database.Sync();
-            // }            
+            // }
 
             // Update status
             _status = PgStatementStatus.Executed;
@@ -645,7 +645,7 @@ namespace PostgreSql.Data.Protocol
                     // Send packet to the server
                     _database.Send(packet);
 
-                    // Sync server and client
+                    // Flush pending messages
                     _database.Flush();
 
                     // Read until CLOSE COMPLETE message is received
@@ -740,6 +740,22 @@ namespace PostgreSql.Data.Protocol
             _outParameter.Value = packet.ReadValue(_outParameter.DataType, packet.ReadInt32());
         }
 
+        private void ProcessParameterDescription(PgInputPacket packet)
+        {
+            int oid   = 0;
+            int count = packet.ReadInt16();
+
+            _parameters.Clear();
+            _parameters.Capacity = count;
+
+            for (int i = 0; i < count; i++)
+            {
+                oid = packet.ReadInt32();
+
+                _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
+            }
+        }
+
         private void ProcessRowDescription(PgInputPacket packet)
         {
             int count = packet.ReadInt16();
@@ -761,32 +777,16 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        private void ProcessParameterDescription(PgInputPacket packet)
-        {
-            int oid   = 0;
-            int count = packet.ReadInt16();
-
-            _parameters.Clear();
-            _parameters.Capacity = count;
-
-            for (int i = 0; i < count; i++)
-            {
-                oid = packet.ReadInt32();
-
-                _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
-            }
-        }
-
         private void ProcessDataRow(PgInputPacket packet)
         {
             var count  = packet.ReadInt16();
             var values = new object[count];
-
+            
             for (int i = 0; i < values.Length; i++)
             {
                 int length = packet.ReadInt32();
 
-                if (length == -1)
+                if (length <= 0)
                 {
                     values[i] = DBNull.Value;
                 }

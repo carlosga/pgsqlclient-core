@@ -11,7 +11,6 @@ using System;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public class MultipleResultsTest 
         : DataTestClass
     {
@@ -26,46 +25,44 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             MultipleErrorHandling(new PgConnection(PostgreSql9_Northwind));
         }
 
-        private static void MultipleErrorHandling(DbConnection connection)
+        private static void MultipleErrorHandling(PgConnection connection)
         {
             try
             {
                 Console.WriteLine("MultipleErrorHandling {0}", connection.GetType().Name);
-                Type expectedException = null;
-                if (connection is PgConnection)
+                Type expectedException = typeof(PgException);
+
+                connection.InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
                 {
-                    ((PgConnection)connection).InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
-                    {
-                        Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
-                    };
-                    expectedException = typeof(PgException);
-                }
+                    Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
+                };
+
                 connection.Open();
 
                 using (DbCommand command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        "SELECT raise_notice('0');\n" +
-                        "SELECT 1 as num, 'ABC' as str;\n" +
-                        "SELECT raise_notice('1');\n" +
-                        "SELECT raise_exception('Error 1');\n" +
-                        "SELECT raise_notice('3');\n" +
-                        "SELECT 2 as num, 'ABC' as str;\n" +
-                        "SELECT raise_notice('4');\n" +
-                        "SELECT raise_exception('Error 2');\n" +
-                        "SELECT raise_notice('5');\n" +
-                        "SELECT 3 as num, 'ABC' as str;\n" +
-                        "SELECT raise_notice('6');\n" +
-                        "SELECT raise_exception('Error 3');\n" +
-                        "SELECT raise_notice('7');\n" +
-                        "SELECT 4 as num, 'ABC' as str;\n" +
-                        "SELECT raise_notice('8');\n" +
-                        "SELECT raise_exception('Error 4');\n" +
-                        "SELECT raise_notice('9');\n" +
-                        "SELECT 5 as num, 'ABC' as str;\n" +
-                        "SELECT raise_notice('10');\n" +
-                        "SELECT raise_exception('Error 5');\n" +
-                        "SELECT raise_notice('11');\n";
+                        "SELECT raise_notice('0');"
+                      + "SELECT 1 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('1');"
+                      + "SELECT raise_error('Error 1');"
+                      + "SELECT raise_notice('3');"
+                      + "SELECT 2 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('4');"
+                      + "SELECT raise_error('Error 2');"
+                      + "SELECT raise_notice('5');"
+                      + "SELECT 3 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('6');"
+                      + "SELECT raise_error('Error 3');"
+                      + "SELECT raise_notice('7');"
+                      + "SELECT 4 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('8');"
+                      + "SELECT raise_error('Error 4');" 
+                      + "SELECT raise_notice('9');"
+                      + "SELECT 5 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('10');"
+                      + "SELECT raise_error('Error 5');"
+                      + "SELECT raise_notice('11');";
 
                     try
                     {

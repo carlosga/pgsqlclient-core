@@ -27,6 +27,7 @@
                 "System.Reflection": "4.1.0-rc3-*",
                 "System.Reflection.TypeExtensions": "4.1.0-rc3-*",
                 "System.Resources.ResourceManager": "4.0.1-rc3-*",
+                "System.Security.Cryptography.Algorithms": "4.1.0-rc3-*",
                 "System.Security.Cryptography.X509Certificates": "4.1.0-rc3-*",
                 "System.Text.Encoding": "4.0.11-rc3-*",
                 "System.Threading": "4.0.11-rc3-*",

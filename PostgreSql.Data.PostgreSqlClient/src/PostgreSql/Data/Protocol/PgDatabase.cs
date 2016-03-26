@@ -23,7 +23,7 @@ namespace PostgreSql.Data.Protocol
         private int                 _secretKey;
         private PgTransactionStatus _transactionStatus;
         private bool                _open;
-        
+
         internal NotificationCallback Notification
         {
             get;
@@ -47,11 +47,11 @@ namespace PostgreSql.Data.Protocol
             get;
             set;
         }
-        
+
         internal SessionData         ServerConfiguration => _sessionData;
         internal PgConnectionOptions ConnectionOptions   => _connectionOptions;
         internal PgTransactionStatus TransactionStatus   => _transactionStatus;
-        
+
         private SemaphoreSlim _asyncActiveSemaphore;
         internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
         {
@@ -59,7 +59,7 @@ namespace PostgreSql.Data.Protocol
             // WaitHandle, we don't need to worry about Disposing it.
             return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
         }
-        
+
         internal PgDatabase(string connectionString)
         {
             _connectionOptions = new PgConnectionOptions(connectionString);
@@ -101,11 +101,11 @@ namespace PostgreSql.Data.Protocol
             // GC.SuppressFinalize(this);
         }
         #endregion
-       
+
         internal void Lock()
         {
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
-            sem.Wait();            
+            sem.Wait();
         }
 
         internal void ReleaseLock()
@@ -113,13 +113,13 @@ namespace PostgreSql.Data.Protocol
             SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
             sem.Release();
         }
-               
+
         internal void Open()
         {
             try
             {
                 Lock();
-                
+
                 // Reset instance data
                 _open        = false;
                 _sessionData = new SessionData();
@@ -128,27 +128,27 @@ namespace PostgreSql.Data.Protocol
                 if (_connectionOptions.Encrypt)
                 {
                     _channel.UserCertificateValidation = UserCertificateValidation;
-                    _channel.UserCertificateSelection  = UserCertificateSelection;                    
+                    _channel.UserCertificateSelection  = UserCertificateSelection;
                 }
-                
+
                 // Open the channel
                 _channel.Open(_connectionOptions.DataSource
                             , _connectionOptions.PortNumber
                             , _connectionOptions.Encrypt
                             , _connectionOptions.PacketSize);
-                        
+
                 // Send startup packet
                 SendStartupPacket();
-                
+
                 // Release lock
-                ReleaseLock();                
+                ReleaseLock();
             }
             catch (Exception)
             {
                 ReleaseLock();
 
                 Close();
-                 
+
                 throw;
             }
         }
@@ -158,7 +158,7 @@ namespace PostgreSql.Data.Protocol
             try
             {
                 Lock();
-                
+
                 _channel.Close();
             }
             catch
@@ -172,28 +172,28 @@ namespace PostgreSql.Data.Protocol
                 _handle            = -1;
                 _secretKey         = -1;
                 _channel           = null;
-                _open     = false;
+                _open              = false;
 
                 // Callback cleanup
                 InfoMessage               = null;
                 Notification              = null;
                 UserCertificateValidation = null;
                 UserCertificateSelection  = null;
-                
+
                 ReleaseLock();
             }
         }
-        
+
         internal void ReleaseCallbacks()
         {
             UserCertificateValidation = null;
             UserCertificateSelection  = null;
             InfoMessage               = null;
-            Notification              = null;            
+            Notification              = null;
         }
 
-        internal PgTransactionInternal CreateTransaction(IsolationLevel isolationLevel) 
-            => new PgTransactionInternal(this, isolationLevel);                        
+        internal PgTransactionInternal CreateTransaction(IsolationLevel isolationLevel)
+            => new PgTransactionInternal(this, isolationLevel);
 
         internal PgStatement CreateStatement() => new PgStatement(this);
 
@@ -205,25 +205,25 @@ namespace PostgreSql.Data.Protocol
         {
             if (!_open)
             {
-                return; 
+                return;
             }
-                         
+            
             _channel.WritePacket(PgFrontEndCodes.SYNC);
-            
+
             PgInputPacket response = null;
-            
-            do 
+
+            do
             {
                 response = Read();
                 
-                HandlePacket(response);                
+                HandlePacket(response);
             } while (!response.IsReadyForQuery);
         }
 
         internal void CancelRequest()
         {
             var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
-           
+
             packet.Write(16);
             packet.Write(PgCodes.CANCEL_REQUEST);
             packet.Write(_handle);
@@ -232,13 +232,13 @@ namespace PostgreSql.Data.Protocol
             // Send packet to the server
             _channel.WritePacket(packet);
         }
-        
+
         internal PgOutputPacket CreateOutputPacket(char type) => new PgOutputPacket(type, _sessionData);
-        
+
         internal PgInputPacket Read()
         {
             var packet = _channel.ReadPacket(_sessionData);
-                        
+
             switch (packet.PacketType)
             {
                 case PgBackendCodes.READY_FOR_QUERY:
@@ -250,8 +250,8 @@ namespace PostgreSql.Data.Protocol
 
                         case 'E':
                             _transactionStatus = PgTransactionStatus.Broken;
-                            break;                    
-                        
+                            break;
+
                         case 'I':
                         default:
                             _transactionStatus = PgTransactionStatus.Default;
@@ -259,29 +259,20 @@ namespace PostgreSql.Data.Protocol
                     }
                     break;
 
-                case PgBackendCodes.NOTICE_RESPONSE:
-                    // Read the notice message and raise an InfoMessage event
-                    InfoMessage?.Invoke(HandleErrorMessage(packet));
-                    break;
-
                 case PgBackendCodes.NOTIFICATION_RESPONSE:
+                    Console.WriteLine("PgBackendCodes.NOTIFICATION_RESPONSE");
                     HandleNotificationMessage(packet);
                     break;
-    
-                case PgBackendCodes.ERROR_RESPONSE:               
-                    // Read the error message and trow the exception
-                    var ex = HandleErrorMessage(packet);
 
-                    // Perform a sync
-                    Sync();
-
-                    // Throw the PostgreSQL exception
-                    throw ex;
+                case PgBackendCodes.NOTICE_RESPONSE:
+                case PgBackendCodes.ERROR_RESPONSE:
+                    HandleErrorMessage(packet);
+                    break;
             }
-            
+
             return packet;
         }
-       
+
         internal void Send(PgOutputPacket packet) => _channel.WritePacket(packet);
 
         private void SendStartupPacket()
@@ -289,7 +280,7 @@ namespace PostgreSql.Data.Protocol
             // Send Startup message
             var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
 
-            // user name 
+            // user name
             packet.Write(PgCodes.PROTOCOL_VERSION3);
             packet.WriteNullString("user");
             packet.WriteNullString(_connectionOptions.UserID);
@@ -316,25 +307,27 @@ namespace PostgreSql.Data.Protocol
             packet.WriteByte(0);
 
             _channel.WritePacket(packet);
-                        
+
             // Read startup response
             PgInputPacket response = null;
-            
-            do 
+
+            do
             {
                 response = Read();
-                                
+
                 HandlePacket(response);
             } while (!response.IsReadyForQuery);
+            
+            _open = true;
         }
 
         private void SendClearTextPasswordAuthentication(PgInputPacket packet)
         {
             var authPacket = CreateOutputPacket(PgFrontEndCodes.PASSWORD_MESSAGE);
-            
+
             authPacket.WriteNullString(_connectionOptions.Password);
-            
-            _channel.WritePacket(authPacket);            
+
+            _channel.WritePacket(authPacket);
         }
 
         private void SendPasswordAuthentication(PgInputPacket packet)
@@ -344,7 +337,7 @@ namespace PostgreSql.Data.Protocol
             var salt = packet.ReadBytes(4);
             var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
             authPacket.WriteNullString(hash);
-            
+
             _channel.WritePacket(authPacket);
         }
 
@@ -381,10 +374,10 @@ namespace PostgreSql.Data.Protocol
                 case PgCodes.AUTH_CLEARTEXT_PASSWORD:
                     SendClearTextPasswordAuthentication(packet);
                     break;
-                   
+
                 case PgCodes.AUTH_MD5_PASSWORD:
                     // Read salt used when encrypting the password
-                    SendPasswordAuthentication(packet);                    
+                    SendPasswordAuthentication(packet);
                    break;
 
                 default:
@@ -394,7 +387,7 @@ namespace PostgreSql.Data.Protocol
                 // case PgCodes.AUTH_KERBEROS_V4:      // Kerberos V4 authentication is required
                 // case PgCodes.AUTH_KERBEROS_V5:      // Kerberos V5 authentication is required
                 // case PgCodes.AuthenticationGSS:
-                //     // The frontend must now initiate a GSSAPI negotiation. 
+                //     // The frontend must now initiate a GSSAPI negotiation.
                 //     // The frontend will send a PasswordMessage with the first part of the GSSAPI data stream in response to this.
                 //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
                 //     throw new NotSupportedException();
@@ -408,18 +401,18 @@ namespace PostgreSql.Data.Protocol
                 //     break;
 
                 // case PgCodes.AuthenticationGSSContinue:
-                //     // This message contains the response data from the previous step of GSSAPI or SSPI negotiation 
-                //     // (AuthenticationGSS, AuthenticationSSPI or a previous AuthenticationGSSContinue). 
+                //     // This message contains the response data from the previous step of GSSAPI or SSPI negotiation
+                //     // (AuthenticationGSS, AuthenticationSSPI or a previous AuthenticationGSSContinue).
                 //     // If the GSSAPI or SSPI data in this message indicates more data is needed to complete the authentication,
-                //     // the frontend must send that data as another PasswordMessage. 
-                //     // If GSSAPI or SSPI authentication is completed by this message, the server will next send AuthenticationOk 
+                //     // the frontend must send that data as another PasswordMessage.
+                //     // If GSSAPI or SSPI authentication is completed by this message, the server will next send AuthenticationOk
                 //     // to indicate successful authentication or ErrorResponse to indicate failure.
                 //     throw new NotSupportedException();
                 //     break;
             }
         }
 
-        private PgClientException HandleErrorMessage(PgInputPacket packet)
+        private void HandleErrorMessage(PgInputPacket packet)
         {
             char   type  = ' ';
             string value = String.Empty;
@@ -429,7 +422,7 @@ namespace PostgreSql.Data.Protocol
             {
                 type  = packet.ReadChar();
                 value = packet.ReadNullString();
-                
+
                 switch (type)
                 {
                     case PgErrorCodes.SEVERITY:
@@ -473,8 +466,19 @@ namespace PostgreSql.Data.Protocol
                         break;
                 }
             }
+            
+            var exception = new PgClientException(error.Message, error);
+            
+            InfoMessage?.Invoke(exception);
+            
+            if (error.Severity == PgCodes.ERROR_SEVERITY
+             || error.Severity == PgCodes.FATAL_SEVERITY
+             || error.Severity == PgCodes.PANIC_SEVERITY)            
+            {
+                Sync();
 
-            return new PgClientException(error.Message, error);
+                throw exception;
+            }                        
         }
 
         private void HandleNotificationMessage(PgInputPacket packet)
@@ -485,8 +489,8 @@ namespace PostgreSql.Data.Protocol
 
             Notification?.Invoke(processId, condition, additional);
         }
-        
-        private void HandleParameterStatus(PgInputPacket packet) 
-            => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());            
+
+        private void HandleParameterStatus(PgInputPacket packet)
+            => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());
     }
 }

@@ -34,6 +34,8 @@ namespace PostgreSql.Data.Protocol
         private Stream        _stream;
         private byte[]        _buffer;
 
+        internal bool DataAvailable => _networkStream?.DataAvailable ?? false;
+
         internal PgNetworkChannel()
         {
             _buffer = new byte[8];
