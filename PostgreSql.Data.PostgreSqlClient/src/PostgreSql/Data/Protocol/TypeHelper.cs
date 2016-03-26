@@ -46,8 +46,8 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Timestamp:
                     return DbType.DateTime;
 
-                case PgDbType.TimeWithTZ:
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimeTZ:
+                case PgDbType.TimestampTZ:
                     return DbType.DateTimeOffset;
 
                 case PgDbType.Decimal:
@@ -97,7 +97,7 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Timestamp;
 
                 case DbType.DateTimeOffset:
-                    return PgDbType.TimestampWithTZ;
+                    return PgDbType.TimestampTZ;
 
                 case DbType.Decimal:
                     return PgDbType.Decimal;
@@ -245,9 +245,9 @@ namespace PostgreSql.Data.Protocol
 
                 case PgDbType.Date:
                 case PgDbType.Time:
-                case PgDbType.TimeWithTZ:
+                case PgDbType.TimeTZ:
                 case PgDbType.Timestamp:
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimestampTZ:
                     return typeof(System.DateTime);
 
                 case PgDbType.Double:
@@ -367,16 +367,16 @@ namespace PostgreSql.Data.Protocol
                     returnValue = Convert.ToDateTime(value).ToString("HH:mm:ss");
                     break;
 
+                case PgDbType.TimeTZ:
+                    returnValue = Convert.ToDateTime(value).ToString("HH:mm:ss zz");
+                    break;
+
                 case PgDbType.Timestamp:
                     returnValue = Convert.ToDateTime(value).ToString("MM/dd/yyy HH:mm:ss");
                     break;
 
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimestampTZ:
                     returnValue = Convert.ToDateTime(value).ToString("MM/dd/yyy HH:mm:ss zz");
-                    break;
-
-                case PgDbType.TimeWithTZ:
-                    returnValue = Convert.ToDateTime(value).ToString("HH:mm:ss zz");
                     break;
 
                 case PgDbType.Vector:

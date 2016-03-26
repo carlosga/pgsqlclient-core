@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.PostgreSqlClient;
 using PostgreSql.Data.Protocol.Authentication;
 using System;
 using System.Collections.Generic;
@@ -48,9 +49,9 @@ namespace PostgreSql.Data.Protocol
             set;
         }
 
-        internal SessionData         ServerConfiguration => _sessionData;
-        internal PgConnectionOptions ConnectionOptions   => _connectionOptions;
-        internal PgTransactionStatus TransactionStatus   => _transactionStatus;
+        internal SessionData         SessionData       => _sessionData;
+        internal PgConnectionOptions ConnectionOptions => _connectionOptions;
+        internal PgTransactionStatus TransactionStatus => _transactionStatus;
 
         private SemaphoreSlim _asyncActiveSemaphore;
         internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
@@ -140,6 +141,9 @@ namespace PostgreSql.Data.Protocol
 
                 // Send startup packet
                 SendStartupPacket();
+
+                // Get database type info
+                // GetDatabaseTypeInfo();
 
                 // Release lock
                 ReleaseLock();
@@ -493,5 +497,39 @@ namespace PostgreSql.Data.Protocol
 
         private void HandleParameterStatus(PgInputPacket packet)
             => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());
+            
+        static readonly PgParameterCollection s_typeInfoParams = new  PgParameterCollection();
+        
+        static PgDatabase()
+        {
+            s_typeInfoParams.Add(new PgParameter("@typeName", PgDbType.VarChar));
+        }            
+            
+        internal void GetDatabaseTypeInfo()
+        {
+            // if (!_database.ConnectionOptions.UseDatabaseOids)
+            // {
+            //     return;
+            // }
+
+            string sql = "SELECT oid FROM pg_type WHERE typname=@typeName";
+
+            using (var statement = CreateStatement(sql))
+            {
+                statement.Prepare(s_typeInfoParams);
+                
+                foreach (var type in _sessionData.DataTypes)
+                {
+                    s_typeInfoParams[0].Value = type.Name;
+
+                    int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
+
+                    if (realOid != null && realOid.Value != type.Oid)
+                    {
+                        type.Oid = realOid.Value;
+                    }
+                }
+            }
+        }            
     }
 }

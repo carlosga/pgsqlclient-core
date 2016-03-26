@@ -21,15 +21,25 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            // Cannot open database \"{0}\" requested by the login. The login failed.
-            
-            // tests incorrect database name
-            var badBuilder   = new PgConnectionStringBuilder(csb.ConnectionString) { InitialCatalog = "NotADatabase" };
-            var errorMessage = string.Format("Cannot open database \"{0}\" requested by the login. The login failed.", badBuilder.InitialCatalog);
-                        
-            using (var connection = new PgConnection(badBuilder.ConnectionString))
+            using (PgConnection conn = new PgConnection(csb.ToString()))
             {
-                connection.Open();
+                conn.Open();
+
+                string expectedFirstString  = "Hello, World!";
+                string expectedSecondString = "Another string";
+
+                // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
+                using (PgCommand cmd = new PgCommand("SELECT @r, @p", conn))
+                {
+                    cmd.Parameters.AddWithValue("@r", expectedFirstString);
+                    cmd.Parameters.AddWithValue("@p", expectedSecondString);
+                    
+                    // NOTE: Command behavior must NOT be sequential
+                    using (PgDataReader reader = cmd.ExecuteReader())
+                    {
+                        reader.Read();
+                    }
+                }
             }
         } 
     }

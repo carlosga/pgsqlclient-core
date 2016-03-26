@@ -268,7 +268,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string expectedSecondString = "Another string";
 
                 // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
-                using (PgCommand cmd = new PgCommand("SELECT @r::varchar, @p::varchar", conn))
+                using (PgCommand cmd = new PgCommand("SELECT @r, @p", conn))
                 {
                     cmd.Parameters.AddWithValue("@r", expectedFirstString);
                     cmd.Parameters.AddWithValue("@p", expectedSecondString);

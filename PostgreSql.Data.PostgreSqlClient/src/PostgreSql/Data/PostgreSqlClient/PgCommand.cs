@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.Protocol;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -316,8 +317,10 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _statement.StatementText = stmtText;    
             }
-
-            _statement.Prepare();
+            
+            PrepareParameters();
+            
+            _statement.Prepare(_parameters);
                                 
             if (_queryIndex == 0)
             {
@@ -328,11 +331,9 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal int InternalExecuteNonQuery()
         {
-            InternalPrepare();
+            InternalPrepare();            
             
-            SetParameterValues();
-            
-            var recordsAffected = _statement.ExecuteNonQuery();
+            var recordsAffected = _statement.ExecuteNonQuery(_parameters);
             
             InternalSetOutputParameters();
             
@@ -351,19 +352,15 @@ namespace PostgreSql.Data.PostgreSqlClient
              || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
              || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
             {
-                SetParameterValues();
-                
-                _statement.ExecuteReader();
+                _statement.ExecuteReader(_parameters);
             }            
         }
         
         internal object InternalExecuteScalar()
         {
             InternalPrepare();
-                            
-            SetParameterValues();
             
-            return _statement.ExecuteScalar();
+            return _statement.ExecuteScalar(_parameters);
         }
 
         internal bool NextResult()
@@ -468,40 +465,22 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new InvalidOperationException("The command text for this Command has not been set.");
             }
         }
-
-        private void SetParameterValues()
+        
+        private void PrepareParameters()
         {
             if (_parameters == null && _parameters.Count == 0)
             {
                 return;
             }
 
-            int index = 0;
+            var database = _connection.InnerConnection.Database;
 
-            for (int i = 0; i < _statement.Parameters.Count; ++i)
+            foreach (var name in _namedParameters)
             {
-                if (_parameters[index].Direction == ParameterDirection.Output
-                 || _parameters[index].Direction == ParameterDirection.ReturnValue)
-                {
-                    continue;
-                }
+                var current = _parameters[name];
                 
-                index = i;
-                
-                if (_namedParameters.Count > 0)
-                {
-                    index = _parameters.IndexOf(_namedParameters[i]);
-                }
-
-                if (_parameters[index].Value == DBNull.Value)
-                {
-                    _statement.Parameters[i].Value = null;
-                }
-                else
-                {
-                    _statement.Parameters[i].Value = _parameters[index].Value;
-                }
-            }
+                current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());                
+            }            
         }
     }
 }

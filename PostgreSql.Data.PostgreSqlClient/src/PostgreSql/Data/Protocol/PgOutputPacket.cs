@@ -177,14 +177,14 @@ namespace PostgreSql.Data.Protocol
             }
             else
             {
-                if (parameter.DataType.DataType == PgDbType.Array
-                 || parameter.DataType.DataType == PgDbType.Vector)
+                if (parameter.TypeInfo.DataType == PgDbType.Array
+                 || parameter.TypeInfo.DataType == PgDbType.Vector)
                 {
                     WriteArray(parameter);
                 }
                 else
                 {
-                    WriteParameter(this, parameter.DataType.DataType, parameter.DataType.Size, parameter.Value);
+                    WriteParameter(this, parameter.TypeInfo.DataType, parameter.TypeInfo.Size, parameter.Value);
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace PostgreSql.Data.Protocol
             System.Array array = parameter.Value as System.Array;
 
             // Get array element type
-            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.DataType.ElementType);
+            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.TypeInfo.ElementType);
 
             var packet = new PgOutputPacket(' ', _sessionData);
 
@@ -208,7 +208,7 @@ namespace PostgreSql.Data.Protocol
             packet.Write(0);
 
             // Write base type of the array elements
-            packet.Write(parameter.DataType.ElementType);
+            packet.Write(parameter.TypeInfo.ElementType);
 
             // Write lengths and lower bounds
             for (int i = 0; i < array.Rank; ++i)
@@ -313,7 +313,7 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteTime(Convert.ToDateTime(value));
                     break;
 
-                case PgDbType.TimeWithTZ:
+                case PgDbType.TimeTZ:
                     packet.WriteTimeWithTZ(Convert.ToDateTime(value));
                     break;
 
@@ -321,7 +321,7 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteTimestamp(Convert.ToDateTime(value));
                     break;
 
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimestampTZ:
                     packet.WriteTimestampWithTZ(Convert.ToDateTime(value));
                     break;
 

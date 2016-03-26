@@ -301,7 +301,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return _statement.RowDescriptor[i].Type.Name;
+            return _statement.RowDescriptor[i].TypeInfo.Name;
         }
 
         public override DateTime GetDateTime(int i) => GetValueWithNullCheck<DateTime>(i);
@@ -312,7 +312,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return _statement.RowDescriptor[i].Type.SystemType;
+            return _statement.RowDescriptor[i].TypeInfo.SystemType;
         }
 
         public override float GetFloat(int i) => GetValueWithNullCheck<float>(i);
@@ -435,7 +435,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             // Ref cursors can be fetched only if there is an active transaction
             if (_command.CommandType           == CommandType.StoredProcedure
              && _statement.RowDescriptor.Count == 1
-             && _statement.RowDescriptor[0].Type.IsRefCursor)
+             && _statement.RowDescriptor[0].TypeInfo.IsRefCursor)
             {
                 // Clear refcursor's queue
                 _refCursors.Clear();
@@ -461,7 +461,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private bool NextResultFromRefCursor()
         {
             _statement.StatementText = $"fetch all in \"{_refCursors.Dequeue()}\""; 
-            _statement.ExecuteReader();
+            _statement.ExecuteReader(_command.Parameters);
                 
             return true;
         }

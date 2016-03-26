@@ -13,6 +13,7 @@ namespace PostgreSql.Data.PostgreSqlClient
     {
         private ParameterDirection    _direction;
         private bool                  _isNullable;
+        private bool                  _isTypeSet;
         private bool                  _sourceColumnNullMapping;
         private string                _parameterName;
         private string                _sourceColumn;
@@ -21,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private byte                  _scale;
         private int                   _size;
         private PgDbType              _providerType;
-        private bool                  _isTypeSet;
+        private PgType                _typeInfo;
         private PgParameterCollection _parent;
 
         public override string ParameterName
@@ -51,10 +52,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override DbType DbType
         {
             get { return TypeHelper.ProviderDbTypeToDbType(_providerType); }
-            set { PgDbType = TypeHelper.DbTypeToProviderType(value); }
+            set { ProviderType = TypeHelper.DbTypeToProviderType(value); }
         }
 
-        public PgDbType PgDbType
+        public PgDbType ProviderType
         {
             get { return _providerType; }
             set
@@ -96,7 +97,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 if (!_isTypeSet)
                 {          
-                    PgDbType = TypeHelper.GetDbProviderType(value);
+                    ProviderType = TypeHelper.GetDbProviderType(value);
                 }
             }
         }
@@ -105,6 +106,12 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             get { return _sourceColumnNullMapping; }
             set { _sourceColumnNullMapping = value; }
+        }
+
+        internal PgType TypeInfo
+        {
+            get { return _typeInfo; }
+            set { _typeInfo = value; }
         }
 
         internal PgParameterCollection Parent
@@ -139,7 +146,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             _parameterName = parameterName;
             _size          = size;
-            PgDbType       = dbType;
+            ProviderType   = dbType;
         }
 
         public PgParameter(string   parameterName
@@ -151,7 +158,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _parameterName = parameterName;
             _size          = size;
             _sourceColumn  = sourceColumn;
-            PgDbType       = dbType;
+            ProviderType   = dbType;
         }
 
         public PgParameter(string             parameterName
@@ -173,7 +180,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _scale          = scale;
             _sourceColumn   = sourceColumn;
             _value          = value;
-            PgDbType        = dbType;
+            ProviderType    = dbType;
         }
 
         public override string ToString() => _parameterName;

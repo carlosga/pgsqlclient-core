@@ -99,13 +99,13 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             ColumnName       = descriptor.Name;
             ColumnOrdinal    = descriptor.ColumnId;
-            ColumnSize       = descriptor.Type.Size;
-            DataType         = descriptor.Type.SystemType;
-            DataTypeName     = descriptor.Type.Name;
-            IsArray          = descriptor.Type.IsArray;
+            ColumnSize       = descriptor.TypeInfo.Size;
+            DataType         = descriptor.TypeInfo.SystemType;
+            DataTypeName     = descriptor.TypeInfo.Name;
+            IsArray          = descriptor.TypeInfo.IsArray;
             IsExpression     = (descriptor.TableOid == 0 && descriptor.ColumnId == 0);
-            IsLong           = descriptor.Type.IsBinary;
-            IsRefCursor      = descriptor.Type.IsRefCursor; 
+            IsLong           = descriptor.TypeInfo.IsBinary;
+            IsRefCursor      = descriptor.TypeInfo.IsRefCursor; 
             NumericPrecision = descriptor.NumericPrecision;
             NumericScale     = descriptor.NumericScale;
             

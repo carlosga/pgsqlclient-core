@@ -350,13 +350,13 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Time:
                     return ReadTime(length);
 
-                case PgDbType.TimeWithTZ:
+                case PgDbType.TimeTZ:
                     return ReadTimeWithTZ(length);
 
                 case PgDbType.Timestamp:
                     return ReadTimestamp(length);
 
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimestampTZ:
                     return ReadTimestampWithTZ(length);
 
                 case PgDbType.Point:
@@ -449,8 +449,8 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Date:
                 case PgDbType.Timestamp:
                 case PgDbType.Time:
-                case PgDbType.TimeWithTZ:
-                case PgDbType.TimestampWithTZ:
+                case PgDbType.TimeTZ:
+                case PgDbType.TimestampTZ:
                     return DateTime.Parse(stringValue);
 
                 case PgDbType.Point:

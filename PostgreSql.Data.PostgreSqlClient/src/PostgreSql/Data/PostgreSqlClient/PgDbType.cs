@@ -32,9 +32,9 @@ namespace PostgreSql.Data.PostgreSqlClient
       , Refcursor
       , Text
       , Time
-      , TimeWithTZ
+      , TimeTZ
       , Timestamp
-      , TimestampWithTZ
+      , TimestampTZ
       , VarChar
       , Vector
       , Void

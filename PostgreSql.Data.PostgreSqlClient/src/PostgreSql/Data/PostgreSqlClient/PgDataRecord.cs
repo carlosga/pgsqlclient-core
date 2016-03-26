@@ -128,7 +128,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return _descriptor[i].Type.Name;
+            return _descriptor[i].TypeInfo.Name;
         }
 
         public override DateTime GetDateTime(int i)
@@ -156,7 +156,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return _descriptor[i].Type.SystemType;
+            return _descriptor[i].TypeInfo.SystemType;
         }
 
         public override Single GetFloat(int i)

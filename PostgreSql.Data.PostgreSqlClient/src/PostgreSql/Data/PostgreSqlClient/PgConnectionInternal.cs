@@ -22,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private ConcurrentDictionary<int, WeakReference<PgCommand>> _preparedCommands;
 
-        internal string        ServerVersion     => _database.ServerConfiguration.ServerVersion;
+        internal string        ServerVersion     => _database.SessionData.ServerVersion;
         internal PgDatabase    Database          => _database;
         internal PgTransaction ActiveTransaction => _activeTransaction?.Target as PgTransaction;
 
@@ -69,9 +69,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 // Connect
                 _database.Open();
-
-                // Grab Data Types Oid's from the database if requested
-                FetchDatabaseOids();
                 
                 // Update owner
                 _owner = owner;
@@ -188,36 +185,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             return isValid;
-        }
-
-        internal void FetchDatabaseOids()
-        {
-            if (!_database.ConnectionOptions.UseDatabaseOids)
-            {
-                return;
-            }
-
-            string sql = "SELECT oid FROM pg_type WHERE typname=@typeName";
-
-            if (_owner != null)
-            {
-                using (PgCommand command = new PgCommand(sql, _owner))
-                {
-                    command.Parameters.Add(new PgParameter("@typeName", PgDbType.VarChar));
-                    
-                    foreach (PgType type in _database.ServerConfiguration.DataTypes)
-                    {
-                        command.Parameters["@typeName"].Value = type.Name;
-
-                        object realOid = command.ExecuteScalar();
-
-                        if (realOid != null && Convert.ToInt32(realOid) != type.Oid)
-                        {
-                            type.Oid = Convert.ToInt32(realOid);
-                        }
-                    }
-                }
-            }
         }
     }
 }

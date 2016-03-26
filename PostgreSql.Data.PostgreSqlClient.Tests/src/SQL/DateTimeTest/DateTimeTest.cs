@@ -18,11 +18,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
-                PgParameter p = new PgParameter("@p", PgDbType.TimestampWithTZ);
+                PgParameter p = new PgParameter("@p", PgDbType.TimestampTZ);
                 p.Value = DBNull.Value;
                 p.Size  = 27;
                 PgCommand cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT @p::timestamp with time zone";
+                cmd.CommandText = "SELECT @p with time zone";
                 cmd.Parameters.Add(p);
 
                 Assert.True(cmd.ExecuteScalar() is DBNull, "FAILED: ExecuteScalar did not return a result of type DBNull");
