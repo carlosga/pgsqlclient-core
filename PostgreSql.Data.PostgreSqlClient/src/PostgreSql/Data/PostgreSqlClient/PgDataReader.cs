@@ -21,7 +21,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private bool            _open;
         private int             _position;
         private int             _recordsAffected;
-        private PgDataRecord    _row;
+        private object[]        _row;
         private CommandBehavior _behavior;
         private PgCommand       _command;
         private PgConnection    _connection;
@@ -31,13 +31,12 @@ namespace PostgreSql.Data.PostgreSqlClient
         private ReadOnlyCollection<DbColumn> _metadata;
 
         public override object this[int i]       => GetValue(i);
-        public override object this[string name] => GetValue(name);
+        public override object this[string name] => GetValue(GetOrdinal(name));
 
         public override int  Depth           => 0;
         public override bool IsClosed        => !_open;
-        public override int  RecordsAffected => !IsClosed ? _recordsAffected : -1;
-        public override int  FieldCount      => !IsClosed ? _row.FieldCount : -1;
-                
+        public override int  RecordsAffected => IsClosed ? _recordsAffected : -1;
+        
         public override bool HasRows
         {
             get
@@ -171,111 +170,123 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new PgException(ex);
             }
         }
-                
-        public override bool GetBoolean(int i) 
-        {
-            CheckPosition();
-            
-            return _row.GetBoolean(i);
-        }
-        
-        public override byte GetByte(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetByte(i);            
-        }
+
+        public override int  FieldCount        => _statement?.RowDescriptor.Count ?? -1;
+        public override bool GetBoolean(int i) => Convert.ToBoolean(GetValueWithNullCheck(i));
+        public override byte GetByte(int i)    => Convert.ToByte(GetValueWithNullCheck(i));
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
-            CheckPosition();
-            
-            return _row.GetBytes(i, dataIndex, buffer, bufferIndex, length);
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
+
+            int bytesRead  = 0;
+            int realLength = length;
+
+            if (buffer == null)
+            {
+                byte[] data = (byte[])GetValue(i);
+
+                return data.Length;
+            }
+
+            byte[] byteArray = (byte[])GetValue(i);
+
+            if (length > (byteArray.Length - dataIndex))
+            {
+                realLength = byteArray.Length - (int)dataIndex;
+            }
+
+            Array.Copy(byteArray, (int)dataIndex, buffer, bufferIndex, realLength);
+
+            if ((byteArray.Length - dataIndex) < length)
+            {
+                bytesRead = byteArray.Length - (int)dataIndex;
+            }
+            else
+            {
+                bytesRead = length;
+            }
+
+            return bytesRead;
         }
 
-        public override char GetChar(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetChar(i);
-        }
+        public override char GetChar(int i) => Convert.ToChar(GetValueWithNullCheck(i));
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
-            CheckPosition();
-            
-            return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
+
+            if (buffer == null)
+            {
+                char[] data = ((string)GetValue(i)).ToCharArray();
+
+                return data.Length;
+            }
+
+            int charsRead = 0;
+            int realLength = length;
+
+            char[] charArray = ((string)GetValue(i)).ToCharArray();
+
+            if (length > (charArray.Length - dataIndex))
+            {
+                realLength = charArray.Length - (int)dataIndex;
+            }
+
+            Array.Copy(charArray, (int)dataIndex, buffer, bufferIndex, realLength);
+
+            if ((charArray.Length - dataIndex) < length)
+            {
+                charsRead = charArray.Length - (int)dataIndex;
+            }
+            else
+            {
+                charsRead = length;
+            }
+
+            return charsRead;
         }
 
         public override string GetDataTypeName(int i)
         {
-            return _row.GetDataTypeName(i);
+            CheckIndex(i);
+
+            return _statement.RowDescriptor[i].Type.Name;
         }
 
-        public override DateTime GetDateTime(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetDateTime(i);            
-        } 
-        
-        public override Decimal GetDecimal(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetDecimal(i);   
-        }
-        
-        public override double GetDouble(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetDouble(i);   
-        }
+        public override DateTime GetDateTime(int i) => Convert.ToDateTime(GetValueWithNullCheck(i));
+        public override Decimal  GetDecimal(int i)  => Convert.ToDecimal(GetValueWithNullCheck(i));
+        public override double   GetDouble(int i)   => Convert.ToDouble(GetValueWithNullCheck(i));
 
         public override Type GetFieldType(int i)
         {
-            return _row.GetFieldType(i);
+            CheckIndex(i);
+
+            return _statement.RowDescriptor[i].Type.SystemType;
         }
 
-        public override float GetFloat(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetFloat(i);   
-        }
+        public override float GetFloat(int i) => Convert.ToSingle(GetValue(i));
         
-        public override Guid GetGuid(int i)
+        public override Guid  GetGuid(int i)
         {
-            CheckPosition();
-            
-            return _row.GetGuid(i);
+            throw new NotSupportedException("Guid datatype is not supported");
         }
 
-        public override Int16 GetInt16(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetInt16(i);
-        }
-        
-        public override Int32 GetInt32(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetInt32(i);            
-        }
-        
-        public override Int64 GetInt64(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetInt64(i);            
-        }
+        public override Int16 GetInt16(int i) => Convert.ToInt16(GetValueWithNullCheck(i));
+        public override Int32 GetInt32(int i) => Convert.ToInt32(GetValueWithNullCheck(i));
+        public override Int64 GetInt64(int i) => Convert.ToInt64(GetValueWithNullCheck(i));
 
         public override String GetName(int i)
         {
-            return _row.GetName(i);
+            CheckIndex(i);
+
+            return _statement.RowDescriptor[i].Name;
         }
 
         public override int GetOrdinal(string name)
@@ -285,118 +296,53 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new InvalidOperationException("Reader closed");
             }
 
-            return _row.GetOrdinal(name);
+            return _statement.RowDescriptor.IndexOf(name);
         }
 
-        public override string GetString(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetString(i); 
-        }
+        public override string GetString(int i) => Convert.ToString(GetValueWithNullCheck(i));
 
         public override object GetValue(int i)
         {
             CheckPosition();
+            CheckIndex(i);
 
-            return _row.GetValue(i);
-        }
-
-        public object GetValue(string name)
-        {
-            CheckPosition();
-
-            return _row.GetValue(name);
+            return _row[i];
         }
 
         public override int GetValues(object[] values)
         {
             CheckPosition();
 
-            return _row.GetValues(values);
+            Array.Copy(_row, values, FieldCount);
+
+            return values.Length;
         }
 
         public override bool IsDBNull(int i)
         {
             CheckPosition();
+            CheckIndex(i);
 
-            return _row.IsDBNull(i);
+            return (_row[i] == DBNull.Value);
         }
 
-        public TimeSpan GetTimeSpan(int i)
-        {
-            CheckPosition();
-            
-            return _row.GetPgTimeSpan(i).Value;
-        }
+        public TimeSpan   GetTimeSpan(int i)   => GetPgTimeSpan(i).Value;
+        public PgTimeSpan GetPgTimeSpan(int i) => GetProviderSpecificValue<PgTimeSpan>(i);
+        public PgPoint    GetPgPoint(int i)    => GetProviderSpecificValue<PgPoint>(i);
+        public PgBox      GetPgBox(int i)      => GetProviderSpecificValue<PgBox>(i);
+        public PgLSeg     GetPgLSeg(int i)     => GetProviderSpecificValue<PgLSeg>(i);
+        public PgCircle   GetPgCircle(int i)   => GetProviderSpecificValue<PgCircle>(i);
+        public PgPath     GetPgPath(int i)     => GetProviderSpecificValue<PgPath>(i);
+        public PgPolygon  GetPgPolygon(int i)  => GetProviderSpecificValue<PgPolygon>(i);
+        public PgBox2D    GetPgBox2D(int i)    => GetProviderSpecificValue<PgBox2D>(i);
         
-        public PgTimeSpan GetPgTimeSpan(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgTimeSpan(i);
-        }
-        
-        public PgPoint GetPgPoint(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgPoint(i);
-        }
-        
-        public PgBox GetPgBox(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgBox(i);
-        }
-        
-        public PgLSeg GetPgLSeg(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgLSeg(i);
-        }
-        
-        public PgCircle GetPgCircle(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgCircle(i);
-        }
-        
-        public PgPath GetPgPath(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgPath(i);
-        }
-        
-        public PgPolygon GetPgPolygon(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgPolygon(i);
-        }
-                
-        public PgBox2D GetPgBox2D(int i)
-        {
-            CheckPosition();
-         
-            return _row.GetPgBox2D(i);
-        }
-        
-        public override Type GetProviderSpecificFieldType(int i)
-        {
-            return _row.GetFieldType(i);
-        }
-        
+        public override Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
         public override object GetProviderSpecificValue(int i)            => GetValue(i);
         public override int    GetProviderSpecificValues(object[] values) => GetValues(values);
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
-        internal PgDataRecord GetDataRecord() => _row;
+        internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
 
         internal void Close()
         {
@@ -426,6 +372,20 @@ namespace PostgreSql.Data.PostgreSqlClient
             _position = STARTPOS;
         }
 
+        private object GetValueWithNullCheck(int i)
+        {
+            CheckNull(i);
+            
+            return _row[i];
+        }
+
+        private T GetProviderSpecificValue<T>(int i)
+        {
+            CheckNull(i);
+
+            return (T)_row[i];
+        }
+
         private void InitializeRefCursors()
         {
             // Ref cursors can be fetched only if there is an active transaction
@@ -437,7 +397,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _refCursors.Clear();
 
                 // Add refcusor's names to the queue
-                PgDataRecord row = null;
+                object[] row = null;
 
                 while (_statement.HasRows)
                 {
@@ -445,7 +405,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                     if (row != null)
                     {
-                        _refCursors.Enqueue(row.GetString(0));
+                        _refCursors.Enqueue((string)row[0]);
                     }
                 }
 
@@ -467,6 +427,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             return _command.NextResult();
         }
 
+        private void CheckIndex(int i)
+        {
+            if (i < 0 || i >= FieldCount)
+            {
+                throw new IndexOutOfRangeException("Could not find specified column in results.");
+            }
+        }
+
         private void CheckPosition()
         {
             if (_position == STARTPOS)
@@ -475,6 +443,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
         
+        private void CheckNull(int i)
+        {
+            if (IsDBNull(i))
+            {
+                throw new PgNullValueException("Data is Null. This method or property cannot be called on Null values.");
+            }
+        }
+
         private void UpdateRecordsAffected()
         {
             if (_command != null && !_command.IsDisposed && _command.RecordsAffected != -1)
@@ -483,7 +459,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _recordsAffected += _command.RecordsAffected;
             }
         }
-                
+        
         private ReadOnlyCollection<DbColumn> BuildQuerySchema()
         {
             var rowDescriptor = _statement.RowDescriptor;            

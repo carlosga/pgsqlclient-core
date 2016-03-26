@@ -425,7 +425,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             
             var row = _statement.FetchRow();   
 
-            if (row != null)
+            if (!row.IsEmpty())
             {
                 for (int i = 0; i < _parameters.Count; ++i)
                 {
