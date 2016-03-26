@@ -22,7 +22,7 @@ namespace PostgreSql.Data.Protocol
         private int                 _handle;
         private int                 _secretKey;
         private PgTransactionStatus _transactionStatus;
-        private bool                _authenticated;
+        private bool                _open;
         
         internal NotificationCallback Notification
         {
@@ -121,8 +121,8 @@ namespace PostgreSql.Data.Protocol
                 Lock();
                 
                 // Reset instance data
-                _authenticated = false;
-                _sessionData   = new SessionData();
+                _open        = false;
+                _sessionData = new SessionData();
 
                 // Wire up SSL callbacks
                 if (_connectionOptions.Encrypt)
@@ -172,7 +172,7 @@ namespace PostgreSql.Data.Protocol
                 _handle            = -1;
                 _secretKey         = -1;
                 _channel           = null;
-                _authenticated     = false;
+                _open     = false;
 
                 // Callback cleanup
                 InfoMessage               = null;
@@ -203,7 +203,7 @@ namespace PostgreSql.Data.Protocol
 
         internal void Sync()
         {
-            if (!_authenticated)
+            if (!_open)
             {
                 return; 
             }
@@ -238,7 +238,7 @@ namespace PostgreSql.Data.Protocol
         internal PgInputPacket Read()
         {
             var packet = _channel.ReadPacket(_sessionData);
-            
+                        
             switch (packet.PacketType)
             {
                 case PgBackendCodes.READY_FOR_QUERY:
@@ -284,6 +284,70 @@ namespace PostgreSql.Data.Protocol
        
         internal void Send(PgOutputPacket packet) => _channel.WritePacket(packet);
 
+        private void SendStartupPacket()
+        {
+            // Send Startup message
+            var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
+
+            // user name 
+            packet.Write(PgCodes.PROTOCOL_VERSION3);
+            packet.WriteNullString("user");
+            packet.WriteNullString(_connectionOptions.UserID);
+
+            // database
+            if (!String.IsNullOrEmpty(_connectionOptions.Database))
+            {
+                packet.WriteNullString("database");
+                packet.WriteNullString(_connectionOptions.Database);
+            }
+
+            // select ISO date style
+            packet.WriteNullString("DateStyle");
+            packet.WriteNullString(PgCodes.DATE_STYLE);
+
+            // search path
+            if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
+            {
+                packet.WriteNullString("search_path");
+                packet.WriteNullString(_connectionOptions.SearchPath);
+            }
+
+            // Terminator
+            packet.WriteByte(0);
+
+            _channel.WritePacket(packet);
+                        
+            // Read startup response
+            PgInputPacket response = null;
+            
+            do 
+            {
+                response = Read();
+                                
+                HandlePacket(response);
+            } while (!response.IsReadyForQuery);
+        }
+
+        private void SendClearTextPasswordAuthentication(PgInputPacket packet)
+        {
+            var authPacket = CreateOutputPacket(PgFrontEndCodes.PASSWORD_MESSAGE);
+            
+            authPacket.WriteNullString(_connectionOptions.Password);
+            
+            _channel.WritePacket(authPacket);            
+        }
+
+        private void SendPasswordAuthentication(PgInputPacket packet)
+        {
+            var authPacket = CreateOutputPacket(PgFrontEndCodes.PASSWORD_MESSAGE);
+
+            var salt = packet.ReadBytes(4);
+            var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
+            authPacket.WriteNullString(hash);
+            
+            _channel.WritePacket(authPacket);
+        }
+
         private void HandlePacket(PgInputPacket packet)
         {
             switch (packet.PacketType)
@@ -306,26 +370,21 @@ namespace PostgreSql.Data.Protocol
         private void HandleAuthPacket(PgInputPacket packet)
         {
             // Authentication response
-            int authType   = packet.ReadInt32();
-            var authPacket = CreateOutputPacket(PgFrontEndCodes.PASSWORD_MESSAGE);
+            int authType = packet.ReadInt32();
 
             switch (authType)
             {
                 case PgCodes.AUTH_OK:
                     // Authentication successful
-                    _authenticated = true;
                     return;
 
                 case PgCodes.AUTH_CLEARTEXT_PASSWORD:
-                    authPacket.WriteNullString(_connectionOptions.Password);
+                    SendClearTextPasswordAuthentication(packet);
                     break;
                    
                 case PgCodes.AUTH_MD5_PASSWORD:
                     // Read salt used when encrypting the password
-                    
-                    var salt = packet.ReadBytes(4);
-                    var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
-                    authPacket.WriteNullString(hash);
+                    SendPasswordAuthentication(packet);                    
                    break;
 
                 default:
@@ -358,9 +417,6 @@ namespace PostgreSql.Data.Protocol
                 //     throw new NotSupportedException();
                 //     break;
             }
-                        
-            // Send the packet to the server
-            _channel.WritePacket(authPacket);
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)
@@ -430,50 +486,6 @@ namespace PostgreSql.Data.Protocol
             Notification?.Invoke(processId, condition, additional);
         }
         
-        private void SendStartupPacket()
-        {
-            // Send Startup message
-            var packet = CreateOutputPacket(PgFrontEndCodes.UNTYPED);
-
-            // user name 
-            packet.Write(PgCodes.PROTOCOL_VERSION3);
-            packet.WriteNullString("user");
-            packet.WriteNullString(_connectionOptions.UserID);
-
-            // database
-            if (!String.IsNullOrEmpty(_connectionOptions.Database))
-            {
-                packet.WriteNullString("database");
-                packet.WriteNullString(_connectionOptions.Database);
-            }
-
-            // select ISO date style
-            packet.WriteNullString("DateStyle");
-            packet.WriteNullString(PgCodes.DATE_STYLE);
-
-            // search path
-            if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
-            {
-                packet.WriteNullString("search_path");
-                packet.WriteNullString(_connectionOptions.SearchPath);
-            }
-
-            // Terminator
-            packet.WriteByte(0);
-
-            _channel.WritePacket(packet);
-            
-            // Read startup response
-            PgInputPacket response = null;
-                            
-            do 
-            {
-                response = Read();
-                
-                HandlePacket(response);
-            } while (!response.IsReadyForQuery);
-        }
-
         private void HandleParameterStatus(PgInputPacket packet) 
             => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());            
     }

@@ -16,13 +16,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     public static class ExceptionTest
     {
         // data value and server consts
-        private const string badServer = "NotAServer";
-        private const string sqlsvrBadConn = "A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections.";
+        private const string badServer               = "NotAServer";
+        private const string sqlsvrBadConn           = "A network-related or instance-specific error occurred while establishing a connection to PostgreSQL. The server was not found or was not accessible. Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.";
         private const string logonFailedErrorMessage = "password authentication failed for user \"{0}\"";
         private const string execReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is closed.";
-        private const string warningNoiseMessage = "The full-text search condition contained noise word(s).";
-        private const string warningInfoMessage = "Test of info messages";
-        private const string orderIdQuery = "select orderid from orders where orderid < 10250";
+        private const string warningNoiseMessage     = "The full-text search condition contained noise word(s).";
+        private const string warningInfoMessage      = "Test of info messages";
+        private const string orderIdQuery            = "select orderid from orders where orderid < 10250";
 
         [Test]
         // [Ignore("Not ported yet")]
@@ -42,8 +42,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     hitWarnings = true;
                 };
 
-            PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
-            using (PgConnection connection  = new PgConnection(connectionString + "pooling=false"))
+            var handler = new PgInfoMessageEventHandler(warningCallback);
+            using (var connection  = new PgConnection(connectionString + "pooling=false"))
             {
                 connection.InfoMessage += handler;
                 connection.Open();
@@ -58,58 +58,35 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
         }
 
-        private static bool CheckThatExceptionsAreDistinctButHaveSameData(PgException e1, PgException e2)
-        {
-            Assert.True(e1 != e2, "FAILED: verification of exception cloning in subsequent connection attempts");
-
-            Assert.False((e1 == null) || (e2 == null), "FAILED: One of exceptions is null, another is not");
-
-            bool equal = (e1.Message == e2.Message) && (e1.HelpLink == e2.HelpLink) && (e1.InnerException == e2.InnerException)
-                && (e1.Source == e2.Source) && (e1.Data.Count == e2.Data.Count) && (e1.Errors == e2.Errors);
-            IDictionaryEnumerator enum1 = e1.Data.GetEnumerator();
-            IDictionaryEnumerator enum2 = e2.Data.GetEnumerator();
-            while (equal)
-            {
-                if (!enum1.MoveNext())
-                    break;
-                enum2.MoveNext();
-                equal = (enum1.Key == enum2.Key) && (enum2.Value == enum2.Value);
-            }
-
-            Assert.True(equal, string.Format("FAILED: exceptions do not contain the same data (besides call stack):\nFirst: {0}\nSecond: {1}\n", e1, e2));
-
-            return true;
-        }
-
         [Test]
-        [Ignore("Not ported yet")]
         public static void ExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
             var builder          = new PgConnectionStringBuilder(connectionString);
 
             // tests improper server name thrown from constructor of tdsparser
-            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), sqlsvrBadConn);
 
-            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), sqlsvrBadConn, VerifyException);
-
-            // tests incorrect password - thrown from the adapter
+            // tests incorrect password
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
-            string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
-            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
-
-            // tests incorrect database name - exception thrown from adapter
-            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { InitialCatalog = "NotADatabase" };
-            errorMessage = string.Format(CultureInfo.InvariantCulture, "Cannot open database \"{0}\" requested by the login. The login failed.", badBuilder.InitialCatalog);
-            PgException firstAttemptException = VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 2, 4060, 1, 11));
-
+            var errorMessage = string.Format(logonFailedErrorMessage, badBuilder.UserID);
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
+            
+            // tests incorrect database name
+            badBuilder   = new PgConnectionStringBuilder(builder.ConnectionString) { InitialCatalog = "NotADatabase" };
+            // errorMessage = string.Format("Cannot open database \"{0}\" requested by the login. The login failed.", badBuilder.InitialCatalog);
+            errorMessage = string.Format("database \"{0}\" does not exist", badBuilder.InitialCatalog);
+            PgException firstAttemptException = VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
+            
             // Verify that the same error results in a different instance of an exception, but with the same data
-            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
+#warning TODO: port ??
+            // VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
 
             // tests incorrect user name - exception thrown from adapter
-            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
+            badBuilder   = new PgConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
             errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
-            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
         }
 
         [Test]
@@ -131,41 +108,71 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
             // Test 1 - B
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
-            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
+            using (var connection = new PgConnection(badBuilder.ConnectionString))
             {                
                 string errorMessage = string.Format(logonFailedErrorMessage, badBuilder.UserID);
-                VerifyConnectionFailure<PgException>(() => PgConnection.Open(), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+                VerifyConnectionFailure<PgException>(() => connection.Open(), errorMessage, (ex) => VerifyException(ex));
             }
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void IndependentConnectionExceptionTest()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind;
-
-            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
-
-            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
+            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var builder          = new PgConnectionStringBuilder(connectionString);
+            var badBuilder       = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            
+            using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
                 // Test 1
-                VerifyConnectionFailure<PgException>(() => PgConnection.Open(), sqlsvrBadConn, VerifyException);
+                VerifyConnectionFailure<PgException>(() => connection.Open(), sqlsvrBadConn);
 
                 // Test 2
-                using (PgCommand command = new PgCommand(orderIdQuery, PgConnection))
+                using (var command = new PgCommand(orderIdQuery, connection))
                 {
                     VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
                 }
             }
         }
 
+        private static bool CheckThatExceptionsAreDistinctButHaveSameData(PgException e1, PgException e2)
+        {
+            Assert.True(e1 != e2, "FAILED: verification of exception cloning in subsequent connection attempts");
+
+            Assert.False((e1 == null) || (e2 == null), "FAILED: One of exceptions is null, another is not");
+
+            bool equal = (e1.Message        == e2.Message) 
+                      && (e1.HelpLink       == e2.HelpLink) 
+                      && (e1.InnerException == e2.InnerException)
+                      && (e1.Source         == e2.Source) 
+                      && (e1.Data.Count     == e2.Data.Count) 
+                      && (e1.Errors         == e2.Errors);
+                
+            IDictionaryEnumerator enum1 = e1.Data.GetEnumerator();
+            IDictionaryEnumerator enum2 = e2.Data.GetEnumerator();
+            
+            while (equal)
+            {
+                if (!enum1.MoveNext())
+                {
+                    break;
+                }
+                    
+                enum2.MoveNext();
+                equal = (enum1.Key == enum2.Key) && (enum2.Value == enum2.Value);
+            }
+
+            Assert.True(equal, string.Format("FAILED: exceptions do not contain the same data (besides call stack):\nFirst: {0}\nSecond: {1}\n", e1, e2));
+
+            return true;
+        }
+
         private static void GenerateConnectionException(string connectionString)
         {
-            using (PgConnection PgConnection = new PgConnection(connectionString))
+            using (var connection = new PgConnection(connectionString))
             {
-                PgConnection.Open();
-                using (PgCommand command = PgConnection.CreateCommand())
+                connection.Open();
+                using (var command = connection.CreateCommand())
                 {
                     command.CommandText = orderIdQuery;
                     command.ExecuteReader();
@@ -176,6 +183,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         private static TException VerifyConnectionFailure<TException>(TestDelegate connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
         {
             TException ex = Assert.Throws<TException>(connectAction);
+
             Assert.True(ex.Message.Contains(expectedExceptionMessage), string.Format("FAILED: PgException did not contain expected error message. Actual message: {0}", ex.Message));
             Assert.True(exVerifier(ex), "FAILED: Exception verifier failed on the exception.");
 
@@ -193,7 +201,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             return true;
         }
 
-        private static bool VerifyException(PgException exception, int count, int? errorNumber = null, int? errorState = null, int? severity = null)
+        private static bool VerifyException(PgException exception, int count)
         {
             // Verify that there are the correct number of errors in the exception
             Assert.True(exception.Errors.Count == count, string.Format("FAILED: Incorrect number of errors. Expected: {0}. Actual: {1}.", count, exception.Errors.Count));
@@ -203,29 +211,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             {
                 Assert.True(!exception.Errors[i].Code.StartsWith("01"), "FAILED: verification of Exception!  Exception contains a warning!");
             }
-
-            // Check the properties of the exception populated by the server are correct
-#warning TODO: Modify PgException ??
-            // if (severity != null)
-            // {
-            //     Assert.True(severity == exception.Severity, string.Format("FAILED: Severity of exception is incorrect. Expected: {0}. Actual: {1}.", severity, exception.Number));
-            // }
-
-            // if (errorState.HasValue)
-            // {
-            //     Assert.True(errorState.Value == exception.State, string.Format("FAILED: Error state of exception is incorrect. Expected: {0}. Actual: {1}.", errorState.Value, exception.State));
-            // }
-
-            // if (severity.HasValue)
-            // {
-            //     Assert.True(severity.Value == exception.Class, string.Format("FAILED: Severity of exception is incorrect. Expected: {0}. Actual: {1}.", severity.Value, exception.Class));
-            // }
-
-            // if ((errorNumber.HasValue) && (errorState.HasValue) && (severity.HasValue))
-            // {
-            //     string detailsText = string.Format("Error Number:{0},State:{1},Class:{2}", errorNumber.Value, errorState.Value, severity.Value);
-            //     Assert.True(exception.ToString().Contains(detailsText), string.Format("FAILED: PgException.ToString does not contain the error number, state and severity information"));
-            // }
 
             // verify that the this[] function on the collection works, as well as the All function
             PgError[] errors = new PgError[exception.Errors.Count];

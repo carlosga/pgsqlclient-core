@@ -30,7 +30,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             _errors = new PgErrorCollection();
 
-            foreach (PgClientError error in ex?.Errors)
+            foreach (var error in ex?.Errors)
             {
                 _errors.Add(new PgError(error));
             }

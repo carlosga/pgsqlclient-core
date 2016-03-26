@@ -20,9 +20,10 @@ namespace PostgreSql.Data.Protocol
         internal PgClientException(string message, PgClientError error)
             : base(message)
         {
+            _errors = new PgClientErrorCollection();
+            
             if (error != null)
             {
-                _errors = new PgClientErrorCollection();
                 _errors.Add(error);
             }
         }

@@ -99,7 +99,9 @@ namespace PostgreSql.Data.Protocol
             {
                 Detach();
 
-                throw;
+                throw new PgClientException("A network-related or instance-specific error occurred while establishing a connection to PostgreSQL."
+                                          + " The server was not found or was not accessible."
+                                          + " Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.");
             }
         }
         
