@@ -437,11 +437,11 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        private void CheckCommand()
+        private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
         {
             if (_connection == null || _connection.State != ConnectionState.Open)
             {
-                throw new InvalidOperationException("Connection must valid and open");
+                throw new InvalidOperationException($"{memberName} requires an open and available Connection. The connection's current state is closed.");
             }
             if (ActiveDataReader != null)
             {
