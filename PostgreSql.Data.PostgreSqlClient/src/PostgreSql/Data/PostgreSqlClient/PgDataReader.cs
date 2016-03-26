@@ -177,21 +177,19 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
+
             int bytesRead  = 0;
             int realLength = length;
 
             if (buffer == null)
             {
-                if (IsDBNull(i))
-                {
-                    return 0;
-                }
-                else
-                {
-                    byte[] data = (byte[])GetValue(i);
+                byte[] data = (byte[])GetValue(i);
 
-                    return data.Length;
-                }
+                return data.Length;
             }
 
             byte[] byteArray = (byte[])GetValue(i);
@@ -219,21 +217,16 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
-            CheckPosition();
-            CheckIndex(i);
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
 
             if (buffer == null)
             {
-                if (IsDBNull(i))
-                {
-                    return 0;
-                }
-                else
-                {
-                    char[] data = ((string)GetValue(i)).ToCharArray();
+                char[] data = ((string)GetValue(i)).ToCharArray();
 
-                    return data.Length;
-                }
+                return data.Length;
             }
 
             int charsRead = 0;

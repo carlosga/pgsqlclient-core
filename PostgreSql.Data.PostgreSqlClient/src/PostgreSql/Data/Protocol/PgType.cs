@@ -171,5 +171,10 @@ namespace PostgreSql.Data.Protocol
             _prefix      = prefix;
             _systemType  = TypeHelper.GetSystemType(_dataType);
         }
+        
+        public override string ToString()
+        {
+            return _name;
+        }
     }
 }

@@ -756,24 +756,23 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
+        //[Ignore("Not ported yet")]
         public static void NumericRead()
         {
-            string tempTable = "##" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
-            tempTable = tempTable.Replace('-', '_');
+            string tempTable = DataTestClass.GetUniqueName("TEMP_", "", "");
 
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("", conn))
                 {
-#warning TODO: PostgreSql has no sql_variant data type
-                    cmd.CommandText = $"create table {tempTable} (c1 varchar, c2 numeric(38,23))";
+                    // PostgreSQL has no sql_variant type, so the query is modified with both fields as numeric
+                    cmd.CommandText = $"create table {tempTable} (c1 numeric(38,23), c2 numeric(38,23))";
                     cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = $"insert into {tempTable} values (convert(numeric(38,23), -123456789012345.67890123456789012345678), convert(numeric(38,23), -123456789012345.67890123456789012345678))";
+                    cmd.CommandText = $"insert into {tempTable} values (-123456789012345.67890123456789012345678::numeric(38,23), -123456789012345.67890123456789012345678::numeric(38,23))";
                     cmd.ExecuteNonQuery();
-
+                    
                     cmd.CommandText = $"select * from {tempTable}";
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
@@ -781,7 +780,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                         object  o = reader.GetValue(0);
                         decimal n = reader.GetDecimal(1);
-
+                        
                         Assert.True(o is decimal, "FAILED: Query result was not a decimal value");
                         DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789012345678", ((decimal)o).ToString(), "FAILED: Decimal did not have expected value");
                         DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789012345678", n.ToString(), "FAILED: Decimal did not have expected value");
@@ -945,7 +944,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
-                using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234'::bytea, E'\\x12341234'::bytea, 12, CAST(NULL AS bytea), E'\\x12341234'::bytea, E'\\x12341234'::bytea, E'\\x12341234'::bytea, REPEAT('a', 8000)::bytea), E'\\x12341234'", connection))
+                using (PgCommand cmd = new PgCommand("SELECT '\\x12341234'::bytea, '\\x12341234'::bytea, 12, CAST(NULL AS bytea), '\\x12341234'::bytea, '\\x12341234'::bytea, '\\x12341234'::bytea, REPEAT('a', 8000)::bytea, '\\x12341234'::bytea", connection))
                 {
                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
                     foreach (CommandBehavior behavior in behaviors)
@@ -956,7 +955,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             reader.Read();
 
                             // Basic success paths
-#warning TODO: Implement PgDataReader.GetStream ??                            
                             reader.GetStream(0);
                             reader.GetStream(1);
 
@@ -1228,7 +1226,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     byte[] largeBuffer = new byte[9000];
                     Stream stream = null;
                     TestDelegate action = null;
-                    using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234'::bytea", connection))
+                    using (PgCommand cmd = new PgCommand("SELECT '\\x12341234'::bytea", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1285,7 +1283,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         SeqAccessFailureWrapper<ObjectDisposedException>(action, behavior);
                     }
 
-                    using (PgCommand cmd = new PgCommand("SELECT E'\\x12341234', 12", connection))
+                    using (PgCommand cmd = new PgCommand("SELECT '\\x12341234', 12", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1301,7 +1299,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                     if (behavior == CommandBehavior.SequentialAccess)
                     {
-                        using (PgCommand cmd = new PgCommand("SELECT REPEAT('a', 8000)::bytea, REPEAT('a', 8000)::bytea)", connection))
+                        using (PgCommand cmd = new PgCommand("SELECT REPEAT('a', 8000)::bytea, REPEAT('a', 8000)::bytea", connection))
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
                             {
@@ -1511,7 +1509,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void StreamingBlobDataTypes()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1521,9 +1518,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 foreach (CommandBehavior behavior in behaviors)
                 {
                     // GetStream
-                    byte[] correctBytes = { 0x12, 0x34, 0x56, 0x78 };
+                    byte[] correctBytes         = { 0x12, 0x34, 0x56, 0x78 };
                     string correctBytesAsString = "12345678";
-                    string queryString = string.Format("SELECT E'\\x{0}'::bytea)", correctBytesAsString);
+                    string queryString          = $"SELECT '\\x{correctBytesAsString}'::bytea";
+                                       
                     using (PgCommand cmd = new PgCommand(queryString, connection))
                     using (PgDataReader reader = cmd.ExecuteReader(behavior))
                     {
@@ -1542,12 +1540,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                     // GetTextReader
                     string[] correctStrings = { "Hello World", "\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E" };
-                    string[] collations = { "en_GB.utf8", "C.UTF-8" };
+                    string[] collations     = { "en_GB.utf8", "C.UTF-8" };
 
                     for (int j = 0; j < collations.Length; j++)
                     {
                         string substring = string.Format("('{0}' COLLATE \"{1}\")", correctStrings[j], collations[j]);
                         queryString = string.Format("SELECT CAST({0} AS CHAR(20)), CAST({0} AS CHAR(20)), CAST({0} AS TEXT), CAST({0} AS VARCHAR(20)), CAST({0} AS TEXT), CAST({0} AS TEXT), CAST({0} AS VARCHAR(20)), CAST({0} AS TEXT), CAST({0} AS TEXT)", substring);
+                        
                         using (PgCommand cmd = new PgCommand(queryString, connection))
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
                         {
@@ -1615,10 +1614,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     // Start the command
                     conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
+                    using (PgCommand cmd = new PgCommand("SELECT @p::varchar, @p::varchar, @p::varchar, @p::varchar, @p::varchar", conn))
                     {
                         cmd.CommandTimeout = 1;
-                        cmd.Parameters.AddWithValue("p", new string('a', 3000));
+                        cmd.Parameters.AddWithValue("@p", new string('a', 3000));
                         using (PgDataReader reader = cmd.ExecuteReader())
                         {
                             // Start reading, and then force a timeout
@@ -1629,7 +1628,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             Task closeTask = Task.Run(() => reader.Dispose());
 
                             // Wait for the task to see the timeout
-                            string errorMessage = SystemDataResourceManager.Instance.SQL_Timeout;
+                            string errorMessage = "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.";
                             DataTestClass.AssertThrowsWrapper<AggregateException, PgException>(() => task.Wait(), innerExceptionMessage: errorMessage);
                         }
                     }
@@ -1660,10 +1659,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     // Start the command
                     conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
+                    using (PgCommand cmd = new PgCommand("SELECT @p::varchar, @p::varchar, @p::varchar, @p::varchar, @p::varchar", conn))
                     {
                         cmd.CommandTimeout = 1;
-                        cmd.Parameters.AddWithValue("p", new string('a', 3000));
+                        cmd.Parameters.AddWithValue("@p", new string('a', 3000));
                         using (PgDataReader reader = cmd.ExecuteReader())
                         {
                             // Slow down packets and wait on ReadAsync
@@ -1675,7 +1674,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             reader.SetDefaultTimeout(30000);
 
                             // Close will now observe the stored timeout error
-                            string errorMessage = SystemDataResourceManager.Instance.SQL_Timeout;
+                            string errorMessage = "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.";
                             DataTestClass.AssertThrowsWrapper<PgException>(reader.Dispose, errorMessage);
                         }
                     }

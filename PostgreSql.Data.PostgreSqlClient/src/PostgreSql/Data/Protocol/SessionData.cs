@@ -42,12 +42,11 @@ namespace PostgreSql.Data.Protocol
         
         internal void SetValue(string name, string value)
         {
-            if (String.IsNullOrEmpty(name)
-             || String.IsNullOrEmpty(value))
+            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(value))
             {
                 return;
             }
-            
+                        
             switch (name)
             {
                 case "server_version":

@@ -478,7 +478,7 @@ namespace PostgreSql.Data.Protocol
                 Sync();
 
                 throw exception;
-            }                        
+            }
         }
 
         private void HandleNotificationMessage(PgInputPacket packet)

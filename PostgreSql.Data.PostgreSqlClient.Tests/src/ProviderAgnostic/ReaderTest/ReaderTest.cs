@@ -199,7 +199,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     // GetStream
                     byte[] correctBytes = { 0x12, 0x34, 0x56, 0x78 };
                     string queryString;
-                    string correctBytesAsString = "E'\\x12345678'";
+                    string correctBytesAsString = "'\\x12345678'";
                     queryString = string.Format("SELECT {0}::bytea", correctBytesAsString);
                     using (var command = provider.CreateCommand())
                     {

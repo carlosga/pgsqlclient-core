@@ -425,7 +425,7 @@ namespace PostgreSql.Data.Protocol
                     return Byte.Parse(stringValue);
 
                 case PgDbType.Decimal:
-                    return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
+                    return Decimal.Parse(stringValue);
 
                 case PgDbType.Currency:
                 case PgDbType.Float:
