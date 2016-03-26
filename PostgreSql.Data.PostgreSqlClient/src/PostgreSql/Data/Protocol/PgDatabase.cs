@@ -139,16 +139,17 @@ namespace PostgreSql.Data.Protocol
                         
                 // Send startup packet
                 SendStartupPacket();
+                
+                // Release lock
+                ReleaseLock();                
             }
             catch (Exception)
             {
+                ReleaseLock();
+
                 Close();
                  
                 throw;
-            }
-            finally
-            {
-                ReleaseLock();
             }
         }
 
@@ -321,9 +322,10 @@ namespace PostgreSql.Data.Protocol
                    
                 case PgCodes.AUTH_MD5_PASSWORD:
                     // Read salt used when encrypting the password
+                    
                     var salt = packet.ReadBytes(4);
                     var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
-                    authPacket.WriteNullString(hash);             
+                    authPacket.WriteNullString(hash);
                    break;
 
                 default:
@@ -356,9 +358,9 @@ namespace PostgreSql.Data.Protocol
                 //     throw new NotSupportedException();
                 //     break;
             }
-            
+                        
             // Send the packet to the server
-            _channel.WritePacket(authPacket);            
+            _channel.WritePacket(authPacket);
         }
 
         private PgClientException HandleErrorMessage(PgInputPacket packet)

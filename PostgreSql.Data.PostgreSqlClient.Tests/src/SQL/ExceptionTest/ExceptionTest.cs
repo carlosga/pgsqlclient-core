@@ -18,7 +18,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         // data value and server consts
         private const string badServer = "NotAServer";
         private const string sqlsvrBadConn = "A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections.";
-        private const string logonFailedErrorMessage = "Login failed for user '{0}'.";
+        private const string logonFailedErrorMessage = "password authentication failed for user \"{0}\"";
         private const string execReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is closed.";
         private const string warningNoiseMessage = "The full-text search condition contained noise word(s).";
         private const string warningInfoMessage = "Test of info messages";
@@ -28,7 +28,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         // [Ignore("Not ported yet")]
         public static void WarningTest()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind;
+            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var hitWarnings      = false;
 
             Action<object, PgInfoMessageEventArgs> warningCallback =
                 (object sender, PgInfoMessageEventArgs imevent) =>
@@ -37,6 +38,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     {
                         Assert.True(imevent.Errors[i].Message.Contains(warningInfoMessage), "FAILED: WarningTest Callback did not contain correct message.");
                     }
+                    
+                    hitWarnings = true;
                 };
 
             PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
@@ -51,71 +54,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 connection.InfoMessage -= handler;
                 cmd.ExecuteNonQuery();
             }
-        }
-
-        [Test]
-        [Ignore("Not ported yet")]
-        public static void WarningsBeforeRowsTest()
-        {
-            var connectionString = DataTestClass.PostgreSql9_Northwind;
-            var hitWarnings      = false;
-            int iteration        = 0;
             
-            Action<object, PgInfoMessageEventArgs> warningCallback =
-                (object sender, PgInfoMessageEventArgs imevent) =>
-                {
-                    for (int i = 0; i < imevent.Errors.Count; i++)
-                    {
-                        Assert.True(imevent.Errors[i].Message.Contains(warningNoiseMessage), "FAILED: WarningsBeforeRowsTest Callback did not contain correct message. Failed in loop iteration: " + iteration);
-                    }
-                    hitWarnings = true;
-                };
-
-            var handler      = new PgInfoMessageEventHandler(warningCallback);
-            var PgConnection = new PgConnection(connectionString);
-            PgConnection.InfoMessage += handler;
-            PgConnection.Open();
-            foreach (string orderClause in new string[] { "", " order by FirstName" })
-            {
-                foreach (bool messagesOnErrors in new bool[] { true, false })
-                {
-                    iteration++;
-
-#warning TODO: WTF !
-                    // PgConnection.FireInfoMessageEventOnUserErrors = messagesOnErrors;
-
-                    // These queries should return warnings because AND here is a noise word.
-                    PgCommand cmd = new PgCommand("select FirstName from Employees where contains(FirstName, '\"Anne AND\"')" + orderClause, PgConnection);
-                    using (PgDataReader reader = cmd.ExecuteReader())
-                    {
-                        Assert.True(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be TRUE)");
-
-                        bool receivedRows = false;
-                        while (reader.Read())
-                        {
-                            receivedRows = true;
-                        }
-                        Assert.True(receivedRows, "FAILED: Should have received rows from this query.");
-                        Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
-                    }
-                    hitWarnings = false;
-
-                    cmd.CommandText = "select FirstName from Employees where contains(FirstName, '\"NotARealPerson AND\"')" + orderClause;
-                    using (PgDataReader reader = cmd.ExecuteReader())
-                    {
-                        Assert.False(reader.HasRows, "FAILED: PgDataReader.HasRows is not correct (should be FALSE)");
-
-                        bool receivedRows = false;
-                        while (reader.Read())
-                        {
-                            receivedRows = true;
-                        }
-                        Assert.False(receivedRows, "FAILED: Should have NOT received rows from this query.");
-                        Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
-                    }
-                }
-            }
-            PgConnection.Close();
+            Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
         }
 
         private static bool CheckThatExceptionsAreDistinctButHaveSameData(PgException e1, PgException e2)
@@ -145,8 +85,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Ignore("Not ported yet")]
         public static void ExceptionTests()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind;
-            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
+            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var builder          = new PgConnectionStringBuilder(connectionString);
 
             // tests improper server name thrown from constructor of tdsparser
             PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
@@ -173,18 +113,16 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void VariousExceptionTests()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind;
-
-            PgConnectionStringBuilder builder = new PgConnectionStringBuilder(connectionString);
+            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var builder          = new PgConnectionStringBuilder(connectionString);
 
             // Test 1 - A
-            PgConnectionStringBuilder badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
+            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
-                using (PgCommand command = PgConnection.CreateCommand())
+                using (PgCommand command = connection.CreateCommand())
                 {
                     command.CommandText = orderIdQuery;
                     VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
@@ -194,8 +132,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             // Test 1 - B
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
             using (var PgConnection = new PgConnection(badBuilder.ConnectionString))
-            {
-                string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
+            {                
+                string errorMessage = string.Format(logonFailedErrorMessage, badBuilder.UserID);
                 VerifyConnectionFailure<PgException>(() => PgConnection.Open(), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
             }
         }

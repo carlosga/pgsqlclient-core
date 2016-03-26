@@ -21,31 +21,33 @@ namespace ConsoleApplication
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            Action<object, PgInfoMessageEventArgs> warningCallback =
-                (object sender, PgInfoMessageEventArgs imevent) =>
-                {
-                    for (int i = 0; i < imevent.Errors.Count; i++)
-                    {
-                        Console.WriteLine(imevent.Errors[i].Message);
-                    }
-                };
-                
-            var warningInfoMessage = "DANGER !!!";                
+            var connectionString = csb.ToString();
+            var builder          = new PgConnectionStringBuilder(connectionString);
+            var badServer        = "NotAServer";
 
-            PgInfoMessageEventHandler handler = new PgInfoMessageEventHandler(warningCallback);
-            using (PgConnection connection  = new PgConnection(csb.ToString()))
+            // Test 1 - A
+            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            
+            Console.WriteLine(badBuilder.ConnectionString);
+            
+            using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
-                connection.InfoMessage += handler;
-                connection.Open();
-
-                PgCommand cmd = new PgCommand(string.Format("SELECT RAISE_NOTICE('{0}')", warningInfoMessage), connection);
-                cmd.ExecuteNonQuery();
-
-                connection.InfoMessage -= handler;
-                cmd.ExecuteNonQuery();
+                using (PgCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "select * from orders";
+                    // VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
+                }
             }
 
-            Thread.Sleep(10000);
+            // Test 1 - B
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
+            using (var connection = new PgConnection(badBuilder.ConnectionString))
+            {
+                connection.Open();
+                
+                //string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
+                // VerifyConnectionFailure<PgException>(() => PgConnection.Open(), errorMessage, (ex) => VerifyException(ex, 1, 18456, 1, 14));
+            }
             
             Console.WriteLine("Finished !");
         } 

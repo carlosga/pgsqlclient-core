@@ -3,30 +3,34 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using System;
 
 namespace PostgreSql.Data.Protocol.Authentication
 {
     internal static class MD5Authentication
     {
         internal static string EncryptPassword(byte[] salt,string userId, string password)
-        {           
+        {
             // MD5-encrypted password is required
 
             string userHash = GetMD5Hash(Encoding.UTF8.GetBytes(userId), password);
             string hash     = GetMD5Hash(salt, userHash);
 
-            return $"{PgCodes.MD5_PREFIX}{hash}";            
+            return $"{PgCodes.MD5_PREFIX}{hash}";
         }
-        
+
         private static string GetMD5Hash(byte[] salt, string password)
         {
             using (HashAlgorithm csp = MD5.Create())
             {
                 string md5    = string.Empty;
-                int    length = Encoding.UTF8.GetByteCount(password);
+                int    length = ((String.IsNullOrEmpty(password) ? 0 : Encoding.UTF8.GetByteCount(password)));
                 byte[] data   = new byte[salt.Length + length];
 
-                Encoding.UTF8.GetBytes(password, 0, length, data, 0);
+                if (length > 0)
+                {
+                    Encoding.UTF8.GetBytes(password, 0, length, data, 0);   
+                }
 
                 salt.CopyTo(data, length);
 
