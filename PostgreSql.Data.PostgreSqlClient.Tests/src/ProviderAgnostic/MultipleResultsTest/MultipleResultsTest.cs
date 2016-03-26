@@ -36,7 +36,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     ((PgConnection)connection).InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
                     {
-                        Console.WriteLine("*** SQL CONNECTION INFO MESSAGE : {0} ****", args.Message);
+                        Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
                     };
                     expectedException = typeof(PgException);
                 }
@@ -45,27 +45,27 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (DbCommand command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        "RAISE NOTICE '0';\n" +
-                        "SELECT num = 1, str = 'ABC';\n" +
-                        "RAISE NOTICE '1';\n" +
-                        "RAISERROR('Error 1', 15, 1);\n" +
-                        "RAISE NOTICE '3';\n" +
-                        "SELECT num = 2, str = 'ABC';\n" +
-                        "RAISE NOTICE '4';\n" +
-                        "RAISERROR('Error 2', 15, 1);\n" +
-                        "RAISE NOTICE '5';\n" +
-                        "SELECT num = 3, str = 'ABC';\n" +
-                        "RAISE NOTICE '6';\n" +
-                        "RAISERROR('Error 3', 15, 1);\n" +
-                        "RAISE NOTICE '7';\n" +
-                        "SELECT num = 4, str = 'ABC';\n" +
-                        "RAISE NOTICE '8';\n" +
-                        "RAISERROR('Error 4', 15, 1);\n" +
-                        "RAISE NOTICE '9';\n" +
-                        "SELECT num = 5, str = 'ABC';\n" +
-                        "RAISE NOTICE '10';\n" +
-                        "RAISERROR('Error 5', 15, 1);\n" +
-                        "RAISE NOTICE '11';\n";
+                        "SELECT raise_notice('0');\n" +
+                        "SELECT 1 as num, 'ABC' as str;\n" +
+                        "SELECT raise_notice('1');\n" +
+                        "SELECT raise_exception('Error 1');\n" +
+                        "SELECT raise_notice('3');\n" +
+                        "SELECT 2 as num, 'ABC' as str;\n" +
+                        "SELECT raise_notice('4');\n" +
+                        "SELECT raise_exception('Error 2');\n" +
+                        "SELECT raise_notice('5');\n" +
+                        "SELECT 3 as num, 'ABC' as str;\n" +
+                        "SELECT raise_notice('6');\n" +
+                        "SELECT raise_exception('Error 3');\n" +
+                        "SELECT raise_notice('7');\n" +
+                        "SELECT 4 as num, 'ABC' as str;\n" +
+                        "SELECT raise_notice('8');\n" +
+                        "SELECT raise_exception('Error 4');\n" +
+                        "SELECT raise_notice('9');\n" +
+                        "SELECT 5 as num, 'ABC' as str;\n" +
+                        "SELECT raise_notice('10');\n" +
+                        "SELECT raise_exception('Error 5');\n" +
+                        "SELECT raise_notice('11');\n";
 
                     try
                     {

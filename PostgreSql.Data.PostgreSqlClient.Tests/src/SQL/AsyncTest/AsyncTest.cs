@@ -12,7 +12,6 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]    
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;
@@ -45,6 +44,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
+        [Ignore("Not ported yet")]    
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql9_Northwind;
@@ -52,7 +52,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             bool taskCompleted = false;
 
             var com = new PgCommand("select * from Orders");
-            var con = new PgConnection(connStr + ";pooling=false");
+            var con = new PgConnection(connStr + "pooling=false");
             
             com.Connection = con;
             con.Open();

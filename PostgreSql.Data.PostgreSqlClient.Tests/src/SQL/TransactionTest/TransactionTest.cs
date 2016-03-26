@@ -17,7 +17,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Test]
         public void TestPostgreSql9()
         {
-            new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;").StartTest();
+            new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind + "multipleactiveresultsets=true;").StartTest();
         }
     }
 

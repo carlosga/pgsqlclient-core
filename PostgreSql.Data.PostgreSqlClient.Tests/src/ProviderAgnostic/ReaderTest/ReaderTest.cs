@@ -12,15 +12,15 @@ using System.Text;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]    
+    [Ignore("Not ported yet")]
     public static class ReaderTest
     {
         [Test]
         public static void TestMain()
         {
             string connectionString = DataTestClass.PostgreSql9_Pubs;
-            string tempTable        = DataTestClass.GetUniqueName("T", "[", "]");
-            string tempKey          = DataTestClass.GetUniqueName("K", "[", "]");
+            string tempTable        = DataTestClass.GetUniqueName("T", "", "");
+            string tempKey          = DataTestClass.GetUniqueName("K", "", "");
 
             var provider = PostgreSqlClientFactory.Instance;
             try

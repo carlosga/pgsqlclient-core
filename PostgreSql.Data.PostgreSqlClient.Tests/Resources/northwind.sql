@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.11
 -- Dumped by pg_dump version 9.3.11
--- Started on 2016-03-25 20:38:47 CET
+-- Started on 2016-03-26 10:03:52 CET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2082 (class 0 OID 0)
+-- TOC entry 2083 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -33,7 +33,23 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
--- TOC entry 198 (class 1255 OID 17187)
+-- TOC entry 199 (class 1255 OID 17937)
+-- Name: raise_exception(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION raise_exception(error_message text) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+begin
+    raise exception '%', error_message;
+end;
+$$;
+
+
+ALTER FUNCTION public.raise_exception(error_message text) OWNER TO postgres;
+
+--
+-- TOC entry 198 (class 1255 OID 17836)
 -- Name: raise_notice(text); Type: FUNCTION; Schema: public; Owner: northwind
 --
 
@@ -53,7 +69,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- TOC entry 171 (class 1259 OID 17188)
+-- TOC entry 171 (class 1259 OID 17837)
 -- Name: categories; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -68,7 +84,7 @@ CREATE TABLE categories (
 ALTER TABLE public.categories OWNER TO northwind;
 
 --
--- TOC entry 172 (class 1259 OID 17194)
+-- TOC entry 172 (class 1259 OID 17843)
 -- Name: customercustomerdemo; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -81,7 +97,7 @@ CREATE TABLE customercustomerdemo (
 ALTER TABLE public.customercustomerdemo OWNER TO northwind;
 
 --
--- TOC entry 173 (class 1259 OID 17200)
+-- TOC entry 173 (class 1259 OID 17849)
 -- Name: customerdemographics; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -94,7 +110,7 @@ CREATE TABLE customerdemographics (
 ALTER TABLE public.customerdemographics OWNER TO northwind;
 
 --
--- TOC entry 174 (class 1259 OID 17206)
+-- TOC entry 174 (class 1259 OID 17855)
 -- Name: customers; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -116,7 +132,7 @@ CREATE TABLE customers (
 ALTER TABLE public.customers OWNER TO northwind;
 
 --
--- TOC entry 175 (class 1259 OID 17212)
+-- TOC entry 175 (class 1259 OID 17861)
 -- Name: employees; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -145,7 +161,7 @@ CREATE TABLE employees (
 ALTER TABLE public.employees OWNER TO northwind;
 
 --
--- TOC entry 176 (class 1259 OID 17218)
+-- TOC entry 176 (class 1259 OID 17867)
 -- Name: employeeterritories; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -158,7 +174,7 @@ CREATE TABLE employeeterritories (
 ALTER TABLE public.employeeterritories OWNER TO northwind;
 
 --
--- TOC entry 177 (class 1259 OID 17221)
+-- TOC entry 177 (class 1259 OID 17870)
 -- Name: order_details; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -174,7 +190,7 @@ CREATE TABLE order_details (
 ALTER TABLE public.order_details OWNER TO northwind;
 
 --
--- TOC entry 178 (class 1259 OID 17224)
+-- TOC entry 178 (class 1259 OID 17873)
 -- Name: orders; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -199,7 +215,7 @@ CREATE TABLE orders (
 ALTER TABLE public.orders OWNER TO northwind;
 
 --
--- TOC entry 179 (class 1259 OID 17230)
+-- TOC entry 179 (class 1259 OID 17879)
 -- Name: products; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -220,7 +236,7 @@ CREATE TABLE products (
 ALTER TABLE public.products OWNER TO northwind;
 
 --
--- TOC entry 180 (class 1259 OID 17233)
+-- TOC entry 180 (class 1259 OID 17882)
 -- Name: region; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -233,7 +249,7 @@ CREATE TABLE region (
 ALTER TABLE public.region OWNER TO northwind;
 
 --
--- TOC entry 181 (class 1259 OID 17239)
+-- TOC entry 181 (class 1259 OID 17888)
 -- Name: shippers; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -247,7 +263,7 @@ CREATE TABLE shippers (
 ALTER TABLE public.shippers OWNER TO northwind;
 
 --
--- TOC entry 182 (class 1259 OID 17242)
+-- TOC entry 182 (class 1259 OID 17891)
 -- Name: shippers_tmp; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -261,7 +277,7 @@ CREATE TABLE shippers_tmp (
 ALTER TABLE public.shippers_tmp OWNER TO northwind;
 
 --
--- TOC entry 183 (class 1259 OID 17245)
+-- TOC entry 183 (class 1259 OID 17894)
 -- Name: suppliers; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -284,7 +300,7 @@ CREATE TABLE suppliers (
 ALTER TABLE public.suppliers OWNER TO northwind;
 
 --
--- TOC entry 184 (class 1259 OID 17251)
+-- TOC entry 184 (class 1259 OID 17900)
 -- Name: territories; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -298,7 +314,7 @@ CREATE TABLE territories (
 ALTER TABLE public.territories OWNER TO northwind;
 
 --
--- TOC entry 185 (class 1259 OID 17257)
+-- TOC entry 185 (class 1259 OID 17906)
 -- Name: usstates; Type: TABLE; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -313,7 +329,7 @@ CREATE TABLE usstates (
 ALTER TABLE public.usstates OWNER TO northwind;
 
 --
--- TOC entry 2060 (class 0 OID 17188)
+-- TOC entry 2061 (class 0 OID 17837)
 -- Dependencies: 171
 -- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -329,7 +345,7 @@ INSERT INTO categories (categoryid, categoryname, description, picture) VALUES (
 
 
 --
--- TOC entry 2061 (class 0 OID 17194)
+-- TOC entry 2062 (class 0 OID 17843)
 -- Dependencies: 172
 -- Data for Name: customercustomerdemo; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -337,7 +353,7 @@ INSERT INTO categories (categoryid, categoryname, description, picture) VALUES (
 
 
 --
--- TOC entry 2062 (class 0 OID 17200)
+-- TOC entry 2063 (class 0 OID 17849)
 -- Dependencies: 173
 -- Data for Name: customerdemographics; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -345,7 +361,7 @@ INSERT INTO categories (categoryid, categoryname, description, picture) VALUES (
 
 
 --
--- TOC entry 2063 (class 0 OID 17206)
+-- TOC entry 2064 (class 0 OID 17855)
 -- Dependencies: 174
 -- Data for Name: customers; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -444,7 +460,7 @@ INSERT INTO customers (customerid, companyname, contactname, contacttitle, addre
 
 
 --
--- TOC entry 2064 (class 0 OID 17212)
+-- TOC entry 2065 (class 0 OID 17861)
 -- Dependencies: 175
 -- Data for Name: employees; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -461,7 +477,7 @@ INSERT INTO employees (employeeid, lastname, firstname, title, titleofcourtesy, 
 
 
 --
--- TOC entry 2065 (class 0 OID 17218)
+-- TOC entry 2066 (class 0 OID 17867)
 -- Dependencies: 176
 -- Data for Name: employeeterritories; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -518,7 +534,7 @@ INSERT INTO employeeterritories (employeeid, territoryid) VALUES (9, '55439');
 
 
 --
--- TOC entry 2066 (class 0 OID 17221)
+-- TOC entry 2067 (class 0 OID 17870)
 -- Dependencies: 177
 -- Data for Name: order_details; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -2681,7 +2697,7 @@ INSERT INTO order_details (orderid, productid, unitprice, quantity, discount) VA
 
 
 --
--- TOC entry 2067 (class 0 OID 17224)
+-- TOC entry 2068 (class 0 OID 17873)
 -- Dependencies: 178
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3519,7 +3535,7 @@ INSERT INTO orders (orderid, customerid, employeeid, orderdate, requireddate, sh
 
 
 --
--- TOC entry 2068 (class 0 OID 17230)
+-- TOC entry 2069 (class 0 OID 17879)
 -- Dependencies: 179
 -- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3604,7 +3620,7 @@ INSERT INTO products (productid, productname, supplierid, categoryid, quantitype
 
 
 --
--- TOC entry 2069 (class 0 OID 17233)
+-- TOC entry 2070 (class 0 OID 17882)
 -- Dependencies: 180
 -- Data for Name: region; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3616,7 +3632,7 @@ INSERT INTO region (regionid, regiondescription) VALUES (4, 'Southern');
 
 
 --
--- TOC entry 2070 (class 0 OID 17239)
+-- TOC entry 2071 (class 0 OID 17888)
 -- Dependencies: 181
 -- Data for Name: shippers; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3630,7 +3646,7 @@ INSERT INTO shippers (shipperid, companyname, phone) VALUES (6, 'DHL', '1-800-22
 
 
 --
--- TOC entry 2071 (class 0 OID 17242)
+-- TOC entry 2072 (class 0 OID 17891)
 -- Dependencies: 182
 -- Data for Name: shippers_tmp; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3644,7 +3660,7 @@ INSERT INTO shippers_tmp (shipperid, companyname, phone) VALUES (6, 'DHL', '1-80
 
 
 --
--- TOC entry 2072 (class 0 OID 17245)
+-- TOC entry 2073 (class 0 OID 17894)
 -- Dependencies: 183
 -- Data for Name: suppliers; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3681,7 +3697,7 @@ INSERT INTO suppliers (supplierid, companyname, contactname, contacttitle, addre
 
 
 --
--- TOC entry 2073 (class 0 OID 17251)
+-- TOC entry 2074 (class 0 OID 17900)
 -- Dependencies: 184
 -- Data for Name: territories; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3742,7 +3758,7 @@ INSERT INTO territories (territoryid, territorydescription, regionid) VALUES ('9
 
 
 --
--- TOC entry 2074 (class 0 OID 17257)
+-- TOC entry 2075 (class 0 OID 17906)
 -- Dependencies: 185
 -- Data for Name: usstates; Type: TABLE DATA; Schema: public; Owner: northwind
 --
@@ -3801,7 +3817,7 @@ INSERT INTO usstates (stateid, statename, stateabbr, stateregion) VALUES (51, 'W
 
 
 --
--- TOC entry 1926 (class 2606 OID 17261)
+-- TOC entry 1927 (class 2606 OID 17910)
 -- Name: pk_categories; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3810,7 +3826,7 @@ ALTER TABLE ONLY categories
 
 
 --
--- TOC entry 1928 (class 2606 OID 17263)
+-- TOC entry 1929 (class 2606 OID 17912)
 -- Name: pk_customercustomerdemo; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3819,7 +3835,7 @@ ALTER TABLE ONLY customercustomerdemo
 
 
 --
--- TOC entry 1930 (class 2606 OID 17265)
+-- TOC entry 1931 (class 2606 OID 17914)
 -- Name: pk_customerdemographics; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3828,7 +3844,7 @@ ALTER TABLE ONLY customerdemographics
 
 
 --
--- TOC entry 1932 (class 2606 OID 17267)
+-- TOC entry 1933 (class 2606 OID 17916)
 -- Name: pk_customers; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3837,7 +3853,7 @@ ALTER TABLE ONLY customers
 
 
 --
--- TOC entry 1934 (class 2606 OID 17269)
+-- TOC entry 1935 (class 2606 OID 17918)
 -- Name: pk_employees; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3846,7 +3862,7 @@ ALTER TABLE ONLY employees
 
 
 --
--- TOC entry 1936 (class 2606 OID 17271)
+-- TOC entry 1937 (class 2606 OID 17920)
 -- Name: pk_employeeterritories; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3855,7 +3871,7 @@ ALTER TABLE ONLY employeeterritories
 
 
 --
--- TOC entry 1938 (class 2606 OID 17273)
+-- TOC entry 1939 (class 2606 OID 17922)
 -- Name: pk_order_details; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3864,7 +3880,7 @@ ALTER TABLE ONLY order_details
 
 
 --
--- TOC entry 1940 (class 2606 OID 17275)
+-- TOC entry 1941 (class 2606 OID 17924)
 -- Name: pk_orders; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3873,7 +3889,7 @@ ALTER TABLE ONLY orders
 
 
 --
--- TOC entry 1942 (class 2606 OID 17277)
+-- TOC entry 1943 (class 2606 OID 17926)
 -- Name: pk_products; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3882,7 +3898,7 @@ ALTER TABLE ONLY products
 
 
 --
--- TOC entry 1944 (class 2606 OID 17279)
+-- TOC entry 1945 (class 2606 OID 17928)
 -- Name: pk_region; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3891,7 +3907,7 @@ ALTER TABLE ONLY region
 
 
 --
--- TOC entry 1946 (class 2606 OID 17281)
+-- TOC entry 1947 (class 2606 OID 17930)
 -- Name: pk_shippers; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3900,7 +3916,7 @@ ALTER TABLE ONLY shippers
 
 
 --
--- TOC entry 1948 (class 2606 OID 17283)
+-- TOC entry 1949 (class 2606 OID 17932)
 -- Name: pk_shippers_tmp; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3909,7 +3925,7 @@ ALTER TABLE ONLY shippers_tmp
 
 
 --
--- TOC entry 1950 (class 2606 OID 17285)
+-- TOC entry 1951 (class 2606 OID 17934)
 -- Name: pk_suppliers; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3918,7 +3934,7 @@ ALTER TABLE ONLY suppliers
 
 
 --
--- TOC entry 1952 (class 2606 OID 17287)
+-- TOC entry 1953 (class 2606 OID 17936)
 -- Name: pk_territories; Type: CONSTRAINT; Schema: public; Owner: northwind; Tablespace: 
 --
 
@@ -3927,7 +3943,7 @@ ALTER TABLE ONLY territories
 
 
 --
--- TOC entry 2081 (class 0 OID 0)
+-- TOC entry 2082 (class 0 OID 0)
 -- Dependencies: 7
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -3939,7 +3955,7 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 GRANT ALL ON SCHEMA public TO northwind;
 
 
--- Completed on 2016-03-25 20:38:47 CET
+-- Completed on 2016-03-26 10:03:52 CET
 
 --
 -- PostgreSQL database dump complete

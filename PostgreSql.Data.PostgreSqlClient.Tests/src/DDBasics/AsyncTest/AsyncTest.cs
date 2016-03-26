@@ -13,17 +13,15 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public class DDAsyncTest
     {
         [Test]
+        [Ignore("Not supported")]
         public void OpenConnection_WithAsyncTrue_ThrowsNotSupportedException()
         {
             var asyncConnectionString = DataTestClass.PostgreSql9_Pubs + "async=true";
             Assert.Throws<NotSupportedException>(() => { new PgConnection(asyncConnectionString); });
         }
-
-        #region <<ExecuteCommand_WithNewConnection>>
         
         [Test]
         public void ExecuteCommand_WithNewConnection_ShouldPerformAsyncByDefault()
@@ -35,6 +33,27 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             
             //wait all before verifying the results
             Task.WaitAll(task1, task2);
+
+            //verify whether it executed async
+            Assert.True(DoesProcessExecutedAsync(executedProcessList));
+        }       
+        
+        [Test]
+        public void ExecuteCommand_WithSharedConnection_ShouldPerformAsyncByDefault()
+        {
+            var executedProcessList = new List<string>();
+
+            //for shared connection we need to add MARS capabilities
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind + "MultipleActiveResultSets=true;"))
+            {
+                conn.Open();
+                
+                var task1 = ExecuteCommandWithSharedConnectionAsync(conn, "C", "SELECT * FROM Orders limit 10"  , executedProcessList);
+                var task2 = ExecuteCommandWithSharedConnectionAsync(conn, "D", "SELECT * FROM Products limit 10", executedProcessList);
+                
+                //wait all before verifying the results
+                Task.WaitAll(task1, task2);
+            }
 
             //verify whether it executed async
             Assert.True(DoesProcessExecutedAsync(executedProcessList));
@@ -69,31 +88,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 }
             }
         }
-        
-        #endregion
-
-        #region <<ExecuteCommand_WithSharedConnection>>
-        
-        [Test]
-        public void ExecuteCommand_WithSharedConnection_ShouldPerformAsyncByDefault()
-        {
-            var executedProcessList = new List<string>();
-
-            //for shared connection we need to add MARS capabilities
-            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind + "MultipleActiveResultSets=true;"))
-            {
-                conn.Open();
-                
-                var task1 = ExecuteCommandWithSharedConnectionAsync(conn, "C", "SELECT * FROM Orders limit 10"  , executedProcessList);
-                var task2 = ExecuteCommandWithSharedConnectionAsync(conn, "D", "SELECT * FROM Products limit 10", executedProcessList);
-                
-                //wait all before verifying the results
-                Task.WaitAll(task1, task2);
-            }
-
-            //verify whether it executed async
-            Assert.True(DoesProcessExecutedAsync(executedProcessList));
-        }
 
         private static async Task ExecuteCommandWithSharedConnectionAsync(PgConnection conn, string processName, string cmdText, ICollection<string> executedProcessList)
         {
@@ -106,8 +100,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     executedProcessList.Add(processName);
                 }
             }
-        }
-        
-        #endregion
+        }        
     }
 }
