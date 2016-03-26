@@ -11,19 +11,19 @@ namespace PostgreSql.Data.Protocol
     internal sealed class PgStatement
         : IDisposable
     {
-        private PgDatabase          _database;
-        private string              _statementText;
-        private bool                _hasRows;
-        private string              _tag;
-        private string              _parseName;
-        private string              _portalName;
-        private bool                _allRowsFetched;
-        private PgRowDescriptor     _rowDescriptor;
-        private Queue<PgDataRecord> _rows;
-        private List<PgParameter>   _parameters;
-        private PgParameter         _outParameter;
-        private int                 _recordsAffected;
-        private PgStatementStatus   _status;
+        private PgDatabase        _database;
+        private string            _statementText;
+        private bool              _hasRows;
+        private string            _tag;
+        private string            _parseName;
+        private string            _portalName;
+        private bool              _allRowsFetched;
+        private PgRowDescriptor   _rowDescriptor;
+        private Queue<object[]>   _rows;
+        private List<PgParameter> _parameters;
+        private PgParameter       _outParameter;
+        private int               _recordsAffected;
+        private PgStatementStatus _status;
 
         internal bool               HasRows         => _hasRows;
         internal string             Tag             => _tag;
@@ -72,7 +72,7 @@ namespace PostgreSql.Data.Protocol
             _outParameter    = new PgParameter();
             _parameters      = new List<PgParameter>();
             _rowDescriptor   = new PgRowDescriptor();
-            _rows            = new Queue<PgDataRecord>(_database.ConnectionOptions.FetchSize);
+            _rows            = new Queue<object[]>(_database.ConnectionOptions.FetchSize);
         }
 
         #region IDisposable Support
@@ -349,7 +349,7 @@ namespace PostgreSql.Data.Protocol
             }           
         }
 
-        internal PgDataRecord FetchRow()
+        internal object[] FetchRow()
         {           
             if (!_allRowsFetched && _rows.IsEmpty())
             {
@@ -400,7 +400,7 @@ namespace PostgreSql.Data.Protocol
 
                 while (stmt._hasRows)
                 {
-                    var row = stmt.FetchRow();
+                    object[] row = stmt.FetchRow();
 
                     stmtPlan.Append($"{row[0]} \r\n");
                 }
@@ -804,7 +804,7 @@ namespace PostgreSql.Data.Protocol
                 }
             }
 
-            _rows.Enqueue(new PgDataRecord(_rowDescriptor, values));
+            _rows.Enqueue(values);
         }
         
         private void ClearRows()
