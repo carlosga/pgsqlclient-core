@@ -76,11 +76,11 @@ namespace PostgreSql.Data.Protocol
         }
         #endregion
         
-        internal void Open(string host, int port, bool secureChannel, int packetSize)
+        internal void Open(string host, int port, int connectTimeout, int packetSize, bool secureChannel)
         {
             try
             {
-                Connect(host, port, packetSize);
+                Connect(host, port, connectTimeout, packetSize);
 
                 if (secureChannel)
                 {
@@ -181,7 +181,7 @@ namespace PostgreSql.Data.Protocol
             _stream.Write(_buffer, 0, 4);
         }
 
-        private void Connect(string host, int port, int packetSize)
+        private void Connect(string host, int port, int connectTimeout, int packetSize)
         {
             var remoteAddress = Task.Run<IPAddress>(async () => {
                 return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
@@ -201,8 +201,28 @@ namespace PostgreSql.Data.Protocol
             _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
             // Connect to the host
-            _socket.Connect(remoteEP);
-
+            var complete = new ManualResetEvent(false);
+            var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
+            
+            args.Completed += (object sender, SocketAsyncEventArgs saeargs) => 
+            {
+                var mre = (ManualResetEvent)saeargs.UserToken;
+                mre.Set();
+            };
+                        
+            var result = _socket.ConnectAsync(args);
+            
+            complete.WaitOne(connectTimeout);
+            
+            if (!result || !_socket.Connected || args.SocketError != SocketError.Success)
+            {
+                complete.Reset();                
+                Socket.CancelConnectAsync(args);                
+                complete.WaitOne();
+                
+                throw new PgClientException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
+            }
+            
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }

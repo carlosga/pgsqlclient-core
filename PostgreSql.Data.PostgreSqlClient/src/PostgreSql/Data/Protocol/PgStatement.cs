@@ -156,8 +156,9 @@ namespace PostgreSql.Data.Protocol
                 
                 Bind();
                 Execute(0);
-                
                 ClosePortal();
+                
+                _database.Sync();
                 
                 return _recordsAffected;
             }
@@ -223,6 +224,8 @@ namespace PostgreSql.Data.Protocol
                 }
                 
                 ClosePortal();
+                
+                _database.Sync();
                 
                 return value;                
             }

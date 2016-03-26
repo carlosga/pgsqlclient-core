@@ -12,7 +12,6 @@ using System.Text;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public static class ReaderTest
     {
         [Test]
@@ -47,10 +46,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                         tx = con.BeginTransaction();
                         cmd.Transaction = tx;
 
-                        cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3210', 'Doe', 'Jane' , '882-8080', 'One Microsoft Way', 'Redmond', 'WA', '98052', 0)";
+                        cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3210', 'Doe', 'Jane' , '882-8080', 'One Microsoft Way', 'Redmond', 'WA', '98052', false)";
                         cmd.ExecuteNonQuery();
                         
-                        cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3211', 'Doe', 'John' , '882-8181', NULL, NULL, NULL, NULL, 0)";
+                        cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3211', 'Doe', 'John' , '882-8181', NULL, NULL, NULL, NULL, false)";
                         cmd.ExecuteNonQuery();
 
                         tx.Commit();
@@ -72,8 +71,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             int currentValue = 0;
                             string[] expectedValues =
                             {
-                                "876-54-3210,Doe,Jane,882-8080    ,One Microsoft Way,Redmond,WA,98052,False",
-                                "876-54-3211,Doe,John,882-8181    ,(NULL),(NULL),(NULL),(NULL),False"
+                                "876-54-3210,Doe,Jane,882-8080,One Microsoft Way,Redmond,WA,98052,False",
+                                "876-54-3211,Doe,John,882-8181,(NULL),(NULL),(NULL),(NULL),False"
                             };
 
                             while (rdr.Read())
@@ -108,8 +107,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             int      currentValue   = 0;
                             string[] expectedValues =
                             {
-                                "876-54-3210,Doe,Jane,882-8080    ,One Microsoft Way,Redmond,WA,98052,False",
-                                "876-54-3211,Doe,John,882-8181    ,(NULL),(NULL),(NULL),(NULL),False"
+                                "876-54-3210,Doe,Jane,882-8080,One Microsoft Way,Redmond,WA,98052,False",
+                                "876-54-3211,Doe,John,882-8181,(NULL),(NULL),(NULL),(NULL),False"
                             };
 
                             while (rdr.Read())
@@ -155,8 +154,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             int      currentValue   = 0;
                             string[] expectedValues =
                             {
-                                "876-54-3210,Doe,Jane,882-8080    ,One Microsoft Way,Redmond,WA,98052,False",
-                                "876-54-3211,Doe,John,882-8181    ,(NULL),(NULL),(NULL),(NULL),False"
+                                "876-54-3210,Doe,Jane,882-8080,One Microsoft Way,Redmond,WA,98052,False",
+                                "876-54-3211,Doe,John,882-8181,(NULL),(NULL),(NULL),(NULL),False"
                             };
 
                             while (rdr.ReadAsync().Result)
@@ -223,7 +222,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
 
                     // GetTextReader
-#warning TODO: Collations aren't the equivalents of the original ones
                     string[] correctStrings = { "'Hello World'", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'" };
                     string[] collations     = { "en_GB.utf8", "C.UTF-8" };
 

@@ -1697,8 +1697,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             };
             string[] expectedColTypeNames =
             {
-                "int2"  , "bpchar" , "int2"   , "date"    , "date"    , "date"    , "int2",
-                "float4", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
+                "int4"   , "bpchar" , "int4"   , "date"    , "date"    , "date"    , "int4",
+                "numeric", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
             };
 
             for (int i = 0; i < reader.FieldCount; i++)

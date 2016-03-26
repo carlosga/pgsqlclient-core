@@ -11,7 +11,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
     [TestFixture]
     public static class DDMARSTest
     {
-#warning TODO: Review type conversions inside the provider as to make thes pass it's needed to change counts to long and order id's to short
         [Test]
         public static void TestMain()
         {
@@ -74,7 +73,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static readonly short[] expectedOrders =
+        private static readonly int[] expectedOrders =
         {
             10248, 10249, 10250, 10251, 10252, 10253, 10254, 10255, 10256, 10257, 10258, 10259, 10260, 10261, 10262, 10263,
             10264, 10265, 10266, 10267, 10268, 10269, 10270, 10271, 10272, 10273, 10274, 10275, 10276, 10277, 10278, 10279,
