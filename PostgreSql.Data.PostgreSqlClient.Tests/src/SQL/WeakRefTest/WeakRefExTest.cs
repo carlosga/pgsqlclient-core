@@ -11,12 +11,11 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
-    public class WeakRefTestYukonSpecific
+    public class WeakRefExTest
     {
         private const string COMMAND_TEXT_1      = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax from Customers";
         private const string COMMAND_TEXT_2      = "SELECT CompanyName from Customers";
-        private const string COLUMN_NAME_2       = "CompanyName";
+        private const string COLUMN_NAME_2       = "companyname";
         private const string DATABASE_NAME       = "pubs";
         private const int    CONCURRENT_COMMANDS = 5;
 
