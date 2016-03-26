@@ -11,7 +11,6 @@ using System;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
     public class TransactionTest
     {
         [Test]
@@ -23,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
     internal class TransactionTestWorker
     {
-        private static string s_tempTableName1 = string.Format("TEST_{0}{1}{2}", Environment.GetEnvironmentVariable("ComputerName"), Environment.TickCount, Guid.NewGuid()).Replace('-', '_');
+        private static string s_tempTableName1 = DataTestClass.GetUniqueName("TEST_", String.Empty, String.Empty);
         private static string s_tempTableName2 = s_tempTableName1 + "_2";
         private string _connectionString;
 
@@ -50,10 +49,13 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 ExceptionTest();
                 ResetTables();
 
-                ReadUncommittedIsolationLevel_ShouldReturnUncommittedData();
-                ResetTables();
+                // http://www.postgresql.org/docs/9.1/static/sql-set-transaction.html
+                // The SQL standard defines one additional level, READ UNCOMMITTED. In PostgreSQL READ UNCOMMITTED is treated as READ COMMITTED.
+                // ReadUncommittedIsolationLevel_ShouldReturnUncommittedData();
+                // ResetTables();
 
-                ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
+#warning TODO: Review and enable if possible
+                // ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
                 ResetTables();
             }
             finally
@@ -228,10 +230,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                 PgTransaction tx = connection.BeginTransaction();
 
-                string invalidSaveStateMessage = SystemDataResourceManager.Instance.SQL_NullEmptyTransactionName;
-                string executeCommandWithoutTransactionMessage = SystemDataResourceManager.Instance.ADP_TransactionRequired("ExecuteNonQuery");
-                string transactionConflictErrorMessage = SystemDataResourceManager.Instance.ADP_TransactionConnectionMismatch;
-                string parallelTransactionErrorMessage = SystemDataResourceManager.Instance.ADP_ParallelTransactionsNotSupported("PgConnection");
+                string invalidSaveStateMessage = "Invalid transaction or invalid name for a point at which to save within the transaction.";
+                string executeCommandWithoutTransactionMessage = "ExecuteNonQuery requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.";
+                string transactionConflictErrorMessage = "The transaction is either not associated with the current connection or has been completed.";
+                string parallelTransactionErrorMessage = "A transaction is currently active. Parallel transactions are not supported.";
 
                 AssertException<InvalidOperationException>(() =>
                 {
@@ -350,7 +352,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     PgTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadCommitted);
                     command2.Transaction = tx2;
 
-                    AssertException<PgException>(() => command2.ExecuteReader(), SystemDataResourceManager.Instance.SQL_Timeout as string);
+                    AssertException<PgException>(() => command2.ExecuteReader(), "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");
 
                     tx2.Rollback();
                     connection2.Close();

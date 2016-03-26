@@ -455,12 +455,12 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             if (_transaction == null && _connection.InnerConnection.HasActiveTransaction)
             {
-                throw new InvalidOperationException("Execute requires the Command object to have a Transaction object when the Connection object assigned to the command is in a pending local transaction.  The Transaction property of the Command has not been initialized.");
+                throw new InvalidOperationException($"{memberName} requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.");
             }
 
             if (_transaction != null && !_connection.Equals(Transaction.Connection))
             {
-                throw new InvalidOperationException("Command Connection is not equal to Transaction Connection");
+                throw new InvalidOperationException("The transaction is either not associated with the current connection or has been completed.");
             }
 
             if (_commandText == null || _commandText.Length == 0)

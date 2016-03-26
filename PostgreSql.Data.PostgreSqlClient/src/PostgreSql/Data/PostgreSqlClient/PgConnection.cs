@@ -111,24 +111,39 @@ namespace PostgreSql.Data.PostgreSqlClient
         // }
         #endregion
         
-        public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted, null);
+        public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
         
-        public new PgTransaction BeginTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel, null);
+        public new PgTransaction BeginTransaction(IsolationLevel isolationLevel)
+        {
+            if (IsClosed)
+            {
+                throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
+            }
+            if (_innerConnection.HasActiveTransaction)
+            {
+                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
+            }
+
+            return _innerConnection.BeginTransaction(isolationLevel, null);            
+        }
         
         public PgTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            // if (String.IsNullOrEmpty(transactionName))
-            // {
-            //     throw new ArgumentException("No transaction name was be specified.");
-            // }
-            
             if (IsClosed)
             {
                 throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
+            }            
+            if (_innerConnection.HasActiveTransaction)
+            {
+                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
             }
-
+            if (String.IsNullOrEmpty(transactionName))
+            {
+                throw new InvalidOperationException("Invalid transaction or invalid name for a point at which to save within the transaction.");
+            }
+            
             return _innerConnection.BeginTransaction(isolationLevel, transactionName);
         }
 

@@ -123,17 +123,12 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            if (HasActiveTransaction)
-            {
-                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
-            }
-
             var transaction = new PgTransaction(_owner, isolationLevel);
             transaction.Begin(transactionName);
             
             _activeTransaction = new WeakReference(transaction);
             
-            return transaction;                
+            return transaction;
         }
 
         internal PgCommand CreateCommand() => new PgCommand(String.Empty, _owner, ActiveTransaction);

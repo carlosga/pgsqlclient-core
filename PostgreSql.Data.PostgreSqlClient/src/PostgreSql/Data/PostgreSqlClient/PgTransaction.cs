@@ -124,7 +124,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal void Begin(string transactionName)
         {
             _innerTransaction.Begin();
-            _innerTransaction.Save(transactionName);
+            if (transactionName != null && transactionName.Length > 0)
+            {
+                _innerTransaction.Save(transactionName);   
+            }
         }
 
         private void CheckTransaction()

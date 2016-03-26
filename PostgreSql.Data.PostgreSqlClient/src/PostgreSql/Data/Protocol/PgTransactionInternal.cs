@@ -24,10 +24,12 @@ namespace PostgreSql.Data.Protocol
             switch (_isolationLevel)
             {
                 case IsolationLevel.ReadUncommitted:
-                    throw new NotSupportedException("Read uncommitted transaction isolation is not supported");
+                    sql += "READ UNCOMMITTED";
+                    break;
 
                 case IsolationLevel.RepeatableRead:
-                    throw new NotSupportedException("Repeatable read transaction isolation is not supported");
+                    sql += "REPEATABLE READ";
+                    break;
 
                 case IsolationLevel.Serializable:
                     sql += "SERIALIZABLE";
@@ -78,9 +80,9 @@ namespace PostgreSql.Data.Protocol
 
         internal void Save(string savePointName)
         {
-            if (String.IsNullOrEmpty(savePointName))
+            if (savePointName == null || savePointName.Length == 0)
             {
-                return;
+                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
             
             using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
@@ -91,13 +93,9 @@ namespace PostgreSql.Data.Protocol
 
         internal void Commit(string savePointName)
         {
-            if (savePointName == null)
+            if (savePointName == null || savePointName.Length == 0)
             {
-                throw new ArgumentException("No transaction name was be specified.");
-            }
-            else if (savePointName.Length == 0)
-            {
-                throw new ArgumentException("No transaction name was be specified.");
+                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
 
             using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
@@ -108,13 +106,9 @@ namespace PostgreSql.Data.Protocol
 
         internal void Rollback(string savePointName)
         {
-            if (savePointName == null)
+            if (savePointName == null || savePointName.Length == 0)
             {
-                throw new ArgumentException("No transaction name was be specified.");
-            }
-            else if (savePointName.Length == 0)
-            {
-                throw new ArgumentException("No transaction name was be specified.");
+                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
 
             using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))

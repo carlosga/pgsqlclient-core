@@ -106,7 +106,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void VariantRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -269,7 +268,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 string expectedSecondString = "Another string";
 
                 // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
-#warning TODO: Query modified to add the parameter types, without them the query will fail at parse + describe stage.                
                 using (PgCommand cmd = new PgCommand("SELECT @r::varchar, @p::varchar", conn))
                 {
                     cmd.Parameters.AddWithValue("@r", expectedFirstString);
@@ -365,7 +363,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void TimestampRead()
         {
             string tempTable = "__" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
@@ -386,18 +383,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     using (PgDataReader reader = cmdDefault.ExecuteReader())
                     {
                         DataTestClass.AssertEqualsWithDescription("timestamp", reader.GetDataTypeName(1), "FAILED: Data value did not have correct type");
-                        reader.Read();
-
-                        object o = reader[1];
-
-                        // timestamps are really 8-byte binary
-                        byte[] b = (byte[])o;
-                        DataTestClass.AssertEqualsWithDescription(8, b.Length, "FAILED: Retrieved byte array had incorrect length");
-
-#warning TODO: Implement PgBinary
-                        // var sqlBin = reader.GetPgBinary(1);
-                        // b = sqlBin.Value;
-                        // DataTestClass.AssertEqualsWithDescription(8, b.Length, "FAILED: Retrieved PgBinary value had incorrect length");
+                        DataTestClass.AssertEqualsWithDescription(typeof(DateTime), reader.GetFieldType(1), "FAILED: Data value did not have correct type");                        
                     }
                 }
             }
