@@ -115,9 +115,9 @@ namespace PostgreSql.Data.PostgreSqlClient
             ConnectionString = connectionString;
         }
 
-        private int    GetInt32(string keyword)   => Convert.ToInt32(GetValue(keyword));
-        private string GetString(string keyword)  => Convert.ToString(GetValue(keyword));
-        private bool   GetBoolean(string keyword) => Convert.ToBoolean(GetValue(keyword));
+        private int    GetInt32(string keyword)   => Convert.ToInt32(this[GetValue(keyword)]);
+        private string GetString(string keyword)  => Convert.ToString(this[GetValue(keyword)]);
+        private bool   GetBoolean(string keyword) => Convert.ToBoolean(this[GetValue(keyword)]);
         
         private void SetValue(string keyword, object value) => this[GetValue(keyword)] = value;
         
@@ -135,7 +135,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     break;
                 }
             }
-
+            
             return synonymKey;
         }        
     }

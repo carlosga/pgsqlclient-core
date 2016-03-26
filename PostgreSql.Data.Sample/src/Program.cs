@@ -23,26 +23,16 @@ namespace ConsoleApplication
             
             var connectionString = csb.ToString();
             var builder          = new PgConnectionStringBuilder(connectionString);
-            var badServer        = "NotAServer";
 
-            // Test 1 - A
-            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            
-            Console.WriteLine(badBuilder.ConnectionString);
-            
-            using (var connection = new PgConnection(badBuilder.ConnectionString))
-            {
-                using (PgCommand command = connection.CreateCommand())
-                {
-                    command.CommandText = "select * from orders";
-                    // VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
-                }
-            }
-
-            // Test 1 - B
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
             using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
+                foreach (var key in badBuilder.Keys)
+                {
+                    Console.WriteLine(key);   
+                    Console.WriteLine(badBuilder[key.ToString()]);
+                }
+                
                 connection.Open();
                 
                 //string errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
