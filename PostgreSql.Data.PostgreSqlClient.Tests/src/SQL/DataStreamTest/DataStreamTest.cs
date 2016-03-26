@@ -756,7 +756,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        //[Ignore("Not ported yet")]
         public static void NumericRead()
         {
             string tempTable = DataTestClass.GetUniqueName("TEMP_", "", "");
