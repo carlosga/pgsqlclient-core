@@ -5,61 +5,37 @@
 // See the LICENSE file in the project root for more information.
 
 using NUnit.Framework;
+using System;
 
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
+    [TestFixture]
     public static class DateTimeTest
     {
-        // [Test]
-        // public static void SQLBU503165Test()
-        // {
-        //     SqlParameter p = new SqlParameter();
-        //     p.SqlValue = new DateTime(1200, 1, 1);
-        //     p.SqlDbType = SqlDbType.DateTime2;
+        [Test]
+        public static void SelectNullTimestampWithTZ()
+        {
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            {
+                conn.Open();
+                PgParameter p = new PgParameter("@p", PgDbType.TimestampWithTZ);
+                p.Value = DBNull.Value;
+                p.Size  = 27;
+                PgCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT @p::timestamp with time zone";
+                cmd.Parameters.Add(p);
 
-        //     DateTime expectedValue = new DateTime(1200, 1, 1);
-        //     Assert.True(p.Value.Equals(expectedValue), "FAILED: Value did not match expected DateTime value");
-        //     Assert.True(p.SqlValue.Equals(expectedValue), "FAILED: SqlValue did not match expected DateTime value");
-        // }
-
-        // [Test]
-        // public static void SQLBU527900Test()
-        // {
-        //     object chs = new char[] { 'a', 'b', 'c' };
-
-        //     SqlCommand command = new SqlCommand();
-        //     SqlParameter parameter = command.Parameters.AddWithValue("@o", chs);
-
-        //     Assert.True(parameter.Value is char[], "FAILED: Expected parameter value to be char[]");
-        //     Assert.True(parameter.SqlValue is SqlChars, "FAILED: Expected parameter value to be SqlChars");
-        //     Assert.True(parameter.SqlValue is SqlChars, "FAILED: Expected parameter value to be SqlChars");
-        //     Assert.True(parameter.Value is char[], "FAILED: Expected parameter value to be char[]");
-        // }
-
-        // [Test]
-        // public static void SQLBU503290Test()
-        // {
-        //     using (SqlConnection conn = new SqlConnection(DataTestClass.SQL2008_Master))
-        //     {
-        //         conn.Open();
-        //         SqlParameter p = new SqlParameter("@p", SqlDbType.DateTimeOffset);
-        //         p.Value = DBNull.Value;
-        //         p.Size = 27;
-        //         SqlCommand cmd = conn.CreateCommand();
-        //         cmd.CommandText = "SELECT @p";
-        //         cmd.Parameters.Add(p);
-
-        //         Assert.True(cmd.ExecuteScalar() is DBNull, "FAILED: ExecuteScalar did not return a result of type DBNull");
-        //     }
-        // }
+                Assert.True(cmd.ExecuteScalar() is DBNull, "FAILED: ExecuteScalar did not return a result of type DBNull");
+            }
+        }
 
         // [Test]
         // public static void ReaderParameterTest()
         // {
-        //     string tempTable = "#t_" + Guid.NewGuid().ToString().Replace('-', '_');
-        //     string tempProc = "#p_" + Guid.NewGuid().ToString().Replace('-', '_');
-        //     string tempProcN = "#pn_" + Guid.NewGuid().ToString().Replace('-', '_');
-        //     string prepTable1 = "CREATE TABLE " + tempTable + " (ci int, c0 dateTime, c1 date, c2 time(7), c3 datetime2(3), c4 datetimeoffset)";
+        //     string tempTable  = "#t_" + Guid.NewGuid().ToString().Replace('-', '_');
+        //     string tempProc   = "#p_" + Guid.NewGuid().ToString().Replace('-', '_');
+        //     string tempProcN  = "#pn_" + Guid.NewGuid().ToString().Replace('-', '_');
+        //     string prepTable1 = "CREATE TABLE " + tempTable + " (ci int, c0 dateTime, c1 date, c2 time(7), c3 datetime2(3), c4 timestamp with timezone)";
         //     string prepTable2 = "INSERT INTO " + tempTable + " VALUES (0, " +
         //         "'1753-01-01 12:00AM', " +
         //         "'1753-01-01', " +
@@ -82,11 +58,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //     prepProcN += " SET @p3 = NULL";
         //     prepProcN += " SET @p4 = NULL";
 
-        //     using (SqlConnection conn = new SqlConnection(DataTestClass.SQL2008_Master))
+        //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
         //     {
         //         // ReaderParameterTest Setup
         //         conn.Open();
-        //         SqlCommand cmd = conn.CreateCommand();
+        //         PgCommand cmd = conn.CreateCommand();
         //         cmd.CommandText = prepTable1;
         //         cmd.ExecuteNonQuery();
         //         cmd.CommandText = prepTable2;
@@ -95,14 +71,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //         #region parameter
         //         // Parameter Tests
         //         // Test 1
-        //         SqlCommand cmd2 = conn.CreateCommand();
+        //         PgCommand cmd2 = conn.CreateCommand();
         //         cmd2.CommandText = prepTable3;
-        //         SqlParameter pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-        //         SqlParameter p0 = cmd2.Parameters.Add("@p0", SqlDbType.DateTime);
-        //         SqlParameter p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-        //         SqlParameter p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
-        //         SqlParameter p3 = cmd2.Parameters.Add("@p3", SqlDbType.DateTime2);
-        //         SqlParameter p4 = cmd2.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+        //         PgParameter pi = cmd2.Parameters.Add("@pi", PgDbType.Int);
+        //         PgParameter p0 = cmd2.Parameters.Add("@p0", PgDbType.DateTime);
+        //         PgParameter p1 = cmd2.Parameters.Add("@p1", PgDbType.Date);
+        //         PgParameter p2 = cmd2.Parameters.Add("@p2", PgDbType.Time);
+        //         PgParameter p3 = cmd2.Parameters.Add("@p3", PgDbType.DateTime2);
+        //         PgParameter p4 = cmd2.Parameters.Add("@p4", PgDbType.DateTimeOffset);
         //         pi.Value = DBNull.Value;
         //         p0.Value = DBNull.Value;
         //         p1.Value = DBNull.Value;
@@ -133,12 +109,12 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //         Assert.True(scalarResult.Equals(1), string.Format("FAILED: Execute scalar returned unexpected result. Expected: {0}. Actual: {1}.", 1, scalarResult));
 
         //         cmd2.Parameters.Clear();
-        //         pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-        //         p0 = cmd2.Parameters.Add("@p0", SqlDbType.DateTime);
-        //         p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-        //         p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
-        //         p3 = cmd2.Parameters.Add("@p3", SqlDbType.DateTime2);
-        //         p4 = cmd2.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+        //         pi = cmd2.Parameters.Add("@pi", PgDbType.Int);
+        //         p0 = cmd2.Parameters.Add("@p0", PgDbType.DateTime);
+        //         p1 = cmd2.Parameters.Add("@p1", PgDbType.Date);
+        //         p2 = cmd2.Parameters.Add("@p2", PgDbType.Time);
+        //         p3 = cmd2.Parameters.Add("@p3", PgDbType.DateTime2);
+        //         p4 = cmd2.Parameters.Add("@p4", PgDbType.DateTimeOffset);
         //         pi.SqlValue = new SqlInt32(0);
         //         p0.SqlValue = new SqlDateTime(1753, 1, 1, 0, 0, 0);
         //         p1.SqlValue = new DateTime(1753, 1, 1, 0, 0, 0);
@@ -156,14 +132,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //         cmd.ExecuteNonQuery();
         //         cmd.CommandText = prepProcN;
         //         cmd.ExecuteNonQuery();
-        //         SqlCommand cmd3 = conn.CreateCommand();
+        //         PgCommand cmd3 = conn.CreateCommand();
         //         cmd3.CommandType = CommandType.StoredProcedure;
         //         cmd3.CommandText = tempProc;
-        //         p0 = cmd3.Parameters.Add("@p0", SqlDbType.DateTime);
-        //         p1 = cmd3.Parameters.Add("@p1", SqlDbType.Date);
-        //         p2 = cmd3.Parameters.Add("@p2", SqlDbType.Time);
-        //         p3 = cmd3.Parameters.Add("@p3", SqlDbType.DateTime2);
-        //         p4 = cmd3.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+        //         p0 = cmd3.Parameters.Add("@p0", PgDbType.DateTime);
+        //         p1 = cmd3.Parameters.Add("@p1", PgDbType.Date);
+        //         p2 = cmd3.Parameters.Add("@p2", PgDbType.Time);
+        //         p3 = cmd3.Parameters.Add("@p3", PgDbType.DateTime2);
+        //         p4 = cmd3.Parameters.Add("@p4", PgDbType.DateTimeOffset);
         //         p0.Direction = ParameterDirection.Output;
         //         p1.Direction = ParameterDirection.Output;
         //         p2.Direction = ParameterDirection.Output;
@@ -172,61 +148,61 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //         p2.Scale = 7;
         //         cmd3.ExecuteNonQuery();
 
-        //         Assert.True(p0.Value.Equals((new SqlDateTime(1753, 1, 1, 0, 0, 0)).Value), "FAILED: SqlParameter p0 contained incorrect value");
-        //         Assert.True(p1.Value.Equals(new DateTime(1753, 1, 1, 0, 0, 0)), "FAILED: SqlParameter p1 contained incorrect value");
-        //         Assert.True(p2.Value.Equals(new TimeSpan(0, 20, 12, 13, 360)), "FAILED: SqlParameter p2 contained incorrect value");
-        //         Assert.True(p2.Scale.Equals(7), "FAILED: SqlParameter p0 contained incorrect scale");
-        //         Assert.True(p3.Value.Equals(new DateTime(2000, 12, 31, 23, 59, 59, 997)), "FAILED: SqlParameter p3 contained incorrect value");
-        //         Assert.True(p3.Scale.Equals(7), "FAILED: SqlParameter p3 contained incorrect scale");
-        //         Assert.True(p4.Value.Equals(new DateTimeOffset(9999, 12, 31, 23, 59, 59, 997, TimeSpan.Zero)), "FAILED: SqlParameter p4 contained incorrect value");
-        //         Assert.True(p4.Scale.Equals(7), "FAILED: SqlParameter p4 contained incorrect scale");
+        //         Assert.True(p0.Value.Equals((new SqlDateTime(1753, 1, 1, 0, 0, 0)).Value), "FAILED: PgParameter p0 contained incorrect value");
+        //         Assert.True(p1.Value.Equals(new DateTime(1753, 1, 1, 0, 0, 0)), "FAILED: PgParameter p1 contained incorrect value");
+        //         Assert.True(p2.Value.Equals(new TimeSpan(0, 20, 12, 13, 360)), "FAILED: PgParameter p2 contained incorrect value");
+        //         Assert.True(p2.Scale.Equals(7), "FAILED: PgParameter p0 contained incorrect scale");
+        //         Assert.True(p3.Value.Equals(new DateTime(2000, 12, 31, 23, 59, 59, 997)), "FAILED: PgParameter p3 contained incorrect value");
+        //         Assert.True(p3.Scale.Equals(7), "FAILED: PgParameter p3 contained incorrect scale");
+        //         Assert.True(p4.Value.Equals(new DateTimeOffset(9999, 12, 31, 23, 59, 59, 997, TimeSpan.Zero)), "FAILED: PgParameter p4 contained incorrect value");
+        //         Assert.True(p4.Scale.Equals(7), "FAILED: PgParameter p4 contained incorrect scale");
 
         //         // Test 4
         //         cmd3.CommandText = tempProcN;
         //         cmd3.ExecuteNonQuery();
-        //         Assert.True(p0.Value.Equals(DBNull.Value), "FAILED: SqlParameter p0 expected to be NULL");
-        //         Assert.True(p1.Value.Equals(DBNull.Value), "FAILED: SqlParameter p1 expected to be NULL");
-        //         Assert.True(p2.Value.Equals(DBNull.Value), "FAILED: SqlParameter p2 expected to be NULL");
-        //         Assert.True(p3.Value.Equals(DBNull.Value), "FAILED: SqlParameter p3 expected to be NULL");
-        //         Assert.True(p4.Value.Equals(DBNull.Value), "FAILED: SqlParameter p4 expected to be NULL");
+        //         Assert.True(p0.Value.Equals(DBNull.Value), "FAILED: PgParameter p0 expected to be NULL");
+        //         Assert.True(p1.Value.Equals(DBNull.Value), "FAILED: PgParameter p1 expected to be NULL");
+        //         Assert.True(p2.Value.Equals(DBNull.Value), "FAILED: PgParameter p2 expected to be NULL");
+        //         Assert.True(p3.Value.Equals(DBNull.Value), "FAILED: PgParameter p3 expected to be NULL");
+        //         Assert.True(p4.Value.Equals(DBNull.Value), "FAILED: PgParameter p4 expected to be NULL");
 
         //         // Date
-        //         Assert.False(IsValidParam(SqlDbType.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Date, "c1", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Date, "c1", "1753-1-1", conn, tempTable), "FAILED: Invalid param for Date SqlDbType");
+        //         Assert.False(IsValidParam(PgDbType.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Date, "c1", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for Date PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Date, "c1", "1753-1-1", conn, tempTable), "FAILED: Invalid param for Date PgDbType");
 
         //         // Time
-        //         Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.Time, "c2", "20:12:13.36", conn, tempTable), "FAILED: Invalid param for Time SqlDbType");
+        //         Assert.False(IsValidParam(PgDbType.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tempTable), "FAILED: Invalid param for Time PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.Time, "c2", "20:12:13.36", conn, tempTable), "FAILED: Invalid param for Time PgDbType");
 
         //         // DateTime2
         //         DateTime dt = DateTime.Parse("2000-12-31 23:59:59.997");
-        //         Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new SqlDateTime(2000, 12, 31, 23, 59, 59, 997), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", "2000-12-31 23:59:59.997", conn, tempTable), "FAILED: Invalid param for DateTime2 SqlDbType");
+        //         Assert.False(IsValidParam(PgDbType.DateTime2, "c3", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.DateTime2, "c3", new SqlDateTime(2000, 12, 31, 23, 59, 59, 997), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Utc), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Local), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.DateTime2, "c3", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTime2, "c3", "2000-12-31 23:59:59.997", conn, tempTable), "FAILED: Invalid param for DateTime2 PgDbType");
 
         //         // DateTimeOffset
         //         DateTimeOffset dto = DateTimeOffset.Parse("9999-12-31 23:59:59.997 +00:00");
-        //         Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto, conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.DateTimeOffset, "c4", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", new DateTime(9999, 12, 31, 15, 59, 59, 997, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto.UtcDateTime, conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto.LocalDateTime, conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.False(IsValidParam(SqlDbType.DateTimeOffset, "c4", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-        //         Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", "9999-12-31 23:59:59.997 +00:00", conn, tempTable), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTimeOffset, "c4", dto, conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.DateTimeOffset, "c4", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTimeOffset, "c4", new DateTime(9999, 12, 31, 15, 59, 59, 997, DateTimeKind.Unspecified), conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTimeOffset, "c4", dto.UtcDateTime, conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTimeOffset, "c4", dto.LocalDateTime, conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.False(IsValidParam(PgDbType.DateTimeOffset, "c4", new TimeSpan(), conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
+        //         Assert.True(IsValidParam(PgDbType.DateTimeOffset, "c4", "9999-12-31 23:59:59.997 +00:00", conn, tempTable), "FAILED: Invalid param for DateTimeOffset PgDbType");
         //         #endregion
 
         //         #region reader
@@ -311,235 +287,234 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         //     }
         // }
 
-        // [Test]
-        // public static void TypeVersionKnobTest()
-        // {
-        //     string tempTable = "#t_" + Guid.NewGuid().ToString().Replace('-', '_');
-        //     string prepTable1 = "CREATE TABLE " + tempTable + " (ci int, c0 dateTime, c1 date, c2 time(7), c3 datetime2(3), c4 datetimeoffset)";
-        //     string prepTable2 = "INSERT INTO " + tempTable + " VALUES (0, " +
-        //         "'1753-01-01 12:00AM', " +
-        //         "'1753-01-01', " +
-        //         "'20:12:13.36', " +
-        //         "'2000-12-31 23:59:59.997', " +
-        //         "'9999-12-31 15:59:59.997 -08:00')";
-        //     string prepTable3 = "INSERT INTO " + tempTable + " VALUES (NULL, NULL, NULL, NULL, NULL, NULL)";
+    //     [Test]
+    //     public static void TypeVersionKnobTest()
+    //     {
+    //         string tempTable = "#t_" + Guid.NewGuid().ToString().Replace('-', '_');
+    //         string prepTable1 = "CREATE TABLE " + tempTable + " (ci int, c0 dateTime, c1 date, c2 time(7), c3 datetime2(3), c4 datetimeoffset)";
+    //         string prepTable2 = "INSERT INTO " + tempTable + " VALUES (0, " +
+    //             "'1753-01-01 12:00AM', " +
+    //             "'1753-01-01', " +
+    //             "'20:12:13.36', " +
+    //             "'2000-12-31 23:59:59.997', " +
+    //             "'9999-12-31 15:59:59.997 -08:00')";
+    //         string prepTable3 = "INSERT INTO " + tempTable + " VALUES (NULL, NULL, NULL, NULL, NULL, NULL)";
 
-        //     using (SqlConnection conn = new SqlConnection(new SqlConnectionStringBuilder(DataTestClass.SQL2008_Master) { TypeSystemVersion = "SQL Server 2008" }.ConnectionString))
-        //     {
-        //         conn.Open();
-        //         SqlCommand cmd = conn.CreateCommand();
-        //         cmd.CommandText = prepTable1;
-        //         cmd.ExecuteNonQuery();
-        //         cmd.CommandText = prepTable2;
-        //         cmd.ExecuteNonQuery();
-        //         cmd.CommandText = prepTable3;
-        //         cmd.ExecuteNonQuery();
+    //         using (PgConnection conn = new PgConnection(new PgConnectionStringBuilder(DataTestClass.SQL2008_Master) { TypeSystemVersion = "SQL Server 2008" }.ConnectionString))
+    //         {
+    //             conn.Open();
+    //             PgCommand cmd = conn.CreateCommand();
+    //             cmd.CommandText = prepTable1;
+    //             cmd.ExecuteNonQuery();
+    //             cmd.CommandText = prepTable2;
+    //             cmd.ExecuteNonQuery();
+    //             cmd.CommandText = prepTable3;
+    //             cmd.ExecuteNonQuery();
 
-        //         cmd.CommandText = "SELECT * FROM " + tempTable;
-        //         using (SqlDataReader rdr = cmd.ExecuteReader())
-        //         {
-        //             while (rdr.Read())
-        //             {
-        //                 for (int i = 2; i < rdr.FieldCount; ++i)
-        //                 {
-        //                     Assert.True(IsNotString(rdr, i), string.Format("FAILED: IsNotString failed for column: {0}", i));
-        //                 }
-        //                 for (int i = 2; i < rdr.FieldCount; ++i)
-        //                 {
-        //                     ValidateReader(rdr, i);
-        //                 }
-        //             }
-        //         }
-        //     }
+    //             cmd.CommandText = "SELECT * FROM " + tempTable;
+    //             using (SqlDataReader rdr = cmd.ExecuteReader())
+    //             {
+    //                 while (rdr.Read())
+    //                 {
+    //                     for (int i = 2; i < rdr.FieldCount; ++i)
+    //                     {
+    //                         Assert.True(IsNotString(rdr, i), string.Format("FAILED: IsNotString failed for column: {0}", i));
+    //                     }
+    //                     for (int i = 2; i < rdr.FieldCount; ++i)
+    //                     {
+    //                         ValidateReader(rdr, i);
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-        //     using (SqlConnection conn = new SqlConnection(new SqlConnectionStringBuilder(DataTestClass.SQL2008_Master) { TypeSystemVersion = "SQL Server 2005" }.ConnectionString))
-        //     {
-        //         conn.Open();
-        //         SqlCommand cmd = conn.CreateCommand();
-        //         cmd.CommandText = prepTable1;
-        //         cmd.ExecuteNonQuery();
-        //         cmd.CommandText = prepTable2;
-        //         cmd.ExecuteNonQuery();
-        //         cmd.CommandText = prepTable3;
-        //         cmd.ExecuteNonQuery();
+    //         using (PgConnection conn = new PgConnection(new PgConnectionStringBuilder(DataTestClass.SQL2008_Master) { TypeSystemVersion = "SQL Server 2005" }.ConnectionString))
+    //         {
+    //             conn.Open();
+    //             PgCommand cmd = conn.CreateCommand();
+    //             cmd.CommandText = prepTable1;
+    //             cmd.ExecuteNonQuery();
+    //             cmd.CommandText = prepTable2;
+    //             cmd.ExecuteNonQuery();
+    //             cmd.CommandText = prepTable3;
+    //             cmd.ExecuteNonQuery();
 
-        //         cmd.CommandText = "SELECT * FROM " + tempTable;
-        //         using (SqlDataReader rdr = cmd.ExecuteReader())
-        //         {
-        //             while (rdr.Read())
-        //             {
-        //                 for (int i = 2; i < rdr.FieldCount; ++i)
-        //                 {
-        //                     Assert.True(IsString(rdr, i), string.Format("FAILED: IsString failed for column: {0}", i));
-        //                 }
-        //                 for (int i = 2; i < rdr.FieldCount; ++i)
-        //                 {
-        //                     ValidateReader(rdr, i);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+    //             cmd.CommandText = "SELECT * FROM " + tempTable;
+    //             using (SqlDataReader rdr = cmd.ExecuteReader())
+    //             {
+    //                 while (rdr.Read())
+    //                 {
+    //                     for (int i = 2; i < rdr.FieldCount; ++i)
+    //                     {
+    //                         Assert.True(IsString(rdr, i), string.Format("FAILED: IsString failed for column: {0}", i));
+    //                     }
+    //                     for (int i = 2; i < rdr.FieldCount; ++i)
+    //                     {
+    //                         ValidateReader(rdr, i);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
+    //     private static bool IsValidParam(PgDbType dbType, string col, object value, PgConnection conn, string tempTable)
+    //     {
+    //         try
+    //         {
+    //             PgCommand cmd = new PgCommand("SELECT COUNT(*) FROM " + tempTable + " WHERE " + col + " = @p", conn);
+    //             cmd.Parameters.Add("@p", dbType).Value = value;
+    //             cmd.ExecuteScalar();
+    //         }
+    //         catch (InvalidCastException)
+    //         {
+    //             return false;
+    //         }
+    //         return true;
+    //     }
 
-        // private static bool IsValidParam(SqlDbType dbType, string col, object value, SqlConnection conn, string tempTable)
-        // {
-        //     try
-        //     {
-        //         SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM " + tempTable + " WHERE " + col + " = @p", conn);
-        //         cmd.Parameters.Add("@p", dbType).Value = value;
-        //         cmd.ExecuteScalar();
-        //     }
-        //     catch (InvalidCastException)
-        //     {
-        //         return false;
-        //     }
-        //     return true;
-        // }
+    //     private static bool IsString(SqlDataReader rdr, int column)
+    //     {
+    //         if (!rdr.IsDBNull(column))
+    //         {
+    //             try
+    //             {
+    //                 rdr.GetString(column);
+    //             }
+    //             catch (InvalidCastException)
+    //             {
+    //                 return false;
+    //             }
+    //         }
 
-        // private static bool IsString(SqlDataReader rdr, int column)
-        // {
-        //     if (!rdr.IsDBNull(column))
-        //     {
-        //         try
-        //         {
-        //             rdr.GetString(column);
-        //         }
-        //         catch (InvalidCastException)
-        //         {
-        //             return false;
-        //         }
-        //     }
+    //         try
+    //         {
+    //             rdr.GetSqlString(column);
+    //         }
+    //         catch (InvalidCastException)
+    //         {
+    //             return false;
+    //         }
 
-        //     try
-        //     {
-        //         rdr.GetSqlString(column);
-        //     }
-        //     catch (InvalidCastException)
-        //     {
-        //         return false;
-        //     }
+    //         try
+    //         {
+    //             rdr.GetSqlChars(column);
+    //         }
+    //         catch (InvalidCastException)
+    //         {
+    //             return false;
+    //         }
 
-        //     try
-        //     {
-        //         rdr.GetSqlChars(column);
-        //     }
-        //     catch (InvalidCastException)
-        //     {
-        //         return false;
-        //     }
+    //         object o = rdr.GetValue(column);
+    //         if (o != DBNull.Value && !(o is string))
+    //         {
+    //             return false;
+    //         }
 
-        //     object o = rdr.GetValue(column);
-        //     if (o != DBNull.Value && !(o is string))
-        //     {
-        //         return false;
-        //     }
+    //         o = rdr.GetSqlValue(column);
+    //         if (!(o is SqlString))
+    //         {
+    //             return false;
+    //         }
 
-        //     o = rdr.GetSqlValue(column);
-        //     if (!(o is SqlString))
-        //     {
-        //         return false;
-        //     }
+    //         return true;
+    //     }
 
-        //     return true;
-        // }
+    //     private static bool IsNotString(SqlDataReader rdr, int column)
+    //     {
+    //         if (!rdr.IsDBNull(column))
+    //         {
+    //             try
+    //             {
+    //                 rdr.GetString(column);
+    //                 return false;
+    //             }
+    //             catch (InvalidCastException)
+    //             {
+    //             }
+    //         }
 
-        // private static bool IsNotString(SqlDataReader rdr, int column)
-        // {
-        //     if (!rdr.IsDBNull(column))
-        //     {
-        //         try
-        //         {
-        //             rdr.GetString(column);
-        //             return false;
-        //         }
-        //         catch (InvalidCastException)
-        //         {
-        //         }
-        //     }
+    //         try
+    //         {
+    //             rdr.GetSqlString(column);
+    //             return false;
+    //         }
+    //         catch (InvalidCastException)
+    //         {
+    //         }
 
-        //     try
-        //     {
-        //         rdr.GetSqlString(column);
-        //         return false;
-        //     }
-        //     catch (InvalidCastException)
-        //     {
-        //     }
+    //         try
+    //         {
+    //             rdr.GetSqlChars(column);
+    //             return false;
+    //         }
+    //         catch (InvalidCastException)
+    //         {
+    //         }
 
-        //     try
-        //     {
-        //         rdr.GetSqlChars(column);
-        //         return false;
-        //     }
-        //     catch (InvalidCastException)
-        //     {
-        //     }
+    //         object o = rdr.GetValue(column);
+    //         if (o is string)
+    //         {
+    //             return false;
+    //         }
 
-        //     object o = rdr.GetValue(column);
-        //     if (o is string)
-        //     {
-        //         return false;
-        //     }
+    //         o = rdr.GetSqlValue(column);
+    //         if (o is SqlString)
+    //         {
+    //             return false;
+    //         }
 
-        //     o = rdr.GetSqlValue(column);
-        //     if (o is SqlString)
-        //     {
-        //         return false;
-        //     }
+    //         return true;
+    //     }
 
-        //     return true;
-        // }
+    //     private static void ValidateReader(SqlDataReader rdr, int column)
+    //     {
+    //         bool validateSucceeded = false;
+    //         Action[] nonDbNullActions =
+    //         {
+    //             () => rdr.GetDateTime(column),
+    //             () => rdr.GetTimeSpan(column),
+    //             () => rdr.GetDateTimeOffset(column),
+    //             () => rdr.GetString(column)
+    //         };
+    //         Action[] genericActions =
+    //         {
+    //             () => rdr.GetSqlString(column),
+    //             () => rdr.GetSqlChars(column),
+    //             () => rdr.GetSqlDateTime(column)
+    //         };
 
-        // private static void ValidateReader(SqlDataReader rdr, int column)
-        // {
-        //     bool validateSucceeded = false;
-        //     Action[] nonDbNullActions =
-        //     {
-        //         () => rdr.GetDateTime(column),
-        //         () => rdr.GetTimeSpan(column),
-        //         () => rdr.GetDateTimeOffset(column),
-        //         () => rdr.GetString(column)
-        //     };
-        //     Action[] genericActions =
-        //     {
-        //         () => rdr.GetSqlString(column),
-        //         () => rdr.GetSqlChars(column),
-        //         () => rdr.GetSqlDateTime(column)
-        //     };
+    //         Action<Action[]> validateParsingActions =
+    //             (testActions) =>
+    //             {
+    //                 foreach (Action testAction in testActions)
+    //                 {
+    //                     try
+    //                     {
+    //                         testAction();
+    //                         validateSucceeded = true;
+    //                     }
+    //                     catch (InvalidCastException)
+    //                     {
+    //                     }
+    //                 }
+    //             };
 
-        //     Action<Action[]> validateParsingActions =
-        //         (testActions) =>
-        //         {
-        //             foreach (Action testAction in testActions)
-        //             {
-        //                 try
-        //                 {
-        //                     testAction();
-        //                     validateSucceeded = true;
-        //                 }
-        //                 catch (InvalidCastException)
-        //                 {
-        //                 }
-        //             }
-        //         };
+    //         if (!rdr.IsDBNull(column))
+    //         {
+    //             validateParsingActions(nonDbNullActions);
+    //         }
+    //         validateParsingActions(genericActions);
 
-        //     if (!rdr.IsDBNull(column))
-        //     {
-        //         validateParsingActions(nonDbNullActions);
-        //     }
-        //     validateParsingActions(genericActions);
+    //         // Server 2008 & 2005 seem to represent DBNull slightly differently. Might be related to a Timestamp IsDBNull bug
+    //         // in SqlDataReader, which requires different server versions to handle NULLs differently.
+    //         // Empty string is expected for DBNull SqlValue (as per API), but SqlServer 2005 returns "Null" for it.
+    //         // See GetSqlValue code path in SqlDataReader for more details
+    //         if (!validateSucceeded && rdr.IsDBNull(column) && rdr.GetValue(column).ToString().Equals(""))
+    //         {
+    //             validateSucceeded = true;
+    //         }
 
-        //     // Server 2008 & 2005 seem to represent DBNull slightly differently. Might be related to a Timestamp IsDBNull bug
-        //     // in SqlDataReader, which requires different server versions to handle NULLs differently.
-        //     // Empty string is expected for DBNull SqlValue (as per API), but SqlServer 2005 returns "Null" for it.
-        //     // See GetSqlValue code path in SqlDataReader for more details
-        //     if (!validateSucceeded && rdr.IsDBNull(column) && rdr.GetValue(column).ToString().Equals(""))
-        //     {
-        //         validateSucceeded = true;
-        //     }
-
-        //     Assert.True(validateSucceeded, string.Format("FAILED: SqlDataReader failed reader validation for column: {0}. Column literal value: {1}", column, rdr.GetSqlValue(column)));
-        // }
+    //         Assert.True(validateSucceeded, string.Format("FAILED: SqlDataReader failed reader validation for column: {0}. Column literal value: {1}", column, rdr.GetSqlValue(column)));
+    //     }
     }
 }

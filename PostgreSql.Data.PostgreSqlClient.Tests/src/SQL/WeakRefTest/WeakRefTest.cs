@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.PostgreSqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not ported yet")]
+    //[Ignore("Not ported yet")]
     public static class WeakRefTest
     {
         private const string COMMAND_TEXT_1 = "SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract from authors";
@@ -159,19 +159,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static WeakReference OpenNullifyReader(PgCommand cmd)
-        {
-            PgDataReader reader = cmd.ExecuteReader();
-            WeakReference weak = new WeakReference(reader);
-            reader = null;
-            return weak;
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestTransactionSingleCase(string caseName, string connectionString, TransactionTestType testType)
         {
             WeakReference weak = null;
-
+            
             using (PgConnection con = new PgConnection(connectionString))
             {
                 con.Open();
@@ -222,6 +214,14 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     // Assert.AreEqual(tranCount, 0);
                 }
             }
+        }
+
+        private static WeakReference OpenNullifyReader(PgCommand cmd)
+        {
+            PgDataReader reader = cmd.ExecuteReader();
+            WeakReference weak = new WeakReference(reader);
+            reader = null;
+            return weak;
         }
 
         private static WeakReference OpenNullifyTransaction(PgConnection connection)

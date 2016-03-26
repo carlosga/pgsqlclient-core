@@ -25,7 +25,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         private const string orderIdQuery            = "select orderid from orders where orderid < 10250";
 
         [Test]
-        // [Ignore("Not ported yet")]
         public static void WarningTest()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;

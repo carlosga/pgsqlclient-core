@@ -1419,7 +1419,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                     textReader.Peek();
                                     textReader.Read();
                                 }
-
+                                
                                 // Once Reader is closed
                                 DataTestClass.AssertThrowsWrapper<ObjectDisposedException>(() => textReader.Read(buffer, 0, buffer.Length));
                             }
@@ -1562,39 +1562,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     }
                 }
             }
-        }
-
-        [Test]
-        [Ignore("Not ported yet")]
-        public static void VariantCollationsTest()
-        {
-#warning TODO: Port or remove ??
-            // using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-            // {
-            //     connection.Open();
-            //     using (PgCommand cmd = new PgCommand())
-            //     {
-            //         cmd.Connection = connection;
-
-            //         // Setup japanese database
-            //         cmd.CommandText = "USE master; IF EXISTS (SELECT * FROM sys.databases WHERE name='japaneseCollationTest') DROP DATABASE japaneseCollationTest; CREATE DATABASE japaneseCollationTest COLLATE Japanese_90_BIN;";
-            //         cmd.ExecuteNonQuery();
-            //         cmd.CommandText = "USE japaneseCollationTest; CREATE TABLE japaneseCollationTest.dbo.tVar (c1 SQL_VARIANT);INSERT INTO japaneseCollationTest.dbo.tVar VALUES (CAST(0xA6 AS VARCHAR(2)) COLLATE Japanese_90_bin);";
-            //         cmd.ExecuteNonQuery();
-
-            //         // Select the same string - once using japaneseCollationTest context and the second time using master context
-            //         cmd.CommandText = "SELECT c1 FROM japaneseCollationTest.dbo.tVar;";
-            //         connection.ChangeDatabase("japaneseCollationTest");
-            //         string fromJapaneseDb = (string)cmd.ExecuteScalar();
-            //         connection.ChangeDatabase("master");
-            //         string fromMasterDb = (string)cmd.ExecuteScalar();
-
-            //         Assert.True(fromJapaneseDb == fromMasterDb, "FAILED: Variant collations strings do not match");
-
-            //         // drop japanese database
-            //         cmd.CommandText = "USE master; DROP DATABASE japaneseCollationTest;";
-            //     }
-            // }
         }
 
         [Test]

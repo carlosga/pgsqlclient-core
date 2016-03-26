@@ -14,7 +14,7 @@ namespace PostgreSql.Data.PostgreSqlClient
     {
         private PgDatabase    _database;
         private PgConnection  _owner;
-        private PgTransaction _activeTransaction;
+        private WeakReference _activeTransaction;
         private string        _connectionString;
         private long          _created;
         private long          _lifetime;
@@ -24,11 +24,16 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal string        ServerVersion     => _database.ServerConfiguration.ServerVersion;
         internal PgDatabase    Database          => _database;
-        internal PgTransaction ActiveTransaction => _activeTransaction;
+        internal PgTransaction ActiveTransaction => _activeTransaction?.Target as PgTransaction;
 
         internal bool HasActiveTransaction
         {
-            get { return (_activeTransaction != null && _database.TransactionStatus != PgTransactionStatus.Default); }
+            get 
+            {
+                 return (_activeTransaction != null 
+                      && _activeTransaction.IsAlive
+                      && _database.TransactionStatus != PgTransactionStatus.Default); 
+            }
         }
 
         internal long Lifetime
@@ -118,24 +123,26 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            if (_activeTransaction != null)
+            if (HasActiveTransaction)
             {
                 throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
             }
 
-            _activeTransaction = new PgTransaction(_owner, isolationLevel);
-            _activeTransaction.Begin(transactionName);
+            var transaction = new PgTransaction(_owner, isolationLevel);
+            transaction.Begin(transactionName);
             
-            return _activeTransaction;                
+            _activeTransaction = new WeakReference(transaction);
+            
+            return transaction;                
         }
 
-        internal PgCommand CreateCommand() => new PgCommand(String.Empty, _owner, _activeTransaction);
+        internal PgCommand CreateCommand() => new PgCommand(String.Empty, _owner, ActiveTransaction);
 
         internal void DisposeActiveTransaction()
         {
             if (HasActiveTransaction)
             {
-                _activeTransaction.Dispose();
+                ActiveTransaction.Dispose();
                 _activeTransaction = null;
             }
         }

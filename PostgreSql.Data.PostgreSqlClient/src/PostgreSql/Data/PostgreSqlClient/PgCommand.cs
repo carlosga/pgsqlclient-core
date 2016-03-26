@@ -18,7 +18,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private PgParameterCollection _parameters;
         private UpdateRowSource       _updatedRowSource;
         private PgStatement           _statement;
-        private PgDataReader          _activeDataReader;
+        private WeakReference         _activeDataReader;
         private CommandBehavior       _commandBehavior;
         private CommandType           _commandType;
         private List<string>          _namedParameters;
@@ -121,8 +121,8 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         internal PgDataReader ActiveDataReader
         {
-            get { return _activeDataReader; }
-            set { _activeDataReader = value; }
+            get { return _activeDataReader?.Target as PgDataReader; }
+            set { _activeDataReader = new WeakReference(value); }
         }
 
         internal CommandBehavior CommandBehavior => _commandBehavior;
@@ -245,7 +245,13 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             try
             {
-                return InternalExecuteReader(behavior);
+                InternalExecuteReader(behavior);
+                
+                var reader = new PgDataReader(_connection, this);
+            
+                _activeDataReader = new WeakReference(reader);
+
+                return reader;                
             }
             catch (PgClientException ex)
             {
@@ -285,7 +291,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
-            return InternalExecuteReader(behavior);
+            return ExecuteReader(behavior);
         }
 
         internal void InternalPrepare()
@@ -333,7 +339,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             return recordsAffected;
         }
 
-        private PgDataReader InternalExecuteReader(CommandBehavior behavior)
+        private void InternalExecuteReader(CommandBehavior behavior)
         {
             _commandBehavior = behavior;
 
@@ -348,9 +354,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 SetParameterValues();
                 
                 _statement.ExecuteReader();
-            }
-
-            return _activeDataReader = new PgDataReader(_connection, this);
+            }            
         }
         
         internal object InternalExecuteScalar()
@@ -392,9 +396,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             try
             {
-                if (_activeDataReader != null && !_activeDataReader.IsClosed)
+                if (_activeDataReader != null && _activeDataReader.IsAlive)
                 {
-                    _activeDataReader.Close();
+                    var reader = _activeDataReader.Target as PgDataReader;
+                    reader.Close();
                 }
                 
                 _connection.InnerConnection.RemovePreparedCommand(this);
