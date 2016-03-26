@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Data.Common;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
@@ -12,7 +13,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private readonly PgDataReader _reader;
         private readonly bool         _closeReader;
         
-        private PgDataRecord _current;        
+        private DbDataRecord _current;        
 
         public object Current => _current;
 

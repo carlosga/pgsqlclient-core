@@ -18,6 +18,11 @@ namespace PostgreSql.Data.PostgreSqlClient
     {
         private const int STARTPOS = -1;
 
+        private static InvalidOperationException InvalidRead()
+        {
+             return new InvalidOperationException("Invalid attempt to read when no data is present.");            
+        }
+
         private bool            _open;
         private int             _position;
         private int             _recordsAffected;
@@ -32,24 +37,49 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override object this[int i]       => GetValue(i);
         public override object this[string name] => GetValue(GetOrdinal(name));
-
-        public override int  Depth           => 0;
-        public override bool IsClosed        => !_open;
-        public override int  RecordsAffected => IsClosed ? _recordsAffected : -1;
         
+        public override int  Depth
+        {
+            get
+            {
+                if (IsClosed)
+                {
+                    throw InvalidRead();
+                }
+                
+                return 0;
+            }
+        }
+        
+        public override bool IsClosed        => !_open;
+        public override int  RecordsAffected => _open ? _recordsAffected : -1;
+        
+        public override int  FieldCount
+        {
+            get
+            {
+                if (IsClosed)
+                {
+                    throw InvalidRead();
+                }
+                
+                return _statement?.RowDescriptor.Count ?? 0;   
+            }
+        } 
+                
         public override bool HasRows
         {
             get
             {
-                if (_disposed)
+                if (IsClosed)
                 {
-                    throw new InvalidOperationException("Invalid attempt to read when no data is present.");
+                    throw InvalidRead();
                 }
                 
                 return _statement.HasRows;
             }
         }
-
+        
         internal PgDataReader(PgConnection connection, PgCommand command)
         {
             _open            = true;
@@ -171,7 +201,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
         }
 
-        public override int  FieldCount        => _statement?.RowDescriptor.Count ?? -1;
         public override bool GetBoolean(int i) => Convert.ToBoolean(GetValueWithNullCheck(i));
         public override byte GetByte(int i)    => Convert.ToByte(GetValueWithNullCheck(i));
 
@@ -341,7 +370,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override int    GetProviderSpecificValues(object[] values) => GetValues(values);
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
-
+        
         internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
 
         internal void Close()
@@ -431,7 +460,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (i < 0 || i >= FieldCount)
             {
-                throw new IndexOutOfRangeException("Could not find specified column in results.");
+                throw InvalidRead();
             }
         }
 
@@ -439,7 +468,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             if (_position == STARTPOS)
             {
-                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
+                throw InvalidRead();
             }
         }
         
@@ -616,6 +645,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                     "pg_attribute.attnum > 0 AND " +
                     "pg_attribute.attnum = @OidNumber AND " +
                     "pg_attribute.attrelid = @OidTable";
-        }        
+        }
     }
 }

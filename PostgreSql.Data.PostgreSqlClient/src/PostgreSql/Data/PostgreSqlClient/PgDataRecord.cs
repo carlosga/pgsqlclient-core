@@ -7,12 +7,12 @@ using System.Data.Common;
 
 namespace PostgreSql.Data.PostgreSqlClient
 {
-    internal sealed class PgDataRecord 
+    internal sealed class PgDataRecord
         : DbDataRecord
-    {    
+    {
         private PgRowDescriptor _descriptor;
         private object[]        _values;
-        
+
         public override int    FieldCount        => _descriptor.Count;
         public override object this[int i]       => GetValue(i);
         public override object this[string name] => GetValue(GetOrdinal(name));
@@ -27,38 +27,36 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return Convert.ToBoolean(GetValue(i));             
+            return Convert.ToBoolean(GetValue(i));
          }
 
         public override byte GetByte(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToByte(GetValue(i));            
+            return Convert.ToByte(GetValue(i));
         }
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
             CheckIndex(i);
-            
+
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
+
             int bytesRead  = 0;
             int realLength = length;
 
             if (buffer == null)
             {
-                if (IsDBNull(i))
-                {
-                    return 0;
-                }
-                else
-                {
-                    byte[] data = (byte[])GetValue(i);
+                byte[] data = GetValue(i) as byte[];
 
-                    return data.Length;
-                }
+                return data.Length;
             }
 
-            byte[] byteArray = (byte[])GetValue(i);
+            byte[] byteArray = GetValue(i) as byte[];
 
             if (length > (byteArray.Length - dataIndex))
             {
@@ -76,38 +74,36 @@ namespace PostgreSql.Data.PostgreSqlClient
                 bytesRead = length;
             }
 
-            return bytesRead;            
+            return bytesRead;
         }
 
         public override char GetChar(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToChar(GetValue(i));            
+            return Convert.ToChar(GetValue(i));
         }
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
             CheckIndex(i);
 
+            if (IsDBNull(i))
+            {
+                return 0;
+            }
+
             if (buffer == null)
             {
-                if (IsDBNull(i))
-                {
-                    return 0;
-                }
-                else
-                {
-                    char[] data = ((string)GetValue(i)).ToCharArray();
+                char[] data = (GetValue(i) as string).ToCharArray();
 
-                    return data.Length;
-                }
+                return data.Length;
             }
 
             int charsRead  = 0;
             int realLength = length;
 
-            char[] charArray = ((string)GetValue(i)).ToCharArray();
+            char[] charArray = (GetValue(i) as string).ToCharArray();
 
             if (length > (charArray.Length - dataIndex))
             {
@@ -132,75 +128,75 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return _descriptor[i].Type.Name;            
+            return _descriptor[i].Type.Name;
         }
 
         public override DateTime GetDateTime(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToDateTime(GetValue(i));            
+            return Convert.ToDateTime(GetValue(i));
         }
 
         public override Decimal GetDecimal(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToDecimal(GetValue(i));            
+            return Convert.ToDecimal(GetValue(i));
         }
 
         public override Double GetDouble(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToDouble(GetValue(i));            
+            return Convert.ToDouble(GetValue(i));
         }
 
         public override Type GetFieldType(int i)
         {
             CheckIndex(i);
 
-            return _descriptor[i].Type.SystemType;            
+            return _descriptor[i].Type.SystemType;
         }
 
         public override Single GetFloat(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToSingle(GetValue(i));            
+            return Convert.ToSingle(GetValue(i));
         }
 
         public override Guid GetGuid(int i)
-        {            
-            throw new NotSupportedException("Guid datatype is not supported");            
+        {
+            throw new NotSupportedException("Guid datatype is not supported");
         }
 
         public override Int16 GetInt16(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToInt16(GetValue(i));            
+            return Convert.ToInt16(GetValue(i));
         }
 
         public override Int32 GetInt32(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToInt32(GetValue(i));            
+            return Convert.ToInt32(GetValue(i));
         }
 
         public override Int64 GetInt64(int i)
         {
             CheckIndex(i);
 
-            return Convert.ToInt64(GetValue(i));            
+            return Convert.ToInt64(GetValue(i));
         }
 
         public override string GetName(int i)
         {
             CheckIndex(i);
 
-            return _descriptor[i].Name;            
+            return _descriptor[i].Name;
         }
 
         public override int GetOrdinal(string name)
@@ -212,44 +208,44 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             CheckIndex(i);
 
-            return Convert.ToString(GetValue(i));            
+            return Convert.ToString(GetValue(i));
         }
 
         public override object GetValue(int i)
         {
             CheckIndex(i);
 
-            return _values[i];            
+            return _values[i];
         }
 
         public override int GetValues(object[] values)
         {
             Array.Copy(_values, values, FieldCount);
 
-            return values.Length;            
+            return values.Length;
         }
 
         public override bool IsDBNull(int i)
         {
             CheckIndex(i);
 
-            return (_values[i] == DBNull.Value);            
+            return (_values[i] == DBNull.Value);
         }
-        
+
         protected override DbDataReader GetDbDataReader(int i)
         {
             // NOTE: This method is virtual because we're required to implement
-            //       it however most providers won't support it. Only the OLE DB 
+            //       it however most providers won't support it. Only the OLE DB
             //       provider supports it right now, and they can override it.
             throw new NotSupportedException();
         }
-        
+
         private void CheckIndex(int i)
         {
             if (i < 0 || i >= FieldCount)
             {
                 throw new IndexOutOfRangeException("Could not find specified column in results.");
             }
-        }                
+        }
     }
 }

@@ -100,7 +100,7 @@ namespace PostgreSql.Data.Protocol
         internal string ReadString()  => ReadString(ReadInt32());
         internal bool   ReadBoolean() => BitConverter.ToBoolean(_contents, _position++);
         internal byte   ReadByte()    => _contents[_position++];
-
+        
         internal short ReadInt16()
         {
             short value = (short)((_contents[_position + 1])
@@ -133,7 +133,7 @@ namespace PostgreSql.Data.Protocol
 
         internal float ReadSingle()
         {
-            var value = BitConverter.ToSingle(_contents, 0);
+            var value = BitConverter.ToSingle(_contents, _position);
 
             _position += sizeof(float);
 
@@ -144,7 +144,7 @@ namespace PostgreSql.Data.Protocol
 
         internal double ReadDouble()
         {
-            var value = BitConverter.ToDouble(_contents, 0);
+            var value = BitConverter.ToDouble(_contents, _position);
 
             _position += sizeof(long);
 
@@ -162,7 +162,10 @@ namespace PostgreSql.Data.Protocol
 
         internal DateTime ReadTime(int length)
         {
-            return DateTime.ParseExact(ReadString(length), PgTypeStringFormats.TimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.None);
+            return DateTime.ParseExact(ReadString(length)
+                                     , PgTypeStringFormats.TimeFormats
+                                     , CultureInfo.CurrentCulture
+                                     , DateTimeStyles.None);
         }
 
         internal DateTime ReadTimeWithTZ(int length)
@@ -292,7 +295,7 @@ namespace PostgreSql.Data.Protocol
             {
                 return ReadValue(type, length);
             }
-        }
+        }               
 
         internal object ReadValue(PgType type, int length)
         {
@@ -319,9 +322,6 @@ namespace PostgreSql.Data.Protocol
 
                 case PgDbType.Byte:
                     return ReadByte();
-
-                case PgDbType.Decimal:
-                    return Decimal.Parse(ReadString(length), NumberFormatInfo.InvariantInfo);
 
                 case PgDbType.Currency:
                     return ReadCurrency();
