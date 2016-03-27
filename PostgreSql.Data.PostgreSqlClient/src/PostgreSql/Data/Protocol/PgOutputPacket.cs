@@ -194,10 +194,10 @@ namespace PostgreSql.Data.Protocol
         private void WriteArray(PgParameter parameter)
         {
             // Handle this type as Array values
-            System.Array array = parameter.Value as System.Array;
+            var array = parameter.Value as System.Array;
 
             // Get array element type
-            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.TypeInfo.ElementType);
+            var elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.TypeInfo.ElementType);
 
             var packet = new PgOutputPacket(' ', _sessionData);
 

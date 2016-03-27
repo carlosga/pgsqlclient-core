@@ -191,7 +191,7 @@ namespace PostgreSql.Data.Protocol
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }        
         
-        internal Array ReadArray(PgType type, int length)
+        internal Array ReadArray(PgTypeInfo type, int length)
         {
             if (type.Format == PgTypeFormat.Text)
             {
@@ -213,8 +213,8 @@ namespace PostgreSql.Data.Protocol
             }
 
             // Read array element type
-            int    oid         = ReadInt32();
-            PgType elementType = _sessionData.DataTypes.Single(x => x.Oid == oid);
+            int oid         = ReadInt32();
+            var elementType = _sessionData.DataTypes.Single(x => x.Oid == oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -234,7 +234,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal Array ReadVector(PgType type, int length)
+        internal Array ReadVector(PgTypeInfo type, int length)
         {
             var elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
             var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
@@ -285,7 +285,7 @@ namespace PostgreSql.Data.Protocol
            return new PgPath(isClosedPath, points);
         }
 
-        internal object ReadFormattedValue(PgType type, PgTypeFormat format, int length)
+        internal object ReadFormattedValue(PgTypeInfo type, PgTypeFormat format, int length)
         {
             if (format == PgTypeFormat.Text)
             {
@@ -297,7 +297,7 @@ namespace PostgreSql.Data.Protocol
             }
         }               
 
-        internal object ReadValue(PgType type, int length)
+        internal object ReadValue(PgTypeInfo type, int length)
         {
             switch (type.DataType)
             {
@@ -385,7 +385,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal object ReadValueFromString(PgType type, int length)
+        internal object ReadValueFromString(PgTypeInfo type, int length)
         {
             if (type.IsArray)
             {
@@ -485,12 +485,12 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        private Array ReadPrimitiveArray(PgType elementType
-                                       , int    length
-                                       , int    dimensions
-                                       , int    flags
-                                       , int[]  lengths
-                                       , int[]  lowerBounds)
+        private Array ReadPrimitiveArray(PgTypeInfo elementType
+                                       , int        length
+                                       , int        dimensions
+                                       , int        flags
+                                       , int[]      lengths
+                                       , int[]      lowerBounds)
         {
             Array data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
 
@@ -502,12 +502,12 @@ namespace PostgreSql.Data.Protocol
             return data;
         }
 
-        private Array ReadNonPrimitiveArray(PgType elementType
-                                          , int    length
-                                          , int    dimensions
-                                          , int    flags
-                                          , int[]  lengths
-                                          , int[]  lowerBounds)
+        private Array ReadNonPrimitiveArray(PgTypeInfo elementType
+                                          , int        length
+                                          , int        dimensions
+                                          , int        flags
+                                          , int[]      lengths
+                                          , int[]      lowerBounds)
         {
             Array data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
 
@@ -520,12 +520,12 @@ namespace PostgreSql.Data.Protocol
             return data;
         }
 
-        private Array ReadStringArray(PgType type, int length)
+        private Array ReadStringArray(PgTypeInfo type, int length)
         {
-            string   contents    = ReadString(length);
-            string[] elements    = contents.Substring(1, contents.Length - 2).Split(',');
-            PgType   elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
-            Array    data        = Array.CreateInstance(elementType.SystemType, elements.Length);
+            string     contents    = ReadString(length);
+            string[]   elements    = contents.Substring(1, contents.Length - 2).Split(',');
+            PgTypeInfo elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
+            Array      data        = Array.CreateInstance(elementType.SystemType, elements.Length);
 
             for (int i = 0; i < elements.Length; ++i)
             {
@@ -535,7 +535,7 @@ namespace PostgreSql.Data.Protocol
             return data;
         }
 
-        private byte[] DecodeArrayData(PgType type, int elementCount, int length)
+        private byte[] DecodeArrayData(PgTypeInfo type, int elementCount, int length)
         {
             byte[] data   = new byte[length];
             int    offset = 0;

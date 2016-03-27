@@ -9,27 +9,27 @@ using PostgreSql.Data.PostgreSqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
-    internal sealed class PgTypeCollection
-        : IList<PgType>, ICollection<PgType>, IReadOnlyList<PgType>, IReadOnlyCollection<PgType>, IEnumerable<PgType>
+    internal sealed class PgTypeInfoCollection
+        : IList<PgTypeInfo>, ICollection<PgTypeInfo>, IReadOnlyList<PgTypeInfo>, IReadOnlyCollection<PgTypeInfo>, IEnumerable<PgTypeInfo>
     {
-        private readonly List<PgType> _innerList;
+        private readonly List<PgTypeInfo> _innerList;
 
-        public int    Count             => _innerList.Count;
-        public PgType this[int index]   => _innerList[index];
-        public PgType this[string name] => _innerList[IndexOf(name)];
+        public int        Count             => _innerList.Count;
+        public PgTypeInfo this[int index]   => _innerList[index];
+        public PgTypeInfo this[string name] => _innerList[IndexOf(name)];
 
-        int ICollection<PgType>.Count       => _innerList.Count;
-        bool ICollection<PgType>.IsReadOnly => ((IList)_innerList).IsReadOnly;
+        int  ICollection<PgTypeInfo>.Count       => _innerList.Count;
+        bool ICollection<PgTypeInfo>.IsReadOnly => ((IList)_innerList).IsReadOnly;
 
-        PgType IList<PgType>.this[int index]
+        PgTypeInfo IList<PgTypeInfo>.this[int index]
         {
             get { return _innerList[index]; }
             set { _innerList[index] = value; }
         }
 
-        internal PgTypeCollection(int capacity)
+        internal PgTypeInfoCollection(int capacity)
         {
-            _innerList = new List<PgType>(capacity);
+            _innerList = new List<PgTypeInfo>(capacity);
         }
 
         public bool Contains(int oid) => (IndexOf(oid) != -1);
@@ -68,7 +68,7 @@ namespace PostgreSql.Data.Protocol
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size)                      
-            => _innerList.Add(new PgType(oid, name, dataType, elementType, formatCode, size));
+            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size));
 
         public void Add(int          oid
                       , string       name
@@ -77,7 +77,7 @@ namespace PostgreSql.Data.Protocol
                       , PgTypeFormat formatCode
                       , int          size
                       , string       delimiter)
-            => _innerList.Add(new PgType(oid, name, dataType, elementType, formatCode, size, delimiter));
+            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size, delimiter));
 
         public void Add(int          oid
                       , string       name
@@ -87,19 +87,19 @@ namespace PostgreSql.Data.Protocol
                       , int          size
                       , string       delimiter
                       , string       prefix)
-            => _innerList.Add(new PgType(oid, name, dataType, elementType, formatCode, size, delimiter, prefix));
+            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size, delimiter, prefix));
 
-        int  IList<PgType>.IndexOf(PgType item)           => _innerList.IndexOf(item);
-        void IList<PgType>.Insert(int index, PgType item) => _innerList.Insert(index, item);
-        void IList<PgType>.RemoveAt(int index)            => _innerList.RemoveAt(index);
-        void ICollection<PgType>.Add(PgType item)         => _innerList.Add(item);
-        void ICollection<PgType>.Clear()                  => _innerList.Clear();
-        bool ICollection<PgType>.Contains(PgType item)    => _innerList.Contains(item);
-        bool ICollection<PgType>.Remove(PgType item)      => _innerList.Remove(item);
+        int  IList<PgTypeInfo>.IndexOf(PgTypeInfo item)           => _innerList.IndexOf(item);
+        void IList<PgTypeInfo>.Insert(int index, PgTypeInfo item) => _innerList.Insert(index, item);
+        void IList<PgTypeInfo>.RemoveAt(int index)                => _innerList.RemoveAt(index);
+        void ICollection<PgTypeInfo>.Add(PgTypeInfo item)         => _innerList.Add(item);
+        void ICollection<PgTypeInfo>.Clear()                      => _innerList.Clear();
+        bool ICollection<PgTypeInfo>.Contains(PgTypeInfo item)    => _innerList.Contains(item);
+        bool ICollection<PgTypeInfo>.Remove(PgTypeInfo item)      => _innerList.Remove(item);
         
-        void ICollection<PgType>.CopyTo(PgType[] array, int arrayIndex) => _innerList.CopyTo(array, arrayIndex);
+        void ICollection<PgTypeInfo>.CopyTo(PgTypeInfo[] array, int arrayIndex) => _innerList.CopyTo(array, arrayIndex);
         
-        IEnumerator<PgType> IEnumerable<PgType>.GetEnumerator() => _innerList.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator()                 => _innerList.GetEnumerator();
+        IEnumerator<PgTypeInfo> IEnumerable<PgTypeInfo>.GetEnumerator() => _innerList.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()                         => _innerList.GetEnumerator();
     }
 }

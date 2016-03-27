@@ -81,13 +81,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             get { return GetBoolean(ConnectionStringKeywords.Encrypt); }
             set { SetValue(ConnectionStringKeywords.Encrypt, value); }
         }
-        
-        public bool UseDatabaseOids
-        {
-            get { return GetBoolean(ConnectionStringKeywords.UseDatabaseOids); }
-            set { SetValue(ConnectionStringKeywords.UseDatabaseOids, value); }
-        }
-        
+                
         public bool MultipleActiveResultSets
         {
             get { return GetBoolean(ConnectionStringKeywords.MultipleActiveResultSets); }

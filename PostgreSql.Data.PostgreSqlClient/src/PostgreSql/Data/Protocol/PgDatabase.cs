@@ -142,9 +142,6 @@ namespace PostgreSql.Data.Protocol
                 // Send startup packet
                 SendStartupPacket();
 
-                // Get database type info
-                // GetDatabaseTypeInfo();
-
                 // Release lock
                 ReleaseLock();
             }
@@ -156,6 +153,9 @@ namespace PostgreSql.Data.Protocol
 
                 throw;
             }
+            
+            // Get database type info
+            //GetDatabaseTypeInfo();
         }
 
         internal void Close()
@@ -512,12 +512,17 @@ namespace PostgreSql.Data.Protocol
             //     return;
             // }
 
-            string sql = "SELECT oid FROM pg_type WHERE typname=@typeName";
+            string sql = "SELECT oid FROM pg_type WHERE typname=$1";
 
             using (var statement = CreateStatement(sql))
             {
-                statement.Prepare(s_typeInfoParams);
+                // Set parameter type info
+                s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
                 
+                // Prepare statement execution
+                statement.Prepare(s_typeInfoParams);                               
+                                
+                // Grab real oids
                 foreach (var type in _sessionData.DataTypes)
                 {
                     s_typeInfoParams[0].Value = type.Name;

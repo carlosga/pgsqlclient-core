@@ -16,6 +16,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         
         private readonly List<PgParameter> _parameters;
         private int                        _paramCount;
+        private bool                       _isDirty;
 
         public new PgParameter this[string parameterName]
         {
@@ -31,6 +32,12 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override int    Count    => _parameters.Count;
         public override object SyncRoot => SyncObject;
+
+        internal bool IsDirty
+        {
+            get { return _isDirty; }
+            set { _isDirty = value; }
+        }
 
         internal PgParameterCollection()
         {
@@ -79,17 +86,16 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 value.ParameterName = $"Parameter{++_paramCount}";
             }
-            else
+            else if (IndexOf(value) != -1)
             {
-                if (IndexOf(value) != -1)
-                {
-                    throw new ArgumentException("PgParameterCollection already contains PgParameter with ParameterName '" + value.ParameterName + "'.");
-                }
+                throw new ArgumentException("PgParameterCollection already contains PgParameter with ParameterName '" + value.ParameterName + "'.");
             }
 
             value.Parent = this;
 
             _parameters.Add(value);
+            
+            _isDirty = true;
 
             return value;
         }
@@ -132,19 +138,28 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         public override void Insert(int index, object value)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException($"The PgParameterCollection only accepts non-null PgParameter type objects.");
-            }
-
             var parameter = value as PgParameter;
 
             if (parameter == null)
             {
                 throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
             }
+            if (parameter != null)
+            {
+                throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
+            }
+            if (parameter.ParameterName == null || parameter.ParameterName.Length == 0)
+            {
+                parameter.ParameterName = $"Parameter{++_paramCount}";
+            }
+            else if (IndexOf(parameter) != -1)
+            {
+                throw new ArgumentException("PgParameterCollection already contains PgParameter with ParameterName '" + parameter.ParameterName + "'.");
+            }
             
             _parameters.Insert(index, parameter);
+            parameter.Parent = this;
+            _isDirty         = true;            
         }
 
         public override void Remove(object value)
@@ -167,8 +182,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             _parameters.Remove(parameter);
-
             parameter.Parent = null;
+            _isDirty         = true;
         }
 
         public override void RemoveAt(string parameterName) => RemoveAt(IndexOf(parameterName));
@@ -182,6 +197,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             _parameters[index].Parent = null;
             _parameters.RemoveAt(index);
+            _isDirty = true;            
         }
 
         protected override DbParameter GetParameter(string parameterName)
@@ -214,6 +230,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             _parameters[index] = value as PgParameter;
+            _isDirty           = true;
         }
 
         protected override void SetParameter(string parameterName, DbParameter value)
@@ -226,6 +243,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
 
             _parameters[index] = value as PgParameter;
+            _isDirty           = true;
         }
     }
 }

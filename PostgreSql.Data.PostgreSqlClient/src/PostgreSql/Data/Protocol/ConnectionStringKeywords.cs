@@ -17,7 +17,6 @@ namespace PostgreSql.Data.Protocol
         internal const string MinPoolSize              = "min pool size";
         internal const string MaxPoolSize              = "max pool size";
         internal const string Encrypt                  = "encrypt";
-        internal const string UseDatabaseOids          = "use database oids";
         internal const string MultipleActiveResultSets = "multipleactiveresultsets";
         internal const string SearchPath               = "search path";
         internal const string FetchSize                = "fetch size";              

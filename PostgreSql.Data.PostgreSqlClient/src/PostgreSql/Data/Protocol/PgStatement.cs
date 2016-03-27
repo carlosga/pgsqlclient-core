@@ -126,7 +126,6 @@ namespace PostgreSql.Data.Protocol
                 _portalName = $"PR{statementName}";
                 
                 Parse(parameters);
-                Describe();
             }
             catch
             {
@@ -154,7 +153,7 @@ namespace PostgreSql.Data.Protocol
                 
                 Bind(parameters);
                 Execute(0);
-                // ClosePortal();
+                ClosePortal();
                                 
                 return _recordsAffected;
             }
@@ -208,11 +207,11 @@ namespace PostgreSql.Data.Protocol
             try
             {
                 _database.Lock();
-                
-                Bind(parameters);
+
+                Bind(parameters);                                
                 Execute(1);
-                //ClosePortal();
-                
+                ClosePortal();
+                                
                 object value = null;              
                   
                 if (!_rows.IsEmpty())
@@ -368,7 +367,11 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 ClosePortal();
-                CloseStatement();                
+                CloseStatement();
+                
+                _database.Sync();
+                
+                _rowDescriptor.Resize(0);
             }
             catch (System.Exception)
             {                
@@ -424,10 +427,12 @@ namespace PostgreSql.Data.Protocol
             for (int i = 0; i < parameters.Count; i++)
             {
                 packet.Write(parameters[i].TypeInfo.Oid);
-            }
+            }            
             
             // Send packet to the server
             _database.Send(packet);
+
+            _database.Sync();
 
             // Update status
             _status = PgStatementStatus.Parsed;
@@ -462,20 +467,20 @@ namespace PostgreSql.Data.Protocol
                 HandleSqlMessage(response);
             } while (!response.IsRowDescription && !response.IsNoData);
 
-            _database.Sync(); 
-
             // Update status
             _status = PgStatementStatus.Described;
         }
         
         private void Bind(PgParameterCollection parameters)
         {
+            bool describe = (_status == PgStatementStatus.Parsed);  
+            
             // Update status
             _status = PgStatementStatus.Binding;
 
             // Clear row data
             ClearRows();
-
+            
             var packet = _database.CreateOutputPacket(PgFrontEndCodes.BIND);
 
             // Destination portal name
@@ -499,14 +504,16 @@ namespace PostgreSql.Data.Protocol
             }
 
             // Send column information
-            packet.Write((short)_rowDescriptor.Count);
-            for (int i = 0; i < _rowDescriptor.Count; i++)
-            {
-                packet.Write((short)_rowDescriptor[i].TypeInfo.Format);
-            }
+            packet.Write((short)1);
+            packet.Write((short)1);
 
             // Send packet to the server
             _database.Send(packet);
+
+            if (describe)
+            {
+                DescribePortal();
+            }
             
             // Update status
             _status = PgStatementStatus.Binded;
@@ -555,9 +562,7 @@ namespace PostgreSql.Data.Protocol
             // rows perform a Sync.
             if (!_hasRows || _allRowsFetched)
             {
-                Console.WriteLine($"=> {memberName} ==> Sync");
                 ClosePortal();
-                _database.Sync();
             }            
             
             // Update status

@@ -22,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private byte                  _scale;
         private int                   _size;
         private PgDbType              _providerType;
-        private PgType                _typeInfo;
+        private PgTypeInfo            _typeInfo;
         private PgParameterCollection _parent;
 
         public override string ParameterName
@@ -108,7 +108,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             set { _sourceColumnNullMapping = value; }
         }
 
-        internal PgType TypeInfo
+        internal PgTypeInfo TypeInfo
         {
             get { return _typeInfo; }
             set { _typeInfo = value; }

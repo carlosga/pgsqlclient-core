@@ -7,11 +7,11 @@ using PostgreSql.Data.PostgreSqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
-    internal sealed class PgType
+    internal sealed class PgTypeInfo
     {
-        internal static PgTypeCollection GetSupportedTypes()
+        internal static PgTypeInfoCollection GetSupportedTypes()
         {
-            var dataTypes = new PgTypeCollection(60);
+            var dataTypes = new PgTypeInfoCollection(60);
            
             dataTypes.Add(  16, "bool"       , PgDbType.Boolean    ,    0, PgTypeFormat.Binary, 1);
             dataTypes.Add(  17, "bytea"      , PgDbType.Binary     ,    0, PgTypeFormat.Binary, Int32.MaxValue);
@@ -136,30 +136,30 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal PgType(int oid, string name, PgDbType dataType, int elementType, PgTypeFormat format, int size)
+        internal PgTypeInfo(int oid, string name, PgDbType dataType, int elementType, PgTypeFormat format, int size)
             : this(oid, name, dataType, elementType, format, size, String.Empty)
         {
         }
 
-        internal PgType(int          oid
-                      , string       name
-                      , PgDbType     dataType
-                      , int          elementType
-                      , PgTypeFormat format
-                      , int          size
-                      , string       delimiter)
+        internal PgTypeInfo(int          oid
+                          , string       name
+                          , PgDbType     dataType
+                          , int          elementType
+                          , PgTypeFormat format
+                          , int          size
+                          , string       delimiter)
             : this(oid, name, dataType, elementType, format, size, delimiter, String.Empty)
         {
         }
 
-        internal PgType(int          oid
-                      , string       name
-                      , PgDbType     dataType
-                      , int          elementType
-                      , PgTypeFormat format
-                      , int          size
-                      , string       delimiter
-                      , string       prefix)
+        internal PgTypeInfo(int          oid
+                          , string       name
+                          , PgDbType     dataType
+                          , int          elementType
+                          , PgTypeFormat format
+                          , int          size
+                          , string       delimiter
+                          , string       prefix)
         {
             _oid         = oid;
             _name        = name;

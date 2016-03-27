@@ -23,7 +23,6 @@ namespace PostgreSql.Data.Protocol
         private int    _maxPoolSize;
         private bool   _pooling;
         private bool   _encrypt;
-        private bool   _useDatabaseOids;
         private bool   _multipleActiveResultSets;
         private string _searchPath;
         private int    _fetchSize;
@@ -40,7 +39,6 @@ namespace PostgreSql.Data.Protocol
         internal int    MaxPoolSize              => _maxPoolSize;
         internal bool   Pooling                  => _pooling;
         internal bool   Encrypt                  => _encrypt;
-        internal bool   UseDatabaseOids          => _useDatabaseOids;
         internal bool   MultipleActiveResultSets => _multipleActiveResultSets;
         internal string SearchPath               => _searchPath;
         internal int    FetchSize                => _fetchSize;
@@ -63,7 +61,6 @@ namespace PostgreSql.Data.Protocol
             _minPoolSize              = 0;
             _maxPoolSize              = 100;
             _encrypt                  = false;
-            _useDatabaseOids          = false;
             _multipleActiveResultSets = false;
             _searchPath               = null;
             _fetchSize                = 200;
@@ -138,10 +135,6 @@ namespace PostgreSql.Data.Protocol
 
                         case ConnectionStringSynonyms.Encrypt:
                             _encrypt = Boolean.Parse(currentValue);
-                            break;
-
-                        case ConnectionStringSynonyms.UseDatabaseOids:
-                            _useDatabaseOids = Boolean.Parse(currentValue);
                             break;
                             
                         case ConnectionStringSynonyms.MultipleActiveResultSets:

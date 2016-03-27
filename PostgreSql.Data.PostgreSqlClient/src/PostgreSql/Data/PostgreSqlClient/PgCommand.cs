@@ -473,14 +473,19 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return;
             }
 
-            var database = _connection.InnerConnection.Database;
-
-            foreach (var name in _namedParameters)
+            if (_parameters.IsDirty)
             {
-                var current = _parameters[name];
+                var database = _connection.InnerConnection.Database;
+
+                foreach (var name in _namedParameters)
+                {
+                    var current = _parameters[name];
+                    
+                    current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());                
+                }
                 
-                current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());                
-            }            
+                _parameters.IsDirty = false;
+            }
         }
     }
 }
