@@ -5,14 +5,6 @@
 https://github.com/aspnet/Configuration/
 
 ## Work in progress
-           
-- Basic MARS support ( client side ).
-
-    - Check how it works when using several parametrized queries.
-
-- Implement IDbColumnSchemaGenerator on PgDataReader.
-
-  Custom DbColumn (https://github.com/dotnet/corefx/blob/master/src/System.Data.Common/src/System/Data/Common/DbColumn.cs) class.
 
 - Write unit tests ( port the .net core sql client ones ?? ).
 
@@ -25,6 +17,18 @@ https://github.com/aspnet/Configuration/
     - Time zones
     - COPY protocol
     - ...
+           
+- Basic MARS support ( client side ).
+
+    - Check how it works when using several parametrized queries.
+
+- Implement CommandBehavior.SequentialAccess in PgDataReader
+
+  https://blogs.msdn.microsoft.com/alexj/2007/11/15/commandbehavior-sequentialaccess/
+
+- Implement IDbColumnSchemaGenerator on PgDataReader.
+
+  Custom DbColumn (https://github.com/dotnet/corefx/blob/master/src/System.Data.Common/src/System/Data/Common/DbColumn.cs) class.
 
 ## TO BE DONE
 
