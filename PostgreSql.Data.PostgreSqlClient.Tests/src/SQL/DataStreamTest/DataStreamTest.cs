@@ -32,7 +32,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                     "select * from region order by regionid;" +
                     "select lastname from employees order by lastname";
 
-                // Each array in the expectedResults is a separate query result
+                // Each array in expectedResults is a separate query result
                 string[][] expectedResults =
                 {
                     new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
@@ -98,7 +98,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 using (PgCommand cmd = new PgCommand(sqlBatch, c))
                 using (PgDataReader reader = cmd.ExecuteReader())
                 {
-                    // string errorMessage = SystemDataResourceManager.Instance.SQL_InvalidRead;
                     string errorMessage = "Invalid attempt to read when no data is present.";
                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(0), errorMessage);
                 }
@@ -914,14 +913,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             }
         }
 
-        private static void SeqAccessFailureWrapper<TException>(TestDelegate action, CommandBehavior behavior) where TException : Exception
-        {
-            if (behavior == CommandBehavior.SequentialAccess)
-                DataTestClass.AssertThrowsWrapper<TException>(action);
-            else
-                action();
-        }
-
         [Test]
         [Ignore("Not ported yet")]
         public static void GetStream()
@@ -973,20 +964,20 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                             reader.GetBytes(6, 0, buffer, 0, buffer.Length);
                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-#if DEBUG
-                            // GetStream while async is pending
-                            Task t = null;
-                            using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-                            {
-                                t = reader.ReadAsync();
-                                Assert.False(t.Wait(1), "FAILED: Read completed immediately");
-                                DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(8));
-                            }
-                            t.Wait();
+// #if DEBUG
+//                             // GetStream while async is pending
+//                             Task t = null;
+//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
+//                             {
+//                                 t = reader.ReadAsync();
+//                                 Assert.False(t.Wait(1), "FAILED: Read completed immediately");
+//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(8));
+//                             }
+//                             t.Wait();
 
-                            // GetStream after Read 
-                            DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(0));
-#endif
+//                             // GetStream after Read 
+//                             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(0));
+// #endif
                         }
 
                         // IsDBNull + GetStream
@@ -1007,34 +998,33 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             reader.IsDBNullAsync(8).Wait();
                         }
                     }
-#if DEBUG
-                    // Test GetStream is non-blocking
-                    using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        reader.Read();
-                        Task t = null;
-                        using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-                        {
-                            t = Task.Factory.StartNew(() => reader.GetStream(8));
-                            t.Wait(1000);
-                            Assert.True(t.IsCompleted, "FAILED: Failed to get stream within 1 second");
-                            t = reader.ReadAsync();
-                        }
-                        t.Wait();
-                    }
-#endif
+// #if DEBUG
+//                     // Test GetStream is non-blocking
+//                     using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
+//                     {
+//                         reader.Read();
+//                         Task t = null;
+//                         using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
+//                         {
+//                             t = Task.Factory.StartNew(() => reader.GetStream(8));
+//                             t.Wait(1000);
+//                             Assert.True(t.IsCompleted, "FAILED: Failed to get stream within 1 second");
+//                             t = reader.ReadAsync();
+//                         }
+//                         t.Wait();
+//                     }
+// #endif
                 }
             }
         }
 
         [Test]
-        [Ignore("Not ported yet")]
         public static void GetTextReader()
         {
             string[] queryStrings =
             {
                 "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS TEXT), 'Hello World', 'Hello World', 'Hello World', CAST(REPEAT('a', 8000) AS TEXT), 'Hello World' COLLATE \"en_GB.utf8\"",
-                string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS TEXT), {0} {1}, {0} {1}, {0} {1}, CAST(REPLICATE((e'\uFF8A' {1}), 8000) AS TEXT), {0} {1}", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE \"C.UTF-8\"")
+                string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS TEXT), {0} {1}, {0} {1}, {0} {1}, CAST(REPEAT((e'\uFF8A' {1}), 8000) AS TEXT), {0} {1}", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE \"C.UTF-8\"")
             };
 
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1044,7 +1034,8 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     using (PgCommand cmd = new PgCommand(query, connection))
                     {
-                        CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
+#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
+                        CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
                         foreach (CommandBehavior behavior in behaviors)
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -1055,7 +1046,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 // Basic success paths
                                 reader.GetTextReader(0);
                                 reader.GetTextReader(1);
-
+                                
                                 // Bad values
                                 DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => reader.GetTextReader(2));
                                 // Null stream
@@ -1086,22 +1077,23 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 
                                 reader.GetChars(6, 0, buffer, 0, buffer.Length);
                                 SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-#if DEBUG
-                                // GetTextReader while async is pending
-                                Task t = null;
-                                using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-                                {
-                                    t = reader.ReadAsync();
-                                    Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
-                                    DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(8));
-                                }
-                                t.Wait();
+                                
+// #if DEBUG
+//                                 // GetTextReader while async is pending
+//                                 Task t = null;
+//                                 using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
+//                                 {
+//                                     t = reader.ReadAsync();
+//                                     Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
+//                                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(8));
+//                                 }
+//                                 t.Wait();
 
-                                // GetTextReader after Read 
-                                DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(0));
-#endif
+//                                 // GetTextReader after Read 
+//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(0));
+// #endif
                             }
-
+                            
                             // IsDBNull + GetTextReader
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
                             {
@@ -1110,7 +1102,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 // Past column
                                 reader.IsDBNull(8);
                             }
-
+                            
                             // IsDBNullAsync + GetTextReader
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
                             {
@@ -1120,23 +1112,23 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 reader.IsDBNullAsync(8).Wait();
                             }
                         }
-#if DEBUG
-                        // Test GetTextReader is non-blocking
-                        using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                        {
-                            reader.Read();
+// #if DEBUG
+//                         // Test GetTextReader is non-blocking
+//                         using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
+//                         {
+//                             reader.Read();
 
-                            Task t = null;
-                            using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-                            {
-                                t = Task.Factory.StartNew(() => reader.GetTextReader(8));
-                                t.Wait(1000);
-                                Assert.True(t.IsCompleted, "FAILED: Failed to get TextReader within 1 second");
-                                t = reader.ReadAsync();
-                            }
-                            t.Wait();
-                        }
-#endif
+//                             Task t = null;
+//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
+//                             {
+//                                 t = Task.Factory.StartNew(() => reader.GetTextReader(8));
+//                                 t.Wait(1000);
+//                                 Assert.True(t.IsCompleted, "FAILED: Failed to get TextReader within 1 second");
+//                                 t = reader.ReadAsync();
+//                             }
+//                             t.Wait();
+//                         }
+// #endif
                     }
                 }
             }
@@ -1361,10 +1353,11 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
+        //[Ignore("Not ported yet")]
         public static void ReadTextReader()
         {
-            CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
+#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
+            CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
 
             // Some more complex unicode characters, including surrogate pairs
             byte[] unicodeArray = { 0xFF, 0xDB, 0xFD, 0xDF, 0x34, 0xD8, 0xDD, 0xD8, 0x1E, 0xDC, 0x00, 0x6C, 0x00, 0x34 };
@@ -1456,36 +1449,36 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                     textReader = reader.GetTextReader(1);
                                     textReader.Read(largeBuffer, 0, 0);
                                 }
-#if DEBUG
-                                using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                                {
-                                    reader.Read();
-                                    textReader = reader.GetTextReader(1);
+// #if DEBUG
+//                                 using (PgDataReader reader = cmd.ExecuteReader(behavior))
+//                                 {
+//                                     reader.Read();
+//                                     textReader = reader.GetTextReader(1);
 
-                                    Task t = null;
-                                    using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
-                                    {
-                                        // Read during async
-                                        t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-                                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => textReader.Read(largeBuffer, 0, largeBuffer.Length));
-                                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.Read());
-                                    }
-                                    t.Wait();
-                                }
+//                                     Task t = null;
+//                                     using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
+//                                     {
+//                                         // Read during async
+//                                         t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
+//                                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => textReader.Read(largeBuffer, 0, largeBuffer.Length));
+//                                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.Read());
+//                                     }
+//                                     t.Wait();
+//                                 }
 
-                                using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                                {
-                                    reader.Read();
-                                    textReader = reader.GetTextReader(0);
-                                    Task t = null;
-                                    using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader, errorCode: 11))
-                                    {
-                                        // Error during read
-                                        t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-                                    }
-                                    DataTestClass.AssertThrowsWrapper<AggregateException, IOException, PgException>(() => t.Wait());
-                                }
-#endif
+//                                 using (PgDataReader reader = cmd.ExecuteReader(behavior))
+//                                 {
+//                                     reader.Read();
+//                                     textReader = reader.GetTextReader(0);
+//                                     Task t = null;
+//                                     using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader, errorCode: 11))
+//                                     {
+//                                         // Error during read
+//                                         t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
+//                                     }
+//                                     DataTestClass.AssertThrowsWrapper<AggregateException, IOException, PgException>(() => t.Wait());
+//                                 }
+// #endif
                             }
                         }
                     }
@@ -1566,7 +1559,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     // Start the command
                     conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p::varchar, @p::varchar, @p::varchar, @p::varchar, @p::varchar", conn))
+                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
                     {
                         cmd.CommandTimeout = 1;
                         cmd.Parameters.AddWithValue("@p", new string('a', 3000));
@@ -1611,7 +1604,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     // Start the command
                     conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p::varchar, @p::varchar, @p::varchar, @p::varchar, @p::varchar", conn))
+                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
                     {
                         cmd.CommandTimeout = 1;
                         cmd.Parameters.AddWithValue("@p", new string('a', 3000));
@@ -1638,6 +1631,18 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 // In case of error, stop the proxy and dump its logs (hopefully this will help with debugging
                 proxy.Stop();
                 throw;
+            }
+        }
+
+        private static void SeqAccessFailureWrapper<TException>(TestDelegate action, CommandBehavior behavior) where TException : Exception
+        {
+            if (behavior == CommandBehavior.SequentialAccess)
+            {
+                DataTestClass.AssertThrowsWrapper<TException>(action);   
+            }
+            else
+            {
+                action();   
             }
         }
 

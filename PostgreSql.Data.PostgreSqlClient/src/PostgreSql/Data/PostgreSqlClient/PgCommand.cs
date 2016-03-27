@@ -191,7 +191,9 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _parameters       = null;
                         _namedParameters  = null;
                         _commandText      = null;
-                    }                    
+                    }
+                    
+                    base.Dispose(disposing);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

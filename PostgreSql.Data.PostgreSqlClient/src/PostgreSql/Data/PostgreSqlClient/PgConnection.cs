@@ -86,6 +86,8 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _connectionString  = null;
                         _connectionOptions = null;
                     }
+                    
+                    base.Dispose(disposing);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

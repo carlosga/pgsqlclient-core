@@ -36,7 +36,7 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add( 719, "_circle"    , PgDbType.Array      ,  718, PgTypeFormat.Binary, 24);
             dataTypes.Add( 700, "float4"     , PgDbType.Float      ,    0, PgTypeFormat.Text  , 4);
             dataTypes.Add( 701, "float8"     , PgDbType.Double     ,    0, PgTypeFormat.Binary, 8);
-            dataTypes.Add( 705, "unknown"    , PgDbType.Text       ,    0, PgTypeFormat.Binary, 0);
+            dataTypes.Add( 705, "unknown"    , PgDbType.Text       ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add( 790, "money"      , PgDbType.Currency   ,    0, PgTypeFormat.Binary, 4);
             dataTypes.Add( 829, "macaddr"    , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 6);
             dataTypes.Add( 869, "inet"       , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 0);
@@ -59,11 +59,11 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add(1043, "varchar"    , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(1082, "date"       , PgDbType.Date       ,    0, PgTypeFormat.Binary, 4);
             dataTypes.Add(1083, "time"       , PgDbType.Time       ,    0, PgTypeFormat.Text  , 8);
-            dataTypes.Add(1114, "timestamp"  , PgDbType.Timestamp  ,    0, PgTypeFormat.Text  , 8);
+            dataTypes.Add(1114, "timestamp"  , PgDbType.Timestamp  ,    0, PgTypeFormat.Binary, 8);
             dataTypes.Add(1184, "timestamptz", PgDbType.TimestampTZ,    0, PgTypeFormat.Binary, 8);
             dataTypes.Add(1186, "interval"   , PgDbType.Interval   ,    0, PgTypeFormat.Binary, 12);
             dataTypes.Add(1266, "timetz"     , PgDbType.TimeTZ     ,    0, PgTypeFormat.Binary, 12);
-            dataTypes.Add(1560, "bit"        , PgDbType.Byte       ,    0, PgTypeFormat.Text  , 1);
+            dataTypes.Add(1560, "bit"        , PgDbType.Byte       ,    0, PgTypeFormat.Binary, 1);
             dataTypes.Add(1562, "varbit"     , PgDbType.Byte       ,    0, PgTypeFormat.Binary, 0);
             dataTypes.Add(1700, "numeric"    , PgDbType.Decimal    ,    0, PgTypeFormat.Text  , 8);
             dataTypes.Add(1790, "refcursor"  , PgDbType.Refcursor  ,    0, PgTypeFormat.Text  , 0);

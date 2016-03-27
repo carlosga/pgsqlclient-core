@@ -71,14 +71,14 @@ namespace PostgreSql.Data.Protocol
             {
                 case DbType.AnsiString:
                 case DbType.String:
+                case DbType.Object:
                     return PgDbType.VarChar;
 
                 case DbType.AnsiStringFixedLength:
                 case DbType.StringFixedLength:
                     return PgDbType.Char;
 
-                case DbType.Binary:
-                case DbType.Object:
+                case DbType.Binary:                
                     return PgDbType.Binary;
 
                 case DbType.Boolean:
@@ -106,15 +106,12 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Double;
 
                 case DbType.Int16:
-                case DbType.UInt16:
                     return PgDbType.Int2;
 
                 case DbType.Int32:
-                case DbType.UInt32:
                     return PgDbType.Int4;
 
                 case DbType.Int64:
-                case DbType.UInt64:
                     return PgDbType.Int8;
 
                 case DbType.Single:
@@ -126,6 +123,9 @@ namespace PostgreSql.Data.Protocol
                 case DbType.Guid:
                 case DbType.VarNumeric:
                 case DbType.SByte:
+                case DbType.UInt16:
+                case DbType.UInt32:
+                case DbType.UInt64:
                 default:
                     throw new InvalidOperationException("Invalid data type specified.");
             }
@@ -146,9 +146,6 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Object:
-                    providerType = PgDbType.Binary;
-                    break;
-
                 case TypeCode.String:
                     providerType = PgDbType.VarChar;
                     break;
@@ -182,7 +179,7 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.DateTime:
-                    providerType = PgDbType.Timestamp;
+                    providerType = (value is DateTimeOffset) ? PgDbType.TimestampTZ : PgDbType.Timestamp;
                     break;
 
                 case TypeCode.Empty:
