@@ -138,7 +138,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             : this()
         {
             _parameterName = parameterName;
-            _providerType  = dbType;
+            ProviderType   = dbType;
         }
 
         public PgParameter(string parameterName, PgDbType dbType, int size) 

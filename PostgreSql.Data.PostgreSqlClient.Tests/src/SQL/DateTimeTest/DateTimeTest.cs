@@ -22,7 +22,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 p.Value = DBNull.Value;
                 p.Size  = 27;
                 PgCommand cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT @p with time zone";
+                cmd.CommandText = "SELECT @p";
                 cmd.Parameters.Add(p);
 
                 Assert.True(cmd.ExecuteScalar() is DBNull, "FAILED: ExecuteScalar did not return a result of type DBNull");

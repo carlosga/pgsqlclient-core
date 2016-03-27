@@ -12,6 +12,7 @@
             "dependencies": {                
                 "NETStandard.Library": "1.5.0-rc3-*",  
                 "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",
+                "Microsoft.NETCore.App": "1.0.0-rc3-*",
                 "PostgreSql.Data.PostgreSqlClient": {
                     "target"  : "project",
                     "version" : "0.0.1"

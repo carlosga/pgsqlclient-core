@@ -19,10 +19,10 @@ namespace PostgreSql.Data.Protocol
         private string            _parseName;
         private string            _portalName;
         private bool              _allRowsFetched;
+        private int               _recordsAffected;
         private PgRowDescriptor   _rowDescriptor;
         private Queue<object[]>   _rows;
         private PgParameter       _outParameter;
-        private int               _recordsAffected;
         private PgStatementStatus _status;
 
         internal bool               HasRows         => _hasRows;
@@ -126,6 +126,7 @@ namespace PostgreSql.Data.Protocol
                 _portalName = $"PR{statementName}";
                 
                 Parse(parameters);
+                DescribeStatement();
             }
             catch
             {
@@ -152,7 +153,7 @@ namespace PostgreSql.Data.Protocol
                 _database.Lock();
                 
                 Bind(parameters);
-                Execute(0);
+                Execute(1);
                 ClosePortal();
                                 
                 return _recordsAffected;
@@ -432,24 +433,22 @@ namespace PostgreSql.Data.Protocol
             // Send packet to the server
             _database.Send(packet);
 
-            _database.Sync();
-
             // Update status
             _status = PgStatementStatus.Parsed;
         }
 
-        private void Describe()       => Describe('S');
-        private void DescribePortal() => Describe('P');
+        private void DescribeStatement() => Describe(PgCodes.STATEMENT);
+        private void DescribePortal()    => Describe(PgCodes.PORTAL);
 
-        private void Describe(char stmtType)
+        private void Describe(char type)
         {
             // Update status
             _status = PgStatementStatus.Describing;
 
-            var name   = ((stmtType == 'S') ? _parseName : _portalName);
+            var name   = ((type == PgCodes.STATEMENT) ? _parseName : _portalName);
             var packet = _database.CreateOutputPacket(PgFrontEndCodes.DESCRIBE);
 
-            packet.Write(stmtType);
+            packet.Write(type);
             packet.WriteNullString(name);
 
             // Send packet to the server
@@ -473,8 +472,6 @@ namespace PostgreSql.Data.Protocol
         
         private void Bind(PgParameterCollection parameters)
         {
-            bool describe = (_status == PgStatementStatus.Parsed);  
-            
             // Update status
             _status = PgStatementStatus.Binding;
 
@@ -504,16 +501,14 @@ namespace PostgreSql.Data.Protocol
             }
 
             // Send column information
-            packet.Write((short)1);
-            packet.Write((short)1);
+            packet.Write((short)_rowDescriptor.Count);
+            for (int i = 0; i < _rowDescriptor.Count; i++)
+            {
+                packet.Write((short)_rowDescriptor[i].TypeInfo.Format);
+            }
 
             // Send packet to the server
             _database.Send(packet);
-
-            if (describe)
-            {
-                DescribePortal();
-            }
             
             // Update status
             _status = PgStatementStatus.Binded;
@@ -549,18 +544,15 @@ namespace PostgreSql.Data.Protocol
                 
                 HandleSqlMessage(response);
             }
-            while (!response.IsReadyForQuery && !response.IsCommandComplete && !response.IsPortalSuspended);
+            while (!response.IsCommandComplete && !response.IsPortalSuspended);
 
             // If the command is finished and has returned rows
             // set all rows are received
-            if (response.IsReadyForQuery || response.IsCommandComplete)
-            {
-                _allRowsFetched = true;
-            }
+            _allRowsFetched = response.IsCommandComplete;
             
             // If all rows are received or the command doesn't return
             // rows perform a Sync.
-            if (!_hasRows || _allRowsFetched)
+            if (_allRowsFetched)
             {
                 ClosePortal();
             }            
@@ -574,7 +566,7 @@ namespace PostgreSql.Data.Protocol
             if (_status == PgStatementStatus.Parsed 
              || _status == PgStatementStatus.Described)
             {
-                Close('S', _parseName);
+                Close(PgCodes.STATEMENT, _parseName);
 
                 // Clear remaing rows
                 ClearRows();
@@ -594,8 +586,8 @@ namespace PostgreSql.Data.Protocol
              || _status == PgStatementStatus.Executing
              || _status == PgStatementStatus.Executed)
             {
-                Close('P', _portalName);
-                
+                Close(PgCodes.PORTAL, _portalName);
+                                
                 // Update Status
                 _status = PgStatementStatus.Described;
             }
@@ -707,6 +699,22 @@ namespace PostgreSql.Data.Protocol
             _outParameter.Value = packet.ReadValue(_outParameter.TypeInfo, packet.ReadInt32());
         }
 
+        // private void ProcessParameterDescription(PgInputPacket packet)
+        // {
+        //     int oid   = 0;
+        //     int count = packet.ReadInt16();
+
+        //     _parameters.Clear();
+        //     _parameters.Capacity = count;
+
+        //     for (int i = 0; i < count; i++)
+        //     {
+        //         oid = packet.ReadInt32();
+
+        //         _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
+        //     }
+        // }
+        
         private void ProcessRowDescription(PgInputPacket packet)
         {
             int count = packet.ReadInt16();
@@ -723,7 +731,7 @@ namespace PostgreSql.Data.Protocol
                 var typeModifier = packet.ReadInt32();
                 var format       = (PgTypeFormat)packet.ReadInt16();
                 var type         = _database.SessionData.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
-
+                
                 _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, type));
             }
         }
@@ -750,7 +758,7 @@ namespace PostgreSql.Data.Protocol
                     {
                         formatCode = descriptor.Format;
                     }
-
+                    
                     values[i] = packet.ReadFormattedValue(descriptor.TypeInfo, formatCode, length);
                 }
             }

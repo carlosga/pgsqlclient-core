@@ -155,7 +155,7 @@ namespace PostgreSql.Data.Protocol
             }
             
             // Get database type info
-            //GetDatabaseTypeInfo();
+            GetDatabaseTypeInfo();
         }
 
         internal void Close()

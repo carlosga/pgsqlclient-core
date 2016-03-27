@@ -52,6 +52,10 @@ namespace PostgreSql.Data.Protocol
         // Format codes
         internal const short TEXT_FORMAT   = 0;
         internal const short BINARY_FORMAT = 1;
+            
+        // Statements and Portals
+        internal const char STATEMENT = 'S';
+        internal const char PORTAL    = 'P'; 
 
         // Date & Time codes
         internal static readonly DateTime BASE_DATE  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);

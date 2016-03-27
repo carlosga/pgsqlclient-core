@@ -2,6 +2,11 @@
     "projects": [
         "PostgreSql.Data.PostgreSqlClient",
         "PostgreSql.Data.PostgreSqlClient.Tests",
-        "PostgreSql.Data.Sample"        
-    ]
+        "PostgreSql.Data.Sample"
+    ],
+    "sdk": {
+        "version": "1.5.0-rc3-*",
+        "architecture": "x64",
+        "runtime": "coreclr"
+    }
 }

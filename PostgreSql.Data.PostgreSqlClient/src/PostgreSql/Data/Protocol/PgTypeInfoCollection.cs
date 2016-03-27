@@ -18,7 +18,7 @@ namespace PostgreSql.Data.Protocol
         public PgTypeInfo this[int index]   => _innerList[index];
         public PgTypeInfo this[string name] => _innerList[IndexOf(name)];
 
-        int  ICollection<PgTypeInfo>.Count       => _innerList.Count;
+        int  ICollection<PgTypeInfo>.Count      => _innerList.Count;
         bool ICollection<PgTypeInfo>.IsReadOnly => ((IList)_innerList).IsReadOnly;
 
         PgTypeInfo IList<PgTypeInfo>.this[int index]

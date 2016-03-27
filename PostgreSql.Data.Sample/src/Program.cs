@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PostgreSql.Data.PostgreSqlClient;
 
-namespace ConsoleApplication
+namespace PostgreSql.Data.Sample
 {
     public class Program
     {
@@ -24,23 +24,17 @@ namespace ConsoleApplication
             using (PgConnection conn = new PgConnection(csb.ToString()))
             {
                 conn.Open();
-
-                string expectedFirstString  = "Hello, World!";
-                string expectedSecondString = "Another string";
-
-                // NOTE: Must be non-Plp types (i.e. not MAX sized columns)
-                using (PgCommand cmd = new PgCommand("SELECT @r, @p", conn))
-                {
-                    cmd.Parameters.AddWithValue("@r", expectedFirstString);
-                    cmd.Parameters.AddWithValue("@p", expectedSecondString);
-                    
-                    // NOTE: Command behavior must NOT be sequential
-                    using (PgDataReader reader = cmd.ExecuteReader())
-                    {
-                        reader.Read();
-                    }
-                }
+                PgParameter p = new PgParameter("@p", PgDbType.TimestampTZ);
+                p.Value = DBNull.Value;
+                p.Size  = 27;
+                PgCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT @p";
+                cmd.Parameters.Add(p);
+                
+                cmd.ExecuteScalar();
             }
+            
+            Console.WriteLine("Finished !!");
         } 
     }
 }

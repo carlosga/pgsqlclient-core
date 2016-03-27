@@ -209,10 +209,10 @@ namespace PostgreSql.Data.Protocol
                 var mre = (ManualResetEvent)saeargs.UserToken;
                 mre.Set();
             };
-                        
+
             var result = _socket.ConnectAsync(args);
             
-            complete.WaitOne(connectTimeout);
+            complete.WaitOne(connectTimeout * 1000);
             
             if (!result || !_socket.Connected || args.SocketError != SocketError.Success)
             {

@@ -480,7 +480,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 foreach (var name in _namedParameters)
                 {
                     var current = _parameters[name];
-                    
+
                     current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());                
                 }
                 
