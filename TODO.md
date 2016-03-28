@@ -11,7 +11,8 @@ https://github.com/aspnet/Configuration/
         https://github.com/dotnet/corefx/pull/7164
 
   Add new unit tests for PostgreSql specific features:
-  
+
+    - PgDataReader.GetColumnSchema  
     - Arrays
     - Complex Types
     - Time zones
@@ -21,10 +22,6 @@ https://github.com/aspnet/Configuration/
 - Basic MARS support ( client side ).
 
     - Check how it works when using several parametrized queries.
-
-- Implement IDbColumnSchemaGenerator on PgDataReader.
-
-  Custom DbColumn (https://github.com/dotnet/corefx/blob/master/src/System.Data.Common/src/System/Data/Common/DbColumn.cs) class.
 
 ## TO BE DONE
 
@@ -62,6 +59,7 @@ https://github.com/aspnet/Configuration/
 - Wire up SSL support ( TLS 1.2 only if possible ).
 - Merge PgStatement Parse & Describe in one single step, sending both packets in a single roundtrip.
 - Merge PgStatement Bind & Execute in one single step, sending both packets in a single roundtrip.
+- Implement IDbColumnSchemaGenerator on PgDataReader.
     
 ## 50.2.7. Canceling Requests in Progress
 
