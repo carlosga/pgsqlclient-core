@@ -1,8 +1,8 @@
 {
     "projects": [
-        "PostgreSql.Data.PostgreSqlClient",
-        "PostgreSql.Data.PostgreSqlClient.Tests",
-        "PostgreSql.Data.Sample"
+        "PostgreSql.Data.SqlClient",
+        "PostgreSql.Data.SqlClient.Tests",
+        "PostgreSql.Data.SqlClient.Sample"
     ],
     "sdk": {
         "version": "1.5.0-rc3-*",

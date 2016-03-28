@@ -1,0 +1,10 @@
+﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace System.Collections.Generic
+{
+    internal static class QueueOfTExtensions
+    {
+        internal static bool IsEmpty<T>(this Queue<T> queue) => (queue == null || queue.Count == 0);
+    }
+}
