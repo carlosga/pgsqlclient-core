@@ -119,7 +119,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _position        = STARTPOS;
                         _metadata        = null;
                     }
-                    
+
                     base.Dispose(disposing);
                 }
 
@@ -374,21 +374,21 @@ namespace PostgreSql.Data.PostgreSqlClient
         }
 
         public TimeSpan   GetTimeSpan(int i)   => GetPgTimeSpan(i).Value;
-        public PgTimeSpan GetPgTimeSpan(int i) => GetProviderSpecificValue<PgTimeSpan>(i);
-        public PgPoint    GetPgPoint(int i)    => GetProviderSpecificValue<PgPoint>(i);
-        public PgBox      GetPgBox(int i)      => GetProviderSpecificValue<PgBox>(i);
-        public PgLSeg     GetPgLSeg(int i)     => GetProviderSpecificValue<PgLSeg>(i);
-        public PgCircle   GetPgCircle(int i)   => GetProviderSpecificValue<PgCircle>(i);
-        public PgPath     GetPgPath(int i)     => GetProviderSpecificValue<PgPath>(i);
-        public PgPolygon  GetPgPolygon(int i)  => GetProviderSpecificValue<PgPolygon>(i);
-        public PgBox2D    GetPgBox2D(int i)    => GetProviderSpecificValue<PgBox2D>(i);
-        
+        public PgTimeSpan GetPgTimeSpan(int i) => GetValueWithNullCheck<PgTimeSpan>(i);
+        public PgPoint    GetPgPoint(int i)    => GetValueWithNullCheck<PgPoint>(i);
+        public PgBox      GetPgBox(int i)      => GetValueWithNullCheck<PgBox>(i);
+        public PgLSeg     GetPgLSeg(int i)     => GetValueWithNullCheck<PgLSeg>(i);
+        public PgCircle   GetPgCircle(int i)   => GetValueWithNullCheck<PgCircle>(i);
+        public PgPath     GetPgPath(int i)     => GetValueWithNullCheck<PgPath>(i);
+        public PgPolygon  GetPgPolygon(int i)  => GetValueWithNullCheck<PgPolygon>(i);
+        public PgBox2D    GetPgBox2D(int i)    => GetValueWithNullCheck<PgBox2D>(i);
+
         public override Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
         public override object GetProviderSpecificValue(int i)            => GetValue(i);
         public override int    GetProviderSpecificValues(object[] values) => GetValues(values);
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
-        
+
         internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
 
         internal void Close()
@@ -422,13 +422,6 @@ namespace PostgreSql.Data.PostgreSqlClient
         private T GetValueWithNullCheck<T>(int i)
         {
             CheckNull(i);
-            
-            return (T)_row[i];
-        }
-
-        private T GetProviderSpecificValue<T>(int i)
-        {
-            CheckNull(i);
 
             return (T)_row[i];
         }
@@ -448,7 +441,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                 while (_statement.HasRows)
                 {
-                    row = _statement.FetchRow();   
+                    row = _statement.FetchRow();
 
                     if (row != null)
                     {
@@ -468,7 +461,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             return true;
         }
-        
+
         private bool NextResultFromMars()
         {
             return _command.NextResult();

@@ -42,7 +42,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         public ReadOnlyCollection<DbColumn> GetColumnSchema()
         {
             var columns = new DbColumn[_descriptor.Count];
-            
+
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = ColumnSchemaQuery;
@@ -69,10 +69,10 @@ namespace PostgreSql.Data.PostgreSqlClient
                             }
                         }
                     }
-                    
+
                     columns[i] = schema;
                 }
-            } 
+            }
 
             return new ReadOnlyCollection<DbColumn>(columns);
         }

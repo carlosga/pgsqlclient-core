@@ -203,10 +203,10 @@ namespace PostgreSql.Data.Protocol
             // Connect to the host
             var complete = new ManualResetEvent(false);
             var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
-            
+
             args.Completed += (object sender, SocketAsyncEventArgs saeargs) => 
             {
-                var mre = (ManualResetEvent)saeargs.UserToken;
+                var mre = saeargs.UserToken as ManualResetEvent;
                 mre.Set();
             };
 

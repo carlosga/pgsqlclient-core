@@ -72,7 +72,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         public new PgParameterCollection Parameters
         {
             get { return _parameters; }
-        }        
+        }
 
         public override UpdateRowSource UpdatedRowSource
         {
@@ -232,7 +232,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             try
             {
-                return InternalExecuteNonQuery();                
+                return InternalExecuteNonQuery();
             }
             catch (PgClientException ex)
             {
@@ -288,7 +288,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw new PgException(ex);
             }
-        } 
+        }
 
         protected override DbParameter CreateDbParameter() => CreateParameter();
 
@@ -313,11 +313,11 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             if (_queryIndex == 0)
             {
-                _statement = _connection.InnerConnection.CreateStatement(stmtText);                        
+                _statement = _connection.InnerConnection.CreateStatement(stmtText);
             }
             else
             {
-                _statement.StatementText = stmtText;    
+                _statement.StatementText = stmtText;
             }
 
             PrepareParameters();
@@ -327,7 +327,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             if (_queryIndex == 0)
             {
                 // Add the command to the internal connection prepared statements
-                _connection.InnerConnection.AddPreparedCommand(this);                        
+                _connection.InnerConnection.AddPreparedCommand(this);
             }
         }
 
@@ -361,7 +361,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         internal object InternalExecuteScalar()
         {
             InternalPrepare();
-            
+
             return _statement.ExecuteScalar(_parameters);
         }
 
@@ -375,7 +375,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 }
 
                 // Try to advance to the next query
-                ++_queryIndex;                
+                ++_queryIndex;
                 if (_queryIndex >= _queries.Count)
                 {
                     return false;
@@ -402,7 +402,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 }
 
                 _connection.InnerConnection.RemovePreparedCommand(this);
-                
+
                 // Closing the prepared statement closes all his portals too.
                 _statement.Close();
             }
@@ -427,7 +427,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return;
             }
             
-            var row = _statement.FetchRow();   
+            var row = _statement.FetchRow();
 
             if (!row.IsEmpty())
             {
