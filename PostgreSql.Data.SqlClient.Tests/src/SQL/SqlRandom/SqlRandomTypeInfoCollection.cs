@@ -14,70 +14,41 @@ namespace PostgreSql.Data.SqlClient.Tests
     /// Defines a collection of types to be used by the test. Tests can start with CreateSql2005Collection or 
     /// CreateSql2008Collection and add/remove types, as needed.
     /// </summary>
-    public sealed class SqlRandomTypeInfoCollection : System.Collections.ObjectModel.KeyedCollection<PgDbType, SqlRandomTypeInfo>
+    public sealed class SqlRandomTypeInfoCollection 
+        : KeyedCollection<PgDbType, SqlRandomTypeInfo>
     {
-        private static readonly SqlRandomTypeInfo[] s_sql2005Types =
+        private static readonly SqlRandomTypeInfo[] s_sqlTypes =
         {
             // var types
-            new SqlVarBinaryTypeInfo(),
             new SqlVarCharTypeInfo(),
-            new SqlNVarCharTypeInfo(),
+            
+            // Boolean types
+            new SqlBooleanTypeInfo(),
 
             // integer data types
             new SqlBigIntTypeInfo(),
             new SqlIntTypeInfo(),
             new SqlSmallIntTypeInfo(),
-            new SqlTinyIntTypeInfo(),
+
+            // date/time types
+            new SqlDateTypeInfo(),
+            new SqlDateTimeOffsetTypeInfo(),
+            new SqlTimeTypeInfo(),
 
             // fixed length blobs
             new SqlCharTypeInfo(),
-            new SqlNCharTypeInfo(),
             new SqlBinaryTypeInfo(),
 
             // large blobs
             new SqlTextTypeInfo(),
-            new SqlNTextTypeInfo(),
-            new SqlImageTypeInfo(),
-
-            // bit
-            new SqlBitTypeInfo(),
 
             // decimal
             new SqlDecimalTypeInfo(),
 
             // money types
-            new SqlMoneyTypeInfo(),
-            new SqlSmallMoneyTypeInfo(),
 
             // float types
-            new SqRealTypeInfo(),
             new SqFloatTypeInfo(),
-
-            // typestamp (== rowversion)
-            new SqlRowVersionTypeInfo(),
-
-            // unique identifier (== guid)
-            new SqlUniqueIdentifierTypeInfo(),
-
-            // date/time types
-            new SqlDateTimeTypeInfo(),
-            new SqlSmallDateTimeTypeInfo(),
-
-            // variant
-            new SqlVariantTypeInfo(),
-
-            // xml
-            new SqlXmlTypeInfo(),
-        };
-
-        // types added in SQL 2008
-        private static readonly SqlRandomTypeInfo[] s_newInSql2008Types =
-        {
-            // date/time types
-            new SqlDateTypeInfo(),
-            new SqlDateTime2TypeInfo(),
-            new SqlDateTimeOffsetTypeInfo(),
-            new SqlTimeTypeInfo(),
         };
 
         // reset it each time collection is modified
@@ -91,7 +62,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     // rebuild it
                     var sparseColumns = this.Where(t => t.CanBeSparseColumn).ToArray();
-                    _sparseColumns = new ReadOnlyCollection<SqlRandomTypeInfo>(sparseColumns);
+                    _sparseColumns    = new ReadOnlyCollection<SqlRandomTypeInfo>(sparseColumns);
                 }
 
                 return _sparseColumns;
@@ -100,7 +71,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public SqlRandomTypeInfoCollection(params SqlRandomTypeInfo[] typeSet1)
             : this(typeSet1, null)
-        { }
+        {
+        }
 
         protected override void ClearItems()
         {
@@ -141,7 +113,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        protected override SqlDbType GetKeyForItem(SqlRandomTypeInfo item)
+        protected override PgDbType GetKeyForItem(SqlRandomTypeInfo item)
         {
             return item.Type;
         }
@@ -149,23 +121,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void AddRange(SqlRandomTypeInfo[] types)
         {
             for (int i = 0; i < types.Length; i++)
-                Add(types[i]);
+            {
+                Add(types[i]);   
+            }
         }
 
         /// <summary>
-        /// creates a collection of types supported in SQL 2005
+        /// creates a collection of supported types 
         /// </summary>
-        public static SqlRandomTypeInfoCollection CreateSql2005Collection()
+        public static SqlRandomTypeInfoCollection CreateSqlTypesCollection()
         {
-            return new SqlRandomTypeInfoCollection(s_sql2005Types);
-        }
-
-        /// <summary>
-        /// creates a collection of types supported in SQL 2005 and 2008
-        /// </summary>
-        public static SqlRandomTypeInfoCollection CreateSql2008Collection()
-        {
-            return new SqlRandomTypeInfoCollection(s_sql2005Types, s_newInSql2008Types);
+            return new SqlRandomTypeInfoCollection(s_sqlTypes);
         }
 
         /// <summary>

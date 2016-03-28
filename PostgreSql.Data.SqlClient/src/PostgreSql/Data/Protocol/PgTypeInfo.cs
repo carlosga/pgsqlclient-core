@@ -14,7 +14,7 @@ namespace PostgreSql.Data.Protocol
             var dataTypes = new PgTypeInfoCollection(60);
            
             dataTypes.Add(  16, "bool"       , PgDbType.Boolean    ,    0, PgTypeFormat.Binary, 1);
-            dataTypes.Add(  17, "bytea"      , PgDbType.Binary     ,    0, PgTypeFormat.Binary, Int32.MaxValue);
+            dataTypes.Add(  17, "bytea"      , PgDbType.Bytea      ,    0, PgTypeFormat.Binary, Int32.MaxValue);
             dataTypes.Add(  18, "char"       , PgDbType.Char       ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(  19, "name"       , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(  20, "int8"       , PgDbType.Int8       ,    0, PgTypeFormat.Binary, 8);
@@ -34,8 +34,8 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add( 629, "_line"      , PgDbType.Array      ,  628, PgTypeFormat.Binary, 32);
             dataTypes.Add( 718, "circle"     , PgDbType.Circle     ,    0, PgTypeFormat.Binary, 24, ",");
             dataTypes.Add( 719, "_circle"    , PgDbType.Array      ,  718, PgTypeFormat.Binary, 24);
-            dataTypes.Add( 700, "float4"     , PgDbType.Float      ,    0, PgTypeFormat.Text  , 4);
-            dataTypes.Add( 701, "float8"     , PgDbType.Double     ,    0, PgTypeFormat.Binary, 8);
+            dataTypes.Add( 700, "float4"     , PgDbType.Float4     ,    0, PgTypeFormat.Text  , 4);
+            dataTypes.Add( 701, "float8"     , PgDbType.Float8     ,    0, PgTypeFormat.Binary, 8);
             dataTypes.Add( 705, "unknown"    , PgDbType.Text       ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add( 790, "money"      , PgDbType.Currency   ,    0, PgTypeFormat.Binary, 4);
             dataTypes.Add( 829, "macaddr"    , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 6);
@@ -65,7 +65,7 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add(1266, "timetz"     , PgDbType.TimeTZ     ,    0, PgTypeFormat.Binary, 12);
             dataTypes.Add(1560, "bit"        , PgDbType.Byte       ,    0, PgTypeFormat.Binary, 1);
             dataTypes.Add(1562, "varbit"     , PgDbType.Byte       ,    0, PgTypeFormat.Binary, 0);
-            dataTypes.Add(1700, "numeric"    , PgDbType.Decimal    ,    0, PgTypeFormat.Text  , 8);
+            dataTypes.Add(1700, "decimal"    , PgDbType.Decimal    ,    0, PgTypeFormat.Text  , 8);
             dataTypes.Add(1790, "refcursor"  , PgDbType.Refcursor  ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(2205, "regclass"   , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(2278, "void"       , PgDbType.Void       ,    0, PgTypeFormat.Binary, 0);
@@ -101,7 +101,7 @@ namespace PostgreSql.Data.Protocol
         internal PgTypeFormat Format      => _format;
         internal int          Size        => _size;
         internal bool         IsArray     => (_dataType == PgDbType.Array);
-        internal bool         IsBinary    => (_dataType == PgDbType.Binary);
+        internal bool         IsBinary    => (_dataType == PgDbType.Bytea);
         internal bool         IsRefCursor => (_dataType == PgDbType.Refcursor);
         internal string       Delimiter   => _delimiter;
         internal string       Prefix      => _prefix;
@@ -114,8 +114,8 @@ namespace PostgreSql.Data.Protocol
                      || _dataType == PgDbType.Int2
                      || _dataType == PgDbType.Int4
                      || _dataType == PgDbType.Int8
-                     || _dataType == PgDbType.Float
-                     || _dataType == PgDbType.Double
+                     || _dataType == PgDbType.Float4
+                     || _dataType == PgDbType.Float8
                      || _dataType == PgDbType.Decimal
                      || _dataType == PgDbType.Byte);
             }
@@ -131,8 +131,8 @@ namespace PostgreSql.Data.Protocol
                      || _dataType == PgDbType.Int4
                      || _dataType == PgDbType.Int8
                      || _dataType == PgDbType.Char
-                     || _dataType == PgDbType.Double
-                     || _dataType == PgDbType.Float);
+                     || _dataType == PgDbType.Float4
+                     || _dataType == PgDbType.Float8);
             }
         }
 

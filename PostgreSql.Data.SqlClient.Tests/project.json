@@ -25,12 +25,14 @@
                 "System.Resources.ResourceManager": "4.0.1-rc3-*",
                 "System.Runtime": "4.1.0-rc3-*",
                 "System.Runtime.Extensions": "4.1.0-rc3-*",
+                "System.Runtime.Serialization.Primitives": "4.1.0-rc3-*",
                 "System.Security.Cryptography.X509Certificates": "4.1.0-rc3-*",
                 "System.Security.Cryptography.Algorithms": "4.1.0-rc3-*",
                 "System.Text.Encoding": "4.0.11-rc3-*",
                 "System.Threading": "4.0.11-rc3-*",
                 "System.Threading.Tasks": "4.0.11-rc3-*",
                 "System.Threading.Thread": "4.0.0-rc3-*",
+                "System.Threading.ThreadPool": "4.0.10-rc3-*",
                 "System.Xml.XmlDocument": "4.0.0-rc3-*",
                 "NUnit": "3.2.0-*",
                 "NUnitLite": "3.2.0-*",
@@ -63,13 +65,5 @@
             }
         }
     },
-    "compile": "src/**/*.cs",
-    "exclude": [
-        "src/**/SqlRandom/**",
-        "src/**/SqlRandomStress/**"
-    ],
-    "commands": {
-        "test": "PostgreSql.Data.PostgreSqlClient.Tests"
-    },    
-    "testRunner": "PostgreSql.Data.PostgreSqlClient.Tests"
+    "compile": "src/**/*.cs"
 }

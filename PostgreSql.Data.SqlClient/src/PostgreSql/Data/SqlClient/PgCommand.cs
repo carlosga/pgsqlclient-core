@@ -448,6 +448,11 @@ namespace PostgreSql.Data.SqlClient
                 {
                     var current = _parameters[name];
 
+                    if (database.SessionData.DataTypes.Count(x => x.Name == current.ProviderType.ToString().ToLower()) == 0)
+                    {
+                        Console.WriteLine(current.ProviderType.ToString());
+                    }
+
                     current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());
                 }
 

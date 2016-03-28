@@ -7,8 +7,10 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using System.Diagnostics;
+using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -19,6 +21,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     {
         // "Row-Overflow Data Exceeding 8 KB"
         private const int MaxBytesPerRow = 8060;
+        
         // however, with sparse columns the limit drops to 8018
         private const int MaxBytesPerRowWithSparse = 8018;
 
@@ -38,23 +41,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         private readonly string[] _columnNames;
 
         public readonly IList<SqlRandomTableColumn> Columns;
-        public readonly IList<string> ColumnNames;
-        public readonly int? PrimaryKeyColumnIndex;
-        public readonly bool HasSparseColumns;
-        public readonly double NonSparseValuesTotalSize;
+        public readonly IList<string>               ColumnNames;
+        public readonly int?                        PrimaryKeyColumnIndex;
+        public readonly bool                        HasSparseColumns;
+        public readonly double                      NonSparseValuesTotalSize;
 
         /// <summary>
         /// maximum size of the row allowed for this column (depends if it has sparse columns or not)
         /// </summary>
         public int MaxRowSize
         {
-            get
-            {
-                if (HasSparseColumns)
-                    return MaxBytesPerRowWithSparse;
-                else
-                    return MaxBytesPerRow;
-            }
+            get { return (HasSparseColumns) ? MaxBytesPerRowWithSparse : MaxBytesPerRow; }
         }
 
         /// <summary>
@@ -64,33 +61,43 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public IList<object> this[int row]
         {
-            get
-            {
-                return new List<object>(_rows[row]).AsReadOnly();
-            }
+            get { return new List<object>(_rows[row]).AsReadOnly(); }
         }
 
         public SqlRandomTable(SqlRandomTableColumn[] columns, int? primaryKeyColumnIndex = null, int estimatedRowCount = 0)
         {
             if (columns == null || columns.Length == 0)
-                throw new ArgumentException("non-empty type array is required");
+            {
+                throw new ArgumentException("non-empty type array is required");   
+            }
             if (estimatedRowCount < 0)
-                throw new ArgumentOutOfRangeException("non-negative row count is required, use 0 for default");
+            {
+                throw new ArgumentOutOfRangeException("non-negative row count is required, use 0 for default");   
+            }
             if (primaryKeyColumnIndex.HasValue && (primaryKeyColumnIndex.Value < 0 || primaryKeyColumnIndex.Value >= columns.Length))
-                throw new ArgumentOutOfRangeException("primaryColumnIndex");
+            {
+                throw new ArgumentOutOfRangeException("primaryColumnIndex");   
+            }
 
             PrimaryKeyColumnIndex = primaryKeyColumnIndex;
-            _columns = (SqlRandomTableColumn[])columns.Clone();
+            
+            _columns     = (SqlRandomTableColumn[])columns.Clone();
             _columnNames = new string[columns.Length];
             if (estimatedRowCount == 0)
-                _rows = new List<object[]>();
+            {
+                _rows = new List<object[]>();   
+            }
             else
-                _rows = new List<object[]>(estimatedRowCount);
+            {
+                _rows = new List<object[]>(estimatedRowCount);   
+            }
 
-            Columns = new List<SqlRandomTableColumn>(_columns).AsReadOnly();
+            Columns     = new List<SqlRandomTableColumn>(_columns).AsReadOnly();
             ColumnNames = new List<string>(_columnNames).AsReadOnly();
-            bool hasSparse = false;
+            
+            bool   hasSparse      = false;
             double totalNonSparse = 0;
+            
             foreach (var c in _columns)
             {
                 if (c.IsSparse)
@@ -118,7 +125,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public string GetColumnTSqlType(int c)
         {
-            return _columns[c].GetTSqlTypeDefinition();
+            return _columns[c].GetSqlTypeDefinition();
         }
 
         /// <summary>
@@ -143,7 +150,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             object[] row = new object[_columns.Length];
 
             // non-sparse columns will always take fixed size, must add them now
-            double rowSize = NonSparseValuesTotalSize;
+            double rowSize    = NonSparseValuesTotalSize;
             double maxRowSize = MaxRowSize;
 
             if (PrimaryKeyColumnIndex.HasValue)
@@ -212,7 +219,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void AddRows(SqlRandomizer rand, int rowCount)
         {
             for (int i = 0; i < rowCount; i++)
-                AddRow(rand);
+            {
+                AddRow(rand);   
+            }
         }
 
         public string GenerateCreateTableTSql(string tableName)
@@ -224,28 +233,30 @@ namespace PostgreSql.Data.SqlClient.Tests
             for (int c = 0; c < _columns.Length; c++)
             {
                 if (c != 0)
-                    tsql.Append(", ");
+                {
+                    tsql.Append(", ");   
+                }
 
-                tsql.AppendFormat("[{0}] {1}", GetColumnName(c), GetColumnTSqlType(c));
+                tsql.AppendFormat("{0} {1}", GetColumnName(c), GetColumnTSqlType(c));
                 if (IsPrimaryKey(c))
                 {
                     tsql.Append(" PRIMARY KEY");
                 }
-                else if (IsSparse(c))
-                {
-                    tsql.Append(" SPARSE NULL");
-                }
-                else if (IsColumnSet(c))
-                {
-                    tsql.Append(" COLUMN_SET FOR ALL_SPARSE_COLUMNS NULL");
-                }
+                // else if (IsSparse(c))
+                // {
+                //     tsql.Append(" SPARSE NULL");
+                // }
+                // else if (IsColumnSet(c))
+                // {
+                //     tsql.Append(" COLUMN_SET FOR ALL_SPARSE_COLUMNS NULL");
+                // }
                 else
                 {
                     tsql.Append(" NULL");
                 }
             }
-
-            tsql.AppendFormat(") ON [PRIMARY]");
+            
+            tsql.Append(" )");
 
             return tsql.ToString();
         }
@@ -256,11 +267,17 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 output.Write(_columnNames[i]);
                 if (_columns[i].StorageSize.HasValue)
-                    output.Write(",  [StorageSize={0}]", _columns[i].StorageSize.Value);
+                {
+                    output.Write(",  [StorageSize={0}]", _columns[i].StorageSize.Value);   
+                }
                 if (_columns[i].Precision.HasValue)
-                    output.Write(",  [Precision={0}]", _columns[i].Precision.Value);
+                {
+                    output.Write(",  [Precision={0}]", _columns[i].Precision.Value);   
+                }
                 if (_columns[i].Scale.HasValue)
-                    output.Write(",  [Scale={0}]", _columns[i].Scale.Value);
+                {
+                    output.Write(",  [Scale={0}]", _columns[i].Scale.Value);   
+                }
                 output.WriteLine();
             }
         }
@@ -268,7 +285,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void DumpRow(TextWriter output, object[] row)
         {
             if (row == null || row.Length != _columns.Length)
-                throw new ArgumentException("Row length does not match the columns");
+            {
+                throw new ArgumentException("Row length does not match the columns");   
+            }
 
             for (int i = 0; i < _columnNames.Length - 1; i++)
             {
@@ -302,7 +321,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private bool SkipOnInsert(int c)
         {
-            if (_columns[c].Type == SqlDbType.Timestamp)
+            if (_columns[c].Type == PgDbType.Timestamp)
             {
                 // cannot insert timestamp
                 return true;
@@ -322,8 +341,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             // create table
             PgCommand cmd = con.CreateCommand();
+            
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = GenerateCreateTableTSql(tableName);
+            
             try
             {
                 cmd.ExecuteNonQuery();
@@ -340,7 +361,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                 output.WriteLine("---------");
 
                 lock (Console.Out)
-                    Console.WriteLine(output);
+                {
+                    Console.WriteLine(output);   
+                }
 
                 throw;
             }
@@ -399,7 +422,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             // create the command and parameters on first call, reuse afterwards (to reduces table creation overhead)
             if (cmd == null)
             {
-                cmd = con.CreateCommand();
+                cmd             = con.CreateCommand();
                 cmd.CommandType = CommandType.Text;
             }
             else
@@ -452,13 +475,13 @@ namespace PostgreSql.Data.SqlClient.Tests
                     valuesText.Append(", ");
                 }
 
-                columnsText.AppendFormat("[{0}]", _columnNames[ci]);
+                columnsText.AppendFormat("{0}", _columnNames[ci]);
 
                 if (p == null)
                 {
                     p = cmd.CreateParameter();
                     p.ParameterName = "@p" + ci;
-                    p.SqlDbType = _columns[ci].Type;
+                    p.ProviderType  = _columns[ci].Type;
 
                     parameters[ci] = p;
                 }
@@ -478,7 +501,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 cmd.ExecuteNonQuery();
             }
-            catch (SqlException e)
+            catch (PgException e)
             {
                 StringWriter output = new StringWriter();
                 output.WriteLine("(START)");
@@ -494,7 +517,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                 output.WriteLine("---------");
 
                 lock (Console.Out)
-                    Console.WriteLine(output);
+                {
+                    Console.WriteLine(output);   
+                }
 
                 throw;
             }
@@ -506,7 +531,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public int GenerateSelectFromTableTSql(string tableName, StringBuilder selectBuilder, int[] columnIndicies = null, int indiciesOffset = -1, int indiciesCount = -1)
         {
             if (tableName == null || selectBuilder == null)
-                throw new ArgumentNullException("tableName == null || selectBuilder == null");
+            {
+                throw new ArgumentNullException("tableName == null || selectBuilder == null");   
+            }
 
             int maxIndiciesLength = (columnIndicies == null) ? _columns.Length : columnIndicies.Length;
             if (indiciesOffset == -1)
@@ -571,7 +598,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         // once we have only this size left on the row, column set column is forced
         // 40 is an XML and variant size
-        private static readonly int s_columnSetSafetyRange = SqlRandomTypeInfo.XmlRowUsage * 3;
+        // private static readonly int s_columnSetSafetyRange = SqlRandomTypeInfo.XmlRowUsage * 3;
+        private static readonly int s_columnSetSafetyRange = 0;
 
         /// <summary>
         /// Creates random list of columns from the given source collection. The rules are:
@@ -579,21 +607,24 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// * total row size of non-sparse columns should not exceed 8060 or 8018 (with sparse)
         /// * column set column must be added if number of columns in total exceeds 1024
         /// </summary>
-        public static SqlRandomTableColumn[] CreateRandTypes(SqlRandomizer rand, SqlRandomTypeInfoCollection sourceCollection, int maxColumnsCount, bool createIdColumn)
+        public static SqlRandomTableColumn[] CreateRandTypes(SqlRandomizer               rand
+                                                           , SqlRandomTypeInfoCollection sourceCollection
+                                                           , int                         maxColumnsCount
+                                                           , bool                        createIdColumn)
         {
-            var retColumns = new List<SqlRandomTableColumn>(maxColumnsCount);
-            bool hasTimestamp = false;
-            double totalRowSize = 0;
-            int totalRegularColumns = 0;
+            var    retColumns          = new List<SqlRandomTableColumn>(maxColumnsCount);
+            bool   hasTimestamp        = false;
+            double totalRowSize        = 0;
+            int    totalRegularColumns = 0;
 
-            bool hasColumnSet = false;
+            bool hasColumnSet     = false;
             bool hasSparseColumns = false;
-            int maxRowSize = MaxBytesPerRow; // set to MaxBytesPerRowWithSparse when sparse column is first added
+            int  maxRowSize       = MaxBytesPerRow; // set to MaxBytesPerRowWithSparse when sparse column is first added
 
             int i = 0;
             if (createIdColumn)
             {
-                SqlRandomTypeInfo keyType = sourceCollection[SqlDbType.Int];
+                SqlRandomTypeInfo    keyType   = sourceCollection[PgDbType.Int4];
                 SqlRandomTableColumn keyColumn = keyType.CreateDefaultColumn(SqlRandomColumnOptions.None);
                 retColumns.Add(keyColumn);
                 totalRowSize += keyType.GetInRowSize(keyColumn, null);
@@ -626,14 +657,14 @@ namespace PostgreSql.Data.SqlClient.Tests
                     // we almost reached the limit of regular & sparse columns with, but no column set added
                     // to increase chances for >1024 columns, enforce column set now
                     isColumnSet = true;
-                    isSparse = false;
+                    isSparse    = false;
                 }
                 else if (totalRowSize > MaxBytesPerRowWithSparse)
                 {
                     Debug.Assert(totalRowSize <= MaxBytesPerRow, "size over the max limit");
                     Debug.Assert(!hasSparseColumns, "should not have sparse columns after MaxBytesPerRowWithSparse (check maxRowSize)");
                     // cannot insert sparse from this point
-                    isSparse = false;
+                    isSparse    = false;
                     isColumnSet = false;
                 }
                 else
@@ -659,7 +690,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         {
                             // if we have not added column set column yet
                             // column-set is a regular column and its size counts towards row size, so time to add it
-                            isColumnSet = true;
+                            isColumnSet       = true;
                             sparseProbability = -1; // not used
                         }
                         else
@@ -685,7 +716,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 }
 
                 // select the type
-                SqlRandomTypeInfo ti;
+                SqlRandomTypeInfo      ti      = null;
                 SqlRandomColumnOptions options = SqlRandomColumnOptions.None;
 
                 if (isSparse)
@@ -695,24 +726,24 @@ namespace PostgreSql.Data.SqlClient.Tests
                     Debug.Assert(ti.CanBeSparseColumn, "NextSparse must return only types that can be sparse");
                     options |= SqlRandomColumnOptions.Sparse;
                 }
-                else if (isColumnSet)
-                {
-                    Debug.Assert(!hasColumnSet, "there is already a column set, we should not set isColumnSet again above");
-                    ti = sourceCollection[SqlDbType.Xml];
-                    options |= SqlRandomColumnOptions.ColumnSet;
-                }
-                else
+                // else if (isColumnSet)
+                // {
+                //     Debug.Assert(!hasColumnSet, "there is already a column set, we should not set isColumnSet again above");
+                //     ti = sourceCollection[PgDbType.Xml];
+                //     options |= SqlRandomColumnOptions.ColumnSet;
+                // }
+                // else
                 {
                     // regular column
                     ti = sourceCollection.Next(rand);
 
-                    if (ti.Type == SqlDbType.Timestamp)
+                    if (ti.Type == PgDbType.Timestamp)
                     {
                         // while table can contain single timestamp column only, there is no way to insert values into it. 
                         // thus, do not allow this
                         if (hasTimestamp || maxColumnsCount == 1)
                         {
-                            ti = sourceCollection[SqlDbType.Int];
+                            ti = sourceCollection[PgDbType.Int4];
                         }
                         else
                         {
@@ -795,12 +826,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             string baseName;
             if (IsPrimaryKey(c))
-                baseName = "PKEY";
+            {
+                baseName = "PKEY";   
+            }
             else
-                baseName = string.Format("C{0}_{1}", _columns[c].Type, c);
+            {
+                baseName = string.Format("C{0}_{1}", _columns[c].Type, c);   
+            }
 
-            string name = baseName;
-            int extraSuffix = 1;
+            string name        = baseName;
+            int    extraSuffix = 1;
             while (nameMap.ContainsKey(name))
             {
                 name = string.Format("{0}_{1}", baseName, extraSuffix);

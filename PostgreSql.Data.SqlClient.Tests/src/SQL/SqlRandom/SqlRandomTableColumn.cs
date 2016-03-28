@@ -13,23 +13,62 @@ namespace PostgreSql.Data.SqlClient.Tests
     /// </summary>
     public sealed class SqlRandomTableColumn
     {
-        public readonly SqlRandomTypeInfo TypeInfo;
-        public readonly int? StorageSize;
-        public readonly int? Precision;
-        public readonly int? Scale;
+        public readonly SqlRandomTypeInfo      TypeInfo;
+        public readonly int?                   StorageSize;
+        public readonly int?                   Precision;
+        public readonly int?                   Scale;
         public readonly SqlRandomColumnOptions Options;
 
         // useful shortcuts
-        public PgDbType Type { get { return TypeInfo.Type; } }
-        public string GetTSqlTypeDefinition() { return TypeInfo.GetTSqlTypeDefinition(this); }
-        public object CreateRandomValue(SqlRandomizer rand) { return TypeInfo.CreateRandomValue(rand, this); }
-        public object Read(PgDataReader reader, int ordinal, Type asType) { return TypeInfo.Read(reader, ordinal, this, asType); }
-        public bool CanCompareValues { get { return TypeInfo.CanCompareValues(this); } }
-        public bool CompareValues(object expected, object actual) { return TypeInfo.CompareValues(this, expected, actual); }
-        public string BuildErrorMessage(object expected, object actual) { return TypeInfo.BuildErrorMessage(this, expected, actual); }
-        public double GetInRowSize(object value) { return TypeInfo.GetInRowSize(this, value); }
-        public bool IsSparse { get { return (Options & SqlRandomColumnOptions.Sparse) != 0; } }
-        public bool IsColumnSet { get { return (Options & SqlRandomColumnOptions.ColumnSet) != 0; } }
+        public PgDbType Type 
+        {
+             get { return TypeInfo.Type; } 
+        }
+             
+        public string GetSqlTypeDefinition() 
+        { 
+            return TypeInfo.GetSqlTypeDefinition(this); 
+        }
+        
+        public object CreateRandomValue(SqlRandomizer rand) 
+        { 
+            return TypeInfo.CreateRandomValue(rand, this); 
+        }
+        
+        public object Read(PgDataReader reader, int ordinal, Type asType) 
+        {
+            return TypeInfo.Read(reader, ordinal, this, asType); 
+        }
+        
+        public bool CanCompareValues 
+        { 
+            get { return TypeInfo.CanCompareValues(this); } 
+        }
+        
+        public bool CompareValues(object expected, object actual) 
+        { 
+            return TypeInfo.CompareValues(this, expected, actual); 
+        }
+        
+        public string BuildErrorMessage(object expected, object actual) 
+        {
+            return TypeInfo.BuildErrorMessage(this, expected, actual); 
+        }
+            
+        public double GetInRowSize(object value) 
+        { 
+            return TypeInfo.GetInRowSize(this, value); 
+        }
+        
+        public bool IsSparse 
+        { 
+            get { return (Options & SqlRandomColumnOptions.Sparse) != 0; } 
+        }
+        
+        public bool IsColumnSet
+        { 
+            get { return (Options & SqlRandomColumnOptions.ColumnSet) != 0; } 
+        }
 
         public SqlRandomTableColumn(SqlRandomTypeInfo typeInfo, SqlRandomColumnOptions options)
         {
@@ -45,30 +84,30 @@ namespace PostgreSql.Data.SqlClient.Tests
                     throw new ArgumentException("Must not be sparse", nameof(options));
                 }
 
-                if (typeInfo.Type != PgDbType.Xml)
-                {
-                    throw new ArgumentException("columnset column must be an XML column");
-                }
+                // if (typeInfo.Type != PgDbType.Xml)
+                // {
+                //     throw new ArgumentException("columnset column must be an XML column");
+                // }
             }
 
             TypeInfo = typeInfo;
-            Options = options;
+            Options  = options;
         }
 
         public SqlRandomTableColumn(SqlRandomTypeInfo typeInfo, SqlRandomColumnOptions options, int? storageSize)
             : this(typeInfo, options)
         {
             StorageSize = storageSize;
-            Precision = null;
-            Scale = null;
+            Precision   = null;
+            Scale       = null;
         }
 
         public SqlRandomTableColumn(SqlRandomTypeInfo typeInfo, SqlRandomColumnOptions options, int? precision, int? scale)
             : this(typeInfo, options)
         {
             StorageSize = null;
-            Precision = precision;
-            Scale = scale;
+            Precision   = precision;
+            Scale       = scale;
         }
     }
 }

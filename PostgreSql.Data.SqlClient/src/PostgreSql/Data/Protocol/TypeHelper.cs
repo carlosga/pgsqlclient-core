@@ -20,7 +20,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Byte:
                     return DbType.Byte;
 
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                     return DbType.Binary;
 
                 case PgDbType.Char:
@@ -51,13 +51,12 @@ namespace PostgreSql.Data.Protocol
                     return DbType.DateTimeOffset;
 
                 case PgDbType.Decimal:
-                case PgDbType.Numeric:
                     return DbType.Decimal;
 
-                case PgDbType.Float:
+                case PgDbType.Float4:
                     return DbType.Single;
 
-                case PgDbType.Double:
+                case PgDbType.Float8:
                     return DbType.Double;
 
                 default:
@@ -79,7 +78,7 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Char;
 
                 case DbType.Binary:                
-                    return PgDbType.Binary;
+                    return PgDbType.Bytea;
 
                 case DbType.Boolean:
                     return PgDbType.Boolean;
@@ -102,8 +101,11 @@ namespace PostgreSql.Data.Protocol
                 case DbType.Decimal:
                     return PgDbType.Decimal;
 
+                case DbType.Single:
+                    return PgDbType.Float4;
+
                 case DbType.Double:
-                    return PgDbType.Double;
+                    return PgDbType.Float8;
 
                 case DbType.Int16:
                     return PgDbType.Int2;
@@ -113,9 +115,6 @@ namespace PostgreSql.Data.Protocol
 
                 case DbType.Int64:
                     return PgDbType.Int8;
-
-                case DbType.Single:
-                    return PgDbType.Float;
 
                 case DbType.Time:
                     return PgDbType.Time;
@@ -167,11 +166,11 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Single:
-                    providerType = PgDbType.Float;
+                    providerType = PgDbType.Float4;
                     break;
 
                 case TypeCode.Double:
-                    providerType = PgDbType.Double;
+                    providerType = PgDbType.Float8;
                     break;
 
                 case TypeCode.Decimal:
@@ -199,7 +198,7 @@ namespace PostgreSql.Data.Protocol
             switch (dataType)
             {
                 case PgDbType.Array:
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                 case PgDbType.Vector:
                     return typeof(System.Array);
 
@@ -237,7 +236,6 @@ namespace PostgreSql.Data.Protocol
 
                 case PgDbType.Currency:
                 case PgDbType.Decimal:
-                case PgDbType.Numeric:
                     return typeof(System.Decimal);
 
                 case PgDbType.Date:
@@ -247,11 +245,11 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.TimestampTZ:
                     return typeof(System.DateTime);
 
-                case PgDbType.Double:
-                    return typeof(System.Double);
-
-                case PgDbType.Float:
+                case PgDbType.Float4:
                     return typeof(System.Single);
+
+                case PgDbType.Float8:
+                    return typeof(System.Double);
 
                 case PgDbType.Int2:
                     return typeof(System.Int16);
@@ -277,9 +275,7 @@ namespace PostgreSql.Data.Protocol
             switch (providerType)
             {
                 case PgDbType.Array:
-                    break;
-
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                     break;
 
                 case PgDbType.Boolean:
@@ -313,16 +309,15 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case PgDbType.Decimal:
-                case PgDbType.Numeric:
                     returnValue = Convert.ToDecimal(value).ToString();
                     break;
 
-                case PgDbType.Double:
-                    returnValue = Convert.ToDouble(value).ToString();
+                case PgDbType.Float4:
+                    returnValue = Convert.ToSingle(value).ToString();
                     break;
 
-                case PgDbType.Float:
-                    returnValue = Convert.ToSingle(value).ToString();
+                case PgDbType.Float8:
+                    returnValue = Convert.ToDouble(value).ToString();
                     break;
 
                 case PgDbType.Int2:

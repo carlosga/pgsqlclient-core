@@ -6,6 +6,7 @@
 
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using System.IO;
 using System.Threading;
@@ -17,40 +18,41 @@ namespace PostgreSql.Data.SqlClient.Tests
     [TestFixture]
     public static class SqlRandomStress
     {
-        private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);
+        private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);        
         private const int ThreadCountDefault = 4;
         private const int IterationsPerTableDefault = 50;
 
         private const int MaxColumns = 5000;
-        private const int MaxRows = 100;
-        private const int MaxTotal = MaxColumns * 10;
+        private const int MaxRows    = 100;
+        private const int MaxTotal   = MaxColumns * 10;
 
         private static string[] _connectionStrings;
-        private static string _operationCanceledErrorMessage;
-        private static string _severeErrorMessage;
+        private static string   _operationCanceledErrorMessage;
+        private static string   _severeErrorMessage;
 
-        private static SqlRandomTypeInfoCollection _katmaiTypes;
-        private static ManualResetEvent _endEvent;
-        private static int _runningThreads;
+        private static SqlRandomTypeInfoCollection _sqlTypes;
+        private static ManualResetEvent            _endEvent;
+        private static int                         _runningThreads;
 
         private static long _totalValues;
         private static long _totalTables;
         private static long _totalIterations;
         private static long _totalTicks;
+        
         private static RandomizerPool _randPool;
 
         [Test]
         public static void TestMain()
         {
-            _operationCanceledErrorMessage = SystemDataResourceManager.Instance.SQL_OperationCancelled;
-            _severeErrorMessage = SystemDataResourceManager.Instance.SQL_SevereError;
+            _operationCanceledErrorMessage = "Operation cancelled by user.";
+            _severeErrorMessage            = "A severe error occurred on the current command. The results, if any, should be discarded.";
 
             // pure random
             _randPool = new RandomizerPool();
 
-            PgConnectionStringBuilder regularConnectionString = new PgConnectionStringBuilder();
+            var regularConnectionString = new PgConnectionStringBuilder();
 
-            regularConnectionString.ConnectionString = DataTestClass.SQL2008_Master;
+            regularConnectionString.ConnectionString         = DataTestClass.PostgreSql9_Northwind;
             regularConnectionString.MultipleActiveResultSets = false;
 
             List<string> connStrings = new List<string>();
@@ -63,8 +65,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             _connectionStrings = connStrings.ToArray();
 
-            _katmaiTypes = SqlRandomTypeInfoCollection.CreateSql2008Collection();
-            _endEvent = new ManualResetEvent(false);
+            _sqlTypes = SqlRandomTypeInfoCollection.CreateSqlTypesCollection();
+            _endEvent    = new ManualResetEvent(false);
 
             if (_randPool.ReproMode)
             {
@@ -100,8 +102,8 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 using (var rootScope = _randPool.RootScope<SqlRandomizer>())
                 {
-                    Stopwatch watch = new Stopwatch();
-                    PgConnection con = null;
+                    Stopwatch    watch = new Stopwatch();
+                    PgConnection con   = null;
                     try
                     {
                         NextConnection(ref con, rootScope.Current);
@@ -111,7 +113,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                             using (var testScope = rootScope.NewScope<SqlRandomizer>())
                             {
                                 // run only once if repro file is provided
-                                RunTest(con, testScope, _katmaiTypes, watch);
+                                RunTest(con, testScope, _sqlTypes, watch);
                             }
                         }
                         else
@@ -120,7 +122,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                             {
                                 using (var testScope = rootScope.NewScope<SqlRandomizer>())
                                 {
-                                    RunTest(con, testScope, _katmaiTypes, watch);
+                                    RunTest(con, testScope, _sqlTypes, watch);
                                 }
 
                                 if (rootScope.Current.Next(100) == 0)
@@ -161,11 +163,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             finally
             {
                 if (Interlocked.Decrement(ref _runningThreads) == 0)
-                    _endEvent.Set();
+                {
+                    _endEvent.Set();   
+                }
             }
         }
 
-        private static void RunTest(PgConnection con, RandomizerPool.Scope<SqlRandomizer> testScope, SqlRandomTypeInfoCollection types, Stopwatch watch)
+        private static void RunTest(PgConnection                        con
+                                  , RandomizerPool.Scope<SqlRandomizer> testScope
+                                  , SqlRandomTypeInfoCollection         types
+                                  , Stopwatch                           watch)
         {
             Exception pendingException = null;
             string tempTableName = null;
@@ -174,14 +181,14 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 // select number of columns to use and null bitmap to test
                 int columnsCount, rowsCount;
-                testScope.Current.NextTableDimentions(MaxRows, MaxColumns, MaxTotal, out rowsCount, out columnsCount);
+                testScope.Current.NextTableDimensions(MaxRows, MaxColumns, MaxTotal, out rowsCount, out columnsCount);
                 SqlRandomTable table = SqlRandomTable.Create(testScope.Current, types, columnsCount, rowsCount, createPrimaryKeyColumn: true);
 
                 long total = (long)rowsCount * columnsCount;
                 Interlocked.Add(ref _totalValues, total);
                 Interlocked.Increment(ref _totalTables);
 
-                tempTableName = SqlRandomizer.GenerateUniqueTempTableNameForSqlServer();
+                tempTableName = SqlRandomizer.GenerateUniqueTempTableName();
                 table.GenerateTableOnServer(con, tempTableName);
 
                 long prevTicks = watch.ElapsedTicks;
@@ -241,9 +248,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         private static void RunTestIteration(PgConnection con, SqlRandomizer rand, SqlRandomTable table, string tableName)
         {
             // random list of columns
-            int columnCount = table.Columns.Count;
+            int   columnCount    = table.Columns.Count;
             int[] columnIndicies = rand.NextIndicies(columnCount);
-            int selectedCount = rand.NextIntInclusive(1, maxValueInclusive: columnCount);
+            int   selectedCount  = rand.NextIntInclusive(1, maxValueInclusive: columnCount);
 
             StringBuilder selectBuilder = new StringBuilder();
             table.GenerateSelectFromTableTSql(tableName, selectBuilder, columnIndicies, 0, selectedCount);
@@ -259,26 +266,24 @@ namespace PostgreSql.Data.SqlClient.Tests
                 int cancelAfterSpinCount = rand.Next(1000);
 
                 ThreadPool.QueueUserWorkItem((object state) =>
+                {
+                    for (int i = 0; cancel && i < cancelAfterMilliseconds; i++)
                     {
-                        for (int i = 0; cancel && i < cancelAfterMilliseconds; i++)
-                        {
-                            Thread.Sleep(1);
-                        }
-                        if (cancel && cancelAfterSpinCount > 0)
-                        {
-                            SpinWait.SpinUntil(() => false, new TimeSpan(cancelAfterSpinCount));
-                        }
-                        if (cancel)
-                        {
-                            cmd.Cancel();
-                        }
-                    });
+                        Thread.Sleep(1);
+                    }
+                    if (cancel && cancelAfterSpinCount > 0)
+                    {
+                        SpinWait.SpinUntil(() => false, new TimeSpan(cancelAfterSpinCount));
+                    }
+                    if (cancel)
+                    {
+                        cmd.Cancel();
+                    }
+                });
             }
 
             int readerRand = rand.NextIntInclusive(0, maxValueInclusive: 256);
             CommandBehavior readerBehavior = CommandBehavior.Default;
-            if (readerRand % 10 == 0)
-                readerBehavior = CommandBehavior.SequentialAccess;
             try
             {
                 using (PgDataReader reader = cmd.ExecuteReader(readerBehavior))
@@ -331,7 +336,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             catch (PgException e)
             {
                 if (!cancel)
-                    throw;
+                {
+                    throw;   
+                }
 
                 bool expected = false;
 
@@ -356,7 +363,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     // rethrow to the user
                     foreach (PgError error in e.Errors)
                     {
-                        Console.WriteLine("{0} {1}", error.Number, error.Message);
+                        Console.WriteLine("{0} {1}", error.Code, error.Message);
                     }
                     throw;
                 }
@@ -379,4 +386,3 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 }
-

@@ -27,7 +27,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private int _maxDataSize;
 
         /// <summary>
-        /// when creating random buffers, this value is used to decide how much of random buffer 
+        /// when creating random buffers, this value is used to decide how much of random buffer
         /// will be true random data. The true random data is filled in the beginning and rest of the
         /// buffer repeats the same information
         /// </summary>
@@ -35,15 +35,15 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public SqlRandomizer()
             : this(CreateSeed(), DefaultMaxDataSize)
-        { 
+        {
             // do not add code here
-        } 
+        }
 
         public SqlRandomizer(int seed)
             : this(seed, DefaultMaxDataSize)
-        { 
+        {
             // do not add code here
-        } 
+        }
 
         public SqlRandomizer(int seed, int maxDataSize)
             : base(seed)
@@ -86,7 +86,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (bitCount <= 0)
             {
-                throw new ArgumentOutOfRangeException("bitCount");   
+                throw new ArgumentOutOfRangeException("bitCount");
             }
 
             // optimize for any number of bits
@@ -105,7 +105,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (bitCount <= 0)
             {
-                throw new ArgumentOutOfRangeException("bitCount");   
+                throw new ArgumentOutOfRangeException("bitCount");
             }
 
             if (nullOdds < 0 || nullOdds > 100)
@@ -131,7 +131,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (count <= 0)
             {
-                throw new ArgumentOutOfRangeException("count");   
+                throw new ArgumentOutOfRangeException("count");
             }
 
             int[] indicies = new int[count];
@@ -154,7 +154,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (values == null)
             {
-                throw new ArgumentNullException("values");   
+                throw new ArgumentNullException("values");
             }
 
             int count = values.Length;
@@ -164,7 +164,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 selectValues = valuesToSet.Value;
                 if (selectValues < 0 || selectValues > count)
                 {
-                    throw new ArgumentOutOfRangeException("valuesToShuffle");   
+                    throw new ArgumentOutOfRangeException("valuesToShuffle");
                 }
             }
 
@@ -189,7 +189,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// generates size value with low probability of large size values within the given range
         /// </summary>
         /// <param name="lowValuesEnforcementLevel">
-        /// lowValuesEnforcementLevel is value between 0 and 31; 
+        /// lowValuesEnforcementLevel is value between 0 and 31;
         /// 0 means uniform distribution in the min/max range;
         /// 31 means very low chances for high values
         /// </param>
@@ -197,17 +197,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (minSize < 0 || maxSize < 0 || minSize > maxSize)
             {
-                throw new ArgumentOutOfRangeException("minSize or maxSize are out of range");   
+                throw new ArgumentOutOfRangeException("minSize or maxSize are out of range");
             }
 
             if (lowValuesLevel < LowValueEnforcementLevel.VeryStrong || lowValuesLevel > LowValueEnforcementLevel.Uniform)
             {
-                throw new ArgumentOutOfRangeException("lowValuesLevel");   
+                throw new ArgumentOutOfRangeException("lowValuesLevel");
             }
 
             if (minSize == maxSize)
             {
-                return minSize; // shortcut for fixed size   
+                return minSize; // shortcut for fixed size
             }
 
             long longRange = (long)maxSize - (long)minSize + 1;
@@ -237,16 +237,20 @@ namespace PostgreSql.Data.SqlClient.Tests
         public int NextAllocationSizeBytes(int minSize = 0, int? maxSize = null)
         {
             if (minSize > _maxDataSize)
+            {
                 throw new ArgumentOutOfRangeException("minSize cannot be greater than a maximum defined data size");
+            }
             if (!maxSize.HasValue || maxSize.Value > _maxDataSize)
+            {
                 maxSize = _maxDataSize;
+            }
             return NextAllocationUnit(minSize, maxSize.Value, LowValueEnforcementLevel.Strong);
         }
 
         /// <summary>
-        /// used by random table generators to select random number of columns and rows. This method will return very low numbers with high probability, 
+        /// used by random table generators to select random number of columns and rows. This method will return very low numbers with high probability,
         /// </summary>
-        public void NextTableDimentions(int maxRows, int maxColumns, int maxTotalSize, out int randRows, out int randColumns)
+        public void NextTableDimensions(int maxRows, int maxColumns, int maxTotalSize, out int randRows, out int randColumns)
         {
             // prefer really low values to ensure table size will not go up way too much too frequently
             const LowValueEnforcementLevel level = LowValueEnforcementLevel.Medium;
@@ -254,11 +258,11 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 // select rows first, then columns
                 randColumns = NextAllocationUnit(1, maxColumns, level);
-                randRows = NextAllocationUnit(1, Math.Min(maxRows, maxTotalSize / randColumns), level);
+                randRows    = NextAllocationUnit(1, Math.Min(maxRows, maxTotalSize / randColumns), level);
             }
             else
             {
-                randRows = NextAllocationUnit(1, maxRows, level);
+                randRows    = NextAllocationUnit(1, maxRows, level);
                 randColumns = NextAllocationUnit(1, Math.Min(maxColumns, maxTotalSize / randRows), level);
             }
         }
@@ -272,19 +276,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             // repeat the first chunk into rest of the array
             int remainder = result.Length - trueRandomCount;
-            int offset = trueRandomCount;
+            int offset    = trueRandomCount;
 
             // repeat whole chunks
             while (remainder >= trueRandomCount)
             {
                 Array.Copy(result, 0, result, offset, trueRandomCount);
                 remainder -= trueRandomCount;
-                offset += trueRandomCount;
+                offset    += trueRandomCount;
             }
 
             // complete the last (partial) chunk in the end, if any
             if (remainder > 0)
+            {
                 Array.Copy(result, 0, result, offset, remainder);
+            }
         }
 
         /// <summary>
@@ -294,15 +300,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void FillByteArray(byte[] result)
         {
             if (result == null)
+            {
                 throw new ArgumentNullException("result");
+            }
 
             if (result.Length == 0)
+            {
                 return;
+            }
 
             // generate the first chunk of the array with true random values
             int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
             for (int i = 0; i < trueRandomCount; i++)
+            {
                 result[i] = unchecked((byte)base.Next());
+            }
 
             Repeat(result, trueRandomCount);
         }
@@ -314,15 +326,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void FillAnsiCharArray(char[] result)
         {
             if (result == null)
+            {
                 throw new ArgumentNullException("result");
+            }
 
             if (result.Length == 0)
+            {
                 return;
+            }
 
             // generate the first chunk of the array with true random values
             int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
             for (int i = 0; i < trueRandomCount; i++)
-                result[i] = (char)NextIntInclusive(0, maxValueInclusive: 127);
+            {
+                result[i] = (char)NextIntInclusive(0, maxValueInclusive: 127);   
+            }
 
             Repeat(result, trueRandomCount);
         }
@@ -334,15 +352,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void FillUcs2CharArray(char[] result)
         {
             if (result == null)
-                throw new ArgumentNullException("result");
+            {
+                throw new ArgumentNullException("result");   
+            }
 
             if (result.Length == 0)
-                return;
+            {
+                return;   
+            }
 
             // generate the first chunk of the array with true random values
             int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
-            for (int i = 0; i < trueRandomCount; i++)
-                result[i] = (char)NextIntInclusive(0, maxValueInclusive: 0xD800 - 1); // do not include surrogates
+            for (int i = 0; i < trueRandomCount; i++)            
+            {
+                result[i] = (char)NextIntInclusive(0, maxValueInclusive: 0xD800 - 1); // do not include surrogates   
+            }
 
             Repeat(result, trueRandomCount);
         }
@@ -365,9 +389,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             // enforce max data in characters
             if (!maxByteSize.HasValue || maxByteSize.Value > _maxDataSize)
-                maxByteSize = _maxDataSize;
+            {
+                maxByteSize = _maxDataSize;   
+            }
 
-            int charSize = NextAllocationSizeBytes(minSize, maxByteSize) / 2;
+            int    charSize = NextAllocationSizeBytes(minSize, maxByteSize) / 2;
             char[] resArray = new char[charSize];
             FillUcs2CharArray(resArray);
             return resArray;
@@ -380,7 +406,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             // enforce max allocation size for char array
             if (!maxSize.HasValue || maxSize.Value > _maxDataSize / 2)
-                maxSize = _maxDataSize / 2;
+            {
+                maxSize = _maxDataSize / 2;   
+            }
 
             int size = NextAllocationSizeBytes(minSize, maxSize);
             char[] resArray = new char[size];
@@ -422,27 +450,25 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public DateTime NextDateTime()
         {
-            DateTime dt = NextDateTime(SqlDateTime.MinValue.Value, SqlDateTime.MaxValue.Value);
+            DateTime dt = NextDateTime(DateTime.MinValue, DateTime.MaxValue);
             // round to datetime type resolution (increments of .000, .003, or .007 seconds)
             long totalMilliseconds = dt.Ticks / TimeSpan.TicksPerMillisecond;
             int lastDigit = (int)(totalMilliseconds % 10);
             if (lastDigit < 3)
-                lastDigit = 0;
+            {
+                lastDigit = 0;   
+            }
             else if (lastDigit < 7)
-                lastDigit = 3;
+            {
+                lastDigit = 3;   
+            }
             else
-                lastDigit = 7;
+            {
+                lastDigit = 7;   
+            }
 
             totalMilliseconds = (totalMilliseconds / 10) * 10 + lastDigit;
             return new DateTime(totalMilliseconds * TimeSpan.TicksPerMillisecond);
-        }
-
-        /// <summary>
-        /// generates random, but valid datetime2 value for SQL Server
-        /// </summary>
-        public DateTime NextDateTime2()
-        {
-            return NextDateTime(DateTime.MinValue, DateTime.MaxValue);
         }
 
         /// <summary>
@@ -450,7 +476,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public DateTimeOffset NextDateTimeOffset()
         {
-            return new DateTimeOffset(NextDateTime2());
+            return NextDateTime(DateTime.MinValue, DateTime.MaxValue);
         }
 
         /// <summary>
@@ -458,7 +484,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public DateTime NextDate()
         {
-            return NextDateTime2().Date;
+            return NextDateTime(DateTime.MinValue, DateTime.MaxValue);
         }
 
         /// <summary>
@@ -467,21 +493,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         public DateTime NextDateTime(DateTime minValue, DateTime maxValueInclusive)
         {
             double ticksRange = unchecked((double)maxValueInclusive.Ticks - minValue.Ticks + 1);
-            long ticks = minValue.Ticks + (long)(ticksRange * base.NextDouble());
+            long   ticks      = minValue.Ticks + (long)(ticksRange * base.NextDouble());
             return new DateTime(ticks);
-        }
-
-        /// <summary>
-        /// generates random smalldatetime value for SQL server, in the range of January 1, 1900 to June 6, 2079, to an accuracy of one minute
-        /// </summary>
-        public DateTime NextSmallDateTime()
-        {
-            DateTime dt = NextDateTime(
-                        minValue: new DateTime(1900, 1, 1, 0, 0, 0),
-                        maxValueInclusive: new DateTime(2079, 6, 6));
-            // truncate minutes
-            dt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
-            return dt;
         }
 
         /// <summary>
@@ -503,7 +516,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             double res;
             if (minValue >= maxValueExclusive)
-                throw new ArgumentException("minValue >= maxValueExclusive");
+            {
+                throw new ArgumentException("minValue >= maxValueExclusive");   
+            }
 
             double rand01 = base.NextDouble();
 
@@ -572,7 +587,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public int NextIntInclusive(int minValue = int.MinValue, int maxValueInclusive = int.MaxValue)
         {
             if (minValue == maxValueInclusive)
-                return minValue;
+            {
+                return minValue;   
+            }
 
             int res;
             if (maxValueInclusive == int.MaxValue)
@@ -635,25 +652,14 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         #region Monetary types
 
-        /// <summary>
-        /// generates random SMALLMONEY value
-        /// </summary>
-        public decimal NextSmallMoney()
-        {
-            return (decimal)NextDouble(
-                minValue: -214748.3648,
-                maxValueExclusive: 214748.3647,
-                precision: 4);
-        }
-
-        /// <summary>
-        /// generates random MONEY value
-        /// </summary>
-        /// <returns></returns>
-        public decimal NextMoney()
-        {
-            return (decimal)NextDouble((double)SqlMoney.MinValue.Value, (double)SqlMoney.MaxValue.Value);
-        }
+        // /// <summary>
+        // /// generates random MONEY value
+        // /// </summary>
+        // /// <returns></returns>
+        // public decimal NextMoney()
+        // {
+        //     return (decimal)NextDouble((double)SqlMoney.MinValue.Value, (double)SqlMoney.MaxValue.Value);
+        // }
 
         #endregion
 
@@ -665,43 +671,25 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         private static string GenerateUniqueObjectName(string prefix, string escapeLeft, string escapeRight)
         {
-            string uniqueName = string.Format("{0}{1}_{2}_{3}{4}",
-                escapeLeft,
-                prefix,
-                DateTime.Now.Ticks.ToString("X", CultureInfo.InvariantCulture), // up to 8 characters
-                Guid.NewGuid().ToString().Substring(0, 6), // take the first 6 characters only
-                escapeRight);
-            return uniqueName;
+            return DataTestClass.GetUniqueName(prefix, escapeLeft, escapeRight);
         }
 
         /// <summary>
         /// Generates a random name to be used for SQL Server database object. SQL Server supports long names (up to 128 characters), add extra info for troubleshooting.
         /// Note this method is not deterministic, it uses Guid.NewGuild to generate unique name to avoid name conflicts between test runs.
         /// </summary>
-        public static string GenerateUniqueObjectNameForSqlServer(string prefix)
+        public static string GenerateUniqueObjectName(string prefix)
         {
-            Process currentProcess = Process.GetCurrentProcess();
-            string extendedPrefix = string.Format(
-                "{0}_{1}@{2}",
-                prefix,
-                currentProcess.ProcessName,
-                currentProcess.MachineName,
-                DateTime.Now.ToString("yyyy_MM_dd", CultureInfo.InvariantCulture));
-            string name = GenerateUniqueObjectName(extendedPrefix, "[", "]");
-            if (name.Length > 128)
-            {
-                throw new ArgumentOutOfRangeException("the name is too long - SQL Server names are limited to 128");
-            }
-            return name;
+            return DataTestClass.GetUniqueName(prefix, String.Empty, String.Empty);
         }
 
         /// <summary>
         /// Generates a random temp table name for SQL Server.
         /// Note this method is not deterministic, it uses Guid.NewGuild to generate unique name to avoid name conflicts between test runs.
         /// </summary>
-        public static string GenerateUniqueTempTableNameForSqlServer()
+        public static string GenerateUniqueTempTableName()
         {
-            return GenerateUniqueObjectNameForSqlServer("#T");
+            return GenerateUniqueObjectName("TEMP_");
         }
 
         #endregion

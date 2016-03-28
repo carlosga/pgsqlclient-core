@@ -364,25 +364,41 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Test]
         public static void TimestampRead()
         {
-            string tempTable = "__" + Environment.GetEnvironmentVariable("ComputerName") + Environment.TickCount.ToString();
+            string tempTable = DataTestClass.GetUniqueName("__", String.Empty, String.Empty);
             tempTable = tempTable.Replace('-', '_');
 
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            try
             {
-                conn.Open();
-                using (PgCommand cmdDefault = new PgCommand("", conn))
+                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
                 {
-                    cmdDefault.CommandText = $"create table {tempTable} (c1 integer, c2 timestamp)";
-                    cmdDefault.ExecuteNonQuery();
-
-                    cmdDefault.CommandText = $"insert into {tempTable} (c1) values (1)";
-                    cmdDefault.ExecuteNonQuery();
-
-                    cmdDefault.CommandText = $"select * from {tempTable}";
-                    using (PgDataReader reader = cmdDefault.ExecuteReader())
+                    conn.Open();
+                    using (PgCommand cmdDefault = new PgCommand(String.Empty, conn))
                     {
-                        DataTestClass.AssertEqualsWithDescription("timestamp", reader.GetDataTypeName(1), "FAILED: Data value did not have correct type");
-                        DataTestClass.AssertEqualsWithDescription(typeof(DateTime), reader.GetFieldType(1), "FAILED: Data value did not have correct type");                        
+                        cmdDefault.CommandText = $"create table {tempTable} (c1 integer, c2 timestamp)";
+                        cmdDefault.ExecuteNonQuery();
+
+                        cmdDefault.CommandText = $"insert into {tempTable} (c1) values (1)";
+                        cmdDefault.ExecuteNonQuery();
+
+                        cmdDefault.CommandText = $"select * from {tempTable}";
+                        using (PgDataReader reader = cmdDefault.ExecuteReader())
+                        {
+                            DataTestClass.AssertEqualsWithDescription("timestamp", reader.GetDataTypeName(1), "FAILED: Data value did not have correct type");
+                            DataTestClass.AssertEqualsWithDescription(typeof(DateTime), reader.GetFieldType(1), "FAILED: Data value did not have correct type");                        
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+                {
+                    conn.Open();
+
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = $"DROP TABLE {tempTable}";
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }

@@ -6,7 +6,7 @@ namespace PostgreSql.Data.SqlClient
     public enum PgDbType
     {
         Array
-      , Binary
+      , Bytea
       , Boolean
       , Box
       , Box2D
@@ -17,15 +17,14 @@ namespace PostgreSql.Data.SqlClient
       , Currency
       , Date
       , Decimal
-      , Double
-      , Float
+      , Float8
+      , Float4
       , Int2
       , Int4
       , Int8
       , Interval
       , Line
       , LSeg
-      , Numeric
       , Path
       , Point
       , Polygon

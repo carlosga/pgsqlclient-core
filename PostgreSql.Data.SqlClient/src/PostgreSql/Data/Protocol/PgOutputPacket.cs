@@ -234,7 +234,7 @@ namespace PostgreSql.Data.Protocol
         {
             switch (dataType)
             {
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                     {
                         byte[] paramValue = value as byte[]; 
                         packet.Write(paramValue.Length);
@@ -286,17 +286,17 @@ namespace PostgreSql.Data.Protocol
                     }
                     break;
 
-                case PgDbType.Double:
-                    packet.Write(size);
-                    packet.Write(Convert.ToDouble(value));
-                    break;
-
-                case PgDbType.Float:
+                case PgDbType.Float4:
                     {
                         string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
                         packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
                         packet.WriteString(paramValue);
                     }
+                    break;
+
+                case PgDbType.Float8:
+                    packet.Write(size);
+                    packet.Write(Convert.ToDouble(value));
                     break;
 
                 case PgDbType.Currency:

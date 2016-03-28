@@ -307,7 +307,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Vector:
                     return ReadVector(type, length);
 
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                     return ReadBytes(length);
 
                 case PgDbType.Char:
@@ -326,10 +326,10 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Currency:
                     return ReadCurrency();
 
-                case PgDbType.Float:
+                case PgDbType.Float4:
                     return ReadSingle();
 
-                case PgDbType.Double:
+                case PgDbType.Float8:
                     return ReadDouble();
 
                 case PgDbType.Int2:
@@ -396,7 +396,7 @@ namespace PostgreSql.Data.Protocol
 
             switch (type.DataType)
             {
-                case PgDbType.Binary:
+                case PgDbType.Bytea:
                     return null;
 
                 case PgDbType.Char:
@@ -424,14 +424,14 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Byte:
                     return Byte.Parse(stringValue);
 
-                case PgDbType.Decimal:
-                    return Decimal.Parse(stringValue);
-
                 case PgDbType.Currency:
-                case PgDbType.Float:
+                case PgDbType.Decimal:
+                    return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
+
+                case PgDbType.Float4:
                     return Single.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Double:
+                case PgDbType.Float8:
                     return Double.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
                 case PgDbType.Int2:

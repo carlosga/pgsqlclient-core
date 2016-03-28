@@ -275,12 +275,12 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                     command.Parameters.Add("@int4_field", PgDbType.Int4);
                     command.Parameters.Add("@char_field", PgDbType.Char);
                     command.Parameters.Add("@varchar_field", PgDbType.VarChar);
-                    command.Parameters.Add("@single_field", PgDbType.Float);
-                    command.Parameters.Add("@double_field", PgDbType.Double);
+                    command.Parameters.Add("@single_field", PgDbType.Float4);
+                    command.Parameters.Add("@double_field", PgDbType.Float8);
                     command.Parameters.Add("@date_field", PgDbType.Date);
                     command.Parameters.Add("@time_field", PgDbType.Time);
                     command.Parameters.Add("@timestamp_field", PgDbType.Timestamp);
-                    command.Parameters.Add("@blob_field", PgDbType.Binary);
+                    command.Parameters.Add("@blob_field", PgDbType.Bytea);
                     command.Parameters.Add("@bool_field", PgDbType.Boolean);
 
                     for (int i = 0; i < 100; i++)

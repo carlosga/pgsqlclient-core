@@ -300,9 +300,10 @@ namespace PostgreSql.Data.SqlClient
             return _statement.RowDescriptor[i].TypeInfo.Name;
         }
 
-        public override DateTime GetDateTime(int i) => GetValueWithNullCheck<DateTime>(i);
-        public override Decimal  GetDecimal(int i)  => GetValueWithNullCheck<decimal>(i);
-        public override double   GetDouble(int i)   => GetValueWithNullCheck<double>(i);
+        public override DateTime       GetDateTime(int i)       => GetValueWithNullCheck<DateTime>(i);
+        public          DateTimeOffset GetDateTimeOffset(int i) => GetValueWithNullCheck<DateTimeOffset>(i);
+        public override Decimal        GetDecimal(int i)        => GetValueWithNullCheck<decimal>(i);
+        public override double         GetDouble(int i)         => GetValueWithNullCheck<double>(i);
 
         public override Type GetFieldType(int i)
         {

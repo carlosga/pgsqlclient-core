@@ -260,7 +260,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     using (DbCommand cmd = provider.CreateCommand())
                     {
                         cmd.Connection  = con;
-                        cmd.CommandText = $"drop table {tempTable}";
+                        cmd.CommandText = $"DROP TABLE {tempTable}";
                         cmd.ExecuteNonQuery();
                     }
                 }

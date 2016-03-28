@@ -249,7 +249,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             return unchecked((int)uval);
         }
 
-
         /// <summary>
         /// deserialization constructor
         /// </summary>
@@ -259,7 +258,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             int offset;
             Deserialize(Convert.FromBase64String(base64State), out offset);
         }
-
 
         /// <summary>
         /// use this method to create seeds for nested randomizers out of current one
