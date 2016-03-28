@@ -1,7 +1,6 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the Initial Developer's Public License Version 1.0. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.PostgreSqlClient;
 using PostgreSql.Data.Protocol.Authentication;
 using System;
 using System.Collections.Generic;
@@ -19,10 +18,10 @@ namespace PostgreSql.Data.Protocol
     {
         private PgNetworkChannel    _channel;
         private PgConnectionOptions _connectionOptions;
+        private PgTransactionStatus _transactionStatus;
         private SessionData         _sessionData;
         private int                 _handle;
         private int                 _secretKey;
-        private PgTransactionStatus _transactionStatus;
         private bool                _open;
 
         internal NotificationCallback Notification
@@ -153,9 +152,6 @@ namespace PostgreSql.Data.Protocol
 
                 throw;
             }
-            
-            // Get database type info
-            // GetDatabaseTypeInfo();
         }
 
         internal void Close()
@@ -471,14 +467,14 @@ namespace PostgreSql.Data.Protocol
                         break;
                 }
             }
-            
+
             var exception = new PgClientException(error.Message, error);
             
             InfoMessage?.Invoke(exception);
             
             if (error.Severity == PgCodes.ERROR_SEVERITY
              || error.Severity == PgCodes.FATAL_SEVERITY
-             || error.Severity == PgCodes.PANIC_SEVERITY)            
+             || error.Severity == PgCodes.PANIC_SEVERITY)
             {
                 Sync();
 
@@ -497,44 +493,37 @@ namespace PostgreSql.Data.Protocol
 
         private void HandleParameterStatus(PgInputPacket packet)
             => _sessionData.SetValue(packet.ReadNullString(), packet.ReadNullString());
-            
-        static readonly PgParameterCollection s_typeInfoParams = new  PgParameterCollection();
-        
-        static PgDatabase()
-        {
-            s_typeInfoParams.Add(new PgParameter("@typeName", PgDbType.VarChar));
-        }            
-            
-        internal void GetDatabaseTypeInfo()
-        {
-            // if (!_database.ConnectionOptions.UseDatabaseOids)
-            // {
-            //     return;
-            // }
 
-            string sql = "SELECT oid FROM pg_type WHERE typname=$1";
+        // internal void GetDatabaseTypeInfo()
+        // {
+        //     // if (!_database.ConnectionOptions.UseDatabaseOids)
+        //     // {
+        //     //     return;
+        //     // }
 
-            using (var statement = CreateStatement(sql))
-            {
-                // Set parameter type info
-                s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
-                
-                // Prepare statement execution
-                statement.Prepare(s_typeInfoParams);                               
-                                
-                // Grab real oids
-                foreach (var type in _sessionData.DataTypes)
-                {
-                    s_typeInfoParams[0].Value = type.Name;
+        //     string sql = "SELECT oid FROM pg_type WHERE typname=$1";
 
-                    int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
+        //     using (var statement = CreateStatement(sql))
+        //     {
+        //         // Set parameter type info
+        //         s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
 
-                    if (realOid != null && realOid.Value != type.Oid)
-                    {
-                        type.Oid = realOid.Value;
-                    }
-                }
-            }
-        }            
+        //         // Prepare statement execution
+        //         statement.Prepare(s_typeInfoParams);
+
+        //         // Grab real oids
+        //         foreach (var type in _sessionData.DataTypes)
+        //         {
+        //             s_typeInfoParams[0].Value = type.Name;
+
+        //             int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
+
+        //             if (realOid != null && realOid.Value != type.Oid)
+        //             {
+        //                 type.Oid = realOid.Value;
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

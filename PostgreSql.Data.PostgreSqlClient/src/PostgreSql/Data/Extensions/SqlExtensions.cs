@@ -77,7 +77,7 @@ namespace System
                     if (query.Length > 0)
                     {
                         queries.Add(query);
-                    }                    
+                    }
 
                     from = i + 1;
                 }

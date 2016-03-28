@@ -192,7 +192,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                         _namedParameters  = null;
                         _commandText      = null;
                     }
-                    
+
                     base.Dispose(disposing);
                 }
 
@@ -237,7 +237,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             catch (PgClientException ex)
             {
                 throw new PgException(ex);
-            }                        
+            }
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
@@ -249,12 +249,12 @@ namespace PostgreSql.Data.PostgreSqlClient
             try
             {
                 InternalExecuteReader(behavior);
-                
+
                 var reader = new PgDataReader(_connection, this);
             
                 _activeDataReader = new WeakReference(reader);
 
-                return reader;                
+                return reader;
             }
             catch (PgClientException ex)
             {
@@ -287,7 +287,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             catch (PgClientException ex)
             {
                 throw new PgException(ex);
-            }            
+            }
         } 
 
         protected override DbParameter CreateDbParameter() => CreateParameter();
@@ -303,14 +303,14 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _queries = _commandText.SplitQueries();
             }
-            
+
             string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
 
             if (_commandType == CommandType.StoredProcedure)
             {
                 stmtText = stmtText.ToStoredProcedureCall(_parameters);
             }
-            
+
             if (_queryIndex == 0)
             {
                 _statement = _connection.InnerConnection.CreateStatement(stmtText);                        
@@ -319,26 +319,26 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _statement.StatementText = stmtText;    
             }
-            
+
             PrepareParameters();
-            
+
             _statement.Prepare(_parameters);
-                                
+
             if (_queryIndex == 0)
             {
                 // Add the command to the internal connection prepared statements
                 _connection.InnerConnection.AddPreparedCommand(this);                        
-            }                
+            }
         }
 
         internal int InternalExecuteNonQuery()
         {
-            InternalPrepare();            
-            
+            InternalPrepare();
+
             var recordsAffected = _statement.ExecuteNonQuery(_parameters);
-            
+
             InternalSetOutputParameters();
-            
+
             return recordsAffected;
         }
 
@@ -347,7 +347,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _commandBehavior = behavior;
 
             InternalPrepare();
-                        
+
             if (_commandBehavior.HasBehavior(CommandBehavior.Default)
              || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
              || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
@@ -355,9 +355,9 @@ namespace PostgreSql.Data.PostgreSqlClient
              || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
             {
                 _statement.ExecuteReader(_parameters);
-            }            
+            }
         }
-        
+
         internal object InternalExecuteScalar()
         {
             InternalPrepare();
@@ -373,7 +373,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 {
                     return false;
                 }
-                
+
                 // Try to advance to the next query
                 ++_queryIndex;                
                 if (_queryIndex >= _queries.Count)
@@ -382,7 +382,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 }
 
                 InternalExecuteReader(_commandBehavior);
-                
+
                 return true;
             }
             catch (PgClientException ex)
@@ -400,7 +400,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                     var reader = _activeDataReader.Target as PgDataReader;
                     reader.Close();
                 }
-                
+
                 _connection.InnerConnection.RemovePreparedCommand(this);
                 
                 // Closing the prepared statement closes all his portals too.
@@ -483,9 +483,9 @@ namespace PostgreSql.Data.PostgreSqlClient
                 {
                     var current = _parameters[name];
 
-                    current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());                
+                    current.TypeInfo = database.SessionData.DataTypes.Single(x => x.Name == current.ProviderType.ToString().ToLower());
                 }
-                
+
                 _parameters.IsDirty = false;
             }
         }

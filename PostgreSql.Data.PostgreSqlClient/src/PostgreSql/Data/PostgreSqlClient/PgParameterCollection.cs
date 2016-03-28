@@ -49,8 +49,8 @@ namespace PostgreSql.Data.PostgreSqlClient
         public override void Clear()
         {
             _parameters.ForEach(p => p.Parent = null);
-            _parameters.Clear();              
-        }      
+            _parameters.Clear();
+        }
         
         public override IEnumerator GetEnumerator() => _parameters.GetEnumerator();
 
@@ -159,7 +159,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             
             _parameters.Insert(index, parameter);
             parameter.Parent = this;
-            _isDirty         = true;            
+            _isDirty         = true;
         }
 
         public override void Remove(object value)
@@ -197,7 +197,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             _parameters[index].Parent = null;
             _parameters.RemoveAt(index);
-            _isDirty = true;            
+            _isDirty = true;
         }
 
         protected override DbParameter GetParameter(string parameterName)
@@ -209,7 +209,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new IndexOutOfRangeException($"An PgParameter with ParameterName '{parameterName}' is not contained by this PgParameterCollection.");   
             }
 
-            return _parameters[index];            
+            return _parameters[index];
         } 
         
         protected override DbParameter GetParameter(int index)

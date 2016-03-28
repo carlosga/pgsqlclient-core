@@ -106,14 +106,14 @@ namespace PostgreSql.Data.Protocol
                                           + " Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.");
             }
         }
-        
+
         internal void Close()
         {
             if (_stream == null)
             {
                 return;
             }
-            
+
             try
             {
                 // Notify the server that we are closing the connection.
@@ -125,7 +125,7 @@ namespace PostgreSql.Data.Protocol
             finally
             {
                 // Close socket, network stream, ...
-                Detach();                
+                Detach();
             }
         }
 
@@ -213,7 +213,7 @@ namespace PostgreSql.Data.Protocol
             var result = _socket.ConnectAsync(args);
             
             complete.WaitOne(connectTimeout * 1000);
-            
+
             if (!result || !_socket.Connected || args.SocketError != SocketError.Success)
             {
                 complete.Reset();                
@@ -222,7 +222,7 @@ namespace PostgreSql.Data.Protocol
                 
                 throw new PgClientException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
             }
-            
+
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }
@@ -298,7 +298,7 @@ namespace PostgreSql.Data.Protocol
             _socket         = null;
             
             UserCertificateValidation = null;
-            UserCertificateSelection  = null;            
+            UserCertificateSelection  = null;
         }
     }
 }

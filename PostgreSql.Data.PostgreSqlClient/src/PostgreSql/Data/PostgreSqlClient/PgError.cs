@@ -45,7 +45,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _code     = code;
             _message  = message;
         }
-                
+
         internal PgError(string severity
                        , string message
                        , string code
@@ -68,7 +68,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             _line     = line;
             _routine  = routine;
         }
-        
+
         internal PgError(PgClientError clientError)
         {
             _severity = clientError.Severity;

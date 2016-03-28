@@ -39,20 +39,20 @@ namespace PostgreSql.Data.Protocol
             _clientEncoding = Encoding.UTF8;
             _dataTypes      = PgTypeInfo.GetSupportedTypes();
         }
-        
+
         internal void SetValue(string name, string value)
         {
             if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(value))
             {
                 return;
             }
-                        
+
             switch (name)
             {
                 case "server_version":
                     _serverVersion = value;
                     break;
-                    
+
                 case "server_encoding":
                     _serverEncoding = PgCharacterSet.Charsets[value].Encoding;
                     break;
@@ -60,36 +60,36 @@ namespace PostgreSql.Data.Protocol
                 case "client_encoding":
                     _clientEncoding = PgCharacterSet.Charsets[value].Encoding;
                     break;
-                    
+
                 case "application_name":
                     _applicationName = value;
                     break;
-                    
+
                 case "is_superuser":
                     _isSuperUser = ((value) == "on");
                     break;
-                    
+
                 case "session_authorization":
                     _sessionAuthorization = value;
                     break;
-                    
+
                 case "DateStyle":
                     _dateStyle = value;
                     break;
-                    
+
                 case "IntervalStyle":
                     _intervalStyle = value;
                     break;
-                    
-                case "TimeZone":                    
+
+                case "TimeZone":
 #warning TODO: Add support for non local time zones
                     _timeZoneInfo = TimeZoneInfo.Local;
                     break;
-                    
+
                 case "integer_datetimes":
                     _integerDateTimes = ((value) == "on");
                     break;
-                    
+
                 case "standard_conforming_strings":
                     _standardConformingStrings = value;
                     break;

@@ -112,7 +112,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         //     // GC.SuppressFinalize(this);
         // }
         #endregion
-        
+
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
         
         public new PgTransaction BeginTransaction(IsolationLevel isolationLevel)
@@ -136,7 +136,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             if (IsClosed)
             {
                 throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
-            }            
+            }
             if (_innerConnection.HasActiveTransaction)
             {
                 throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
@@ -145,7 +145,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw new InvalidOperationException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
-            
+
             return _innerConnection.BeginTransaction(isolationLevel, transactionName);
         }
 
@@ -155,7 +155,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         }
 
         public new PgCommand CreateCommand() => new PgCommand(String.Empty, this, _innerConnection?.ActiveTransaction);
-        
+
         public override void Open()
         {
             if (String.IsNullOrEmpty(_connectionString))

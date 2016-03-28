@@ -39,11 +39,11 @@ namespace PostgreSql.Data.Protocol
                 if (_statementText != value)
                 {
                     Close();
-                    _statementText = value;                    
+                    _statementText = value;
                 }
             }
         }
-        
+
         internal bool IsPrepared
         {
             get 
@@ -51,7 +51,7 @@ namespace PostgreSql.Data.Protocol
                 return (_status == PgStatementStatus.Parsed 
                      || _status == PgStatementStatus.Described
                      || _status == PgStatementStatus.Binded
-                     || _status == PgStatementStatus.Executed);                
+                     || _status == PgStatementStatus.Executed);
             }
         }
 
@@ -119,12 +119,12 @@ namespace PostgreSql.Data.Protocol
                 }
 
                 _database.Lock();
-                                
+
                 string statementName = Guid.NewGuid().ToString();
                 
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
-                
+
                 Parse(parameters);
                 DescribeStatement();
             }
@@ -140,22 +140,22 @@ namespace PostgreSql.Data.Protocol
                 _database.ReleaseLock();
             }
         }
-        
+
         internal int ExecuteNonQuery(PgParameterCollection parameters)
         {
             if (_status == PgStatementStatus.Initial)
             {
                 Prepare(parameters);
             }
-            
+
             try
             {
                 _database.Lock();
-                
+
                 Bind(parameters);
                 Execute(1);
                 ClosePortal();
-                                
+
                 return _recordsAffected;
             }
             catch
@@ -167,23 +167,23 @@ namespace PostgreSql.Data.Protocol
             }
             finally
             {
-                _database.ReleaseLock();                
+                _database.ReleaseLock();
             }
         }
-               
+
         internal void ExecuteReader(PgParameterCollection parameters)
         {
             if (_status == PgStatementStatus.Initial)
             {
                 Prepare(parameters);
             }
-            
+
             try
             {
                 _database.Lock();
                 
                 Bind(parameters);
-                Execute();                
+                Execute();
             }
             catch
             {
@@ -209,18 +209,18 @@ namespace PostgreSql.Data.Protocol
             {
                 _database.Lock();
 
-                Bind(parameters);                                
+                Bind(parameters);
                 Execute(1);
                 ClosePortal();
-                                
-                object value = null;              
+
+                object value = null;
                   
                 if (!_rows.IsEmpty())
                 {
                     value = _rows.Dequeue()[0];
                 }
                 
-                return value;                
+                return value;
             }
             catch
             {
@@ -233,14 +233,14 @@ namespace PostgreSql.Data.Protocol
             {
                 _database.ReleaseLock();
             }
-        }                
+        }
 
         internal void ExecuteFunction(int id, PgParameterCollection parameters)
         {
             try
             {
                 _database.Lock();
-                
+
                 // Update status
                 _status = PgStatementStatus.Executing;
 
@@ -329,7 +329,7 @@ namespace PostgreSql.Data.Protocol
                 {
                     // Set allRowsFetched flag
                     _allRowsFetched = true;
-                }               
+                }
 
                 // Update status
                 _status = PgStatementStatus.Initial;
@@ -341,8 +341,8 @@ namespace PostgreSql.Data.Protocol
             }
             finally
             {
-                _database.ReleaseLock();   
-            }           
+                _database.ReleaseLock();
+            }
         }
 
         internal object[] FetchRow()
@@ -356,7 +356,7 @@ namespace PostgreSql.Data.Protocol
             if (!_rows.IsEmpty())
             {
                 return _rows.Dequeue();
-            }            
+            }
 
             return null;
         }
@@ -366,16 +366,16 @@ namespace PostgreSql.Data.Protocol
             try
             {
                 _database.Lock();
-                
+
                 ClosePortal();
                 CloseStatement();
                 
                 _database.Sync();
-                
+
                 _rowDescriptor.Resize(0);
             }
             catch (System.Exception)
-            {                
+            {
                 throw;
             }
             finally
@@ -459,7 +459,7 @@ namespace PostgreSql.Data.Protocol
 
             // Receive Describe response
             PgInputPacket response = null;
-            
+
             do
             {
                 response = _database.Read();
@@ -549,18 +549,18 @@ namespace PostgreSql.Data.Protocol
             // If the command is finished and has returned rows
             // set all rows are received
             _allRowsFetched = response.IsCommandComplete;
-            
+
             // If all rows are received or the command doesn't return
             // rows perform a Sync.
             if (_allRowsFetched)
             {
                 ClosePortal();
-            }            
+            }
             
             // Update status
             _status = PgStatementStatus.Executed;
         }
-        
+
         private void CloseStatement()
         {
             if (_status == PgStatementStatus.Parsed 
@@ -573,13 +573,13 @@ namespace PostgreSql.Data.Protocol
 
                 // Update Status
                 _status = PgStatementStatus.Initial;
-                
+
                 // Reset names
                 _parseName  = null;
-                _portalName = null;                
+                _portalName = null;
             }
         }
-        
+
         private void ClosePortal()
         {
             if (_status == PgStatementStatus.Binded
@@ -587,11 +587,11 @@ namespace PostgreSql.Data.Protocol
              || _status == PgStatementStatus.Executed)
             {
                 Close(PgCodes.PORTAL, _portalName);
-                                
+
                 // Update Status
                 _status = PgStatementStatus.Described;
             }
-        }   
+        }
 
         private void Close(char type, string name)
         {
@@ -620,9 +620,9 @@ namespace PostgreSql.Data.Protocol
                     }
                     while (!response.IsCloseComplete);
                 }
-                                
-                _tag             = null;          
-                _recordsAffected = -1;      
+
+                _tag             = null;
+                _recordsAffected = -1;
             }
             catch
             {
@@ -714,7 +714,7 @@ namespace PostgreSql.Data.Protocol
         //         _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
         //     }
         // }
-        
+
         private void ProcessRowDescription(PgInputPacket packet)
         {
             int count = packet.ReadInt16();
@@ -765,13 +765,13 @@ namespace PostgreSql.Data.Protocol
 
             _rows.Enqueue(values);
         }
-        
+
         private void ClearRows()
         {
             _rows.Clear();
 
             _hasRows        = false;
             _allRowsFetched = false;
-        }        
+        }
     }
 }

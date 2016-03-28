@@ -69,7 +69,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 // Connect
                 _database.Open();
-                
+
                 // Update owner
                 _owner = owner;
             }
@@ -106,7 +106,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw new PgException(ex);
             }
             finally
-            {                
+            {
                 _owner             = null;
                 _activeTransaction = null;
                 _database          = null;
@@ -122,9 +122,9 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             var transaction = new PgTransaction(_owner, isolationLevel);
             transaction.Begin(transactionName);
-            
+
             _activeTransaction = new WeakReference(transaction);
-            
+
             return transaction;
         }
 

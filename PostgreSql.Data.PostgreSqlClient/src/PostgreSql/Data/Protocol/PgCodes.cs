@@ -43,9 +43,6 @@ namespace PostgreSql.Data.Protocol
         // Max keys for vector data type
         internal const int INDEX_MAX_KEYS = 32;
 
-        //
-        internal const char NULL_TERMINATOR = '\0';       
-
         // MD5 prefix
         internal static string MD5_PREFIX = "md5";
 
@@ -64,12 +61,12 @@ namespace PostgreSql.Data.Protocol
         // internal const long MicrosecondsPerDay    = 86400000000L;
         // internal const long MicrosecondsPerHour   = 3600000000L;
         // internal const long MicrosecondsPerMinute = 60000000L;
-        // internal const long MicrosecondsPerSecond = 1000000L;  
-        // internal const long SecondsPerDay	      = 86400L;
+        // internal const long MicrosecondsPerSecond = 1000000L;
+        // internal const long SecondsPerDay	     = 86400L;
         
         // Julian-date equivalents of Day 0 in Unix and Postgres
-        // internal const long UnixEpochDate         = 2440588; // 1970, 1, 1        
-        // internal const long PostgresEpochDate     = 2451545; // 2000, 1, 1       
+        // internal const long UnixEpochDate         = 2440588; // 1970, 1, 1
+        // internal const long PostgresEpochDate     = 2451545; // 2000, 1, 1
         // internal const long SecondsBetweenEpoch   = ((PostgresEpochDate - UnixEpochDate) * SecondsPerDay);
 
         // Numeric data type

@@ -72,6 +72,6 @@ namespace PostgreSql.Data.Protocol
             synonyms.Add(ConnectionStringSynonyms.SearchPath              , ConnectionStringKeywords.SearchPath);
             
             return synonyms;
-        }                
+        }
     }
 }

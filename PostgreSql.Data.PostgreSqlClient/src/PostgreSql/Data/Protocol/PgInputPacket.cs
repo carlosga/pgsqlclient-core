@@ -27,11 +27,11 @@ namespace PostgreSql.Data.Protocol
 
         //     return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
         // }
-        
+
         private readonly char        _packetType;
         private readonly byte[]      _contents;
         private readonly SessionData _sessionData;
-        
+
         private int _position;
 
         internal char PacketType        => _packetType;
@@ -66,7 +66,7 @@ namespace PostgreSql.Data.Protocol
 
         internal char ReadChar()
         {
-           return (char)_contents[_position++];           
+           return (char)_contents[_position++];
         }
 
         internal string ReadNullString()
@@ -84,7 +84,7 @@ namespace PostgreSql.Data.Protocol
             {
                 _position++;
             }
-                                    
+
             return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_contents, start, count);
         }
 
@@ -117,7 +117,7 @@ namespace PostgreSql.Data.Protocol
                       | (_contents[_position + 2] << 8)
                       | (_contents[_position + 1] << 16)
                       | (_contents[_position    ] << 24);
-            
+
             _position += 4;
 
             return value;
@@ -184,12 +184,12 @@ namespace PostgreSql.Data.Protocol
             {
                 throw new NotSupportedException("non integer datetimes are no supported.");
             }
-            
+
             var value = ReadInt64();           
             var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));          
             
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
-        }        
+        }
         
         internal Array ReadArray(PgTypeInfo type, int length)
         {
@@ -295,7 +295,7 @@ namespace PostgreSql.Data.Protocol
             {
                 return ReadValue(type, length);
             }
-        }               
+        }
 
         internal object ReadValue(PgTypeInfo type, int length)
         {

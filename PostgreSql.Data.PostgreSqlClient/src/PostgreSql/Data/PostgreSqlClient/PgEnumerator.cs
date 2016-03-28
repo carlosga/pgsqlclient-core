@@ -13,7 +13,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private readonly PgDataReader _reader;
         private readonly bool         _closeReader;
         
-        private DbDataRecord _current;        
+        private DbDataRecord _current;
 
         public object Current => _current;
 
@@ -49,5 +49,5 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             throw new NotSupportedException();
         }
-    }    
+    }
 }

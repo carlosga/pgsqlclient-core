@@ -96,9 +96,9 @@ namespace PostgreSql.Data.Protocol
         void ICollection<PgTypeInfo>.Clear()                      => _innerList.Clear();
         bool ICollection<PgTypeInfo>.Contains(PgTypeInfo item)    => _innerList.Contains(item);
         bool ICollection<PgTypeInfo>.Remove(PgTypeInfo item)      => _innerList.Remove(item);
-        
+
         void ICollection<PgTypeInfo>.CopyTo(PgTypeInfo[] array, int arrayIndex) => _innerList.CopyTo(array, arrayIndex);
-        
+
         IEnumerator<PgTypeInfo> IEnumerable<PgTypeInfo>.GetEnumerator() => _innerList.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator()                         => _innerList.GetEnumerator();
     }

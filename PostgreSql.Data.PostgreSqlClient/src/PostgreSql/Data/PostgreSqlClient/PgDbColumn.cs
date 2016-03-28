@@ -21,13 +21,13 @@ namespace PostgreSql.Data.PostgreSqlClient
             get;
             private set;
         }
-        
+
         public bool IsRowVersion
         {
             get;
-            private set;            
+            private set;
         }
-        
+
         public override object this[string property]
         {
             get
@@ -36,19 +36,19 @@ namespace PostgreSql.Data.PostgreSqlClient
                 {
                 case nameof(IsArray):
                     return IsArray;
-                    
+
                 case nameof(IsRefCursor):
                     return IsRefCursor;
-                    
+
                 case nameof(IsRowVersion):
                     return IsRowVersion;
-                    
+
                 default:
                     return base[property];
                 }
             }
-        }        
-        
+        }
+
         internal PgDbColumn(PgFieldDescriptor descriptor)
         {
             ColumnName       = descriptor.Name;
@@ -63,8 +63,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             NumericPrecision = descriptor.NumericPrecision;
             NumericScale     = descriptor.NumericScale;
         }
-        
-        internal void Populate(PgDataReader reader)        
+
+        internal void Populate(PgDataReader reader)
         {
             if (!reader.IsDBNull(0))
             {
@@ -79,11 +79,11 @@ namespace PostgreSql.Data.PostgreSqlClient
                 BaseColumnName = reader.GetString(2);
             }
             if (!reader.IsDBNull(3))
-            {                    
+            {
                 AllowDBNull = !reader.GetBoolean(3);
             }            
             if (!reader.IsDBNull(4))
-            {            
+            {
                 IsAutoIncrement = reader.GetBoolean(4);
                 IsReadOnly	    = reader.GetBoolean(4);
             }
@@ -95,7 +95,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {            
                 IsUnique = reader.GetBoolean(6);
             }
-            
+
             IsAliased = !ColumnName.CaseInsensitiveCompare(BaseColumnName);
         }
     }

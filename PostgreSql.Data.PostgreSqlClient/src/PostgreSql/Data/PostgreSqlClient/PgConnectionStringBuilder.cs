@@ -81,13 +81,13 @@ namespace PostgreSql.Data.PostgreSqlClient
             get { return GetBoolean(ConnectionStringKeywords.Encrypt); }
             set { SetValue(ConnectionStringKeywords.Encrypt, value); }
         }
-                
+
         public bool MultipleActiveResultSets
         {
             get { return GetBoolean(ConnectionStringKeywords.MultipleActiveResultSets); }
             set { SetValue(ConnectionStringKeywords.MultipleActiveResultSets, value); }
         }
-        
+
         public string SearchPath
         {
             get { return GetString(ConnectionStringKeywords.SearchPath); }
@@ -112,7 +112,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         private int    GetInt32(string keyword)   => Convert.ToInt32(this[GetValue(keyword)]);
         private string GetString(string keyword)  => Convert.ToString(this[GetValue(keyword)]);
         private bool   GetBoolean(string keyword) => Convert.ToBoolean(this[GetValue(keyword)]);
-        
+
         private void SetValue(string keyword, object value) => this[GetValue(keyword)] = value;
         
         internal string GetValue(string keyword)
@@ -131,6 +131,6 @@ namespace PostgreSql.Data.PostgreSqlClient
             }
             
             return synonymKey;
-        }        
+        }
     }
 }

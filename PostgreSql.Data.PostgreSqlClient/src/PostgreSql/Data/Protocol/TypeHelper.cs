@@ -149,7 +149,7 @@ namespace PostgreSql.Data.Protocol
                 case TypeCode.String:
                     providerType = PgDbType.VarChar;
                     break;
-                
+
                 case TypeCode.Char:
                     providerType = PgDbType.Char;
                     break;

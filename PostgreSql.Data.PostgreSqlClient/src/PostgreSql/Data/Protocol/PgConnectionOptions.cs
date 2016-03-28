@@ -166,7 +166,7 @@ namespace PostgreSql.Data.Protocol
             {
                 string msg = $"'Connection Timeout' value of {_connectionTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
 
-                throw new ArgumentException(msg);                
+                throw new ArgumentException(msg);
             }
         }
     }

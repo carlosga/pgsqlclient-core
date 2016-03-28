@@ -32,12 +32,12 @@ namespace PostgreSql.Data.PostgreSqlClient
         private PgConnection    _connection;
         private PgStatement     _statement;
         private Queue<string>   _refCursors;
-        
+
         private ReadOnlyCollection<DbColumn> _metadata;
 
         public override object this[int i]       => GetValue(i);
         public override object this[string name] => GetValue(GetOrdinal(name));
-        
+
         public override int  Depth
         {
             get
@@ -50,7 +50,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return 0;
             }
         }
-        
+
         public override bool IsClosed        => !_open;
         public override int  RecordsAffected => _open ? _recordsAffected : -1;
         
@@ -66,7 +66,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return _statement?.RowDescriptor.Count ?? 0;   
             }
         } 
-                
+
         public override bool HasRows
         {
             get
@@ -79,7 +79,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 return _statement.HasRows;
             }
         }
-        
+
         internal PgDataReader(PgConnection connection, PgCommand command)
         {
             _open            = true;
@@ -93,7 +93,7 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             InitializeRefCursors();
         }
-        
+
         #region IDisposable Support
         private bool _disposed = false; // To detect redundant calls
 
@@ -144,7 +144,7 @@ namespace PostgreSql.Data.PostgreSqlClient
         //     // TODO: uncomment the following line if the finalizer is overridden above.
         //     // GC.SuppressFinalize(this);
         // }
-        #endregion        
+        #endregion
 
         public ReadOnlyCollection<DbColumn> GetColumnSchema()
         {
@@ -153,7 +153,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 var provider = new SchemaProvider(_connection, _statement.RowDescriptor);
                 _metadata = provider.GetColumnSchema();
             }
-            
+
             return _metadata;
         }
 
@@ -163,7 +163,7 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw InvalidRead();
             }
-            
+
             // Reset position
             _position = STARTPOS;
 
@@ -172,19 +172,19 @@ namespace PostgreSql.Data.PostgreSqlClient
 
             // Clear current row data
             _row = null;
-            
+
             // Reset records affected
             _recordsAffected = -1;
-            
+
             // Reset metadata information
             _metadata = null;
-            
+
             // Query for next result
             if (_refCursors.Count != 0 /*&& _connection.InnerConnection.HasActiveTransaction*/)
             {
                 return NextResultFromRefCursor();
             }
-            
+
             return NextResultFromMars();
         }
 
@@ -199,8 +199,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 _position++;
 
-                _row = _statement.FetchRow();   
-                
+                _row = _statement.FetchRow();
+
                 return (_row != null);
             }
             catch (PgClientException ex)
@@ -218,8 +218,8 @@ namespace PostgreSql.Data.PostgreSqlClient
             {
                 throw InvalidRead();
             }
-            
-            if (IsDBNull(i))            
+
+            if (IsDBNull(i))
             {
                 return 0;
             }
@@ -460,12 +460,12 @@ namespace PostgreSql.Data.PostgreSqlClient
                 NextResult();
             }
         }
-        
+
         private bool NextResultFromRefCursor()
         {
             _statement.StatementText = $"fetch all in \"{_refCursors.Dequeue()}\""; 
             _statement.ExecuteReader(_command.Parameters);
-                
+
             return true;
         }
         
@@ -493,7 +493,7 @@ namespace PostgreSql.Data.PostgreSqlClient
                 throw InvalidRead();
             }
         }
-        
+
         private void CheckNull(int i)
         {
             if (IsDBNull(i))
@@ -509,6 +509,6 @@ namespace PostgreSql.Data.PostgreSqlClient
                 _recordsAffected  = ((_recordsAffected == -1) ? 0 : _recordsAffected);
                 _recordsAffected += _command.RecordsAffected;
             }
-        }        
+        }
     }
 }

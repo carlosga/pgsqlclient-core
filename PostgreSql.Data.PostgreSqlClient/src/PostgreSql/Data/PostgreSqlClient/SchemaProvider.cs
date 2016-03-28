@@ -32,13 +32,13 @@ namespace PostgreSql.Data.PostgreSqlClient
 
         private readonly PgConnection    _connection;
         private readonly PgRowDescriptor _descriptor;
-        
+
         internal SchemaProvider(PgConnection connection, PgRowDescriptor descriptor)
         {
             _connection = connection;
             _descriptor = descriptor;
         }
-        
+
         public ReadOnlyCollection<DbColumn> GetColumnSchema()
         {
             var columns = new DbColumn[_descriptor.Count];
@@ -68,12 +68,12 @@ namespace PostgreSql.Data.PostgreSqlClient
                                 schema.Populate(reader);
                             }
                         }
-                    }                    
+                    }
                     
                     columns[i] = schema;
                 }
             } 
-            
+
             return new ReadOnlyCollection<DbColumn>(columns);
         }
     }
