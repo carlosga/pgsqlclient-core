@@ -47,16 +47,26 @@ namespace PostgreSql.Data.Protocol
 
         internal void WriteNullString(string value)
         {
-            Write(_sessionData.ClientEncoding.GetBytes(value));
+            if (value != null && value.Length > 0)
+            {
+                Write(_sessionData.ClientEncoding.GetBytes(value));
+            }
             WriteByte(0);
         }
 
         internal void WriteString(string value)
         {
-            byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
+            if (value == null || value.Length == 0)
+            {
+                Write(0);
+            }
+            else
+            {
+                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
 
-            Write(buffer.Length);
-            Write(buffer);
+                Write(buffer.Length);
+                Write(buffer);
+            }
         }
 
         internal void WriteByte(byte value) => _stream.WriteByte(value);
@@ -111,10 +121,11 @@ namespace PostgreSql.Data.Protocol
             WriteString(timestamp.ToString("yyyy/MM/dd HH:mm:ss.fff"));
         }
 
-        internal void WriteTimestampWithTZ(DateTime timestamp)
+        internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
         {
-#warning TODO: Encode as microseconds since epoch
-            WriteString(timestamp.ToString("yyyy/MM/dd HH:mm:ss.fff zz"));
+            long microseconds = (long)(PgCodes.MicrosecondsBetweenEpoch + (timestamp.ToUnixTimeMilliseconds() * 0.001));
+
+            Write(microseconds);
         }
 
         internal void Write(PgPoint point)
@@ -278,6 +289,27 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteInterval(TimeSpan.Parse(value.ToString()));
                     break;
 
+                case PgDbType.Date:
+                    packet.Write(size);
+                    packet.WriteDate(Convert.ToDateTime(value));
+                    break;
+
+                case PgDbType.Time:
+                    packet.WriteTime(Convert.ToDateTime(value));
+                    break;
+
+                case PgDbType.TimeTZ:
+                    packet.WriteTimeWithTZ(Convert.ToDateTime(value));
+                    break;
+
+                case PgDbType.Timestamp:
+                    packet.WriteTimestamp(Convert.ToDateTime(value));
+                    break;
+
+                case PgDbType.TimestampTZ:
+                    packet.WriteTimestampWithTZ((DateTimeOffset)value);
+                    break;
+
                 case PgDbType.Decimal:
                     {
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
@@ -302,27 +334,6 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Currency:
                     packet.Write(size);
                     packet.Write(Convert.ToInt32(Convert.ToSingle(value) * 100));
-                    break;
-
-                case PgDbType.Date:
-                    packet.Write(size);
-                    packet.WriteDate(Convert.ToDateTime(value));
-                    break;
-
-                case PgDbType.Time:
-                    packet.WriteTime(Convert.ToDateTime(value));
-                    break;
-
-                case PgDbType.TimeTZ:
-                    packet.WriteTimeWithTZ(Convert.ToDateTime(value));
-                    break;
-
-                case PgDbType.Timestamp:
-                    packet.WriteTimestamp(Convert.ToDateTime(value));
-                    break;
-
-                case PgDbType.TimestampTZ:
-                    packet.WriteTimestampWithTZ(Convert.ToDateTime(value));
                     break;
 
                 case PgDbType.Point:

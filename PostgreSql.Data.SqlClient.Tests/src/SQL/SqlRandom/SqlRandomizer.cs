@@ -320,36 +320,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// Fill the  array with pseudo random ANSI characters (ascii code less than 128). This method can be used to generate
-        /// char, varchar and text values.
+        /// Fill the array with pseudo random unicode characters, not including the surrogate ranges. 
+        /// This method can be used to generate char, varchar and text values.
         /// </summary>
-        public void FillAnsiCharArray(char[] result)
-        {
-            if (result == null)
-            {
-                throw new ArgumentNullException("result");
-            }
-
-            if (result.Length == 0)
-            {
-                return;
-            }
-
-            // generate the first chunk of the array with true random values
-            int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
-            for (int i = 0; i < trueRandomCount; i++)
-            {
-                result[i] = (char)NextIntInclusive(0, maxValueInclusive: 127);   
-            }
-
-            Repeat(result, trueRandomCount);
-        }
-
-        /// <summary>
-        /// Fill the array with pseudo random unicode characters, not including the surrogate ranges.  This method can be used to generate
-        /// nchar, nvarchar and ntext values.
-        /// </summary>
-        public void FillUcs2CharArray(char[] result)
+        public void FillUnicodeCharArray(char[] result)
         {
             if (result == null)
             {
@@ -383,9 +357,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// generates random Ucs2 array with high probability of small-size arrays. The result does not include surrogate pairs or characters.
+        /// generates random unicode array with high probability of small-size arrays. The result does not include surrogate pairs or characters.
         /// </summary>
-        public char[] NextUcs2Array(int minSize = 0, int? maxByteSize = null)
+        public char[] NextUnicodeArray(int minSize = 0, int? maxByteSize = null)
         {
             // enforce max data in characters
             if (!maxByteSize.HasValue || maxByteSize.Value > _maxDataSize)
@@ -395,24 +369,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             int    charSize = NextAllocationSizeBytes(minSize, maxByteSize) / 2;
             char[] resArray = new char[charSize];
-            FillUcs2CharArray(resArray);
-            return resArray;
-        }
-
-        /// <summary>
-        /// generates random array with high probability of small-size arrays. The result includes only characters with code less than 128.
-        /// </summary>
-        public char[] NextAnsiArray(int minSize = 0, int? maxSize = null)
-        {
-            // enforce max allocation size for char array
-            if (!maxSize.HasValue || maxSize.Value > _maxDataSize / 2)
-            {
-                maxSize = _maxDataSize / 2;   
-            }
-
-            int size = NextAllocationSizeBytes(minSize, maxSize);
-            char[] resArray = new char[size];
-            FillAnsiCharArray(resArray);
+            FillUnicodeCharArray(resArray);
             return resArray;
         }
 

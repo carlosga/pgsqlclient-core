@@ -62,12 +62,12 @@ namespace PostgreSql.Data.Protocol
         // internal const long MicrosecondsPerHour   = 3600000000L;
         // internal const long MicrosecondsPerMinute = 60000000L;
         // internal const long MicrosecondsPerSecond = 1000000L;
-        // internal const long SecondsPerDay	     = 86400L;
+        internal const long SecondsPerDay	     = 86400L;
         
         // Julian-date equivalents of Day 0 in Unix and Postgres
-        // internal const long UnixEpochDate         = 2440588; // 1970, 1, 1
-        // internal const long PostgresEpochDate     = 2451545; // 2000, 1, 1
-        // internal const long SecondsBetweenEpoch   = ((PostgresEpochDate - UnixEpochDate) * SecondsPerDay);
+        internal const long UnixEpochDate            = 2440588; // 1970, 1, 1
+        internal const long PostgresEpochDate        = 2451545; // 2000, 1, 1
+        internal const long MicrosecondsBetweenEpoch = ((PostgresEpochDate - UnixEpochDate) * SecondsPerDay) * 1000;
 
         // Numeric data type
         internal const int NUMERIC_SIGN_MASK     = 0xC000;

@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -39,6 +40,8 @@ namespace PostgreSql.Data.Protocol
             => _innerList.Add(new PgCharacterSet(charset, systemCharset));
 
         internal void Add(string charset, int cp) => _innerList.Add(new PgCharacterSet(charset, cp));
+        
+        internal void Add(string charset, Encoding encoding) => _innerList.Add(new PgCharacterSet(charset, encoding));
 
         void ICollection<PgCharacterSet>.Add(PgCharacterSet item) => _innerList.Add(item);
 

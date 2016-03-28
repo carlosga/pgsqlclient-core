@@ -186,7 +186,7 @@ namespace PostgreSql.Data.Protocol
             }
 
             var value = ReadInt64();           
-            var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));          
+            var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));
             
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
