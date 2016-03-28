@@ -22,7 +22,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int ThreadCountDefault = 4;
         private const int IterationsPerTableDefault = 50;
 
-        private const int MaxColumns = 5000;
+        private const int MaxColumns = 1600;
         private const int MaxRows    = 100;
         private const int MaxTotal   = MaxColumns * 10;
 
@@ -249,7 +249,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             // random list of columns
             int   columnCount    = table.Columns.Count;
-            int[] columnIndicies = rand.NextIndicies(columnCount);
+            int[] columnIndicies = rand.NextIndices(columnCount);
             int   selectedCount  = rand.NextIntInclusive(1, maxValueInclusive: columnCount);
 
             StringBuilder selectBuilder = new StringBuilder();

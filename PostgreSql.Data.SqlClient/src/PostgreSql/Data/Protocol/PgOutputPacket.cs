@@ -177,14 +177,14 @@ namespace PostgreSql.Data.Protocol
             }
             else
             {
-                if (parameter.TypeInfo.DataType == PgDbType.Array
-                 || parameter.TypeInfo.DataType == PgDbType.Vector)
+                if (parameter.TypeInfo.ProviderType == PgDbType.Array
+                 || parameter.TypeInfo.ProviderType == PgDbType.Vector)
                 {
                     WriteArray(parameter);
                 }
                 else
                 {
-                    WriteParameter(this, parameter.TypeInfo.DataType, parameter.TypeInfo.Size, parameter.Value);
+                    WriteParameter(this, parameter.TypeInfo.ProviderType, parameter.TypeInfo.Size, parameter.Value);
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace PostgreSql.Data.Protocol
             var array = parameter.Value as System.Array;
 
             // Get array element type
-            var elementType = _sessionData.DataTypes.Single(x => x.Oid == parameter.TypeInfo.ElementType);
+            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == parameter.TypeInfo.ElementType);
 
             var packet = new PgOutputPacket(' ', _sessionData);
 
@@ -220,7 +220,7 @@ namespace PostgreSql.Data.Protocol
             // Write array values
             for (int i = 0; i < array.Length; ++i)
             {
-                WriteParameter(packet, elementType.DataType, elementType.Size, array.GetValue(i));
+                WriteParameter(packet, elementType.ProviderType, elementType.Size, array.GetValue(i));
             }
 
             // Write parameter size

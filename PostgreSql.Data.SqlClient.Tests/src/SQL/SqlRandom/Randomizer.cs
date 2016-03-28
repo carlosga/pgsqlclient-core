@@ -275,14 +275,14 @@ namespace PostgreSql.Data.SqlClient.Tests
         //
         // Private Constants 
         //
-        private const int MBIG  = int.MaxValue;
-        private const int MSEED = 161803398;
-        private const int MZ    = 0;
+        private const int MBIG                  = int.MaxValue;
+        private const int MSEED                 = 161803398;
+        private const int MZ                    = 0;
+        private const int BinaryStateSizeRandom = 4 + 4 + 56 * 4;
 
         //
         // Member Variables - make sure to update state size and update serialization code when adding more members
         //
-        private const int BinaryStateSizeRandom = 4 + 4 + 56 * 4;
         private int   _inext;
         private int   _inextp;
         private int[] _seedArray = new int[56];

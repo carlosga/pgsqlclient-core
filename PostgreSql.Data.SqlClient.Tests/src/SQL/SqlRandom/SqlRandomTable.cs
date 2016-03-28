@@ -38,7 +38,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// column types
         /// </summary>
         private readonly SqlRandomTableColumn[] _columns;
-        private readonly string[] _columnNames;
+        private readonly string[]               _columnNames;
 
         public readonly IList<SqlRandomTableColumn> Columns;
         public readonly IList<string>               ColumnNames;
@@ -790,10 +790,14 @@ namespace PostgreSql.Data.SqlClient.Tests
             return retColumns.ToArray();
         }
 
-        public static SqlRandomTable Create(SqlRandomizer rand, SqlRandomTypeInfoCollection sourceCollection, int maxColumnsCount, int rowCount, bool createPrimaryKeyColumn)
+        public static SqlRandomTable Create(SqlRandomizer               rand
+                                          , SqlRandomTypeInfoCollection sourceCollection
+                                          , int                         maxColumnsCount
+                                          , int                         rowCount
+                                          , bool                        createPrimaryKeyColumn)
         {
-            SqlRandomTableColumn[] testTypes = CreateRandTypes(rand, sourceCollection, maxColumnsCount, createPrimaryKeyColumn);
-            SqlRandomTable table = new SqlRandomTable(testTypes, primaryKeyColumnIndex: createPrimaryKeyColumn ? (Nullable<int>)0 : null, estimatedRowCount: rowCount);
+            var testTypes = CreateRandTypes(rand, sourceCollection, maxColumnsCount, createPrimaryKeyColumn);
+            var table     = new SqlRandomTable(testTypes, primaryKeyColumnIndex: createPrimaryKeyColumn ? (Nullable<int>)0 : null, estimatedRowCount: rowCount);
             table.AddRows(rand, rowCount);
             return table;
         }

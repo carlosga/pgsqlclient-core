@@ -80,7 +80,7 @@ namespace PostgreSql.Data.Protocol
 
         private int                   _oid;
         private readonly string       _name;
-        private readonly PgDbType     _dataType;
+        private readonly PgDbType     _providerType;
         private readonly PgTypeFormat _format;
         private readonly Type         _systemType;
         private readonly int          _elementType;
@@ -94,30 +94,30 @@ namespace PostgreSql.Data.Protocol
             set { _oid = value; }
         }
 
-        internal PgDbType     DataType    => _dataType;
-        internal string       Name        => _name;
-        internal Type         SystemType  => _systemType;
-        internal int          ElementType => _elementType; 
-        internal PgTypeFormat Format      => _format;
-        internal int          Size        => _size;
-        internal bool         IsArray     => (_dataType == PgDbType.Array);
-        internal bool         IsBinary    => (_dataType == PgDbType.Bytea);
-        internal bool         IsRefCursor => (_dataType == PgDbType.Refcursor);
-        internal string       Delimiter   => _delimiter;
-        internal string       Prefix      => _prefix;
+        internal PgDbType     ProviderType => _providerType;
+        internal string       Name         => _name;
+        internal Type         SystemType   => _systemType;
+        internal int          ElementType  => _elementType; 
+        internal PgTypeFormat Format       => _format;
+        internal int          Size         => _size;
+        internal bool         IsArray      => (_providerType == PgDbType.Array);
+        internal bool         IsBinary     => (_providerType == PgDbType.Bytea);
+        internal bool         IsRefCursor  => (_providerType == PgDbType.Refcursor);
+        internal string       Delimiter    => _delimiter;
+        internal string       Prefix       => _prefix;
 
         internal bool IsNumeric
         {
             get
             {
-                return (_dataType == PgDbType.Currency
-                     || _dataType == PgDbType.Int2
-                     || _dataType == PgDbType.Int4
-                     || _dataType == PgDbType.Int8
-                     || _dataType == PgDbType.Float4
-                     || _dataType == PgDbType.Float8
-                     || _dataType == PgDbType.Decimal
-                     || _dataType == PgDbType.Byte);
+                return (_providerType == PgDbType.Currency
+                     || _providerType == PgDbType.Int2
+                     || _providerType == PgDbType.Int4
+                     || _providerType == PgDbType.Int8
+                     || _providerType == PgDbType.Float4
+                     || _providerType == PgDbType.Float8
+                     || _providerType == PgDbType.Decimal
+                     || _providerType == PgDbType.Byte);
             }
         }
 
@@ -125,14 +125,14 @@ namespace PostgreSql.Data.Protocol
         {
             get
             {
-                return (_dataType == PgDbType.Bool
-                     || _dataType == PgDbType.Byte
-                     || _dataType == PgDbType.Int2
-                     || _dataType == PgDbType.Int4
-                     || _dataType == PgDbType.Int8
-                     || _dataType == PgDbType.Char
-                     || _dataType == PgDbType.Float4
-                     || _dataType == PgDbType.Float8);
+                return (_providerType == PgDbType.Bool
+                     || _providerType == PgDbType.Byte
+                     || _providerType == PgDbType.Int2
+                     || _providerType == PgDbType.Int4
+                     || _providerType == PgDbType.Int8
+                     || _providerType == PgDbType.Char
+                     || _providerType == PgDbType.Float4
+                     || _providerType == PgDbType.Float8);
             }
         }
 
@@ -161,15 +161,15 @@ namespace PostgreSql.Data.Protocol
                           , string       delimiter
                           , string       prefix)
         {
-            _oid         = oid;
-            _name        = name;
-            _dataType    = dataType;
-            _elementType = elementType;
-            _format      = format;
-            _size        = size;
-            _delimiter   = delimiter;
-            _prefix      = prefix;
-            _systemType  = TypeHelper.GetSystemType(_dataType);
+            _oid          = oid;
+            _name         = name;
+            _providerType = dataType;
+            _elementType  = elementType;
+            _format       = format;
+            _size         = size;
+            _delimiter    = delimiter;
+            _prefix       = prefix;
+            _systemType   = TypeHelper.GetSystemType(_providerType);
         }
         
         public override string ToString()

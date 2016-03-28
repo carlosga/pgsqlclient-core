@@ -214,7 +214,7 @@ namespace PostgreSql.Data.Protocol
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = _sessionData.DataTypes.Single(x => x.Oid == oid);
+            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -236,7 +236,7 @@ namespace PostgreSql.Data.Protocol
 
         internal Array ReadVector(PgTypeInfo type, int length)
         {
-            var elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
+            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == type.ElementType);
             var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
 
             for (int i = 0; i < data.Length; ++i)
@@ -299,7 +299,7 @@ namespace PostgreSql.Data.Protocol
 
         internal object ReadValue(PgTypeInfo type, int length)
         {
-            switch (type.DataType)
+            switch (type.ProviderType)
             {
                 case PgDbType.Array:
                     return ReadArray(type, length);
@@ -394,7 +394,7 @@ namespace PostgreSql.Data.Protocol
 
             string stringValue = ReadString(length);
 
-            switch (type.DataType)
+            switch (type.ProviderType)
             {
                 case PgDbType.Bytea:
                     return null;
@@ -524,7 +524,7 @@ namespace PostgreSql.Data.Protocol
         {
             string     contents    = ReadString(length);
             string[]   elements    = contents.Substring(1, contents.Length - 2).Split(',');
-            PgTypeInfo elementType = _sessionData.DataTypes.Single(x => x.Oid == type.ElementType);
+            PgTypeInfo elementType = _sessionData.TypeInfo.Single(x => x.Oid == type.ElementType);
             Array      data        = Array.CreateInstance(elementType.SystemType, elements.Length);
 
             for (int i = 0; i < elements.Length; ++i)

@@ -730,7 +730,7 @@ namespace PostgreSql.Data.Protocol
                 var typeSize     = packet.ReadInt16();
                 var typeModifier = packet.ReadInt32();
                 var format       = (PgTypeFormat)packet.ReadInt16();
-                var typeInfo     = _database.SessionData.DataTypes.SingleOrDefault(x => x.Oid == typeOid);
+                var typeInfo     = _database.SessionData.TypeInfo.SingleOrDefault(x => x.Oid == typeOid);
 
                 _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, typeInfo));
             }

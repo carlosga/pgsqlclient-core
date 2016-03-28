@@ -19,7 +19,7 @@ namespace PostgreSql.Data.Protocol
         private TimeZoneInfo         _timeZoneInfo;
         private bool                 _integerDateTimes;
         private string               _standardConformingStrings;
-        private PgTypeInfoCollection _dataTypes;
+        private PgTypeInfoCollection _typeInfo;
 
         internal string               ServerVersion             => _serverVersion;
         internal Encoding             ServerEncoding            => _serverEncoding;
@@ -32,12 +32,12 @@ namespace PostgreSql.Data.Protocol
         internal TimeZoneInfo         TimeZoneInfo              => _timeZoneInfo;
         internal bool                 IntegerDateTimes          => _integerDateTimes;
         internal string               StandardConformingStrings => _standardConformingStrings;
-        internal PgTypeInfoCollection DataTypes                 => _dataTypes;
+        internal PgTypeInfoCollection TypeInfo                  => _typeInfo;
 
         internal SessionData()
         {
             _clientEncoding = Encoding.UTF8;
-            _dataTypes      = PgTypeInfo.GetSupportedTypes();
+            _typeInfo       = PgTypeInfo.GetSupportedTypes();
         }
 
         internal void SetValue(string name, string value)

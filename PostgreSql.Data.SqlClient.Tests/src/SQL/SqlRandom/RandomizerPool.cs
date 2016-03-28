@@ -234,9 +234,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             where RandomizerType : Randomizer, new()
         {
             private  readonly RandomizerPool _pool;
-            private  RandomizerType _current;
-            internal Randomizer.State[] _scopeStates;
-            private  IScope _previousScope;
+            private  RandomizerType          _current;
+            internal Randomizer.State[]      _scopeStates;
+            private  IScope                  _previousScope;
 
             public RandomizerType Current
             {
