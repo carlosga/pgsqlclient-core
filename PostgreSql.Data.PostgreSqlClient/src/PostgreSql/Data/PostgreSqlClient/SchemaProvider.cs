@@ -43,8 +43,10 @@ namespace PostgreSql.Data.PostgreSqlClient
         {
             var columns = new DbColumn[_descriptor.Count];
             
-            using (var command = new PgCommand(ColumnSchemaQuery, _connection))
+            using (var command = _connection.CreateCommand())
             {
+                command.CommandText = ColumnSchemaQuery;
+                
                 command.Parameters.Add("@TableOid", PgDbType.Int4);
                 command.Parameters.Add("@ColumnId", PgDbType.Int4);
 
