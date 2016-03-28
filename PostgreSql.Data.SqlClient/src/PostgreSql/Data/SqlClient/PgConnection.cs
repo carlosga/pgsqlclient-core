@@ -200,10 +200,10 @@ namespace PostgreSql.Data.SqlClient
                 // Set connection state to Open
                 ChangeState(ConnectionState.Open);
             }
-            catch (PgClientException ex)
+            catch (PgException ex)
             {
                 ChangeState(ConnectionState.Broken);
-                throw new PgException(ex);
+                throw;
             }            
         }
 
@@ -234,7 +234,7 @@ namespace PostgreSql.Data.SqlClient
 
         protected override DbCommand CreateDbCommand() => CreateCommand();
 
-        private void OnInfoMessage(PgClientException ex) => InfoMessage?.Invoke(this, new PgInfoMessageEventArgs(ex));
+        private void OnInfoMessage(PgException ex) => InfoMessage?.Invoke(this, new PgInfoMessageEventArgs(ex));
 
         private void OnNotification(int processId, string condition, string aditional)
         {

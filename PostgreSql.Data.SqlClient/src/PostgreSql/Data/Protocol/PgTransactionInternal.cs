@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using PostgreSql.Data.SqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -47,7 +48,7 @@ namespace PostgreSql.Data.Protocol
 
                 if (stmt.Tag != "START TRANSACTION")
                 {
-                    throw new PgClientException("A transaction is currently active. Parallel transactions are not supported.");
+                    throw new PgException("A transaction is currently active. Parallel transactions are not supported.");
                 }
             }
         }
@@ -60,7 +61,7 @@ namespace PostgreSql.Data.Protocol
 
                 if (stmt.Tag != "COMMIT")
                 {
-                    throw new PgClientException("There are no transaction for commit.");
+                    throw new PgException("There are no transaction for commit.");
                 }
             }
         }
@@ -73,7 +74,7 @@ namespace PostgreSql.Data.Protocol
 
                 if (stmt.Tag != "ROLLBACK")
                 {
-                    throw new PgClientException("There are no transaction for rollback.");
+                    throw new PgException("There are no transaction for rollback.");
                 }
             }
         }

@@ -25,15 +25,11 @@ namespace PostgreSql.Data.SqlClient
             _errors = new PgErrorCollection();
         }
 
-        internal PgException(PgClientException ex)
-            : base(ex?.Message)
+        internal PgException(string message, PgError error) 
+            : base(message)
         {
             _errors = new PgErrorCollection();
-
-            foreach (var error in ex?.Errors)
-            {
-                _errors.Add(new PgError(error));
-            }
+            _errors.Add(error);
         }
     }
 }

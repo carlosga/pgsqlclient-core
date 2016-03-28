@@ -1,7 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Protocol.Authentication;
+using PostgreSql.Data.Authentication;
+using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -415,9 +416,18 @@ namespace PostgreSql.Data.Protocol
 
         private void HandleErrorMessage(PgInputPacket packet)
         {
-            char   type  = ' ';
-            string value = String.Empty;
-            var    error = new PgClientError();
+            char   type     = ' ';
+            string value    = String.Empty;
+            string severity = null;
+            string message  = null;
+            string code     = null;
+            string detail   = null;
+            string hint     = null;
+            string where    = null;
+            string position = null;
+            string file     = null;
+            int    line     = 0;
+            string routine  = null;
 
             while (type != PgErrorCodes.END)
             {
@@ -427,48 +437,59 @@ namespace PostgreSql.Data.Protocol
                 switch (type)
                 {
                     case PgErrorCodes.SEVERITY:
-                        error.Severity = value;
+                        severity = value;
                         break;
 
                     case PgErrorCodes.CODE:
-                        error.Code = value;
+                        code = value;
                         break;
 
                     case PgErrorCodes.MESSAGE:
-                        error.Message = value;
+                        message = value;
                         break;
 
                     case PgErrorCodes.DETAIL:
-                        error.Detail = value;
+                        detail = value;
                         break;
 
                     case PgErrorCodes.HINT:
-                        error.Hint = value;
+                        hint = value;
                         break;
 
                     case PgErrorCodes.POSITION:
-                        error.Position = value;
+                        position = value;
                         break;
 
                     case PgErrorCodes.WHERE:
-                        error.Where = value;
+                        where = value;
                         break;
 
                     case PgErrorCodes.FILE:
-                        error.File = value;
+                        file = value;
                         break;
 
                     case PgErrorCodes.LINE:
-                        error.Line = Convert.ToInt32(value);
+                        line = Convert.ToInt32(value);
                         break;
 
                     case PgErrorCodes.ROUTINE:
-                        error.Routine = value;
+                        routine = value;
                         break;
                 }
             }
+            
+            var error = new PgError(severity
+                                  , message
+                                  , code
+                                  , detail
+                                  , hint
+                                  , where
+                                  , position
+                                  , file
+                                  , line
+                                  , routine);
 
-            var exception = new PgClientException(error.Message, error);
+            var exception = new PgException(error.Message, error);
             
             InfoMessage?.Invoke(exception);
             

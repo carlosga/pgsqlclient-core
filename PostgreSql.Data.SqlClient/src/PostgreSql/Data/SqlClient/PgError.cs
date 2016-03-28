@@ -1,8 +1,6 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Protocol;
-
 namespace PostgreSql.Data.SqlClient
 {
     /// http://www.postgresql.org/docs/9.2/static/errcodes-appendix.html
@@ -67,20 +65,6 @@ namespace PostgreSql.Data.SqlClient
             _file     = file;
             _line     = line;
             _routine  = routine;
-        }
-
-        internal PgError(PgClientError clientError)
-        {
-            _severity = clientError.Severity;
-            _message  = clientError.Message;
-            _code     = clientError.Code;
-            _detail   = clientError.Detail;
-            _hint     = clientError.Hint;
-            _where    = clientError.Where;
-            _position = clientError.Position;
-            _file     = clientError.File;
-            _line     = clientError.Line;
-            _routine  = clientError.Routine;
         }
     }
 }

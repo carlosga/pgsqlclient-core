@@ -230,14 +230,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            try
-            {
-                return InternalExecuteNonQuery();
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            return InternalExecuteNonQuery();
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
@@ -246,48 +239,27 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            try
-            {
-                InternalExecuteReader(behavior);
+            InternalExecuteReader(behavior);
 
-                var reader = new PgDataReader(_connection, this);
-            
-                _activeDataReader = new WeakReference(reader);
+            var reader = new PgDataReader(_connection, this);
+        
+            _activeDataReader = new WeakReference(reader);
 
-                return reader;
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            return reader;
         }
         
         public override object ExecuteScalar()
         {
             CheckCommand();
 
-            try
-            {
-                return InternalExecuteScalar();
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            return InternalExecuteScalar();
         }
 
         public override void Prepare() 
         {
             CheckCommand();
 
-            try
-            {
-                InternalPrepare();
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            InternalPrepare();
         }
 
         protected override DbParameter CreateDbParameter() => CreateParameter();
@@ -367,28 +339,21 @@ namespace PostgreSql.Data.SqlClient
 
         internal bool NextResult()
         {
-            try
+            if (!_connection.MultipleActiveResultSets || _queries.IsEmpty())
             {
-                if (!_connection.MultipleActiveResultSets || _queries.IsEmpty())
-                {
-                    return false;
-                }
-
-                // Try to advance to the next query
-                ++_queryIndex;
-                if (_queryIndex >= _queries.Count)
-                {
-                    return false;
-                }
-
-                InternalExecuteReader(_commandBehavior);
-
-                return true;
+                return false;
             }
-            catch (PgClientException ex)
+
+            // Try to advance to the next query
+            ++_queryIndex;
+            if (_queryIndex >= _queries.Count)
             {
-                throw new PgException(ex);
+                return false;
             }
+
+            InternalExecuteReader(_commandBehavior);
+
+            return true;
         }
 
         internal void InternalClose()

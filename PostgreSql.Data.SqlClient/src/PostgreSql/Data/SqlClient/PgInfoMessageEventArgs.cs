@@ -9,20 +9,14 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgInfoMessageEventArgs
         : EventArgs
     {
-        private readonly PgErrorCollection _errors  = new PgErrorCollection();
-        private readonly string            _message = String.Empty;
+        private readonly PgException _exception;
+        
+        public PgErrorCollection Errors => _exception.Errors;
+        public string Message           => _exception.Message;
 
-        public PgErrorCollection Errors => _errors;
-        public string Message           => _message;
-
-        internal PgInfoMessageEventArgs(PgClientException ex)
+        internal PgInfoMessageEventArgs(PgException exception)
         {
-            _message = ex?.Message;
-
-            foreach (PgClientError error in ex?.Errors)
-            {
-                _errors.Add(new PgError(error));
-            }
+            _exception = exception;
         }
     }
 }

@@ -195,18 +195,11 @@ namespace PostgreSql.Data.SqlClient
                 return false;
             }
 
-            try
-            {
-                _position++;
+            _position++;
 
-                _row = _statement.FetchRow();
+            _row = _statement.FetchRow();
 
-                return (_row != null);
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            return (_row != null);
         }
 
         public override bool GetBoolean(int i) => GetValueWithNullCheck<bool>(i);

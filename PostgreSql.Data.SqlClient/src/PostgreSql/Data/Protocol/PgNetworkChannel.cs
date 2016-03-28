@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.SqlClient;
 using System;
 using System.IO;
 using System.Linq;
@@ -87,7 +88,7 @@ namespace PostgreSql.Data.Protocol
                     bool secured = OpenSecureChannel(host);
                     if (!secured)
                     {
-                        throw new PgClientException("Cannot open a secure connection against PostgreSQL server.");
+                        throw new PgException("Cannot open a secure connection against PostgreSQL server.");
                     }
 
                     _stream = _secureStream;
@@ -101,9 +102,9 @@ namespace PostgreSql.Data.Protocol
             {
                 Detach();
 
-                throw new PgClientException("A network-related or instance-specific error occurred while establishing a connection to PostgreSQL."
-                                          + " The server was not found or was not accessible."
-                                          + " Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.");
+                throw new PgException("A network-related or instance-specific error occurred while establishing a connection to PostgreSQL."
+                                    + " The server was not found or was not accessible."
+                                    + " Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.");
             }
         }
 
@@ -220,7 +221,7 @@ namespace PostgreSql.Data.Protocol
                 Socket.CancelConnectAsync(args);                
                 complete.WaitOne();
                 
-                throw new PgClientException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
+                throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
             }
 
             // Set the nework stream

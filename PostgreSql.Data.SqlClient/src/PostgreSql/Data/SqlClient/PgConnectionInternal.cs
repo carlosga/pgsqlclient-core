@@ -65,18 +65,11 @@ namespace PostgreSql.Data.SqlClient
 
         internal void Open(PgConnection owner)
         {
-            try
-            {
-                // Connect
-                _database.Open();
+            // Connect
+            _database.Open();
 
-                // Update owner
-                _owner = owner;
-            }
-            catch (PgClientException ex)
-            {
-                throw new PgException(ex);
-            }
+            // Update owner
+            _owner = owner;
         }
 
         internal void Close()
@@ -101,9 +94,8 @@ namespace PostgreSql.Data.SqlClient
                     _database.Dispose();
                 }
             }
-            catch (PgClientException ex)
+            catch (Exception)
             {
-                throw new PgException(ex);
             }
             finally
             {
