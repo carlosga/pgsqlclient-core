@@ -52,12 +52,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <remarks>Keep it immutable - randomizer pool creates shallow copies of the state struct only!</remarks>
         public struct State
         {
-            internal readonly Type _randomizerType;
+            internal readonly Type   _randomizerType;
             internal readonly byte[] _binState;
 
             internal State(Type randType, byte[] binState)
             {
-                _binState = binState;
+                _binState       = binState;
                 _randomizerType = randType;
             }
 
@@ -70,7 +70,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             public override string ToString()
             {
                 if (_binState == null && _randomizerType == null)
-                    return string.Empty;
+                {
+                    return string.Empty;   
+                }
 
                 return string.Format("{0}{1}{2}", _randomizerType.FullName, Separator, Convert.ToBase64String(_binState));
             }
@@ -81,12 +83,13 @@ namespace PostgreSql.Data.SqlClient.Tests
             public static State Parse(string strState)
             {
                 if (string.IsNullOrEmpty(strState))
-                    return State.Empty;
+                {
+                    return State.Empty;                    
+                }
 
                 string[] items = strState.Split(new char[] { Separator }, 2);
-                return new State(
-                    Type.GetType(items[0]),
-                    Convert.FromBase64String(items[1]));
+                
+                return new State(Type.GetType(items[0]), Convert.FromBase64String(items[1]));
             }
 
             /// <summary>
@@ -147,8 +150,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         public State GetCurrentState()
         {
             byte[] binState = new byte[BinaryStateSize];
-            int offset;
+            int    offset;
+            
             Serialize(binState, out offset);
+            
             return new State(GetType(), binState);
         }
 
@@ -157,10 +162,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         protected virtual int BinaryStateSize
         {
-            get
-            {
-                return BinaryStateSizeRandom;
-            }
+            get { return BinaryStateSizeRandom; }
         }
 
         /// <summary>
@@ -186,8 +188,10 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private void Deserialize(State state)
         {
-            if (state._randomizerType != GetType())
-                throw new ArgumentException("Type mismatch!");
+            if (state._randomizerType != GetType())            
+            {
+                throw new ArgumentException("Type mismatch!");   
+            }
 
             int offset;
             Deserialize(state._binState, out offset);
@@ -202,12 +206,18 @@ namespace PostgreSql.Data.SqlClient.Tests
         protected internal virtual void Deserialize(byte[] binState, out int nextOffset)
         {
             if (binState == null)
+            {
                 throw new ArgumentNullException("empty state should not be used to create an instance of randomizer!");
+            }
+                
             if (binState.Length != BinaryStateSize)
-                throw new ArgumentNullException("wrong size of the state binary data");
+            {
+                throw new ArgumentNullException("wrong size of the state binary data");                
+            }
 
             nextOffset = 0;
-            _inext = DeserializeInt(binState, ref nextOffset);
+            
+            _inext  = DeserializeInt(binState, ref nextOffset);
             _inextp = DeserializeInt(binState, ref nextOffset);
 
             Buffer.BlockCopy(binState, nextOffset, _seedArray, 0, 4 * _seedArray.Length);
@@ -267,17 +277,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         //
         // Private Constants 
         //
-        private const int MBIG = int.MaxValue;
+        private const int MBIG  = int.MaxValue;
         private const int MSEED = 161803398;
-        private const int MZ = 0;
-
+        private const int MZ    = 0;
 
         //
         // Member Variables - make sure to update state size and update serialization code when adding more members
         //
         private const int BinaryStateSizeRandom = 4 + 4 + 56 * 4;
-        private int _inext;
-        private int _inextp;
+        private int   _inext;
+        private int   _inextp;
         private int[] _seedArray = new int[56];
 
         //
@@ -324,9 +333,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                     if (_seedArray[i] < 0) _seedArray[i] += MBIG;
                 }
             }
-            _inext = 0;
+            _inext  = 0;
             _inextp = 21;
-            Seed = 1;
+            Seed    = 1;
         }
 
         //
@@ -349,7 +358,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private int InternalSample()
         {
             int retVal;
-            int locINext = _inext;
+            int locINext  = _inext;
             int locINextp = _inextp;
 
             if (++locINext >= 56) locINext = 1;
@@ -371,8 +380,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         //
         // Public Instance Methods
         // 
-
-
+        
         /*=====================================Next=====================================
         **Returns: An int [0..int.MaxValue)
         **Arguments: None
@@ -403,7 +411,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             return d;
         }
 
-
         /*=====================================Next=====================================
         **Returns: An int [minvalue..maxvalue)
         **Arguments: minValue -- the least legal value for the Random number.
@@ -428,7 +435,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-
         /*=====================================Next=====================================
         **Returns: An int [0..maxValue)
         **Arguments: maxValue -- One more than the greatest legal return value.
@@ -443,7 +449,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             return (int)(Sample() * maxValue);
         }
 
-
         /*=====================================Next=====================================
         **Returns: A double [0..1)
         **Arguments: None
@@ -453,7 +458,6 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             return Sample();
         }
-
 
         /*==================================NextBytes===================================
         **Action:  Fills the byte array with random bytes [0..0x7f].  The entire array is filled.

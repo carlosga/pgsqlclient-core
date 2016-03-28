@@ -35,11 +35,15 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public SqlRandomizer()
             : this(CreateSeed(), DefaultMaxDataSize)
-        { } // do not add code here
+        { 
+            // do not add code here
+        } 
 
         public SqlRandomizer(int seed)
             : this(seed, DefaultMaxDataSize)
-        { } // do not add code here
+        { 
+            // do not add code here
+        } 
 
         public SqlRandomizer(int seed, int maxDataSize)
             : base(seed)
@@ -81,7 +85,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public BitArray NextBitmap(int bitCount)
         {
             if (bitCount <= 0)
-                throw new ArgumentOutOfRangeException("bitCount");
+            {
+                throw new ArgumentOutOfRangeException("bitCount");   
+            }
 
             // optimize for any number of bits
             byte[] randValues = new byte[(bitCount + 7) / 8];
@@ -98,10 +104,14 @@ namespace PostgreSql.Data.SqlClient.Tests
         public BitArray NextBitmap(int bitCount, int nullOdds)
         {
             if (bitCount <= 0)
-                throw new ArgumentOutOfRangeException("bitCount");
+            {
+                throw new ArgumentOutOfRangeException("bitCount");   
+            }
 
             if (nullOdds < 0 || nullOdds > 100)
+            {
                 throw new ArgumentOutOfRangeException("nullOdds");
+            }
 
             // optimize for any number of bits
             BitArray bitMap = new BitArray(bitCount, false);
@@ -120,7 +130,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public int[] NextIndicies(int count)
         {
             if (count <= 0)
-                throw new ArgumentOutOfRangeException("count");
+            {
+                throw new ArgumentOutOfRangeException("count");   
+            }
 
             int[] indicies = new int[count];
             for (int c = 0; c < count; c++)
@@ -141,7 +153,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public void Shuffle<T>(T[] values, int? valuesToSet = null)
         {
             if (values == null)
-                throw new ArgumentNullException("values");
+            {
+                throw new ArgumentNullException("values");   
+            }
 
             int count = values.Length;
             int selectValues = count;
@@ -149,7 +163,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 selectValues = valuesToSet.Value;
                 if (selectValues < 0 || selectValues > count)
-                    throw new ArgumentOutOfRangeException("valuesToShuffle");
+                {
+                    throw new ArgumentOutOfRangeException("valuesToShuffle");   
+                }
             }
 
             for (int i = 0; i < selectValues; i++)
@@ -162,10 +178,10 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private enum LowValueEnforcementLevel
         {
-            Uniform = 32,
-            Weak = 16,
-            Medium = 10,
-            Strong = 4,
+            Uniform    = 32,
+            Weak       = 16,
+            Medium     = 10,
+            Strong     = 4,
             VeryStrong = 2
         }
 
@@ -180,13 +196,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         private int NextAllocationUnit(int minSize, int maxSize, LowValueEnforcementLevel lowValuesLevel)
         {
             if (minSize < 0 || maxSize < 0 || minSize > maxSize)
-                throw new ArgumentOutOfRangeException("minSize or maxSize are out of range");
+            {
+                throw new ArgumentOutOfRangeException("minSize or maxSize are out of range");   
+            }
 
             if (lowValuesLevel < LowValueEnforcementLevel.VeryStrong || lowValuesLevel > LowValueEnforcementLevel.Uniform)
-                throw new ArgumentOutOfRangeException("lowValuesLevel");
+            {
+                throw new ArgumentOutOfRangeException("lowValuesLevel");   
+            }
 
             if (minSize == maxSize)
-                return minSize; // shortcut for fixed size
+            {
+                return minSize; // shortcut for fixed size   
+            }
 
             long longRange = (long)maxSize - (long)minSize + 1;
 
@@ -194,8 +216,8 @@ namespace PostgreSql.Data.SqlClient.Tests
             double sample = base.NextDouble();
 
             // decrease chances of large size values based on the how many bits digits are set in the maxValue
-            int bitsPerLevel = (int)lowValuesLevel;
-            long maxBitsLeft = longRange >> bitsPerLevel;
+            int  bitsPerLevel = (int)lowValuesLevel;
+            long maxBitsLeft  = longRange >> bitsPerLevel;
             while (maxBitsLeft > 0)
             {
                 sample *= base.NextDouble();

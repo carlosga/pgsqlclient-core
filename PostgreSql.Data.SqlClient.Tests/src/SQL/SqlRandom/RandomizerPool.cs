@@ -78,12 +78,18 @@ namespace PostgreSql.Data.SqlClient.Tests
             // at least one repro state must present in repro file
             // thus, root scopes will be generated the first state, and not with seed
             if (_reproStates != null)
-                throw new InvalidOperationException("");
+            {
+                throw new InvalidOperationException("");   
+            }
 
             if (_rootScopeNextSeedUsed)
-                return Interlocked.Increment(ref _rootScopeNextSeed);
+            {
+                return Interlocked.Increment(ref _rootScopeNextSeed);   
+            }
             else
-                return Randomizer.CreateSeed();
+            {
+                return Randomizer.CreateSeed();   
+            }
         }
 
         /// <summary>
@@ -91,7 +97,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public RandomizerPool()
         {
-            _reproStates = null;
+            _reproStates           = null;
             _rootScopeNextSeedUsed = false;
         }
 
@@ -100,8 +106,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public RandomizerPool(int masterSeed)
         {
-            _reproStates = null;
-            _rootScopeNextSeed = masterSeed;
+            _reproStates           = null;
+            _rootScopeNextSeed     = masterSeed;
             _rootScopeNextSeedUsed = true;
         }
 
@@ -111,7 +117,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public RandomizerPool(string reproFile)
         {
             if (string.IsNullOrEmpty(reproFile))
-                throw new ArgumentNullException("Invalid repro file");
+            {
+                throw new ArgumentNullException("Invalid repro file");   
+            }
 
             _rootScopeNextSeedUsed = false;
 
@@ -121,15 +129,14 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-
         /// <summary>
         /// helper method to load repro states from stream
         /// </summary>
         private static Randomizer.State[] LoadFromStream(StreamReader reproStream)
         {
-            var reproStack = new List<Randomizer.State>();
-
-            string reproStateStr = reproStream.ReadLine();
+            var reproStack    = new List<Randomizer.State>();
+            var reproStateStr = reproStream.ReadLine();
+            
             do
             {
                 Randomizer.State state = Randomizer.State.Parse(reproStateStr);
@@ -143,13 +150,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// Indicator whether the pool is running in repro mode.
         /// </summary>
-        public bool ReproMode
-        {
-            get
-            {
-                return _reproStates != null;
-            }
-        }
+        public bool ReproMode => (_reproStates != null);
 
         /// <summary>
         /// Create the root scope of the randomizer, this method is thread safe!
@@ -232,17 +233,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         public class Scope<RandomizerType> : IScope, IDisposable
             where RandomizerType : Randomizer, new()
         {
-            private readonly RandomizerPool _pool;
-            private RandomizerType _current;
+            private  readonly RandomizerPool _pool;
+            private  RandomizerType _current;
             internal Randomizer.State[] _scopeStates;
-            private IScope _previousScope;
+            private  IScope _previousScope;
 
             public RandomizerType Current
             {
                 get
                 {
                     if (_current == null)
-                        throw new ObjectDisposedException(GetType().FullName);
+                    {
+                        throw new ObjectDisposedException(GetType().FullName);   
+                    }
                     return _current;
                 }
             }
@@ -254,9 +257,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             internal Scope(RandomizerPool pool, IScope parent)
             {
                 s_ts_lastCreatedScope = this;
-                _previousScope = s_ts_currentScope;
-                s_ts_currentScope = this;
-                _pool = pool;
+                _previousScope        = s_ts_currentScope;
+                s_ts_currentScope     = this;
+                _pool                 = pool;
 
                 RandomizerType current;
                 _pool.CreateScopeRandomizer(parent, out _scopeStates, out current);
@@ -304,9 +307,13 @@ namespace PostgreSql.Data.SqlClient.Tests
                 IScope newScope;
 
                 if (typeof(NestedRandomizerType) == typeof(Randomizer))
-                    newScope = new Scope(_pool, this); // to ensure later casting works fine
+                {
+                    newScope = new Scope(_pool, this); // to ensure later casting works fine   
+                }
                 else
-                    newScope = new Scope<NestedRandomizerType>(_pool, this);
+                {
+                    newScope = new Scope<NestedRandomizerType>(_pool, this);   
+                }
 
                 return (Scope<NestedRandomizerType>)newScope;
             }
@@ -328,7 +335,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             internal Scope(RandomizerPool pool, IScope parent)
                 : base(pool, parent)
-            { }
+            {
+            }
         }
 
         /// <summary>
