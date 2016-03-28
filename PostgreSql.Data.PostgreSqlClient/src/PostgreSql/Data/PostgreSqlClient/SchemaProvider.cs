@@ -58,7 +58,6 @@ namespace PostgreSql.Data.PostgreSqlClient
 
                     if (!_descriptor[i].IsExpression)
                     {
-                        // Execute commands
                         command.Parameters[0].Value = _descriptor[i].TableOid;
                         command.Parameters[1].Value = _descriptor[i].ColumnId;
 
