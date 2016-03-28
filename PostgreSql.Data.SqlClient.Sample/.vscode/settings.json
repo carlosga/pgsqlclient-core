@@ -23,6 +23,7 @@
         "**/.git": true,
         "**/.DS_Store": true,
         "**/bin": true,
-        "**/obj": true
+        "**/obj": true,
+        "**/*.lock.json": true
     }
 }

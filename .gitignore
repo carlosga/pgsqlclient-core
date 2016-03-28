@@ -48,4 +48,4 @@ CMakeLists.txt.user
 
 # Project files to be ignored
 ConnectionString.xml
-*.json.lock
+*.lock.json
