@@ -317,7 +317,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Refcursor:
                     return ReadString(length);
 
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     return ReadBoolean();
 
                 case PgDbType.Byte:
@@ -407,7 +407,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Text:
                     return stringValue;
 
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     switch (stringValue.ToLower())
                     {
                         case "t":

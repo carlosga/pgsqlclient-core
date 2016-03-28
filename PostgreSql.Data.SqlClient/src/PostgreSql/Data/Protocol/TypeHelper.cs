@@ -14,7 +14,7 @@ namespace PostgreSql.Data.Protocol
         {
             switch (providerType)
             {
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     return DbType.Boolean;
 
                 case PgDbType.Byte:
@@ -81,7 +81,7 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Bytea;
 
                 case DbType.Boolean:
-                    return PgDbType.Boolean;
+                    return PgDbType.Bool;
 
                 case DbType.Byte:
                     return PgDbType.Byte;
@@ -141,7 +141,7 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Boolean:
-                    providerType = PgDbType.Boolean;
+                    providerType = PgDbType.Bool;
                     break;
 
                 case TypeCode.Object:
@@ -202,7 +202,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Vector:
                     return typeof(System.Array);
 
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     return typeof(System.Boolean);
 
                 case PgDbType.Box:
@@ -278,7 +278,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Bytea:
                     break;
 
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     returnValue = Convert.ToBoolean(value).ToString().ToLower();
                     break;
 

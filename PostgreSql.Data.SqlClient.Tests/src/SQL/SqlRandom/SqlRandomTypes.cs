@@ -330,7 +330,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         : SqlRandomTypeInfo
     {
         public SqlBooleanTypeInfo()
-            : base(PgDbType.Boolean)
+            : base(PgDbType.Bool)
         {
         }
 
@@ -341,7 +341,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
         {
-            return "boolean";
+            return "bool";
         }
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
@@ -435,12 +435,8 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqFloatTypeInfo 
         : SqlRandomTypeInfo
     {
-        // simplify to double-precision or real only
-        private const int    MaxFloatMantissaBits = 53;
-        private const int    MaxFloatPrecision    = 15;
-        private const int    RealPrecision        = 7;
-        private const int    RealMantissaBits     = 24;
-        private const string TypePrefix           = "float4";
+        private const string TypeSqlName = "float4";
+        private const int    StorageSize = 4;
 
         public SqFloatTypeInfo()
             : base(PgDbType.Float4)
@@ -449,31 +445,12 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
         {
-            // float
-            if (!columnInfo.Precision.HasValue)
-            {
-                return 8;
-            }
-            else
-            {
-                int precision = columnInfo.Precision.Value;
-                if (precision != RealPrecision && precision != MaxFloatPrecision)
-                {
-                    throw new ArgumentException("wrong precision");   
-                }
-                return (precision <= RealPrecision) ? 4 : 8;
-            }
+            return StorageSize;
         }
 
         protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
         {
-            int precision = columnInfo.Precision.HasValue ? columnInfo.Precision.Value : MaxFloatPrecision;
-            if (precision != RealPrecision && precision != MaxFloatPrecision)
-            {
-                throw new ArgumentException("wrong precision");   
-            }
-            int mantissaBits = (precision <= RealPrecision) ? 24 : 53;
-            return string.Format("{0}({1})", TypePrefix, mantissaBits);
+            return TypeSqlName;
         }
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
@@ -483,15 +460,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
-            int precision = columnInfo.Precision.HasValue ? columnInfo.Precision.Value : MaxFloatPrecision;
-            if (precision <= RealPrecision)
-            {
-                return rand.NextDouble(float.MinValue, float.MaxValue, precision);   
-            }
-            else
-            {
-                return rand.NextDouble(double.MinValue, double.MaxValue, precision);   
-            }
+            return rand.NextDouble(float.MinValue, float.MaxValue);   
         }
 
         protected override object ReadInternal(DbDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)

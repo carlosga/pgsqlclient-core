@@ -281,7 +281,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                     command.Parameters.Add("@time_field", PgDbType.Time);
                     command.Parameters.Add("@timestamp_field", PgDbType.Timestamp);
                     command.Parameters.Add("@blob_field", PgDbType.Bytea);
-                    command.Parameters.Add("@bool_field", PgDbType.Boolean);
+                    command.Parameters.Add("@bool_field", PgDbType.Bool);
 
                     for (int i = 0; i < 100; i++)
                     {

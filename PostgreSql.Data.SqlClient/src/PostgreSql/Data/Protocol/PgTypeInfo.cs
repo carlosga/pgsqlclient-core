@@ -13,7 +13,7 @@ namespace PostgreSql.Data.Protocol
         {
             var dataTypes = new PgTypeInfoCollection(60);
            
-            dataTypes.Add(  16, "bool"       , PgDbType.Boolean    ,    0, PgTypeFormat.Binary, 1);
+            dataTypes.Add(  16, "bool"       , PgDbType.Bool       ,    0, PgTypeFormat.Binary, 1);
             dataTypes.Add(  17, "bytea"      , PgDbType.Bytea      ,    0, PgTypeFormat.Binary, Int32.MaxValue);
             dataTypes.Add(  18, "char"       , PgDbType.Char       ,    0, PgTypeFormat.Text  , 0);
             dataTypes.Add(  19, "name"       , PgDbType.VarChar    ,    0, PgTypeFormat.Text  , 0);
@@ -125,7 +125,7 @@ namespace PostgreSql.Data.Protocol
         {
             get
             {
-                return (_dataType == PgDbType.Boolean
+                return (_dataType == PgDbType.Bool
                      || _dataType == PgDbType.Byte
                      || _dataType == PgDbType.Int2
                      || _dataType == PgDbType.Int4

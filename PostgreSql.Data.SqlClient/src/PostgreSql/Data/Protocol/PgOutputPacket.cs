@@ -247,7 +247,7 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteByte((byte)value);
                     break;
 
-                case PgDbType.Boolean:
+                case PgDbType.Bool:
                     packet.Write(size);
                     packet.WriteByte(Convert.ToByte(value));
                     break;
