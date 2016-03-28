@@ -21,10 +21,8 @@ namespace PostgreSql.Data.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            var query = "SELECT 'Hello World' AS C1, 'Hello World' AS C2";
+            var query = "SELECT *, orderid AS Order_ID, 'Hello World' FROM orders";
             
-            // , 12, CAST(NULL AS TEXT), 'Hello World', 'Hello World', 'Hello World', CAST(REPEAT('a', 8000) AS TEXT), 'Hello World' COLLATE \"en_GB.utf8\"
-
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
@@ -33,16 +31,12 @@ namespace PostgreSql.Data.Sample
                 {
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
-                        char[] buffer = new char[9000];
-                        reader.Read();
-
-                        Console.WriteLine("#0");
-
-                        // Basic success paths
-                        reader.GetTextReader(0);
-                        reader.GetTextReader(1);
+                        var schemas = reader.GetColumnSchema();
                         
-                        Console.WriteLine("#1");
+                        foreach (var schema in schemas)
+                        {
+                            Console.WriteLine($"{schema.BaseSchemaName}.{schema.BaseTableName}.{schema.BaseColumnName} (IsExpression = {schema.IsExpression})");
+                        }
                     }
                 }
             }

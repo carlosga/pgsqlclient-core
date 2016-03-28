@@ -488,259 +488,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]
-        public static void SequentialAccess()
-        {
-            PgDataReader reader;
-            string s;
-            int    size    = 4096; // some random chunk size
-            byte[] data    = new byte[size];
-            char[] chars   = new char[size];
-            long   cb      = 0;
-            long   di      = 0;
-            long   cbTotal = 0;
-            object o;
-            int    i;
-#warning TODO: Implement PgBinary
-            //PgBinary sqlbin;
-
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-            {
-                conn.Open();
-#warning TODO: Original query "select * from orders for xml auto"
-                using (PgCommand cmd = new PgCommand("select * from orders", conn))
-                {
-                    // Simple reads
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        do
-                        {
-                            while (reader.Read())
-                            {
-                                s = reader.GetString(0);
-                                cbTotal += s.Length * 2;
-                            }
-                        } while (reader.NextResult());
-                    }
-                    DataTestClass.AssertEqualsWithDescription((long)536198, cbTotal, "FAILED: cbTotal result did not have expected value");
-
-                    // Simple GetFieldValue<T>
-                    cbTotal = 0;
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        do
-                        {
-                            while (reader.Read())
-                            {
-                                s = reader.GetFieldValue<string>(0);
-                                cbTotal += s.Length * 2;
-                            }
-                        } while (reader.NextResult());
-                    }
-                    DataTestClass.AssertEqualsWithDescription((long)536198, cbTotal, "FAILED: cbTotal result did not have expected value");
-
-                    // Simple GetFieldValueAsync<T>
-                    cbTotal = 0;
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        do
-                        {
-                            while (reader.Read())
-                            {
-                                s = reader.GetFieldValueAsync<string>(0).Result;
-                                cbTotal += s.Length * 2;
-                            }
-                        } while (reader.NextResult());
-                    }
-                    DataTestClass.AssertEqualsWithDescription((long)536198, cbTotal, "FAILED: cbTotal result did not have expected value");
-
-                    // test sequential access reading everything
-                    cbTotal = 0;
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        do
-                        {
-                            while (reader.Read())
-                            {
-                                do
-                                {
-                                    cb = reader.GetBytes(0, di, data, 0, size);
-                                    di += cb;
-                                    cbTotal += cb;
-                                    if ((int)cb < size)
-                                        break;
-                                } while (cb > 0);
-                                di = 0;
-                            }
-                        } while (reader.NextResult());
-                    }
-                    DataTestClass.AssertEqualsWithDescription((long)536198, cbTotal, "FAILED: cbTotal result did not have expected value");
-                }
-
-                // Test IsDBNull
-                using (PgCommand cmd = new PgCommand("select city, region from employees where region is null", conn))
-                {
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        reader.Read();
-                        Assert.False(reader.IsDBNull(0), "FAILED: IsDBNull is true for non-null value");
-                        Assert.True(reader.IsDBNull(1), "FAILED: IsDBNull is false for null value");
-
-                        reader.Read();
-                        Assert.False(reader.IsDBNullAsync(0).Result, "FAILED: IsDBNull is true for non-null value");
-                        Assert.True(reader.IsDBNullAsync(1).Result, "FAILED: IsDBNull is false for null value");
-                    }
-                }
-
-                using (PgCommand cmd = new PgCommand("select * from employees", conn))
-                {
-                    // test sequential access with partial reads
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        int      currentCity        = 0;
-                        int      currentNote        = 0;
-                        string[] expectedCities     = { "Seattle", "Tacoma", "Kirkland", "Redmond", "London", "London", "London", "Seattle", "London" };
-                        string   expectedPhotoBytes = "00 21 00 ff ff ff ff 42 69 74 6d 61 70 ";
-                        string[] expectedNotes      =
-                        {
-                            "Education inclu", "Andrew received", "Janet has a BS ", "Margaret holds ",
-                            "Steven Buchanan", "Michael is a gr", "Robert King ser", "Laura received ", "Anne has a BA d"
-                        };
-
-                        while (reader.Read())
-                        {
-                            i = reader.GetOrdinal("City");
-                            o = reader.GetValue(i);
-                            DataTestClass.AssertEqualsWithDescription(expectedCities[currentCity], o.ToString(), "FAILED: Received unexpected city value.");
-
-                            i = reader.GetOrdinal("photo");
-                            cb = reader.GetBytes(i, 13, data, 0, 13);
-                            StringBuilder byteBuilder = new StringBuilder();
-                            for (int j = 0; j < 13; j++)
-                            {
-                                byteBuilder.Append(data[j].ToString("x2") + " ");
-                            }
-                            DataTestClass.AssertEqualsWithDescription(expectedPhotoBytes, byteBuilder.ToString(), "FAILED: Photo byte array did not contain correct values");
-
-                            i = reader.GetOrdinal("notes");
-                            cb = reader.GetChars(i, 0, chars, 0, 15);
-                            DataTestClass.AssertEqualsWithDescription(expectedNotes[currentNote], new string(chars, 0, 15), "FAILED: Received unexpected city value.");
-
-                            currentCity++;
-                            currentNote++;
-                        }
-                    }
-
-                    // test GetPgBinary special case
-#warning TODO: Implement PgBinary
-                    // using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    // {
-                    //     reader.Read();
-
-                    //     i = reader.GetOrdinal("photo");
-                    //     long actualLength = reader.GetBytes(i, 0, null, 0, 0);
-                    //     cb = reader.GetBytes(i, 0, data, 0, 13);
-                    //     sqlbin = reader.GetPgBinary(i);
-                    //     DataTestClass.AssertEqualsWithDescription((actualLength - 13), (long)sqlbin.Length, "FAILED: Did not receive expected number of bytes");
-                    // }
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        // Tests GetBytes\Chars before GetValue
-                        reader.Read();
-                        i = reader.GetOrdinal("notes");
-                        reader.GetChars(i, 14, chars, 0, 14);
-                        string errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, i, i + 1);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetString(i), errorMessage);
-
-                        // Tests GetValue before GetBytes\Chars
-                        reader.Read();
-#warning TODO: Implement PgBinary
-                        // i = reader.GetOrdinal("photo");
-                        // reader.GetPgBinary(i);
-                        // errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, i, i + 1);
-                        // DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetBytes(i, 0, data, 0, 13), errorMessage);
-
-                        i = reader.GetOrdinal("notes");
-                        reader.GetString(i);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, i, i + 1);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetChars(i, 0, chars, 0, 14), errorMessage);
-
-                        // Tests GetBytes\GetChars re-reading same characters
-                        reader.Read();
-                        i = reader.GetOrdinal("photo");
-                        reader.GetBytes(i, 0, data, 0, 13);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSeqByteAccess, 0, 13, "GetBytes");
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetBytes(i, 0, data, 0, 13), errorMessage);
-
-                        i = reader.GetOrdinal("notes");
-                        reader.GetChars(i, 0, chars, 0, 14);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSeqByteAccess, 0, 14, "GetChars");
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetChars(i, 0, chars, 0, 14), errorMessage);
-                    }
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        // exception tests
-                        reader.Read();
-                        object[] sqldata = new object[reader.FieldCount];
-                        reader.GetValues(sqldata); // should work
-
-                        int columnToTry = 0;
-                        string errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, columnToTry, sqldata.Length);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetValue(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<int>(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<int>(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<int>(columnToTry).Wait(), innerExceptionMessage: errorMessage);
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<int>(columnToTry).Wait(), innerExceptionMessage: errorMessage);
-
-                        reader.Read();
-                        columnToTry = 17;
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_NonSequentialColumnAccess, columnToTry, sqldata.Length);
-
-                        s = reader.GetString(columnToTry);
-                        DataTestClass.AssertEqualsWithDescription("http://accweb/emmployees/fuller.bmp", s, "FAILED: Did not receive expected string.");
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetValue(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<int>(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<int>(columnToTry), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<int>(columnToTry).Wait(), innerExceptionMessage: errorMessage);
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<int>(columnToTry).Wait(), innerExceptionMessage: errorMessage);
-
-                        reader.Read();
-                        // skip all columns up to photo, and read from it partially
-                        i = reader.GetOrdinal("photo");
-                        // partially read data (20 bytes from offset 50);
-                        cb = reader.GetBytes(i, 50, data, 0, 20);
-                        DataTestClass.AssertEqualsWithDescription((long)20, cb, "FAILED: Did not receive expected number of bytes");
-                    }
-
-                    // close connection while in the middle of a read
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-                    {
-                        reader.Read();
-                        i = reader.GetOrdinal("photo");
-                        cb = reader.GetBytes(i, 50, data, 0, 1);
-                        DataTestClass.AssertEqualsWithDescription((long)1, cb, "FAILED: Did not receive expected number of bytes");
-                        conn.Close();
-
-                        // now try to read one more byte
-                        string errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "GetBytes");
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => cb = reader.GetBytes(i, 51, data, 0, 1), errorMessage);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "CheckDataIsReady");
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetValue(i), errorMessage);
-                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<byte[]>(i), errorMessage);
-                        // DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetFieldValue<PgBinary>(i), errorMessage);
-                        errorMessage = string.Format(SystemDataResourceManager.Instance.ADP_DataReaderClosed, "GetFieldValueAsync");
-                        DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<byte[]>(i).Wait(), innerExceptionMessage: errorMessage);
-                        // DataTestClass.AssertThrowsWrapper<AggregateException, InvalidOperationException>(() => reader.GetFieldValueAsync<PgBinary>(i).Wait(), innerExceptionMessage: errorMessage);
-                    }
-                }
-            }
-        }
-
-        [Test]
         public static void NumericRead()
         {
             string tempTable = DataTestClass.GetUniqueName("TEMP_", "", "");
@@ -921,8 +668,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 connection.Open();
                 using (PgCommand cmd = new PgCommand("SELECT '\\x12341234'::bytea, '\\x12341234'::bytea, 12, CAST(NULL AS bytea), '\\x12341234'::bytea, '\\x12341234'::bytea, '\\x12341234'::bytea, REPEAT('a', 8000)::bytea, '\\x12341234'::bytea", connection))
                 {
-#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
-                    CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
+                    CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
                     foreach (CommandBehavior behavior in behaviors)
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -998,22 +744,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             reader.IsDBNullAsync(8).Wait();
                         }
                     }
-// #if DEBUG
-//                     // Test GetStream is non-blocking
-//                     using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-//                     {
-//                         reader.Read();
-//                         Task t = null;
-//                         using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-//                         {
-//                             t = Task.Factory.StartNew(() => reader.GetStream(8));
-//                             t.Wait(1000);
-//                             Assert.True(t.IsCompleted, "FAILED: Failed to get stream within 1 second");
-//                             t = reader.ReadAsync();
-//                         }
-//                         t.Wait();
-//                     }
-// #endif
                 }
             }
         }
@@ -1034,8 +764,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                 {
                     using (PgCommand cmd = new PgCommand(query, connection))
                     {
-#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
-                        CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
+                        CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
                         foreach (CommandBehavior behavior in behaviors)
                         {
                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -1112,23 +841,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 reader.IsDBNullAsync(8).Wait();
                             }
                         }
-// #if DEBUG
-//                         // Test GetTextReader is non-blocking
-//                         using (PgDataReader reader = cmd.ExecuteReader(CommandBehavior.SequentialAccess))
-//                         {
-//                             reader.Read();
-
-//                             Task t = null;
-//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-//                             {
-//                                 t = Task.Factory.StartNew(() => reader.GetTextReader(8));
-//                                 t.Wait(1000);
-//                                 Assert.True(t.IsCompleted, "FAILED: Failed to get TextReader within 1 second");
-//                                 t = reader.ReadAsync();
-//                             }
-//                             t.Wait();
-//                         }
-// #endif
                     }
                 }
             }
@@ -1143,7 +855,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
 //                 string queryString = string.Format("SELECT {0}, {0}, 12, CAST(NULL AS XML), {0}, CAST(('<test>' + REPLICATE(CAST('a' AS VARCHAR(MAX)), 10000) + '</test>') AS XML), {0}", xml);
 //                 using (PgCommand cmd = new PgCommand(queryString, connection))
 //                 {
-//                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
+//                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
 //                     foreach (CommandBehavior behavior in behaviors)
 //                     {
 //                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -1194,8 +906,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
-#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
-                CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
+                CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
                 foreach (CommandBehavior behavior in behaviors)
                 {
                     byte[]       smallBuffer  = new byte[2];
@@ -1219,20 +930,10 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                                 DataTestClass.AssertThrowsWrapper<NotSupportedException>(() => stream.SetLength(1));
                                 Action<Stream> performOnStream = ((s) => { int i = s.WriteTimeout; });
                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => performOnStream(stream));
-                                if (behavior == CommandBehavior.SequentialAccess)
-                                {
-                                    DataTestClass.AssertThrowsWrapper<NotSupportedException>(() => stream.Seek(0, SeekOrigin.Begin));
-                                    performOnStream = ((s) => { long i = s.Position; });
-                                    DataTestClass.AssertThrowsWrapper<NotSupportedException>(() => performOnStream(stream));
-                                    performOnStream = ((s) => { long i = s.Length; });
-                                    DataTestClass.AssertThrowsWrapper<NotSupportedException>(() => performOnStream(stream));
-                                }
-                                else
-                                {
-                                    stream.Seek(0, SeekOrigin.Begin);
-                                    long position = stream.Position;
-                                    long length = stream.Length;
-                                }
+
+                                stream.Seek(0, SeekOrigin.Begin);
+                                long position = stream.Position;
+                                long length = stream.Length;
                             }
 
                             // Once Stream is closed
@@ -1273,81 +974,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             SeqAccessFailureWrapper<ObjectDisposedException>(action, behavior);
                         }
                     }
-
-                    if (behavior == CommandBehavior.SequentialAccess)
-                    {
-                        using (PgCommand cmd = new PgCommand("SELECT REPEAT('a', 8000)::bytea, REPEAT('a', 8000)::bytea", connection))
-                        {
-                            using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                            {
-                                // 0 byte read
-                                reader.Read();
-                                stream = reader.GetStream(1);
-                                stream.Read(largeBuffer, 0, 0);
-                            }
-// #if DEBUG
-//                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                             {
-//                                 reader.Read();
-//                                 stream = reader.GetStream(1);
-
-//                                 Task t = null;
-//                                 using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
-//                                 {
-//                                     // Read during async
-//                                     t = stream.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-//                                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => stream.Read(largeBuffer, 0, largeBuffer.Length));
-//                                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.Read());
-//                                 }
-//                                 t.Wait();
-//                             }
-//                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                             {
-//                                 reader.Read();
-//                                 stream = reader.GetStream(0);
-//                                 stream.ReadTimeout = 20;
-//                                 Task t = null;
-
-//                                 using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
-//                                 {
-//                                     // Timeout
-//                                     t = stream.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-//                                     // Guarantee that timeout occurs:
-//                                     Thread.Sleep(stream.ReadTimeout * 4);
-//                                 }
-//                                 DataTestClass.AssertThrowsWrapper<AggregateException, IOException>(() => t.Wait());
-//                             }
-
-//                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                             {
-//                                 reader.Read();
-//                                 stream = reader.GetStream(1);
-//                                 Task t = null;
-//                                 using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
-//                                 {
-//                                     // Cancellation
-//                                     CancellationTokenSource tokenSource = new CancellationTokenSource();
-//                                     t = stream.ReadAsync(largeBuffer, 0, largeBuffer.Length, tokenSource.Token);
-//                                     tokenSource.Cancel();
-//                                 }
-//                                 DataTestClass.AssertThrowsWrapper<AggregateException, TaskCanceledException>(() => t.Wait());
-//                             }
-
-//                             using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                             {
-//                                 reader.Read();
-//                                 stream = reader.GetStream(0);
-//                                 Task t = null;
-//                                 using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader, errorCode: 11))
-//                                 {
-//                                     // Error during read
-//                                     t = stream.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-//                                 }
-//                                 DataTestClass.AssertThrowsWrapper<AggregateException, IOException, PgException>(() => t.Wait());
-//                             }
-// #endif
-                        }
-                    }
                 }
             }
         }
@@ -1355,8 +981,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         [Test]
         public static void ReadTextReader()
         {
-#warning TODO: Enable SequentialAccess, the DataReader needs to keep track of the latest column accessed and throw and exceptions when accesing them in no sequential order
-            CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default/*, CommandBehavior.SequentialAccess*/ };
+            CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
 
             // Some more complex unicode characters, including surrogate pairs
             byte[] unicodeArray = { 0xFF, 0xDB, 0xFD, 0xDF, 0x34, 0xD8, 0xDD, 0xD8, 0x1E, 0xDC, 0x00, 0x6C, 0x00, 0x34 };
@@ -1437,49 +1062,6 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
                             SeqAccessFailureWrapper<ObjectDisposedException>(action, behavior);
                         }
 
-                        if (behavior == CommandBehavior.SequentialAccess)
-                        {
-                            using (PgCommand cmd = new PgCommand(string.Format("SELECT REPEAT({0}, 1500), REPEAT({0}, 1500)", correctString), connection))
-                            {
-                                using (PgDataReader reader = cmd.ExecuteReader(behavior))
-                                {
-                                    // 0 char read
-                                    reader.Read();
-                                    textReader = reader.GetTextReader(1);
-                                    textReader.Read(largeBuffer, 0, 0);
-                                }
-// #if DEBUG
-//                                 using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                                 {
-//                                     reader.Read();
-//                                     textReader = reader.GetTextReader(1);
-
-//                                     Task t = null;
-//                                     using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader))
-//                                     {
-//                                         // Read during async
-//                                         t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-//                                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => textReader.Read(largeBuffer, 0, largeBuffer.Length));
-//                                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.Read());
-//                                     }
-//                                     t.Wait();
-//                                 }
-
-//                                 using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                                 {
-//                                     reader.Read();
-//                                     textReader = reader.GetTextReader(0);
-//                                     Task t = null;
-//                                     using (PendAsyncReadsScope debugScope = new PendAsyncReadsScope(reader, errorCode: 11))
-//                                     {
-//                                         // Error during read
-//                                         t = textReader.ReadAsync(largeBuffer, 0, largeBuffer.Length);
-//                                     }
-//                                     DataTestClass.AssertThrowsWrapper<AggregateException, IOException, PgException>(() => t.Wait());
-//                                 }
-// #endif
-                            }
-                        }
                     }
                 }
             }
@@ -1491,7 +1073,7 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 connection.Open();
-                CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default, CommandBehavior.SequentialAccess };
+                CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
                 foreach (CommandBehavior behavior in behaviors)
                 {
                     // GetStream
@@ -1695,3 +1277,4 @@ namespace PostgreSql.Data.PostgreSqlClient.Tests
         }
     }
 }
+

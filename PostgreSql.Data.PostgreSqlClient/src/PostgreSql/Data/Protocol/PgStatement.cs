@@ -519,7 +519,7 @@ namespace PostgreSql.Data.Protocol
             Execute(_database.ConnectionOptions.FetchSize);
         }
 
-        private void Execute(int fetchSize, [System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
+        private void Execute(int fetchSize)
         {
             // Update status
             _status = PgStatementStatus.Executing;

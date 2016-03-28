@@ -24,6 +24,7 @@ namespace PostgreSql.Data.Protocol
         internal PgTypeInfo   TypeInfo         => _typeInfo;         
         internal int          NumericPrecision => ((_typeInfo.IsNumeric) ? (_typeModifier >> 16) : 0);
         internal int          NumericScale     => ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4)) : 0);
+        internal bool         IsExpression     => (_tableOid == 0 && _columnId == 0);
 
         internal PgFieldDescriptor(string       name
                                  , int          tableOid
