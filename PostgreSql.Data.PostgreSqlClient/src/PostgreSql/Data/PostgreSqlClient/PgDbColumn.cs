@@ -81,18 +81,18 @@ namespace PostgreSql.Data.PostgreSqlClient
             if (!reader.IsDBNull(3))
             {
                 AllowDBNull = !reader.GetBoolean(3);
-            }            
+            }
             if (!reader.IsDBNull(4))
             {
                 IsAutoIncrement = reader.GetBoolean(4);
                 IsReadOnly	    = reader.GetBoolean(4);
             }
             if (!reader.IsDBNull(5))
-            {            
+            {
                 IsKey = reader.GetBoolean(5);
             }
             if (!reader.IsDBNull(6))
-            {            
+            {
                 IsUnique = reader.GetBoolean(6);
             }
 
