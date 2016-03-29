@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.PgTypes;
+using PostgreSql.Data.SqlClient;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using PostgreSql.Data.PgTypes;
-using PostgreSql.Data.SqlClient;
 
 namespace PostgreSql.Data.Protocol
 {
@@ -98,13 +98,13 @@ namespace PostgreSql.Data.Protocol
         }
 
         internal string ReadString()  => ReadString(ReadInt32());
-        internal bool   ReadBoolean() => BitConverter.ToBoolean(_contents, _position++);
+        internal bool   ReadBoolean() => Convert.ToBoolean(ReadByte());
         internal byte   ReadByte()    => _contents[_position++];
         
         internal short ReadInt16()
         {
-            short value = (short)((_contents[_position + 1])
-                                | (_contents[_position + 0] << 8));
+            short value = (short)((_contents[_position + 1] & 0xFF)
+                                | (_contents[_position + 0] & 0xFF) << 8);
 
             _position += 2;
 
@@ -112,11 +112,11 @@ namespace PostgreSql.Data.Protocol
         }
 
         internal int ReadInt32()
-        {                        
-            int value = (_contents[_position + 3])
-                      | (_contents[_position + 2] << 8)
-                      | (_contents[_position + 1] << 16)
-                      | (_contents[_position    ] << 24);
+        {
+            int value = (_contents[_position + 3] & 0xFF)
+                      | (_contents[_position + 2] & 0xFF) <<  8
+                      | (_contents[_position + 1] & 0xFF) << 16
+                      | (_contents[_position    ] & 0xFF) << 24;
 
             _position += 4;
 
@@ -131,27 +131,21 @@ namespace PostgreSql.Data.Protocol
             return (uint)v2 | ((long)v1 << 32);
         }
 
+        // internal unsafe float ReadSingle()
+        // {
+        //     var value = ReadInt32();
+
+        //      return *((float*)&value);
+        // }
+
         internal float ReadSingle()
         {
-            var value = BitConverter.ToSingle(_contents, _position);
-
-            _position += sizeof(float);
-
-            return value;
+            return BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         }
 
-        internal float ReadCurrency() => ((float)ReadInt32() / 100);
-
-        internal double ReadDouble()
-        {
-            var value = BitConverter.ToDouble(_contents, _position);
-
-            _position += sizeof(long);
-
-            return value;
-        }
-
-        internal DateTime ReadDate() => PgCodes.BASE_DATE.AddDays(ReadInt32());
+        internal float    ReadCurrency() => ((float)ReadInt32() / 100);
+        internal double   ReadDouble()   => BitConverter.Int64BitsToDouble(ReadInt64());
+        internal DateTime ReadDate()     => PgCodes.BASE_DATE.AddDays(ReadInt32());
 
         internal PgTimeSpan ReadInterval()
         {
@@ -180,17 +174,12 @@ namespace PostgreSql.Data.Protocol
 
         internal DateTimeOffset ReadTimestampWithTZ(int length)
         {
-            if (!_sessionData.IntegerDateTimes)
-            {
-                throw new NotSupportedException("non integer datetimes are no supported.");
-            }
-
-            var value = ReadInt64();           
+            var value = ReadInt64();
             var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));
             
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
-        
+
         internal Array ReadArray(PgTypeInfo type, int length)
         {
             if (type.Format == PgTypeFormat.Text)
@@ -285,19 +274,24 @@ namespace PostgreSql.Data.Protocol
            return new PgPath(isClosedPath, points);
         }
 
-        internal object ReadFormattedValue(PgTypeInfo type, PgTypeFormat format, int length)
+        internal object ReadValue(PgFieldDescriptor descriptor, int length)
         {
-            if (format == PgTypeFormat.Text)
+            return ReadValue(descriptor.TypeInfo, length);
+        }
+
+        internal object ReadValue(PgTypeInfo typeInfo, int length)
+        {
+            if (typeInfo.Format == PgTypeFormat.Text)
             {
-                return ReadValueFromString(type, length);
+                return ReadStringValue(typeInfo, length);
             }
             else
             {
-                return ReadValue(type, length);
+                return ReadBinaryValue(typeInfo, length);
             }
         }
 
-        internal object ReadValue(PgTypeInfo type, int length)
+        private object ReadBinaryValue(PgTypeInfo type, int length)
         {
             switch (type.ProviderType)
             {
@@ -385,7 +379,7 @@ namespace PostgreSql.Data.Protocol
             }
         }
 
-        internal object ReadValueFromString(PgTypeInfo type, int length)
+        internal object ReadStringValue(PgTypeInfo type, int length)
         {
             if (type.IsArray)
             {

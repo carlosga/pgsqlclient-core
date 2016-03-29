@@ -85,7 +85,7 @@ namespace PostgreSql.Data.SqlClient
             get { return _connection; }
             set
             {
-                if (_connection != null && ActiveDataReader != null)
+                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
                 {
                     throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
                 }
@@ -111,19 +111,13 @@ namespace PostgreSql.Data.SqlClient
             get { return _transaction; }
             set
             {
-                if (_connection != null && ActiveDataReader != null)
+                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
                 {
                     throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
                 }
 
                 _transaction = value as PgTransaction;
             }
-        }
-
-        internal PgDataReader ActiveDataReader
-        {
-            get { return _activeDataReader?.Target as PgDataReader; }
-            set { _activeDataReader = new WeakReference(value); }
         }
 
         internal CommandBehavior CommandBehavior => _commandBehavior;
@@ -241,11 +235,9 @@ namespace PostgreSql.Data.SqlClient
 
             InternalExecuteReader(behavior);
 
-            var reader = new PgDataReader(_connection, this);
-        
-            _activeDataReader = new WeakReference(reader);
+            _activeDataReader = new WeakReference(new PgDataReader(_connection, this));
 
-            return reader;
+            return _activeDataReader.Target as PgDataReader;
         }
         
         public override object ExecuteScalar()
@@ -291,8 +283,6 @@ namespace PostgreSql.Data.SqlClient
             {
                 _statement.StatementText = stmtText;
             }
-
-            PrepareParameters();
 
             _statement.Prepare(_parameters);
 
@@ -363,7 +353,10 @@ namespace PostgreSql.Data.SqlClient
                 if (_activeDataReader != null && _activeDataReader.IsAlive)
                 {
                     var reader = _activeDataReader.Target as PgDataReader;
-                    reader.Close();
+                    if (!reader.IsClosed)
+                    {
+                        reader.Close();
+                    }
                 }
 
                 _connection.InnerConnection.RemovePreparedCommand(this);
@@ -404,6 +397,8 @@ namespace PostgreSql.Data.SqlClient
                     }
                 }
             }
+
+            _activeDataReader = null;
         }
 
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
@@ -412,7 +407,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw new InvalidOperationException($"{memberName} requires an open and available Connection. The connection's current state is closed.");
             }
-            if (ActiveDataReader != null)
+            if (_activeDataReader != null && _activeDataReader.IsAlive)
             {
                 throw new InvalidOperationException("There is already an open DataReader associated with this Command which must be closed first.");
             }
@@ -430,35 +425,6 @@ namespace PostgreSql.Data.SqlClient
             if (_commandText == null || _commandText.Length == 0)
             {
                 throw new InvalidOperationException("The command text for this Command has not been set.");
-            }
-        }
-        
-        private void PrepareParameters()
-        {
-            if (_parameters == null && _parameters.Count == 0)
-            {
-                return;
-            }
-
-            if (_parameters.IsDirty)
-            {
-                var database = _connection.InnerConnection.Database;
-
-                foreach (var name in _namedParameters)
-                {
-                    var current = _parameters[name];
-
-                    if (database.SessionData.TypeInfo.Count(x => x.ProviderType == current.ProviderType) == 1)
-                    {
-                        current.TypeInfo = database.SessionData.TypeInfo.Single(x => x.ProviderType == current.ProviderType);
-                    }
-                    else
-                    {
-                        current.TypeInfo = database.SessionData.TypeInfo.Single(x => x.Name == current.ProviderType.ToString().ToLower());
-                    }
-                }
-
-                _parameters.IsDirty = false;
             }
         }
     }

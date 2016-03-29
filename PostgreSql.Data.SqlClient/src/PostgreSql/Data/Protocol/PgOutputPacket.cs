@@ -73,19 +73,19 @@ namespace PostgreSql.Data.Protocol
 
         internal void Write(short value)
         {
-            _buffer[0] = (byte)(value >> 8);
-            _buffer[1] = (byte)(value);
-            
+            _buffer[0] = (byte)((value >> 8) & 0xFF);
+            _buffer[1] = (byte)((value     ) & 0xFF);
+
             _stream.Write(_buffer, 0, 2);
         }
 
         internal void Write(int value)
         {
-            _buffer[0] = (byte)(value >> 24);
-            _buffer[1] = (byte)(value >> 16);
-            _buffer[2] = (byte)(value >> 8);
-            _buffer[3] = (byte)(value);
-            
+            _buffer[0] = (byte)((value >> 24) & 0xFF);
+            _buffer[1] = (byte)((value >> 16) & 0xFF);
+            _buffer[2] = (byte)((value >>  8) & 0xFF);
+            _buffer[3] = (byte)((value      ) & 0xFF);
+
             _stream.Write(_buffer, 0, 4);
         }
 
@@ -95,14 +95,23 @@ namespace PostgreSql.Data.Protocol
             Write((int)(value));
         }
 
-        internal void Write(float value)       => Write(Convert.ToInt32(value));
-        internal void Write(double value)      => Write(Convert.ToInt64(value));
+        // internal unsafe void Write(float value)
+        // {
+        //      Write(*((int*)&value));
+        // }
+
+        public void Write(float value)
+        {
+            Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+        }
+
+        internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(bool value)        => WriteByte(Convert.ToByte(value));
         internal void WriteDate(DateTime date) => Write(date.Subtract(PgCodes.BASE_DATE).Days);
 
         internal void WriteInterval(TimeSpan interval)
         {
-            Write(interval.Subtract(TimeSpan.FromDays(interval.Days)).TotalSeconds);
+            Write(interval.Subtract(TimeSpan.FromDays(interval.TotalDays)).TotalSeconds);
             Write(interval.Days / 30);
         }
 
@@ -123,9 +132,7 @@ namespace PostgreSql.Data.Protocol
 
         internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
         {
-            long microseconds = (long)(PgCodes.MicrosecondsBetweenEpoch + (timestamp.ToUnixTimeMilliseconds() * 0.001));
-
-            Write(microseconds);
+            Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgCodes.MicrosecondsBetweenEpoch));
         }
 
         internal void Write(PgPoint point)
@@ -385,14 +392,14 @@ namespace PostgreSql.Data.Protocol
 
             // Write packet length
             var length = _stream.Length + 4;
-            
+
             _buffer[0] = (byte)(length >> 24);
             _buffer[1] = (byte)(length >> 16);
             _buffer[2] = (byte)(length >> 8);
             _buffer[3] = (byte)(length);
 
             stream.Write(_buffer, 0, 4);
-            
+
             // Write packet contents
             _stream.WriteTo(stream);
         }

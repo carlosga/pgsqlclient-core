@@ -200,7 +200,7 @@ namespace PostgreSql.Data.SqlClient
                 // Set connection state to Open
                 ChangeState(ConnectionState.Open);
             }
-            catch (PgException ex)
+            catch (Exception)
             {
                 ChangeState(ConnectionState.Broken);
                 throw;

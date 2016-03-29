@@ -8,30 +8,30 @@
     },
     "frameworks": {
         "netstandard1.5":{
-            "imports" : "dotnet5.6",
+            "imports" : ["dotnet5.6"],
             "dependencies":{
-                "NETStandard.Library": "1.5.0-rc3-*",  
-                "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",
-                "System.Collections": "4.0.11-rc3-*",
-                "System.Collections.Concurrent": "4.0.12-rc3-*",
-                "System.Collections.NonGeneric": "4.0.1-rc3-*",
-                "System.Data.Common": "4.0.1-rc3-*",
-                "System.Globalization": "4.0.11-rc3-*",
-                "System.IO": "4.1.0-rc3-*",
-                "System.Linq": "4.1.0-rc3-*",
-                "System.Net.NameResolution": "4.0.0-rc3-*",
-                "System.Net.Primitives": "4.0.11-rc3-*",
-                "System.Net.Security": "4.0.0-rc3-*",
-                "System.Net.Sockets": "4.1.0-rc3-*",
-                "System.Reflection": "4.1.0-rc3-*",
-                "System.Reflection.TypeExtensions": "4.1.0-rc3-*",
-                "System.Resources.ResourceManager": "4.0.1-rc3-*",
-                "System.Security.Cryptography.Algorithms": "4.1.0-rc3-*",
-                "System.Security.Cryptography.X509Certificates": "4.1.0-rc3-*",
-                "System.Text.Encoding": "4.0.11-rc3-*",
-                "System.Threading": "4.0.11-rc3-*",
-                "System.Threading.Tasks": "4.0.11-rc3-*",
-                "System.Threading.Thread": "4.0.0-rc3-*"
+                "NETStandard.Library": "1.5.0-rc2-*",  
+                "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
+                "System.Collections": "4.0.11-rc2-*",
+                "System.Collections.Concurrent": "4.0.12-rc2-*",
+                "System.Collections.NonGeneric": "4.0.1-rc2-*",
+                "System.Data.Common": "4.0.1-rc2-*",
+                "System.Globalization": "4.0.11-rc2-*",
+                "System.IO": "4.1.0-rc2-*",
+                "System.Linq": "4.1.0-rc2-*",
+                "System.Net.NameResolution": "4.0.0-rc2-*",
+                "System.Net.Primitives": "4.0.11-rc2-*",
+                "System.Net.Security": "4.0.0-rc2-*",
+                "System.Net.Sockets": "4.1.0-rc2-*",
+                "System.Reflection": "4.1.0-rc2-*",
+                "System.Reflection.TypeExtensions": "4.1.0-rc2-*",
+                "System.Resources.ResourceManager": "4.0.1-rc2-*",
+                "System.Security.Cryptography.Algorithms": "4.1.0-rc2-*",
+                "System.Security.Cryptography.X509Certificates": "4.1.0-rc2-*",
+                "System.Text.Encoding": "4.0.11-rc2-*",
+                "System.Threading": "4.0.11-rc2-*",
+                "System.Threading.Tasks": "4.0.11-rc2-*",
+                "System.Threading.Thread": "4.0.0-rc2-*"
             }
         }
     },
@@ -55,6 +55,5 @@
         }
     },
     "compile": "src/**/*.cs",
-    "resource": "src/**/*.xml",
-    "exclude": []
+    "resource": "src/**/*.xml"
 }

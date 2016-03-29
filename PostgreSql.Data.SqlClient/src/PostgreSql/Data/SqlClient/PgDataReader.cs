@@ -104,21 +104,7 @@ namespace PostgreSql.Data.SqlClient
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    try
-                    {
-                        Close();
-                    }
-                    finally
-                    {
-                        _command         = null;
-                        _statement       = null;
-                        _connection      = null;
-                        _refCursors      = null;
-                        _row             = null;
-                        _recordsAffected = -1;
-                        _position        = STARTPOS;
-                        _metadata        = null;
-                    }
+                    Close();
 
                     base.Dispose(disposing);
                 }
@@ -392,25 +378,43 @@ namespace PostgreSql.Data.SqlClient
                 return;
             }
 
-            // This will update RecordsAffected property
-            UpdateRecordsAffected();
-
-            if (_command != null && !_command.IsDisposed)
+            try
             {
-                // Set values of output parameters
-                _command.InternalSetOutputParameters();
-                _command.ActiveDataReader = null;
-            }
+                // This will update RecordsAffected property
+                UpdateRecordsAffected();
 
-            if (_behavior.HasBehavior(CommandBehavior.CloseConnection) && _connection != null)
+                if (_command != null && !_command.IsDisposed)
+                {
+                    // Set values of output parameters
+                    _command.InternalSetOutputParameters();
+                }
+
+                if (_behavior.HasBehavior(CommandBehavior.CloseConnection) && _connection != null)
+                {
+                    _connection.Close();
+                }
+
+                _refCursors.Clear();
+
+                _open     = false;
+                _position = STARTPOS;
+            }
+            catch (System.Exception)
             {
-                _connection.Close();
+                
+                throw;
             }
-
-            _refCursors.Clear();
-
-            _open     = false;
-            _position = STARTPOS;
+            finally
+            {
+                _command         = null;
+                _statement       = null;
+                _connection      = null;
+                _refCursors      = null;
+                _row             = null;
+                _recordsAffected = -1;
+                _position        = STARTPOS;
+                _metadata        = null;
+            }
         }
 
         private T GetValueWithNullCheck<T>(int i)

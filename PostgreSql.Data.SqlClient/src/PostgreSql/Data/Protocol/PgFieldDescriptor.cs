@@ -11,7 +11,6 @@ namespace PostgreSql.Data.Protocol
         private readonly int          _typeOid;
         private readonly short        _typeSize;
         private readonly int          _typeModifier;
-        private readonly PgTypeFormat _format;
         private readonly PgTypeInfo   _typeInfo;
 
         internal string       Name             => _name;
@@ -20,7 +19,6 @@ namespace PostgreSql.Data.Protocol
         internal int          TypeOid          => _typeOid;
         internal short        TypeSize         => _typeSize;
         internal int          TypeModifier     => _typeModifier;
-        internal PgTypeFormat Format           => _format;
         internal PgTypeInfo   TypeInfo         => _typeInfo;         
         internal int          NumericPrecision => ((_typeInfo.IsNumeric) ? (_typeModifier >> 16) : 0);
         internal int          NumericScale     => ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4)) : 0);
@@ -32,7 +30,6 @@ namespace PostgreSql.Data.Protocol
                                  , int          typeOid
                                  , short        typeSize
                                  , int          typeModifier
-                                 , PgTypeFormat format
                                  , PgTypeInfo   typeInfo)
         {
             _name         = name;
@@ -41,7 +38,6 @@ namespace PostgreSql.Data.Protocol
             _typeOid      = typeOid;
             _typeSize     = typeSize;
             _typeModifier = typeModifier;
-            _format       = format;
             _typeInfo     = typeInfo;
         }
     }

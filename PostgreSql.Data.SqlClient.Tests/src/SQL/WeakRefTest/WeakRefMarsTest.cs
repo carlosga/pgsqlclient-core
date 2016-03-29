@@ -4,9 +4,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
-using System;
 using NUnit.Framework;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -18,6 +18,32 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const string COLUMN_NAME_2       = "companyname";
         private const string DATABASE_NAME       = "pubs";
         private const int    CONCURRENT_COMMANDS = 5;
+
+        private enum ReaderTestType
+        {
+            ReaderClose,
+            ReaderDispose,
+            ReaderGC,
+            ConnectionClose,
+            ReaderGCConnectionClose,
+        }
+
+        private enum ReaderVerificationType
+        {
+            ExecuteReader,
+            ChangeDatabase,
+            BeginTransaction,
+            EnlistDistributedTransaction,
+        }
+
+        private enum TransactionTestType
+        {
+            TransactionRollback,
+            TransactionDispose,
+            TransactionGC,
+            ConnectionClose,
+            TransactionGCConnectionClose,
+        }
 
         [Test]
         public static void TestReaderMars()
@@ -55,34 +81,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestTransactionSingleCase("Case 5: BeginTransaction, GC, Connection Close.", connectionString, TransactionTestType.TransactionGCConnectionClose);
         }
 
-        private enum ReaderTestType
-        {
-            ReaderClose,
-            ReaderDispose,
-            ReaderGC,
-            ConnectionClose,
-            ReaderGCConnectionClose,
-        }
-
-        private enum ReaderVerificationType
-        {
-            ExecuteReader,
-            ChangeDatabase,
-            BeginTransaction,
-            EnlistDistributedTransaction,
-        }
-
-        private enum TransactionTestType
-        {
-            TransactionRollback,
-            TransactionDispose,
-            TransactionGC,
-            ConnectionClose,
-            TransactionGCConnectionClose,
-        }
-
-        public static int GCCount = 0;
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestReaderMarsCase(string caseName, string connectionString, ReaderTestType testType, ReaderVerificationType verificationType)
         {
@@ -98,10 +96,15 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     cmd[i] = con.CreateCommand();
                     cmd[i].CommandText = COMMAND_TEXT_1;
+                    
                     if ((testType != ReaderTestType.ReaderGC) && (testType != ReaderTestType.ReaderGCConnectionClose))
+                    {
                         gch[i] = cmd[i].ExecuteReader();
+                    }
                     else
+                    {
                         gch[i] = null;
+                    }
                 }
 
                 for (int i = 0; i < CONCURRENT_COMMANDS; i++)
@@ -176,9 +179,11 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private static WeakReference OpenNullifyReader(PgCommand command)
         {
-            PgDataReader  reader = command.ExecuteReader();
-            WeakReference weak   = new WeakReference(reader);
+            var reader = command.ExecuteReader();
+            var weak   = new WeakReference(reader);
+
             reader = null;
+
             return weak;
         }
 
@@ -193,8 +198,10 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 PgTransaction gch = null;
                 if ((testType != TransactionTestType.TransactionGC) && (testType != TransactionTestType.TransactionGCConnectionClose))
+                {
                     gch = con.BeginTransaction();
-
+                }
+                
                 switch (testType)
                 {
                     case TransactionTestType.TransactionRollback:
@@ -240,9 +247,11 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private static WeakReference OpenNullifyTransaction(PgConnection connection)
         {
-            PgTransaction transaction = connection.BeginTransaction();
-            WeakReference weak = new WeakReference(transaction);
+            var transaction = connection.BeginTransaction();
+            var weak        = new WeakReference(transaction);
+
             transaction = null;
+
             return weak;
         }
     }

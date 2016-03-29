@@ -64,36 +64,36 @@ namespace PostgreSql.Data.SqlClient
             NumericScale     = descriptor.NumericScale;
         }
 
-        internal void Populate(PgDataReader reader)
+        internal void Populate(object[] row)
         {
-            if (!reader.IsDBNull(0))
+            if (row[0] != null && row[0] != DBNull.Value)
             {
-                BaseSchemaName = reader.GetString(0);   
+                BaseSchemaName = (string)row[0];
             }
-            if (!reader.IsDBNull(1))
+            if (row[1] != null && row[1] != DBNull.Value)
             {
-                BaseTableName = reader.GetString(1);
+                BaseTableName = (string)row[1];
             }
-            if (!reader.IsDBNull(2))
+            if (row[2] != null && row[2] != DBNull.Value)
             {
-                BaseColumnName = reader.GetString(2);
+                BaseColumnName = (string)row[2];
             }
-            if (!reader.IsDBNull(3))
+            if (row[3] != null && row[3] != DBNull.Value)
             {
-                AllowDBNull = !reader.GetBoolean(3);
+                AllowDBNull = !(bool)row[3];
             }
-            if (!reader.IsDBNull(4))
+            if (row[4] != null && row[4] != DBNull.Value)
             {
-                IsAutoIncrement = reader.GetBoolean(4);
-                IsReadOnly	    = reader.GetBoolean(4);
+                IsAutoIncrement = (bool)row[4];
+                IsReadOnly	    = IsAutoIncrement;
             }
-            if (!reader.IsDBNull(5))
+            if (row[5] != null && row[5] != DBNull.Value)
             {
-                IsKey = reader.GetBoolean(5);
+                IsKey = (bool)row[5];
             }
-            if (!reader.IsDBNull(6))
+            if (row[6] != null && row[6] != DBNull.Value)
             {
-                IsUnique = reader.GetBoolean(6);
+                IsUnique = (bool)row[6];
             }
 
             IsAliased = !ColumnName.CaseInsensitiveCompare(BaseColumnName);

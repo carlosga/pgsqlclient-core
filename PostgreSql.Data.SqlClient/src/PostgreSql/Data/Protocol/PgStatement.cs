@@ -125,6 +125,7 @@ namespace PostgreSql.Data.Protocol
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
 
+                PrepareParameters(parameters);
                 Parse(parameters);
                 DescribeStatement();
             }
@@ -428,7 +429,7 @@ namespace PostgreSql.Data.Protocol
             for (int i = 0; i < parameters.Count; i++)
             {
                 packet.Write(parameters[i].TypeInfo.Oid);
-            }            
+            }
             
             // Send packet to the server
             _database.Send(packet);
@@ -729,10 +730,10 @@ namespace PostgreSql.Data.Protocol
                 var typeOid      = packet.ReadInt32();
                 var typeSize     = packet.ReadInt16();
                 var typeModifier = packet.ReadInt32();
-                var format       = (PgTypeFormat)packet.ReadInt16();
+                var format       = packet.ReadInt16();
                 var typeInfo     = _database.SessionData.TypeInfo.SingleOrDefault(x => x.Oid == typeOid);
 
-                _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, format, typeInfo));
+                _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }
         }
 
@@ -751,15 +752,7 @@ namespace PostgreSql.Data.Protocol
                 }
                 else
                 {
-                    var descriptor = _rowDescriptor[i];
-                    var formatCode = descriptor.TypeInfo.Format;
-
-                    if (_status == PgStatementStatus.OnQuery)
-                    {
-                        formatCode = descriptor.Format;
-                    }
-                    
-                    values[i] = packet.ReadFormattedValue(descriptor.TypeInfo, formatCode, length);
+                    values[i] = packet.ReadValue(_rowDescriptor[i], length);
                 }
             }
 
@@ -772,6 +765,33 @@ namespace PostgreSql.Data.Protocol
 
             _hasRows        = false;
             _allRowsFetched = false;
+        }
+
+        private void PrepareParameters(PgParameterCollection parameters)
+        {
+            if (parameters == null && parameters.Count == 0)
+            {
+                return;
+            }
+
+            if (parameters.IsDirty)
+            {
+                var typeInfo = _database.SessionData.TypeInfo;
+
+                foreach (PgParameter parameter in parameters)
+                {
+                    if (typeInfo.Count(x => x.ProviderType == parameter.ProviderType) == 1)
+                    {
+                        parameter.TypeInfo = typeInfo.Single(x => x.ProviderType == parameter.ProviderType);
+                    }
+                    else
+                    {
+                        parameter.TypeInfo = typeInfo.Single(x => x.Name == parameter.ProviderType.ToString().ToLower());
+                    }
+                }
+
+                parameters.IsDirty = false;
+            }
         }
     }
 }

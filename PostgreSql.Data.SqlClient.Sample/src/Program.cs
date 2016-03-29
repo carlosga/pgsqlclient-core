@@ -20,27 +20,20 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            var query = "SELECT *, orderid AS Order_ID, 'Hello World' FROM orders";
+            var count = 0;
             
-            using (PgConnection connection = new PgConnection(csb.ToString()))
+            using (PgConnection c = new PgConnection(csb.ToString()))
             {
-                connection.Open();
-                
-                using (PgCommand cmd = new PgCommand(query, connection))
+                c.Open();
+                string sqlBatch = "select * from orders";
+                using (PgCommand cmd = new PgCommand(sqlBatch, c))
+                using (PgDataReader reader = cmd.ExecuteReader())
                 {
-                    using (PgDataReader reader = cmd.ExecuteReader())
-                    {
-                        var schemas = reader.GetColumnSchema();
-                        
-                        foreach (var schema in schemas)
-                        {
-                            Console.WriteLine($"{schema.BaseSchemaName}.{schema.BaseTableName}.{schema.BaseColumnName} (IsExpression = {schema.IsExpression})");
-                        }
-                    }
+                    while (reader.Read()) { ++count; }
                 }
             }
         
-            Console.WriteLine("Finished !!");
+            Console.WriteLine($"Finished ({count}) !!");
         } 
     }
 }

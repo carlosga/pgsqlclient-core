@@ -7,11 +7,10 @@
     },
     "frameworks": {
         "netstandardapp1.5": {   
-            "imports" : "dotnet5.6",        
+            "imports" : ["dotnet5.6"],
             "dependencies": {                
-                "NETStandard.Library": "1.5.0-rc3-*",  
-                "Microsoft.NETCore.Platforms": "1.0.1-rc3-*",
-                "Microsoft.NETCore.App": "1.0.0-rc3-*",
+                "NETStandard.Library": "1.5.0-rc2-*",  
+                "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
                 "PostgreSql.Data.SqlClient": {
                     "target"  : "project",
                     "version" : "0.0.1"

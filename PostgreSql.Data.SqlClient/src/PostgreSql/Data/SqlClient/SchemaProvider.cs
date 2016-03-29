@@ -26,9 +26,9 @@ namespace PostgreSql.Data.SqlClient
                  + "LEFT JOIN pg_attrdef    ON (pg_class.oid          = pg_attrdef.adrelid AND pg_attribute.attnum = pg_attrdef.adnum) "
                  + "LEFT JOIN pg_depend     ON (pg_attribute.attrelid = pg_depend.refobjid AND pg_attribute.attnum = pg_depend.refobjsubid AND pg_depend.deptype = 'i') "
               + "WHERE " 
-                 + "    pg_attribute.attrelid     = @TableOid "
-                 + "AND pg_attribute.attnum       = @ColumnId "
-                 + "AND pg_attribute.attisdropped = false ";
+                 + "    pg_attribute.attrelid     = $1 "
+                 + "AND pg_attribute.attnum       = $2 "
+                 + "AND pg_attribute.attisdropped = false";
 
         private readonly PgConnection    _connection;
         private readonly PgRowDescriptor _descriptor;
@@ -43,14 +43,14 @@ namespace PostgreSql.Data.SqlClient
         {
             var columns = new DbColumn[_descriptor.Count];
 
-            using (var command = _connection.CreateCommand())
+            using (var command = _connection.InnerConnection.CreateStatement(ColumnSchemaQuery))
             {
-                command.CommandText = ColumnSchemaQuery;
-                
-                command.Parameters.Add("@TableOid", PgDbType.Int4);
-                command.Parameters.Add("@ColumnId", PgDbType.Int4);
+                var parameters = new PgParameterCollection();
 
-                command.Prepare();
+                parameters.Add("@TableOid", PgDbType.Int4);
+                parameters.Add("@ColumnId", PgDbType.Int4);
+
+                command.Prepare(parameters);
                 
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -58,16 +58,12 @@ namespace PostgreSql.Data.SqlClient
 
                     if (!_descriptor[i].IsExpression)
                     {
-                        command.Parameters[0].Value = _descriptor[i].TableOid;
-                        command.Parameters[1].Value = _descriptor[i].ColumnId;
+                        parameters[0].Value = _descriptor[i].TableOid;
+                        parameters[1].Value = _descriptor[i].ColumnId;
 
-                        using (var reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                schema.Populate(reader);
-                            }
-                        }
+                        command.ExecuteReader(parameters);
+
+                        schema.Populate(command.FetchRow());
                     }
 
                     columns[i] = schema;
