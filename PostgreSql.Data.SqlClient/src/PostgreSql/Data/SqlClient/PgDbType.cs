@@ -16,9 +16,8 @@ namespace PostgreSql.Data.SqlClient
       , Circle
       , Money
       , Date
-      , Decimal
       , Double
-      , Single
+      , Real
       , Int16
       , Int32
       , Int64

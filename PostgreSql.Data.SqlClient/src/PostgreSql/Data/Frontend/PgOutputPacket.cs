@@ -317,7 +317,6 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteTimestampWithTZ((DateTimeOffset)value);
                     break;
 
-                case PgDbType.Decimal:
                 case PgDbType.Numeric:
                     {
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
@@ -326,7 +325,7 @@ namespace PostgreSql.Data.Protocol
                     }
                     break;
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     {
                         string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
                         packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));

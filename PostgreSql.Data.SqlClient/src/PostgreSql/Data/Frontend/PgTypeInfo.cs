@@ -39,17 +39,15 @@ namespace PostgreSql.Data.Protocol
             dataTypes.Add(1016, "_int8", PgDbType.Array, 20, PgTypeFormat.Binary, 8);
 
             // decimal | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
-            
-            dataTypes.Add(1700, "decimal", PgDbType.Decimal, 0, PgTypeFormat.Text, 8);
-
             // numeric | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
-            
-            dataTypes.Add(1700, "numeric", PgDbType.Numeric, 0, PgTypeFormat.Text, 8);
+
+            dataTypes.Add(1700,  "numeric", PgDbType.Numeric, 0   , PgTypeFormat.Text,  8);
+            dataTypes.Add(1231, "_numeric", PgDbType.Array  , 1700, PgTypeFormat.Text, -1);
 
             // real | 4 bytes | variable-precision, inexact	6 decimal digits precision
             
-            dataTypes.Add( 700, "float4" , PgDbType.Single,   0, PgTypeFormat.Text  , 4);
-            dataTypes.Add(1021, "_float4", PgDbType.Array , 700, PgTypeFormat.Binary, 4);
+            dataTypes.Add( 700, "float4" , PgDbType.Real ,   0, PgTypeFormat.Text  , 4);
+            dataTypes.Add(1021, "_float4", PgDbType.Array, 700, PgTypeFormat.Binary, 4);
             
             // double precision | 8 bytes | variable-precision, inexact	15 decimal digits precision
             
@@ -274,15 +272,14 @@ namespace PostgreSql.Data.Protocol
         {
             get
             {
-                return (_providerType == PgDbType.Money
+                return (_providerType == PgDbType.Byte
                      || _providerType == PgDbType.Int16
                      || _providerType == PgDbType.Int32
                      || _providerType == PgDbType.Int64
-                     || _providerType == PgDbType.Single
+                     || _providerType == PgDbType.Money
+                     || _providerType == PgDbType.Real
                      || _providerType == PgDbType.Double
-                     || _providerType == PgDbType.Decimal
-                     || _providerType == PgDbType.Numeric
-                     || _providerType == PgDbType.Byte);
+                     || _providerType == PgDbType.Numeric);
             }
         }
 
@@ -292,11 +289,11 @@ namespace PostgreSql.Data.Protocol
             {
                 return (_providerType == PgDbType.Bool
                      || _providerType == PgDbType.Byte
+                     || _providerType == PgDbType.Char
                      || _providerType == PgDbType.Int16
                      || _providerType == PgDbType.Int32
                      || _providerType == PgDbType.Int64
-                     || _providerType == PgDbType.Char
-                     || _providerType == PgDbType.Single
+                     || _providerType == PgDbType.Real
                      || _providerType == PgDbType.Double);
             }
         }

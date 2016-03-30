@@ -51,11 +51,10 @@ namespace PostgreSql.Data.Protocol
                     return DbType.DateTimeOffset;
 
                 case PgDbType.Money:
-                case PgDbType.Decimal:
                 case PgDbType.Numeric:
                     return DbType.Decimal;
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     return DbType.Single;
 
                 case PgDbType.Double:
@@ -101,13 +100,13 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.TimestampTZ;
 
                 case DbType.Decimal:
-                    return PgDbType.Decimal;
+                    return PgDbType.Numeric;
 
                 case DbType.Single:
-                    return PgDbType.Single;
+                    return PgDbType.Real;
 
                 case DbType.Double:
-                    return PgDbType.Single;
+                    return PgDbType.Double;
 
                 case DbType.Int16:
                     return PgDbType.Int16;
@@ -168,7 +167,7 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Single:
-                    providerType = PgDbType.Single;
+                    providerType = PgDbType.Real;
                     break;
 
                 case TypeCode.Double:
@@ -176,7 +175,7 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Decimal:
-                    providerType = PgDbType.Decimal;
+                    providerType = PgDbType.Numeric;
                     break;
 
                 case TypeCode.DateTime:
@@ -237,7 +236,6 @@ namespace PostgreSql.Data.Protocol
                     return typeof(System.String);
 
                 case PgDbType.Money:
-                case PgDbType.Decimal:
                 case PgDbType.Numeric:
                     return typeof(System.Decimal);
 
@@ -254,7 +252,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.TimestampTZ:
                     return typeof(System.DateTimeOffset);
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     return typeof(System.Single);
 
                 case PgDbType.Double:
@@ -318,12 +316,11 @@ namespace PostgreSql.Data.Protocol
                     returnValue = Convert.ToDateTime(value).ToString("MM/dd/yyyy");
                     break;
 
-                case PgDbType.Decimal:
                 case PgDbType.Numeric:
                     returnValue = Convert.ToDecimal(value).ToString();
                     break;
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     returnValue = Convert.ToSingle(value).ToString();
                     break;
 

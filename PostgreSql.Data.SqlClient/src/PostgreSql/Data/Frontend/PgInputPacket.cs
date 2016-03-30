@@ -320,7 +320,7 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Money:
                     return ReadMoney();
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     return ReadSingle();
 
                 case PgDbType.Double:
@@ -419,11 +419,10 @@ namespace PostgreSql.Data.Protocol
                     return Byte.Parse(stringValue);
 
                 case PgDbType.Money:
-                case PgDbType.Decimal:
                 case PgDbType.Numeric:
                     return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Single:
+                case PgDbType.Real:
                     return Single.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
                 case PgDbType.Double:
