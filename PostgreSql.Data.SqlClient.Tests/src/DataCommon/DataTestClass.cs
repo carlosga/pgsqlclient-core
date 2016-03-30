@@ -98,7 +98,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                             var connectionStringKey   = node.Attributes["id"].Value;
                             var connectionStringXml   = node.FirstChild as XmlText;
                             var connectionStringValue = connectionStringXml.Data;
-                            
+                                                        
                             s_xmlConnectionStringMap[connectionStringKey] = connectionStringValue;
                         }
                     }

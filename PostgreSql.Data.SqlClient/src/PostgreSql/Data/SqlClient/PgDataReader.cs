@@ -377,7 +377,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 return;
             }
-
+            
             try
             {
                 // This will update RecordsAffected property

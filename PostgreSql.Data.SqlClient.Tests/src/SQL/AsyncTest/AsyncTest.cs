@@ -12,6 +12,7 @@ using NUnit.Framework;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
+    [Ignore("Not supported")]
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;

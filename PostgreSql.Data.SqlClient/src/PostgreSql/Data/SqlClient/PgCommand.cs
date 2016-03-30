@@ -380,6 +380,8 @@ namespace PostgreSql.Data.SqlClient
 
         internal void InternalSetOutputParameters()
         {
+            _activeDataReader = null;
+            
             if (CommandType != CommandType.StoredProcedure || _parameters.Count == 0 || !_statement.HasRows)
             {
                 return;
@@ -397,8 +399,6 @@ namespace PostgreSql.Data.SqlClient
                     }
                 }
             }
-
-            _activeDataReader = null;
         }
 
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)

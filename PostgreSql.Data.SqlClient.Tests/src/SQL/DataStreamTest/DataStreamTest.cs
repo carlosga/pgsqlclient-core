@@ -17,7 +17,7 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]    
+    [TestFixture]
     public static class DataStreamTest
     {
         [Test]

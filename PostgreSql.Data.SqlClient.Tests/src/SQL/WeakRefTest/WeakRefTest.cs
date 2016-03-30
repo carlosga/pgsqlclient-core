@@ -11,7 +11,6 @@ using NUnit.Framework;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
-    //[Ignore("Not ported yet")]
     public static class WeakRefTest
     {
         private const string COMMAND_TEXT_1 = "SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract from authors";

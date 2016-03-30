@@ -16,7 +16,7 @@ using System;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Disabled")]
+    // [Ignore("Disabled")]
     public static class SqlRandomStress
     {
         private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);        
