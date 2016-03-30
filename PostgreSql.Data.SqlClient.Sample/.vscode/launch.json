@@ -7,7 +7,7 @@
 			"request": "launch",
 			"preLaunchTask": "build",
             "justMyCode": false,
-			"program": "${workspaceRoot}/bin/Debug/netstandardapp1.5/ubuntu.14.04-x64/PostgreSql.Data.Sample",
+			"program": "${workspaceRoot}/bin/Debug/netcoreapp1.0/ubuntu.14.04-x64/PostgreSql.Data.SqlClient.Sample",
 			"args": [],
 			"cwd": "${workspaceRoot}",
 			"stopAtEntry": true
