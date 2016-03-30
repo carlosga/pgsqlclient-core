@@ -6,6 +6,8 @@ https://github.com/aspnet/Configuration/
 
 ## Work in progress
 
+- postgresql, data type support.
+
 - Write unit tests ( port the .net core sql client ones ?? ).
 
         https://github.com/dotnet/corefx/pull/7164

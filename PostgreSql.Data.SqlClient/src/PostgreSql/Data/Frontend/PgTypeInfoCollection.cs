@@ -64,30 +64,33 @@ namespace PostgreSql.Data.Protocol
 
         public void Add(int          oid
                       , string       name
+                      , string       internalName
                       , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size)                      
-            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size));
+            => _innerList.Add(new PgTypeInfo(oid, name, internalName, dataType, elementType, formatCode, size));
 
         public void Add(int          oid
                       , string       name
+                      , string       internalName
                       , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size
                       , string       delimiter)
-            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size, delimiter));
+            => _innerList.Add(new PgTypeInfo(oid, name, internalName, dataType, elementType, formatCode, size, delimiter));
 
         public void Add(int          oid
                       , string       name
+                      , string       internalName
                       , PgDbType     dataType
                       , int          elementType
                       , PgTypeFormat formatCode
                       , int          size
                       , string       delimiter
                       , string       prefix)
-            => _innerList.Add(new PgTypeInfo(oid, name, dataType, elementType, formatCode, size, delimiter, prefix));
+            => _innerList.Add(new PgTypeInfo(oid, name, internalName, dataType, elementType, formatCode, size, delimiter, prefix));
 
         int  IList<PgTypeInfo>.IndexOf(PgTypeInfo item)           => _innerList.IndexOf(item);
         void IList<PgTypeInfo>.Insert(int index, PgTypeInfo item) => _innerList.Insert(index, item);
