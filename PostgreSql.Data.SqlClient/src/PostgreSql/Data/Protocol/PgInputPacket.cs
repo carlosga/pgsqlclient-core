@@ -143,9 +143,9 @@ namespace PostgreSql.Data.Protocol
             return BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         }
 
-        internal float    ReadCurrency() => ((float)ReadInt32() / 100);
-        internal double   ReadDouble()   => BitConverter.Int64BitsToDouble(ReadInt64());
-        internal DateTime ReadDate()     => PgCodes.BASE_DATE.AddDays(ReadInt32());
+        internal float    ReadMoney()  => ((float)ReadInt32() / 100);
+        internal double   ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
+        internal DateTime ReadDate()   => PgCodes.BASE_DATE.AddDays(ReadInt32());
 
         internal PgTimeSpan ReadInterval()
         {
@@ -317,22 +317,22 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Byte:
                     return ReadByte();
 
-                case PgDbType.Currency:
-                    return ReadCurrency();
+                case PgDbType.Money:
+                    return ReadMoney();
 
-                case PgDbType.Float4:
+                case PgDbType.Single:
                     return ReadSingle();
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     return ReadDouble();
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     return ReadInt16();
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     return ReadInt32();
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     return ReadInt64();
 
                 case PgDbType.Interval:
@@ -418,23 +418,24 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Byte:
                     return Byte.Parse(stringValue);
 
-                case PgDbType.Currency:
+                case PgDbType.Money:
                 case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Float4:
+                case PgDbType.Single:
                     return Single.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     return Double.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     return Int16.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     return Int32.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     return Int64.Parse(stringValue, NumberFormatInfo.InvariantInfo);
 
                 case PgDbType.Interval:

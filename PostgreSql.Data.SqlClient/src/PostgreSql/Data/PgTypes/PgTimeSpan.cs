@@ -24,6 +24,7 @@ namespace PostgreSql.Data.PgTypes
         public int Milliseconds => _interval.Milliseconds;
         public int Minutes      => _interval.Minutes;
         public int Seconds      => _interval.Seconds;
+        
         public TimeSpan Value   => _interval;
 
         public PgTimeSpan(TimeSpan interval)

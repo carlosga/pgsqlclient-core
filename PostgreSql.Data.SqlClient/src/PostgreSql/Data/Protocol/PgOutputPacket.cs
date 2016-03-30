@@ -276,17 +276,17 @@ namespace PostgreSql.Data.Protocol
                     packet.WriteString(value.ToString());
                     break;
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     packet.Write(size);
                     packet.Write(Convert.ToInt16(value));
                     break;
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     packet.Write(size);
                     packet.Write(Convert.ToInt32(value));
                     break;
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     packet.Write(size);
                     packet.Write(Convert.ToInt64(value));
                     break;
@@ -318,6 +318,7 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     {
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
                         packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
@@ -325,7 +326,7 @@ namespace PostgreSql.Data.Protocol
                     }
                     break;
 
-                case PgDbType.Float4:
+                case PgDbType.Single:
                     {
                         string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
                         packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
@@ -333,12 +334,12 @@ namespace PostgreSql.Data.Protocol
                     }
                     break;
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     packet.Write(size);
                     packet.Write(Convert.ToDouble(value));
                     break;
 
-                case PgDbType.Currency:
+                case PgDbType.Money:
                     packet.Write(size);
                     packet.Write(Convert.ToInt32(Convert.ToSingle(value) * 100));
                     break;

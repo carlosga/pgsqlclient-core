@@ -14,17 +14,18 @@ namespace PostgreSql.Data.SqlClient
       , Byte
       , Char
       , Circle
-      , Currency
+      , Money
       , Date
       , Decimal
-      , Float8
-      , Float4
-      , Int2
-      , Int4
-      , Int8
+      , Double
+      , Single
+      , Int16
+      , Int32
+      , Int64
       , Interval
       , Line
       , LSeg
+      , Numeric
       , Path
       , Point
       , Polygon

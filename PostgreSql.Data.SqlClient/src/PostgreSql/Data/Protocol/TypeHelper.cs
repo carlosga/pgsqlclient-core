@@ -28,13 +28,13 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.VarChar:
                     return DbType.String;
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     return DbType.Int16;
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     return DbType.Int32;
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     return DbType.Int64;
 
                 case PgDbType.Date:
@@ -50,13 +50,15 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.TimestampTZ:
                     return DbType.DateTimeOffset;
 
+                case PgDbType.Money:
                 case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     return DbType.Decimal;
 
-                case PgDbType.Float4:
+                case PgDbType.Single:
                     return DbType.Single;
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     return DbType.Double;
 
                 default:
@@ -77,7 +79,7 @@ namespace PostgreSql.Data.Protocol
                 case DbType.StringFixedLength:
                     return PgDbType.Char;
 
-                case DbType.Binary:                
+                case DbType.Binary:
                     return PgDbType.Bytea;
 
                 case DbType.Boolean:
@@ -87,7 +89,7 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Byte;
 
                 case DbType.Currency:
-                    return PgDbType.Currency;
+                    return PgDbType.Money;
 
                 case DbType.Date:
                     return PgDbType.Date;
@@ -102,19 +104,19 @@ namespace PostgreSql.Data.Protocol
                     return PgDbType.Decimal;
 
                 case DbType.Single:
-                    return PgDbType.Float4;
+                    return PgDbType.Single;
 
                 case DbType.Double:
-                    return PgDbType.Float8;
+                    return PgDbType.Single;
 
                 case DbType.Int16:
-                    return PgDbType.Int2;
+                    return PgDbType.Int16;
 
                 case DbType.Int32:
-                    return PgDbType.Int4;
+                    return PgDbType.Int32;
 
                 case DbType.Int64:
-                    return PgDbType.Int8;
+                    return PgDbType.Int64;
 
                 case DbType.Time:
                     return PgDbType.Time;
@@ -154,23 +156,23 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case TypeCode.Int16:
-                    providerType = PgDbType.Int2;
+                    providerType = PgDbType.Int16;
                     break;
 
                 case TypeCode.Int32:
-                    providerType = PgDbType.Int4;
+                    providerType = PgDbType.Int32;
                     break;
 
                 case TypeCode.Int64:
-                    providerType = PgDbType.Int8;
+                    providerType = PgDbType.Int64;
                     break;
 
                 case TypeCode.Single:
-                    providerType = PgDbType.Float4;
+                    providerType = PgDbType.Single;
                     break;
 
                 case TypeCode.Double:
-                    providerType = PgDbType.Float8;
+                    providerType = PgDbType.Double;
                     break;
 
                 case TypeCode.Decimal:
@@ -234,33 +236,41 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.VarChar:
                     return typeof(System.String);
 
-                case PgDbType.Currency:
+                case PgDbType.Money:
                 case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     return typeof(System.Decimal);
 
                 case PgDbType.Date:
-                case PgDbType.Time:
-                case PgDbType.TimeTZ:
-                case PgDbType.Timestamp:
-                case PgDbType.TimestampTZ:
                     return typeof(System.DateTime);
 
-                case PgDbType.Float4:
+                case PgDbType.Time:
+                case PgDbType.TimeTZ:
+                    return typeof(System.TimeSpan);
+
+                case PgDbType.Timestamp:
+                    return typeof(System.DateTime);
+
+                case PgDbType.TimestampTZ:
+                    return typeof(System.DateTimeOffset);
+
+                case PgDbType.Single:
                     return typeof(System.Single);
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     return typeof(System.Double);
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     return typeof(System.Int16);
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     return typeof(System.Int32);
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     return typeof(System.Int64);
 
                 case PgDbType.Refcursor:
+#warning TODO: DataTable isn't available on .net core
                     return typeof(DataTable);
 
                 default:
@@ -300,7 +310,7 @@ namespace PostgreSql.Data.Protocol
                     returnValue = ((PgCircle)value).ToString();
                     break;
 
-                case PgDbType.Currency:
+                case PgDbType.Money:
                     returnValue = "$" + Convert.ToSingle(value).ToString();
                     break;
 
@@ -309,26 +319,27 @@ namespace PostgreSql.Data.Protocol
                     break;
 
                 case PgDbType.Decimal:
+                case PgDbType.Numeric:
                     returnValue = Convert.ToDecimal(value).ToString();
                     break;
 
-                case PgDbType.Float4:
+                case PgDbType.Single:
                     returnValue = Convert.ToSingle(value).ToString();
                     break;
 
-                case PgDbType.Float8:
+                case PgDbType.Double:
                     returnValue = Convert.ToDouble(value).ToString();
                     break;
 
-                case PgDbType.Int2:
+                case PgDbType.Int16:
                     returnValue = Convert.ToInt16(value).ToString();
                     break;
 
-                case PgDbType.Int4:
+                case PgDbType.Int32:
                     returnValue = Convert.ToInt32(value).ToString();
                     break;
 
-                case PgDbType.Int8:
+                case PgDbType.Int64:
                     returnValue = Convert.ToInt64(value).ToString();
                     break;
 

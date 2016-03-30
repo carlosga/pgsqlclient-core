@@ -47,8 +47,8 @@ namespace PostgreSql.Data.SqlClient
             {
                 var parameters = new PgParameterCollection();
 
-                parameters.Add("@TableOid", PgDbType.Int4);
-                parameters.Add("@ColumnId", PgDbType.Int4);
+                parameters.Add("@TableOid", PgDbType.Int32);
+                parameters.Add("@ColumnId", PgDbType.Int32);
 
                 command.Prepare(parameters);
                 
