@@ -17,7 +17,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("select point_field from public.geometric_table where pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 50;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 50;
 
                 PgPoint point = (PgPoint)command.ExecuteScalar();
 
@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("SELECT box_field FROM public.geometric_table WHERE pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 70;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 70;
 
                 PgBox box = (PgBox)command.ExecuteScalar();
 
@@ -52,7 +52,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("select circle_field from public.geometric_table where pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 30;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 30;
 
                 PgCircle circle = (PgCircle)command.ExecuteScalar();
 
@@ -69,7 +69,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("select lseg_field from public.geometric_table where pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 20;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 20;
 
                 PgLSeg lseg = (PgLSeg)command.ExecuteScalar();
 
@@ -88,7 +88,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("select path_field from public.geometric_table where pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 10;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 10;
 
                 PgPath path = (PgPath)command.ExecuteScalar();
 
@@ -107,7 +107,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
         {
             using (var command = new PgCommand("select polygon_field from public.geometric_table where pk = @pk", Connection))
             {
-                command.Parameters.Add("@pk", PgDbType.Int4).Value = 10;
+                command.Parameters.Add("@pk", PgDbType.Int32).Value = 10;
 
                 PgPolygon polygon = (PgPolygon)command.ExecuteScalar();
 

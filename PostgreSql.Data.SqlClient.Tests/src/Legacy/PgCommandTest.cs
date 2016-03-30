@@ -27,7 +27,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                     // Add command parameters
                     command.Parameters.Add("@char_field"    , PgDbType.Char);
                     command.Parameters.Add("@varchar_field" , PgDbType.VarChar);
-                    command.Parameters.Add("@int4_field"    , PgDbType.Int4);
+                    command.Parameters.Add("@int4_field"    , PgDbType.Int32);
 
                     for (int i = 0; i < 100; i++)
                     {
@@ -135,7 +135,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
             {
                 command.CommandType = CommandType.StoredProcedure;
 
-                command.Parameters.Add("@CountResult", PgDbType.Int8).Direction = ParameterDirection.Output;
+                command.Parameters.Add("@CountResult", PgDbType.Int64).Direction = ParameterDirection.Output;
 
                 command.ExecuteNonQuery();
 

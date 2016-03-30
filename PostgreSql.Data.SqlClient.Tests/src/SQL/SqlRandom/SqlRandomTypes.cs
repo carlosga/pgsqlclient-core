@@ -68,7 +68,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 8;
 
         public SqlBigIntTypeInfo()
-            : base(PgDbType.Int8)
+            : base(PgDbType.Int64)
         {
         }
 
@@ -110,7 +110,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 4;
 
         public SqlIntTypeInfo()
-            : base(PgDbType.Int4)
+            : base(PgDbType.Int32)
         {
         }
 
@@ -152,7 +152,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 2;
 
         public SqlSmallIntTypeInfo()
-            : base(PgDbType.Int2)
+            : base(PgDbType.Int16)
         {
         }
 
@@ -371,7 +371,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private int _defaultPrecision = 18;
 
         public SqlDecimalTypeInfo()
-            : base(PgDbType.Decimal)
+            : base(PgDbType.Numeric)
         {
         }
 
@@ -403,7 +403,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
         {
-            return "decimal";
+            return "numeric";
         }
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
@@ -435,11 +435,11 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqFloatTypeInfo 
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "float4";
+        private const string TypeSqlName = "real";
         private const int    StorageSize = 4;
 
         public SqFloatTypeInfo()
-            : base(PgDbType.Float4)
+            : base(PgDbType.Real)
         {
         }
 

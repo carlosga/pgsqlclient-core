@@ -272,11 +272,11 @@ namespace PostgreSql.Data.SqlClient.UnitTests
             {
                 using (var command = new PgCommand(commandText, _connection, transaction))
                 {
-                    command.Parameters.Add("@int4_field", PgDbType.Int4);
+                    command.Parameters.Add("@int4_field", PgDbType.Int32);
                     command.Parameters.Add("@char_field", PgDbType.Char);
                     command.Parameters.Add("@varchar_field", PgDbType.VarChar);
-                    command.Parameters.Add("@single_field", PgDbType.Float4);
-                    command.Parameters.Add("@double_field", PgDbType.Float8);
+                    command.Parameters.Add("@single_field", PgDbType.Real);
+                    command.Parameters.Add("@double_field", PgDbType.Double);
                     command.Parameters.Add("@date_field", PgDbType.Date);
                     command.Parameters.Add("@time_field", PgDbType.Time);
                     command.Parameters.Add("@timestamp_field", PgDbType.Timestamp);
@@ -314,7 +314,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                 using (var command = new PgCommand(commandText, _connection, transaction))
                 {
                     // Add command parameters
-                    command.Parameters.Add("@pk", PgDbType.Int4);
+                    command.Parameters.Add("@pk", PgDbType.Int32);
                     command.Parameters.Add("@point", PgDbType.Point);
                     command.Parameters.Add("@box", PgDbType.Box);
                     command.Parameters.Add("@circle", PgDbType.Circle);

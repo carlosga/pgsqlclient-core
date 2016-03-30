@@ -57,7 +57,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 using (PgCommand cmd = new PgCommand(query, conn))
                 {
-                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10255;
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int32)).Value = 10255;
                     using (PgDataReader r1 = cmd.ExecuteReader())
                     {
                         int numBatches = 0;
@@ -413,7 +413,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid<@id", conn))
                 {
-                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int4)).Value = 10252;
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Int32)).Value = 10252;
                     using (PgDataReader reader = cmd.ExecuteReader())
                     {
                         // smaller buffer
