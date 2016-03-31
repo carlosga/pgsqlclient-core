@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.DataSource               = "localhost";
             csb.InitialCatalog           = "northwind";
             csb.UserID                   = "northwind";
-            csb.Password                 = "northwind@2";
+            csb.Password                 = "northwind";
             csb.PortNumber               = 5432;
             csb.Encrypt                  = false;
             csb.Pooling                  = false;

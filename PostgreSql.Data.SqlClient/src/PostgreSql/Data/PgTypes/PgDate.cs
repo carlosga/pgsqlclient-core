@@ -83,7 +83,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static explicit operator DateTime(PgDate x)
         {
-            throw new NotImplementedException();
+            return x._value;
         }
 
         public static explicit operator PgDate(PgString x)
@@ -93,7 +93,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static implicit operator PgDate(DateTime value)
         {
-            throw new NotImplementedException();
+            return new PgDate(value);
         }
 
         public int DayTicks
