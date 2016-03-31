@@ -16,7 +16,6 @@ namespace PostgreSql.Data.SqlClient
         
         private readonly List<PgParameter> _parameters;
         private int                        _paramCount;
-        private bool                       _isDirty;
 
         public new PgParameter this[string parameterName]
         {
@@ -32,12 +31,6 @@ namespace PostgreSql.Data.SqlClient
 
         public override int    Count    => _parameters.Count;
         public override object SyncRoot => SyncObject;
-
-        internal bool IsDirty
-        {
-            get { return _isDirty; }
-            set { _isDirty = value; }
-        }
 
         internal PgParameterCollection()
         {
@@ -94,8 +87,6 @@ namespace PostgreSql.Data.SqlClient
             value.Parent = this;
 
             _parameters.Add(value);
-            
-            _isDirty = true;
 
             return value;
         }
@@ -159,7 +150,6 @@ namespace PostgreSql.Data.SqlClient
             
             _parameters.Insert(index, parameter);
             parameter.Parent = this;
-            _isDirty         = true;
         }
 
         public override void Remove(object value)
@@ -183,7 +173,6 @@ namespace PostgreSql.Data.SqlClient
 
             _parameters.Remove(parameter);
             parameter.Parent = null;
-            _isDirty         = true;
         }
 
         public override void RemoveAt(string parameterName) => RemoveAt(IndexOf(parameterName));
@@ -197,7 +186,6 @@ namespace PostgreSql.Data.SqlClient
 
             _parameters[index].Parent = null;
             _parameters.RemoveAt(index);
-            _isDirty = true;
         }
 
         protected override DbParameter GetParameter(string parameterName)
@@ -230,7 +218,6 @@ namespace PostgreSql.Data.SqlClient
             }
 
             _parameters[index] = value as PgParameter;
-            _isDirty           = true;
         }
 
         protected override void SetParameter(string parameterName, DbParameter value)
@@ -243,7 +230,6 @@ namespace PostgreSql.Data.SqlClient
             }
 
             _parameters[index] = value as PgParameter;
-            _isDirty           = true;
         }
     }
 }

@@ -8,31 +8,6 @@ namespace PostgreSql.Data.PgTypes
     public struct PgTimestamp
         : IComparable, INullable
     {
-        internal static readonly string[] TimestampFormats = new string[]
-        {
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd HH:mm:ss.f",
-            "yyyy-MM-dd HH:mm:ss.ff",
-            "yyyy-MM-dd HH:mm:ss.fff",
-            "yyyy-MM-dd HH:mm:ss.ffff",
-            "yyyy-MM-dd HH:mm:ss.fffff",
-            "yyyy-MM-dd HH:mm:ss.ffffff",
-            "yyyy-MM-dd HH:mm:sszz",
-            "yyyy-MM-dd HH:mm:ss.fzz",
-            "yyyy-MM-dd HH:mm:ss.ffzz",
-            "yyyy-MM-dd HH:mm:ss.fffzz",
-            "yyyy-MM-dd HH:mm:ss.ffffzz",
-            "yyyy-MM-dd HH:mm:ss.fffffzz",
-            "yyyy-MM-dd HH:mm:ss.ffffffzz",
-            "yyyy-MM-dd HH:mm:ss zz",
-            "yyyy-MM-dd HH:mm:ss.f zz",
-            "yyyy-MM-dd HH:mm:ss.ff zz",
-            "yyyy-MM-dd HH:mm:ss.fff zz",
-            "yyyy-MM-dd HH:mm:ss.ffff zz",
-            "yyyy-MM-dd HH:mm:ss.fffff zz",
-            "yyyy-MM-dd HH:mm:ss.ffffff zz",
-        };
-
         public static readonly PgTimestamp MaxValue = DateTime.MaxValue;
         public static readonly PgTimestamp MinValue = DateTime.MinValue;
         public static readonly PgTimestamp Null     = new PgTimestamp();

@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -446,11 +446,11 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgInt16 Parse(string s)
         {
-            if (PgTypeInfo.IsNullString(s))
+            if (PgTypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
-            return (PgInt16)Int16.Parse(s, PgTypeInfo.InvariantCulture);
+            return (PgInt16)Int16.Parse(s, PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt16 Subtract(PgInt16 x, PgInt16 y)
@@ -511,9 +511,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfo.NullString;
+                return PgTypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfo.InvariantCulture);
+            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt16 Xor(PgInt16 x, PgInt16 y)

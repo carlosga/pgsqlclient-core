@@ -11,7 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgOutputPacket
     {
@@ -107,32 +107,32 @@ namespace PostgreSql.Data.Protocol
 
         internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(bool value)        => WriteByte(Convert.ToByte(value));
-        internal void WriteDate(DateTime date) => Write(date.Subtract(PgCodes.BASE_DATE).Days);
+        internal void WriteDate(DateTime date) => Write(date.Subtract(PgDate.PostgresBaseDate).TotalDays);
+
+        internal void WriteTime(TimeSpan time)
+        {
+            Write((long)time.TotalMilliseconds * 1000);
+        }
+
+        internal void WriteTimeWithTZ(TimeSpan time)
+        {
+            Write((long)time.TotalMilliseconds * 1000);
+        }
+
+        internal void WriteTimestamp(DateTime timestamp)
+        {
+            Write((long)(timestamp.Subtract(PgDate.UnixBaseDate).TotalMilliseconds * 1000));
+        }
+
+        internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
+        {
+            Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch));
+        }
 
         internal void WriteInterval(TimeSpan interval)
         {
             Write(interval.Subtract(TimeSpan.FromDays(interval.TotalDays)).TotalSeconds);
             Write(interval.Days / 30);
-        }
-
-        internal void WriteTime(DateTime time)
-        {
-            WriteString(time.ToString("HH:mm:ss.fff"));
-        }
-
-        internal void WriteTimeWithTZ(DateTime time)
-        {
-            WriteString(time.ToString("HH:mm:ss.fff zz"));
-        }
-
-        internal void WriteTimestamp(DateTime timestamp)
-        {
-            WriteString(timestamp.ToString("yyyy/MM/dd HH:mm:ss.fff"));
-        }
-
-        internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
-        {
-            Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgCodes.MicrosecondsBetweenEpoch));
         }
 
         internal void Write(PgPoint point)
@@ -195,29 +195,20 @@ namespace PostgreSql.Data.Protocol
             }
             else
             {
-                if (parameter.TypeInfo.ProviderType == PgDbType.Array
-                 || parameter.TypeInfo.ProviderType == PgDbType.Vector)
-                {
-                    WriteArray(parameter);
-                }
-                else
-                {
-                    WriteParameter(this, parameter.TypeInfo.ProviderType, parameter.TypeInfo.Size, parameter.Value);
-                }
+                Write(parameter.TypeInfo, parameter.Value);
             }
         }
 
         internal byte[] ToArray() => _stream.ToArray();
 
-        private void WriteArray(PgParameter parameter)
+        private void WriteArray(PgTypeInfo typeInfo, object value)
         {
             // Handle this type as Array values
-            var array = parameter.Value as System.Array;
+            var array = value as System.Array;
 
             // Get array element type
-            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == parameter.TypeInfo.ElementType);
-
-            var packet = new PgOutputPacket(' ', _sessionData);
+            var elementType = typeInfo.ElementType;
+            var packet      = new PgOutputPacket(PgFrontEndCodes.UNTYPED, _sessionData);
 
             // Write the number of dimensions
             packet.Write(array.Rank);
@@ -226,7 +217,7 @@ namespace PostgreSql.Data.Protocol
             packet.Write(0);
 
             // Write base type of the array elements
-            packet.Write(parameter.TypeInfo.ElementType);
+            packet.Write(typeInfo.ElementType.Oid);
 
             // Write lengths and lower bounds
             for (int i = 0; i < array.Rank; ++i)
@@ -238,7 +229,7 @@ namespace PostgreSql.Data.Protocol
             // Write array values
             for (int i = 0; i < array.Length; ++i)
             {
-                WriteParameter(packet, elementType.ProviderType, elementType.Size, array.GetValue(i));
+                packet.Write(elementType, array.GetValue(i));
             }
 
             // Write parameter size
@@ -248,136 +239,143 @@ namespace PostgreSql.Data.Protocol
             Write(packet.ToArray());
         }
 
-        private void WriteParameter(PgOutputPacket packet, PgDbType dataType, int size, object value)
+        private void Write(PgTypeInfo typeInfo, object value)
         {
-            switch (dataType)
+            switch (typeInfo.ProviderType)
             {
+                case PgDbType.Array:
+                case PgDbType.Vector:
+                    WriteArray(typeInfo, value);
+                    break;
+                    
                 case PgDbType.Bytea:
                     {
-                        byte[] paramValue = value as byte[]; 
-                        packet.Write(paramValue.Length);
-                        packet.Write(paramValue);
+                        byte[] paramValue = value as byte[];
+                        Write(paramValue.Length);
+                        Write(paramValue);
                     }
                     break;
 
                 case PgDbType.Byte:
-                    packet.Write(size);
-                    packet.WriteByte((byte)value);
+                    Write(typeInfo.Size);
+                    WriteByte((byte)value);
                     break;
 
                 case PgDbType.Bool:
-                    packet.Write(size);
-                    packet.WriteByte(Convert.ToByte(value));
+                    Write(typeInfo.Size);
+                    WriteByte(Convert.ToByte(value));
                     break;
 
                 case PgDbType.Char:
                 case PgDbType.VarChar:
                 case PgDbType.Text:
-                    packet.WriteString(value.ToString());
+                    WriteString(value.ToString());
                     break;
 
-                case PgDbType.Int16:
-                    packet.Write(size);
-                    packet.Write(Convert.ToInt16(value));
+                case PgDbType.SmallInt:
+                    Write(typeInfo.Size);
+                    Write((short)value);
                     break;
 
-                case PgDbType.Int32:
-                    packet.Write(size);
-                    packet.Write(Convert.ToInt32(value));
+                case PgDbType.Integer:
+                    Write(typeInfo.Size);
+                    Write((int)value);
                     break;
 
-                case PgDbType.Int64:
-                    packet.Write(size);
-                    packet.Write(Convert.ToInt64(value));
+                case PgDbType.BigInt:
+                    Write(typeInfo.Size);
+                    Write((long)value);
                     break;
 
                 case PgDbType.Interval:
-                    packet.Write(size);
-                    packet.WriteInterval(TimeSpan.Parse(value.ToString()));
+                    Write(typeInfo.Size);
+                    WriteInterval((TimeSpan)value);
                     break;
 
                 case PgDbType.Date:
-                    packet.Write(size);
-                    packet.WriteDate(Convert.ToDateTime(value));
+                    Write(typeInfo.Size);
+                    WriteDate((DateTime)value);
                     break;
 
                 case PgDbType.Time:
-                    packet.WriteTime(Convert.ToDateTime(value));
+                    Write(typeInfo.Size);
+                    WriteTime((TimeSpan)value);
                     break;
 
                 case PgDbType.TimeTZ:
-                    packet.WriteTimeWithTZ(Convert.ToDateTime(value));
+                    Write(typeInfo.Size);
+                    WriteTimeWithTZ((TimeSpan)value);
                     break;
 
                 case PgDbType.Timestamp:
-                    packet.WriteTimestamp(Convert.ToDateTime(value));
+                    Write(typeInfo.Size);
+                    WriteTimestamp((DateTime)value);
                     break;
 
                 case PgDbType.TimestampTZ:
-                    packet.WriteTimestampWithTZ((DateTimeOffset)value);
+                    Write(typeInfo.Size);
+                    WriteTimestampWithTZ((DateTimeOffset)value);
                     break;
 
                 case PgDbType.Numeric:
                     {
+#warning TODO: Encode binary value
                         string paramValue = Convert.ToDecimal(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
-                        packet.WriteString(paramValue);
+                        Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
+                        WriteString(paramValue);
                     }
                     break;
 
                 case PgDbType.Real:
-                    {
-                        string paramValue = Convert.ToSingle(value).ToString(CultureInfo.InvariantCulture);
-                        packet.Write(_sessionData.ClientEncoding.GetByteCount(paramValue));
-                        packet.WriteString(paramValue);
-                    }
+                    Write(typeInfo.Size);
+                    Write((float)value);
                     break;
 
                 case PgDbType.Double:
-                    packet.Write(size);
-                    packet.Write(Convert.ToDouble(value));
+                    Write(typeInfo.Size);
+                    Write((double)value);
                     break;
 
                 case PgDbType.Money:
-                    packet.Write(size);
-                    packet.Write(Convert.ToInt32(Convert.ToSingle(value) * 100));
+                    Write(typeInfo.Size);
+                    Write((int)((decimal)value * 100));
                     break;
 
                 case PgDbType.Point:
-                    packet.Write(size);
-                    packet.Write((PgPoint)value);
+                    Write(typeInfo.Size);
+                    Write((PgPoint)value);
                     break;
 
                 case PgDbType.Circle:
-                    packet.Write(size);
-                    packet.Write((PgCircle)value);
+                    Write(typeInfo.Size);
+                    Write((PgCircle)value);
                     break;
 
                 case PgDbType.Line:
-                    packet.Write(size);
-                    packet.Write((PgLine)value);
+                    Write(typeInfo.Size);
+                    Write((PgLine)value);
                     break;
 
                 case PgDbType.LSeg:
-                    packet.Write(size);
-                    packet.Write((PgLSeg)value);
+                    Write(typeInfo.Size);
+                    Write((PgLSeg)value);
                     break;
 
                 case PgDbType.Box:
-                    packet.Write(size);
-                    packet.Write((PgBox)value);
+                    Write(typeInfo.Size);
+                    Write((PgBox)value);
                     break;
 
                 case PgDbType.Polygon:
-                    PgPolygon polygon = (PgPolygon)value;
-                    packet.Write((int)((size * polygon.Points.Length) + 4));
-                    packet.Write(polygon);
+                    var polygon = (PgPolygon)value;
+                    Write((int)((typeInfo.Size * polygon.Points.Length) + 4));
+                    Write(polygon);
                     break;
 
                 case PgDbType.Path:
                     PgPath path = (PgPath)value;
-                    packet.Write((int)((size * path.Points.Length) + 5));
-                    packet.Write(path);
+                    Write((int)((typeInfo.Size * path.Points.Length) + 5));
+                    Write(path);
                     break;
             }
         }

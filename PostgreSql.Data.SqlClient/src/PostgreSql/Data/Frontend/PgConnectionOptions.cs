@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgConnectionOptions
     {

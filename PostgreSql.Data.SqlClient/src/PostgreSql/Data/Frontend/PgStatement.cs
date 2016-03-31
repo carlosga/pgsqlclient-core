@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using PostgreSql.Data.SqlClient;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgStatement
         : IDisposable
@@ -125,7 +125,6 @@ namespace PostgreSql.Data.Protocol
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
 
-                PrepareParameters(parameters);
                 Parse(parameters);
                 DescribeStatement();
             }
@@ -731,7 +730,7 @@ namespace PostgreSql.Data.Protocol
                 var typeSize     = packet.ReadInt16();
                 var typeModifier = packet.ReadInt32();
                 var format       = packet.ReadInt16();
-                var typeInfo     = _database.SessionData.TypeInfo.SingleOrDefault(x => x.Oid == typeOid);
+                var typeInfo     = PgTypeInfoProvider.Types[typeOid];
 
                 _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }
@@ -765,33 +764,6 @@ namespace PostgreSql.Data.Protocol
 
             _hasRows        = false;
             _allRowsFetched = false;
-        }
-
-        private void PrepareParameters(PgParameterCollection parameters)
-        {
-            if (parameters == null && parameters.Count == 0)
-            {
-                return;
-            }
-
-            if (parameters.IsDirty)
-            {
-                var typeInfo = _database.SessionData.TypeInfo;
-
-                foreach (PgParameter parameter in parameters)
-                {
-                    if (typeInfo.Count(x => x.ProviderType == parameter.ProviderType) == 1)
-                    {
-                        parameter.TypeInfo = typeInfo.Single(x => x.ProviderType == parameter.ProviderType);
-                    }
-                    else
-                    {
-                        parameter.TypeInfo = typeInfo.Single(x => x.Name == parameter.ProviderType.ToString().ToLower());
-                    }
-                }
-
-                parameters.IsDirty = false;
-            }
         }
     }
 }

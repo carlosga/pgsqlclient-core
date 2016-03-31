@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -383,7 +383,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgInt64 Parse(string s)
         {
-            if (PgTypeInfo.IsNullString(s))
+            if (PgTypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
@@ -444,9 +444,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfo.NullString;
+                return PgTypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfo.InvariantCulture);
+            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt64 Xor(PgInt64 x, PgInt64 y)

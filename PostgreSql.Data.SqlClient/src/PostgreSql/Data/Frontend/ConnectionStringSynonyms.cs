@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal static class ConnectionStringSynonyms
     {

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.Authentication;
+using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgDatabase
         : IDisposable
@@ -296,7 +297,7 @@ namespace PostgreSql.Data.Protocol
 
             // select ISO date style
             packet.WriteNullString("DateStyle");
-            packet.WriteNullString(PgCodes.DATE_STYLE);
+            packet.WriteNullString(PgDate.DateStyle);
 
             // search path
             if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))

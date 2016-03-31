@@ -3,7 +3,7 @@
 
 using System.Text;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgCharacterSet
     {

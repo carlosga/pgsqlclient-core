@@ -3,7 +3,7 @@
 
 using System;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgClientNotificationEventArgs
         : EventArgs

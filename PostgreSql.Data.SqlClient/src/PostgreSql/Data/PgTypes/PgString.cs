@@ -3,7 +3,7 @@
 
 using System;
 using System.Globalization;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -54,7 +54,7 @@ namespace PostgreSql.Data.PgTypes
         public static readonly int IgnoreNonSpace   = (int)PgCompareOptions.IgnoreNonSpace;
         public static readonly int IgnoreWidth      = (int)PgCompareOptions.IgnoreWidth;
         
-        public static readonly PgString Null = PgTypeInfo.NullString;
+        public static readonly PgString Null = PgTypeInfoProvider.NullString;
 
         public PgString(string data)
         {

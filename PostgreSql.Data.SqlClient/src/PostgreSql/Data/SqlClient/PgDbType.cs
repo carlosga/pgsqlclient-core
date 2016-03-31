@@ -6,29 +6,29 @@ namespace PostgreSql.Data.SqlClient
     public enum PgDbType
     {
         Array
-      , Bytea
+      , BigInt
       , Bool
       , Box
       , Box2D
       , Box3D
       , Byte
+      , Bytea
       , Char
       , Circle
-      , Money
       , Date
       , Double
-      , Real
-      , Int16
-      , Int32
-      , Int64
+      , Integer
       , Interval
       , Line
       , LSeg
+      , Money
       , Numeric
       , Path
       , Point
       , Polygon
+      , Real
       , Refcursor
+      , SmallInt
       , Text
       , Time
       , TimeTZ

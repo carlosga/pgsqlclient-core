@@ -4,40 +4,37 @@
 using System;
 using System.Text;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class SessionData
     {
-        private string               _serverVersion;
-        private Encoding             _serverEncoding;
-        private Encoding             _clientEncoding;
-        private string               _applicationName;
-        private bool                 _isSuperUser;
-        private string               _sessionAuthorization;
-        private string               _dateStyle;
-        private string               _intervalStyle;
-        private TimeZoneInfo         _timeZoneInfo;
-        private bool                 _integerDateTimes;
-        private string               _standardConformingStrings;
-        private PgTypeInfoCollection _typeInfo;
+        private string        _serverVersion;
+        private Encoding      _serverEncoding;
+        private Encoding      _clientEncoding;
+        private string        _applicationName;
+        private bool          _isSuperUser;
+        private string        _sessionAuthorization;
+        private string        _dateStyle;
+        private string        _intervalStyle;
+        private TimeZoneInfo  _timeZoneInfo;
+        private bool          _integerDateTimes;
+        private string        _standardConformingStrings;
 
-        internal string               ServerVersion             => _serverVersion;
-        internal Encoding             ServerEncoding            => _serverEncoding;
-        internal Encoding             ClientEncoding            => _clientEncoding;
-        internal string               ApplicationName           => _applicationName;       
-        internal bool                 IsSuperUser               => _isSuperUser;       
-        internal string               SessionAuthorization      => _sessionAuthorization;
-        internal string               DateStyle                 => _dateStyle;
-        internal string               IntervalStyle             => _intervalStyle;       
-        internal TimeZoneInfo         TimeZoneInfo              => _timeZoneInfo;
-        internal bool                 IntegerDateTimes          => _integerDateTimes;
-        internal string               StandardConformingStrings => _standardConformingStrings;
-        internal PgTypeInfoCollection TypeInfo                  => _typeInfo;
+        internal string       ServerVersion             => _serverVersion;
+        internal Encoding     ServerEncoding            => _serverEncoding;
+        internal Encoding     ClientEncoding            => _clientEncoding;
+        internal string       ApplicationName           => _applicationName;
+        internal bool         IsSuperUser               => _isSuperUser;
+        internal string       SessionAuthorization      => _sessionAuthorization;
+        internal string       DateStyle                 => _dateStyle;
+        internal string       IntervalStyle             => _intervalStyle;
+        internal TimeZoneInfo TimeZoneInfo              => _timeZoneInfo;
+        internal bool         IntegerDateTimes          => _integerDateTimes;
+        internal string       StandardConformingStrings => _standardConformingStrings;
 
         internal SessionData()
         {
             _clientEncoding = Encoding.UTF8;
-            _typeInfo       = PgTypeInfo.GetSupportedTypes();
         }
 
         internal void SetValue(string name, string value)

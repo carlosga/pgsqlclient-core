@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -386,7 +386,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Parse(string s)
         {
-            if (PgTypeInfo.IsNullString(s))
+            if (PgTypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
@@ -463,7 +463,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfo.NullString;
+                return PgTypeInfoProvider.NullString;
             }
             return _value.ToString();
         }

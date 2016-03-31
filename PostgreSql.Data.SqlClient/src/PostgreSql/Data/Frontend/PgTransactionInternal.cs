@@ -5,7 +5,7 @@ using System;
 using System.Data;
 using PostgreSql.Data.SqlClient;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgTransactionInternal
     {

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal static class PgCodes
     {
@@ -53,30 +53,6 @@ namespace PostgreSql.Data.Protocol
         // Statements and Portals
         internal const char STATEMENT = 'S';
         internal const char PORTAL    = 'P'; 
-
-        // Date & Time codes
-        internal static readonly DateTime BASE_DATE  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        internal const string             DATE_STYLE = "ISO";
-
-        internal const long MicrosecondsPerDay    = 86400000000L;
-        internal const long MicrosecondsPerHour   = 3600000000L;
-        internal const long MicrosecondsPerMinute = 60000000L;
-        internal const long MicrosecondsPerSecond = 1000000L;
-        internal const long SecondsPerDay	      = 86400L;
-
-        // Julian-date equivalents of Day 0 in Unix and Postgres
-        internal const long UnixEpochDate            = 2440588; // 1970, 1, 1
-        internal const long PostgresEpochDate        = 2451545; // 2000, 1, 1
-        internal const long MicrosecondsBetweenEpoch = ((PostgresEpochDate - UnixEpochDate) * MicrosecondsPerDay);
-
-        // Numeric data type
-        internal const int NUMERIC_SIGN_MASK     = 0xC000;
-        internal const int NUMERIC_POS           = 0x0000;
-        internal const int NUMERIC_NEG           = 0x4000;
-        internal const int NUMERIC_NAN           = 0xC000;
-        internal const int NUMERIC_MAX_PRECISION = 1000;
-        internal const int NUMERIC_DSCALE_MASK   = 0x3FFF;
-        internal const int NUMERIC_HDRSZ         = 10;
 
         // Error codes
         internal const string ERROR_SEVERITY = "ERROR";

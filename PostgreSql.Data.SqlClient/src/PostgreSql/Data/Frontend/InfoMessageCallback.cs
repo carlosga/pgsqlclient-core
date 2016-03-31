@@ -3,7 +3,7 @@
 
 using PostgreSql.Data.SqlClient;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal delegate void InfoMessageCallback(PgException exception);
 }

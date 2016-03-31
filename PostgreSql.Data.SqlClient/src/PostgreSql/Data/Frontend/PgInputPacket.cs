@@ -9,25 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace PostgreSql.Data.Protocol
+namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgInputPacket
     {
-        // private static TimeSpan ToTimeSpan(long value)
-        // {
-        //     var time = value;            
-        //     var hour = time / PgCodes.MicrosecondsPerHour;
-        //     time -= (hour) * PgCodes.MicrosecondsPerHour;
-            
-        //     var min = time / PgCodes.MicrosecondsPerMinute;
-        //     time -= (min) * PgCodes.MicrosecondsPerMinute;
-            
-        //     var sec = time / PgCodes.MicrosecondsPerSecond;
-        //     var fsec = time - (sec * PgCodes.MicrosecondsPerSecond);
-
-        //     return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
-        // }
-
         private readonly char        _packetType;
         private readonly byte[]      _contents;
         private readonly SessionData _sessionData;
@@ -145,7 +130,25 @@ namespace PostgreSql.Data.Protocol
 
         internal float    ReadMoney()  => ((float)ReadInt32() / 100);
         internal double   ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-        internal DateTime ReadDate()   => PgCodes.BASE_DATE.AddDays(ReadInt32());
+        internal DateTime ReadDate()   => PgDate.PostgresBaseDate.AddDays(ReadInt32());
+
+        internal TimeSpan ReadTime()
+        {
+            // var value = ReadInt64();
+            // var time  = value;
+            
+            // var hour = time / PgTimestamp.MicrosecondsPerHour;
+            // time -= (hour) * PgTimestamp.MicrosecondsPerHour;
+            
+            // var min = time / PgTimestamp.MicrosecondsPerMinute;
+            // time -= (min) * PgTimestamp.MicrosecondsPerMinute;
+            
+            // var sec = time / PgTimestamp.MicrosecondsPerSecond;
+            // var fsec = time - (sec * PgTimestamp.MicrosecondsPerSecond);
+
+            // return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
+            return TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+        }
 
         internal PgTimeSpan ReadInterval()
         {
@@ -154,39 +157,28 @@ namespace PostgreSql.Data.Protocol
             return new PgTimeSpan(interval.Add(TimeSpan.FromDays(ReadInt32() * 30)));
         }
 
-        internal DateTime ReadTime(int length)
+        internal TimeSpan ReadTimeWithTZ()
         {
-            return DateTime.ParseExact(ReadString(length)
-                                     , PgTypeStringFormats.TimeFormats
-                                     , CultureInfo.CurrentCulture
-                                     , DateTimeStyles.None);
+#warning TODO: Hanle the time zone offset
+            return TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
         }
 
-        internal DateTime ReadTimeWithTZ(int length)
-        {
-           return DateTime.Parse(ReadString(length));
-        }
-
-        internal DateTime ReadTimestamp(int length)
-        {
-            return DateTime.Parse(ReadString(length));
-        }
-
-        internal DateTimeOffset ReadTimestampWithTZ(int length)
+        internal DateTime ReadTimestamp()
         {
             var value = ReadInt64();
-            var dt    = PgCodes.BASE_DATE.AddMilliseconds((long)(value * 0.001));
-            
+            return PgDate.PostgresBaseDate.AddMilliseconds(value * 0.001);
+        }
+
+        internal DateTimeOffset ReadTimestampWithTZ()
+        {
+            var value = ReadInt64();
+            var dt    = PgDate.PostgresBaseDate.AddMilliseconds(value * 0.001);
+#warning TODO: Hanle the time zone offset
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
         internal Array ReadArray(PgTypeInfo type, int length)
         {
-            if (type.Format == PgTypeFormat.Text)
-            {
-                return ReadStringArray(type, length);
-            }
-
             // Read number of dimensions
             int dimensions = ReadInt32();
 
@@ -203,7 +195,7 @@ namespace PostgreSql.Data.Protocol
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == oid);
+            var elementType = PgTypeInfoProvider.Types[oid];
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -225,7 +217,7 @@ namespace PostgreSql.Data.Protocol
 
         internal Array ReadVector(PgTypeInfo type, int length)
         {
-            var elementType = _sessionData.TypeInfo.Single(x => x.Oid == type.ElementType);
+            var elementType = type.ElementType;
             var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
 
             for (int i = 0; i < data.Length; ++i)
@@ -281,25 +273,10 @@ namespace PostgreSql.Data.Protocol
 
         internal object ReadValue(PgTypeInfo typeInfo, int length)
         {
-            if (typeInfo.Format == PgTypeFormat.Text)
+            switch (typeInfo.ProviderType)
             {
-                return ReadStringValue(typeInfo, length);
-            }
-            else
-            {
-                return ReadBinaryValue(typeInfo, length);
-            }
-        }
-
-        private object ReadBinaryValue(PgTypeInfo type, int length)
-        {
-            switch (type.ProviderType)
-            {
-                case PgDbType.Array:
-                    return ReadArray(type, length);
-
-                case PgDbType.Vector:
-                    return ReadVector(type, length);
+                case PgDbType.Void:
+                    return DBNull.Value;
 
                 case PgDbType.Bytea:
                     return ReadBytes(length);
@@ -309,6 +286,7 @@ namespace PostgreSql.Data.Protocol
 
                 case PgDbType.VarChar:
                 case PgDbType.Refcursor:
+                case PgDbType.Text:
                     return ReadString(length);
 
                 case PgDbType.Bool:
@@ -316,6 +294,9 @@ namespace PostgreSql.Data.Protocol
 
                 case PgDbType.Byte:
                     return ReadByte();
+
+                case PgDbType.Numeric:
+                    return Decimal.Parse(ReadString(length), NumberFormatInfo.InvariantInfo);
 
                 case PgDbType.Money:
                     return ReadMoney();
@@ -326,13 +307,13 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.Double:
                     return ReadDouble();
 
-                case PgDbType.Int16:
+                case PgDbType.SmallInt:
                     return ReadInt16();
 
-                case PgDbType.Int32:
+                case PgDbType.Integer:
                     return ReadInt32();
 
-                case PgDbType.Int64:
+                case PgDbType.BigInt:
                     return ReadInt64();
 
                 case PgDbType.Interval:
@@ -342,16 +323,16 @@ namespace PostgreSql.Data.Protocol
                     return ReadDate();
 
                 case PgDbType.Time:
-                    return ReadTime(length);
+                    return ReadTime();
 
                 case PgDbType.TimeTZ:
-                    return ReadTimeWithTZ(length);
+                    return ReadTimeWithTZ();
 
                 case PgDbType.Timestamp:
-                    return ReadTimestamp(length);
+                    return ReadTimestamp();
 
                 case PgDbType.TimestampTZ:
-                    return ReadTimestampWithTZ(length);
+                    return ReadTimestampWithTZ();
 
                 case PgDbType.Point:
                    return ReadPoint();
@@ -365,114 +346,22 @@ namespace PostgreSql.Data.Protocol
                 case PgDbType.LSeg:
                    return ReadLSeg();
 
-                case PgDbType.Box:
-                   return ReadBox();
-
                 case PgDbType.Polygon:
                    return ReadPolygon();
 
                 case PgDbType.Path:
                    return ReadPath();
 
-                default:
-                    return ReadBytes(length);
-            }
-        }
-
-        internal object ReadStringValue(PgTypeInfo type, int length)
-        {
-            if (type.IsArray)
-            {
-                return ReadStringArray(type, length);
-            }
-
-            string stringValue = ReadString(length);
-
-            switch (type.ProviderType)
-            {
-                case PgDbType.Bytea:
-                    return null;
-
-                case PgDbType.Char:
-                    return stringValue.TrimEnd();
-
-                case PgDbType.VarChar:
-                case PgDbType.Refcursor:
-                case PgDbType.Text:
-                    return stringValue;
-
-                case PgDbType.Bool:
-                    switch (stringValue.ToLower())
-                    {
-                        case "t":
-                        case "true":
-                        case "y":
-                        case "yes":
-                        case "1":
-                            return true;
-
-                        default:
-                            return false;
-                    }
-
-                case PgDbType.Byte:
-                    return Byte.Parse(stringValue);
-
-                case PgDbType.Money:
-                case PgDbType.Numeric:
-                    return Decimal.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Real:
-                    return Single.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Double:
-                    return Double.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Int16:
-                    return Int16.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Int32:
-                    return Int32.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Int64:
-                    return Int64.Parse(stringValue, NumberFormatInfo.InvariantInfo);
-
-                case PgDbType.Interval:
-                    return null;
-
-                case PgDbType.Date:
-                case PgDbType.Timestamp:
-                case PgDbType.Time:
-                case PgDbType.TimeTZ:
-                case PgDbType.TimestampTZ:
-                    return DateTime.Parse(stringValue);
-
-                case PgDbType.Point:
-                   return PgPoint.Parse(stringValue);
-
-                case PgDbType.Circle:
-                   return PgCircle.Parse(stringValue);
-
-                case PgDbType.Line:
-                   return PgLine.Parse(stringValue);
-
-                case PgDbType.LSeg:
-                   return PgLSeg.Parse(stringValue);
-
                 case PgDbType.Box:
-                   return PgBox.Parse(stringValue);
-
-                case PgDbType.Polygon:
-                   return PgPolygon.Parse(stringValue);
-
-                case PgDbType.Path:
-                   return PgPath.Parse(stringValue);
-
                 case PgDbType.Box2D:
-                   return PgBox2D.Parse(stringValue);
-
                 case PgDbType.Box3D:
-                   return PgBox3D.Parse(stringValue);
+                   return ReadBox();
+
+                case PgDbType.Array:
+                    return ReadArray(typeInfo, length);
+
+                case PgDbType.Vector:
+                    return ReadVector(typeInfo, length);
 
                 default:
                     return ReadBytes(length);
@@ -509,21 +398,6 @@ namespace PostgreSql.Data.Protocol
             {
                 int elementLen = ReadInt32();
                 data.SetValue(ReadValue(elementType, elementType.Size), i);
-            }
-
-            return data;
-        }
-
-        private Array ReadStringArray(PgTypeInfo type, int length)
-        {
-            string     contents    = ReadString(length);
-            string[]   elements    = contents.Substring(1, contents.Length - 2).Split(',');
-            PgTypeInfo elementType = _sessionData.TypeInfo.Single(x => x.Oid == type.ElementType);
-            Array      data        = Array.CreateInstance(elementType.SystemType, elements.Length);
-
-            for (int i = 0; i < elements.Length; ++i)
-            {
-                data.SetValue(elements[i], i);
             }
 
             return data;

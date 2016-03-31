@@ -2,11 +2,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
     /// BigDecimal implementation sample https://gist.github.com/nberardi/2667136 ??
+    /// http://www.postgresql.org/message-id/491DC5F3D279CD4EB4B157DDD62237F404E27FE9@zipwire.esri.com
+    /// http://www.postgresql.org/message-id/16572.1091489720@sss.pgh.pa.us
+    /// http://doxygen.postgresql.org/backend_2utils_2adt_2numeric_8c.html#a3ae98a87bbc2d0dfc9cbe3d5845e0035
+    /// http://doxygen.postgresql.org/backend_2utils_2adt_2numeric_8c.html#a57a8f8ab552bae24926d252180956958
+    ///
     /// https://labs.omniti.com/pgsoltools/trunk/contrib/scratch/pg_type_to_numeric.c
     /// http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/utils/numeric.h;h=7fd5d240c66905971870ff82d1ecfe2121750997;hb=3063e7a84026ced2aadd2262f75eebbe6240f85b
     /// http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/adt/numeric.c;h=07b264572d9c92787b4c0e74df9aa8a6826265b3;hb=3063e7a84026ced2aadd2262f75eebbe6240f85b
@@ -46,7 +51,7 @@ namespace PostgreSql.Data.PgTypes
             _value     = value;
             _isNotNull = true;
         }
-        
+
         public PgDecimal(double dVal)
         {
             _value     = (decimal)dVal;

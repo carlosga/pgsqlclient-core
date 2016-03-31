@@ -8,31 +8,6 @@ namespace PostgreSql.Data.PgTypes
     public struct PgTime 
         : IComparable, INullable
     {
-        internal static readonly string[] TimeFormats = new string[]
-        {
-            "HH:mm:ss",
-            "HH:mm:ss.f",
-            "HH:mm:ss.ff",
-            "HH:mm:ss.fff",
-            "HH:mm:ss.ffff",
-            "HH:mm:ss.fffff",
-            "HH:mm:ss.ffffff",
-            "HH:mm:sszz",
-            "HH:mm:ss.fzz",
-            "HH:mm:ss.ffzz",
-            "HH:mm:ss.fffzz",
-            "HH:mm:ss.ffffzz",
-            "HH:mm:ss.fffffzz",
-            "HH:mm:ss.ffffffzz",
-            "HH:mm:sszz",
-            "HH:mm:ss.f zz",
-            "HH:mm:ss.ff zz",
-            "HH:mm:ss.fff zz",
-            "HH:mm:ss.ffff zz",
-            "HH:mm:ss.fffff zz",
-            "HH:mm:ss.ffffff zz",
-        };
-
         public static PgTime Parse(string s)
         {
             return new PgTime(TimeSpan.Parse(s));

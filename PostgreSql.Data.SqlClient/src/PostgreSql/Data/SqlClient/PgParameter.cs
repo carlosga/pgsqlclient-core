@@ -4,7 +4,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -51,8 +51,8 @@ namespace PostgreSql.Data.SqlClient
 
         public override DbType DbType
         {
-            get { return TypeHelper.ProviderDbTypeToDbType(_providerType); }
-            set { ProviderType = TypeHelper.DbTypeToProviderType(value); }
+            get { return PgTypeInfoProvider.GetDbType(_providerType); }
+            set { ProviderType = PgTypeInfoProvider.GetProviderType(value); }
         }
 
         public PgDbType ProviderType
@@ -62,6 +62,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _providerType = value;
                 _isTypeSet    = true;
+#warning TODO: Reset Value ?? and get the new type info.
             }
         }
 
@@ -96,8 +97,9 @@ namespace PostgreSql.Data.SqlClient
                 _value = value;
 
                 if (!_isTypeSet)
-                {          
-                    ProviderType = TypeHelper.GetDbProviderType(value);
+                {
+                    TypeInfo     = PgTypeInfoProvider.GetTypeInfo(value);
+                    ProviderType = TypeInfo.ProviderType;
                 }
             }
         }

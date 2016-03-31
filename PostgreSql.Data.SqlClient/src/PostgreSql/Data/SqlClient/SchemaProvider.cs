@@ -1,7 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Protocol;
+using PostgreSql.Data.Frontend;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 
@@ -47,8 +47,8 @@ namespace PostgreSql.Data.SqlClient
             {
                 var parameters = new PgParameterCollection();
 
-                parameters.Add("@TableOid", PgDbType.Int32);
-                parameters.Add("@ColumnId", PgDbType.Int32);
+                parameters.Add("@TableOid", PgDbType.Integer);
+                parameters.Add("@ColumnId", PgDbType.Integer);
 
                 command.Prepare(parameters);
                 
