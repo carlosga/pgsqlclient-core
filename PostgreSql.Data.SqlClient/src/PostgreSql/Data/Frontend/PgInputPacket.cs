@@ -128,25 +128,12 @@ namespace PostgreSql.Data.Frontend
             return BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         }
 
-        internal float    ReadMoney()  => ((float)ReadInt32() / 100);
+        internal decimal  ReadMoney()  => ((decimal)ReadInt64() / 100);
         internal double   ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
         internal DateTime ReadDate()   => PgDate.PostgresBaseDate.AddDays(ReadInt32());
 
         internal TimeSpan ReadTime()
         {
-            // var value = ReadInt64();
-            // var time  = value;
-            
-            // var hour = time / PgTimestamp.MicrosecondsPerHour;
-            // time -= (hour) * PgTimestamp.MicrosecondsPerHour;
-            
-            // var min = time / PgTimestamp.MicrosecondsPerMinute;
-            // time -= (min) * PgTimestamp.MicrosecondsPerMinute;
-            
-            // var sec = time / PgTimestamp.MicrosecondsPerSecond;
-            // var fsec = time - (sec * PgTimestamp.MicrosecondsPerSecond);
-
-            // return new TimeSpan(0, (int)hour, (int)min, (int)sec, (int)(fsec * 0.001));
             return TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
         }
 

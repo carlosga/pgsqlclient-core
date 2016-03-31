@@ -12,9 +12,9 @@ namespace PostgreSql.Data.SqlClient.Sample
             var csb = new PgConnectionStringBuilder();
 
             csb.DataSource               = "localhost";
-            csb.InitialCatalog           = "northwind";
-            csb.UserID                   = "northwind";
-            csb.Password                 = "northwind";
+            csb.InitialCatalog           = "pubs";
+            csb.UserID                   = "pubs";
+            csb.Password                 = "pubs";
             csb.PortNumber               = 5432;
             csb.Encrypt                  = false;
             csb.Pooling                  = false;
@@ -25,11 +25,21 @@ namespace PostgreSql.Data.SqlClient.Sample
             using (PgConnection c = new PgConnection(csb.ToString()))
             {
                 c.Open();
-                string sqlBatch = "select * from orders";
+                string sqlBatch = "select * from titles";
                 using (PgCommand cmd = new PgCommand(sqlBatch, c))
                 using (PgDataReader reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read()) { ++count; }
+                    while (reader.Read()) 
+                    {
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            Console.Write($"{reader.GetValue(i)} | ");
+                        }
+                        
+                        Console.WriteLine(String.Empty);
+                        
+                        ++count; 
+                    }
                 }
             }
         

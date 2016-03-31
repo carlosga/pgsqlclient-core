@@ -126,12 +126,12 @@ namespace PostgreSql.Data.Frontend
             // decimal | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
             // numeric | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
 
-            s_types[1700] = new PgTypeInfo(1700, "numeric"  ,  "numeric", PgDbType.Numeric, PgTypeFormat.Text, typeof(decimal));
+            s_types[1700] = new PgTypeInfo(1700, "numeric"  ,  "numeric", PgDbType.Numeric, PgTypeFormat.Binary, typeof(decimal));
             s_types[1231] = new PgTypeInfo(1231, "numeric[]", "_numeric", PgDbType.Array  , s_types[1700], typeof(decimal[]));
 
             // real | 4 bytes | variable-precision, inexact	6 decimal digits precision
 
-            s_types[ 700] = new PgTypeInfo( 700, "real"  , "float4" , PgDbType.Real , PgTypeFormat.Text, typeof(float), 4);
+            s_types[ 700] = new PgTypeInfo( 700, "real"  , "float4" , PgDbType.Real , PgTypeFormat.Binary, typeof(float), 4);
             s_types[1021] = new PgTypeInfo(1021, "real[]", "_float4", PgDbType.Array, s_types[700], typeof(float[]));
 
             // double precision | 8 bytes | variable-precision, inexact	15 decimal digits precision
