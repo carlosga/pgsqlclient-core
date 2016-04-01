@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using NUnit.Framework;
+using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    // public static class SqlTypeTest
+    // [TestFixture]
+    // public static class PgTypeTest
     // {
     //     private static string[] s_sampleString = new string[] { "In", "its", "first", "month", "on",  "the",  "market,",
     //         "Microsoft\u2019s", "new", "search", "engine", "Bing", "Yahoo\u2019s",
@@ -76,46 +78,47 @@ namespace PostgreSql.Data.SqlClient.Tests
     //     private static UnicodeEncoding s_unicodeEncoding = new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true);
 
     //     [TestMethod]
-    //     public static void SqlStringValidComparisonTest()
+    //     [Ignore("disabled")]
+    //     public static void PgStringValidComparisonTest()
     //     {
     //         for (int j = 0; j < s_cultureInfo.Length; ++j)
     //         {
-    //             SqlStringDefaultCompareOptionTest(s_cultureLocaleIDs[j]);
+    //             PgStringDefaultCompareOptionTest(s_cultureLocaleIDs[j]);
 
     //             for (int i = 0; i < s_compareOptions.Length; ++i)
     //             {
-    //                 SqlStringCompareTest(200, s_compareOptions[i], s_cultureInfo[j], s_cultureLocaleIDs[j]);
+    //                 PgStringCompareTest(200, s_compareOptions[i], s_cultureInfo[j], s_cultureLocaleIDs[j]);
     //             }
     //         }
     //     }
 
     //     [TestMethod]
-    //     public static void SqlStringNullComparisonTest()
+    //     [Ignore("disabled")]
+    //     public static void PgStringNullComparisonTest()
     //     {
-    //         SqlString nullSqlString = new SqlString(null);
-    //         SqlString nonNullSqlString = new SqlString("abc   ");
+    //         PgString nullPgString = new PgString(null);
+    //         PgString nonNullPgString = new PgString("abc   ");
 
-    //         Assert.True(
-    //             (bool)(nullSqlString < nonNullSqlString
-    //             || nonNullSqlString >= nullSqlString
-    //             || nullSqlString.CompareTo(nonNullSqlString) < 0
-    //             || nonNullSqlString.CompareTo(nullSqlString) >= 0),
-    //             "FAILED: (SqlString Null Comparison): Null SqlString not equal to null");
+    //         Assert.True((bool)(nullPgString < nonNullPgString
+    //                  || nonNullPgString >= nullPgString
+    //                  || nullPgString.CompareTo(nonNullPgString) < 0
+    //                  || nonNullPgString.CompareTo(nullPgString) >= 0),
+    //                  "FAILED: (PgString Null Comparison): Null PgString not equal to null");
 
-    //         Assert.True((nullSqlString == null && nullSqlString.CompareTo(null) == 0).IsNull, "FAILED: (SqlString Null Comparison): Null SqlString not equal to null");
+    //         Assert.True((nullPgString == null && nullPgString.CompareTo(null) == 0).IsNull, "FAILED: (PgString Null Comparison): Null PgString not equal to null");
     //     }
 
     //     // Special characters matching test for default option (SqlCompareOptions.IgnoreCase | SqlCompareOptions.IgnoreKanaType | SqlCompareOptions.IgnoreWidth)
-    //     private static void SqlStringDefaultCompareOptionTest(int localeID)
+    //     private static void PgStringDefaultCompareOptionTest(int localeID)
     //     {
-    //         SqlString str1;
-    //         SqlString str2;
+    //         PgString str1;
+    //         PgString str2;
 
     //         for (int i = 0; i < s_specialMatchingString.GetLength(0); ++i)
     //         {
-    //             // SqlString(string) creates instance with the default comparison options
-    //             str1 = new SqlString(s_specialMatchingString[i, 0], localeID);
-    //             str2 = new SqlString(s_specialMatchingString[i, 1], localeID);
+    //             // PgString(string) creates instance with the default comparison options
+    //             str1 = new PgString(s_specialMatchingString[i, 0], localeID);
+    //             str2 = new PgString(s_specialMatchingString[i, 1], localeID);
 
     //             // Per default option, each set contains two string which should be matched as equal per default option
     //             Assert.True((bool)(str1 == str2), string.Format("Error (Default Comparison Option with Operator): {0} and {1} should be equal", s_specialMatchingString[i, 0], s_specialMatchingString[i, 1]));
@@ -123,25 +126,25 @@ namespace PostgreSql.Data.SqlClient.Tests
     //         }
     //     }
 
-    //     private static void SqlStringCompareTest(int numberOfItems, SqlCompareOptions compareOption, CultureInfo cInfo, int localeID)
+    //     private static void PgStringCompareTest(int numberOfItems, SqlCompareOptions compareOption, CultureInfo cInfo, int localeID)
     //     {
-    //         SortedList<SqlString, SqlString> items = CreateSortedSqlStringList(numberOfItems, compareOption, cInfo, localeID);
-    //         VerifySortedSqlStringList(items, compareOption, cInfo);
+    //         SortedList<PgString, PgString> items = CreateSortedPgStringList(numberOfItems, compareOption, cInfo, localeID);
+    //         VerifySortedPgStringList(items, compareOption, cInfo);
     //     }
 
-    //     private static SortedList<SqlString, SqlString> CreateSortedSqlStringList(int numberOfItems, SqlCompareOptions compareOption, CultureInfo cInfo, int localeID)
+    //     private static SortedList<PgString, PgString> CreateSortedPgStringList(int numberOfItems, SqlCompareOptions compareOption, CultureInfo cInfo, int localeID)
     //     {
-    //         SortedList<SqlString, SqlString> items = new SortedList<SqlString, SqlString>(numberOfItems);
+    //         SortedList<PgString, PgString> items = new SortedList<PgString, PgString>(numberOfItems);
 
     //         //
-    //         // Generate list of SqlString
+    //         // Generate list of PgString
     //         //
 
     //         Random rand = new Random(500);
     //         int numberOfWords;
 
     //         StringBuilder builder = new StringBuilder();
-    //         SqlString word;
+    //         PgString word;
 
     //         for (int i = 0; i < numberOfItems; ++i)
     //         {
@@ -163,7 +166,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     //                         builder.Append(' ');
     //                     }
     //                 }
-    //                 word = new SqlString(builder.ToString(), localeID, compareOption);
+    //                 word = new PgString(builder.ToString(), localeID, compareOption);
     //             } while (items.ContainsKey(word));
 
     //             items.Add(word, word);
@@ -172,35 +175,35 @@ namespace PostgreSql.Data.SqlClient.Tests
     //         return items;
     //     }
 
-    //     private static void VerifySortedSqlStringList(SortedList<SqlString, SqlString> items, SqlCompareOptions compareOption, CultureInfo cInfo)
+    //     private static void VerifySortedPgStringList(SortedList<PgString, PgString> items, SqlCompareOptions compareOption, CultureInfo cInfo)
     //     {
     //         //
     //         // Verify the list is in order
     //         //
 
-    //         IList<SqlString> keyList = items.Keys;
+    //         IList<PgString> keyList = items.Keys;
     //         for (int i = 0; i < items.Count - 1; ++i)
     //         {
-    //             SqlString currentString = keyList[i];
-    //             SqlString nextString = keyList[i + 1];
+    //             PgString currentString = keyList[i];
+    //             PgString nextString = keyList[i + 1];
 
-    //             Assert.True((bool)((currentString < nextString) && (nextString >= currentString)), "FAILED: (SqlString Operator Comparison): SqlStrings are out of order");
-    //             Assert.True((currentString.CompareTo(nextString) < 0) && (nextString.CompareTo(currentString) > 0), "FAILED: (SqlString.CompareTo): SqlStrings are out of order");
+    //             Assert.True((bool)((currentString < nextString) && (nextString >= currentString)), "FAILED: (PgString Operator Comparison): PgStrings are out of order");
+    //             Assert.True((currentString.CompareTo(nextString) < 0) && (nextString.CompareTo(currentString) > 0), "FAILED: (PgString.CompareTo): PgStrings are out of order");
 
     //             switch (compareOption)
     //             {
     //                 case SqlCompareOptions.BinarySort:
-    //                     Assert.True(CompareBinary(currentString.Value, nextString.Value) < 0, "FAILED: (SqlString BinarySort Comparison): SqlStrings are out of order");
+    //                     Assert.True(CompareBinary(currentString.Value, nextString.Value) < 0, "FAILED: (PgString BinarySort Comparison): PgStrings are out of order");
     //                     break;
     //                 case SqlCompareOptions.BinarySort2:
-    //                     Assert.True(string.CompareOrdinal(currentString.Value.TrimEnd(), nextString.Value.TrimEnd()) < 0, "FAILED: (SqlString BinarySort2 Comparison): SqlStrings are out of order");
+    //                     Assert.True(string.CompareOrdinal(currentString.Value.TrimEnd(), nextString.Value.TrimEnd()) < 0, "FAILED: (PgString BinarySort2 Comparison): PgStrings are out of order");
 
     //                     break;
     //                 default:
     //                     CompareInfo cmpInfo = cInfo.CompareInfo;
-    //                     CompareOptions cmpOptions = SqlString.CompareOptionsFromSqlCompareOptions(nextString.SqlCompareOptions);
+    //                     CompareOptions cmpOptions = PgString.CompareOptionsFromSqlCompareOptions(nextString.SqlCompareOptions);
 
-    //                     Assert.True(cmpInfo.Compare(currentString.Value.TrimEnd(), nextString.Value.TrimEnd(), cmpOptions) < 0, "FAILED: (SqlString Comparison): SqlStrings are out of order");
+    //                     Assert.True(cmpInfo.Compare(currentString.Value.TrimEnd(), nextString.Value.TrimEnd(), cmpOptions) < 0, "FAILED: (PgString Comparison): PgStrings are out of order");
     //                     break;
     //             }
     //         }
@@ -213,7 +216,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     //     //      1  : wstr1 > wstr2
     //     //
     //     //  Does a memory comparison.
-    //     //  NOTE: This comparison algorithm is different from BinraySory2. The algorithm is copied fro SqlString implementation
+    //     //  NOTE: This comparison algorithm is different from BinraySory2. The algorithm is copied fro PgString implementation
     //     private static int CompareBinary(string x, string y)
     //     {
     //         byte[] rgDataX = s_unicodeEncoding.GetBytes(x);

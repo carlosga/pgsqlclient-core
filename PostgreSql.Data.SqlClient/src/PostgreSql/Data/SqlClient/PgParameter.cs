@@ -18,6 +18,7 @@ namespace PostgreSql.Data.SqlClient
         private string                _parameterName;
         private string                _sourceColumn;
         private object                _value;
+        private object                _pgvalue;
         private byte                  _precision;
         private byte                  _scale;
         private int                   _size;
@@ -90,12 +91,22 @@ namespace PostgreSql.Data.SqlClient
             get { return _value; }
             set
             {
-                if (value == null)
-                {
-                    value = DBNull.Value;
-                }
+                _value = (value == null) ? DBNull.Value : value;
 
-                _value = value;
+                if (!_isTypeSet)
+                {
+                    TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
+                    _providerType = TypeInfo.ProviderType;
+                }
+            }
+        }
+
+        public object PgValue
+        {
+            get { return _pgvalue; }
+            set
+            {
+                _pgvalue = (value == null) ? DBNull.Value : value;
 
                 if (!_isTypeSet)
                 {
