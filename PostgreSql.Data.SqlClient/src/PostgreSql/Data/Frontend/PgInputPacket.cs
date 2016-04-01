@@ -49,10 +49,7 @@ namespace PostgreSql.Data.Frontend
             return buffer;
         }
 
-        internal char ReadChar()
-        {
-           return (char)_contents[_position++];
-        }
+        internal char ReadChar() => (char)_contents[_position++];
 
         internal string ReadNullString()
         {
@@ -83,8 +80,8 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal string ReadString()  => ReadString(ReadInt32());
-        internal bool   ReadBoolean() => Convert.ToBoolean(ReadByte());
         internal byte   ReadByte()    => _contents[_position++];
+        internal bool   ReadBoolean() => Convert.ToBoolean(ReadByte());
         
         internal short ReadInt16()
         {
@@ -123,18 +120,20 @@ namespace PostgreSql.Data.Frontend
         //      return *((float*)&value);
         // }
 
-        internal float ReadSingle()
-        {
-            return BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
-        }
-
+        internal float    ReadSingle() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         internal decimal  ReadMoney()  => ((decimal)ReadInt64() / 100);
         internal double   ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-        internal DateTime ReadDate()   => PgDate.PostgresBaseDate.AddDays(ReadInt32());
 
-        internal TimeSpan ReadTime()
+        internal DateTime ReadDate()       => PgDate.PostgresBaseDate.AddDays(ReadInt32());
+        internal TimeSpan ReadTime()       => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+        internal DateTime ReadTimestamp()  => PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
+
+#warning TODO: Handle the time zone offset
+        internal TimeSpan ReadTimeWithTZ() => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+        internal DateTimeOffset ReadTimestampWithTZ()
         {
-            return TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+            var dt    = PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
+            return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
         internal PgTimeSpan ReadInterval()
@@ -144,24 +143,42 @@ namespace PostgreSql.Data.Frontend
             return new PgTimeSpan(interval.Add(TimeSpan.FromDays(ReadInt32() * 30)));
         }
 
-        internal TimeSpan ReadTimeWithTZ()
+        internal PgPoint  ReadPoint()   => new PgPoint(ReadDouble(), ReadDouble());
+        internal PgCircle ReadCircle()  => new PgCircle(ReadPoint(), ReadDouble());
+        internal PgLine   ReadLine()    => new PgLine(ReadPoint(), ReadPoint());
+        internal PgLSeg   ReadLSeg()    => new PgLSeg(ReadPoint(), ReadPoint());
+
+        internal PgBox ReadBox()
         {
-#warning TODO: Hanle the time zone offset
-            return TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+           PgPoint upperRight = ReadPoint();
+           PgPoint lowerLeft  = ReadPoint();
+
+           return new PgBox(lowerLeft, upperRight);
         }
 
-        internal DateTime ReadTimestamp()
+        internal PgPolygon ReadPolygon()
         {
-            var value = ReadInt64();
-            return PgDate.PostgresBaseDate.AddMilliseconds(value * 0.001);
+           PgPoint[] points = new PgPoint[ReadInt32()];
+
+           for (int i = 0; i < points.Length; i++)
+           {
+               points[i] = ReadPoint();
+           }
+
+           return new PgPolygon(points);
         }
 
-        internal DateTimeOffset ReadTimestampWithTZ()
+        internal PgPath ReadPath()
         {
-            var value = ReadInt64();
-            var dt    = PgDate.PostgresBaseDate.AddMilliseconds(value * 0.001);
-#warning TODO: Hanle the time zone offset
-            return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
+           bool      isClosedPath = ReadBoolean();
+           PgPoint[] points       = new PgPoint[ReadInt32()];
+
+           for (int i = 0; i < points.Length; i++)
+           {
+               points[i] = ReadPoint();
+           }
+
+           return new PgPath(isClosedPath, points);
         }
 
         internal Array ReadArray(PgTypeInfo type, int length)
@@ -213,44 +230,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             return data;
-        }
-
-        internal PgPoint  ReadPoint()   => new PgPoint(ReadDouble(), ReadDouble());
-        internal PgCircle ReadCircle()  => new PgCircle(ReadPoint(), ReadDouble());
-        internal PgLine   ReadLine()    => new PgLine(ReadPoint(), ReadPoint());
-        internal PgLSeg   ReadLSeg()    => new PgLSeg(ReadPoint(), ReadPoint());
-
-        internal PgBox ReadBox()
-        {
-           PgPoint upperRight = ReadPoint();
-           PgPoint lowerLeft  = ReadPoint();
-
-           return new PgBox(lowerLeft, upperRight);
-        }
-
-        internal PgPolygon ReadPolygon()
-        {
-           PgPoint[] points = new PgPoint[ReadInt32()];
-
-           for (int i = 0; i < points.Length; i++)
-           {
-               points[i] = ReadPoint();
-           }
-
-           return new PgPolygon(points);
-        }
-
-        internal PgPath ReadPath()
-        {
-           bool      isClosedPath = ReadBoolean();
-           PgPoint[] points       = new PgPoint[ReadInt32()];
-
-           for (int i = 0; i < points.Length; i++)
-           {
-               points[i] = ReadPoint();
-           }
-
-           return new PgPath(isClosedPath, points);
         }
 
         internal object ReadValue(PgFieldDescriptor descriptor, int length)

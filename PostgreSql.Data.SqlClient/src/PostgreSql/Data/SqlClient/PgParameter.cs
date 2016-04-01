@@ -4,7 +4,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
-using PostgreSql.Data.Frontend;
+using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -62,6 +62,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _providerType = value;
                 _isTypeSet    = true;
+                TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
 #warning TODO: Reset Value ?? and get the new type info.
             }
         }
@@ -98,8 +99,8 @@ namespace PostgreSql.Data.SqlClient
 
                 if (!_isTypeSet)
                 {
-                    TypeInfo     = PgTypeInfoProvider.GetTypeInfo(value);
-                    ProviderType = TypeInfo.ProviderType;
+                    TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
+                    _providerType = TypeInfo.ProviderType;
                 }
             }
         }

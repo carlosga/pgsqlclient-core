@@ -70,6 +70,7 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal void WriteByte(byte value) => _stream.WriteByte(value);
+        internal void Write(bool value)     => WriteByte((byte)((value) ? 1 : 0));
 
         internal void Write(short value)
         {
@@ -100,30 +101,19 @@ namespace PostgreSql.Data.Frontend
         //      Write(*((int*)&value));
         // }
 
-        public void Write(float value)
-        {
-            Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-        }
+        internal void Write(float value)  => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+        internal void Write(double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
-        internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
-        internal void Write(bool value)        => WriteByte(Convert.ToByte(value));
         internal void WriteDate(DateTime date) => Write(date.Subtract(PgDate.PostgresBaseDate).TotalDays);
-
-        internal void WriteTime(TimeSpan time)
-        {
-            Write((long)time.TotalMilliseconds * 1000);
-        }
-
-        internal void WriteTimeWithTZ(TimeSpan time)
-        {
-            Write((long)time.TotalMilliseconds * 1000);
-        }
-
+        internal void WriteTime(TimeSpan time) => Write((long)time.TotalMilliseconds * 1000);
+        
         internal void WriteTimestamp(DateTime timestamp)
         {
             Write((long)(timestamp.Subtract(PgDate.UnixBaseDate).TotalMilliseconds * 1000));
         }
 
+#warning TODO: Handle the time zone offset
+        internal void WriteTimeWithTZ(TimeSpan time) => Write((long)time.TotalMilliseconds * 1000);
         internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
         {
             Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch));

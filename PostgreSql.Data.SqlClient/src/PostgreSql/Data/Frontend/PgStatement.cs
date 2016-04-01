@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using PostgreSql.Data.SqlClient;
+using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.Frontend
 {

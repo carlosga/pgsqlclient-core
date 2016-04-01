@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 
-namespace PostgreSql.Data.Frontend
+namespace PostgreSql.Data.PgTypes
 {
     internal static class PgTypeInfoProvider
     {
@@ -126,7 +125,7 @@ namespace PostgreSql.Data.Frontend
             // decimal | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
             // numeric | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
 
-            s_types[1700] = new PgTypeInfo(1700, "numeric"  ,  "numeric", PgDbType.Numeric, PgTypeFormat.Binary, typeof(decimal));
+            s_types[1700] = new PgTypeInfo(1700, "numeric"  ,  "numeric", PgDbType.Numeric, PgTypeFormat.Text, typeof(decimal));
             s_types[1231] = new PgTypeInfo(1231, "numeric[]", "_numeric", PgDbType.Array  , s_types[1700], typeof(decimal[]));
 
             // real | 4 bytes | variable-precision, inexact	6 decimal digits precision
@@ -152,7 +151,7 @@ namespace PostgreSql.Data.Frontend
             // SPECIAL CHARACTER TYPES
             //
 
-            s_types[  19] = new PgTypeInfo(  19, "name"    , "name", PgDbType.VarChar, PgTypeFormat.Text, typeof(string));
+            s_types[  19] = new PgTypeInfo(  19, "name"    , "name"   , PgDbType.VarChar, PgTypeFormat.Text, typeof(string));
             s_types[1042] = new PgTypeInfo(1042, "bpchar"  , "bpchar" , PgDbType.Char, PgTypeFormat.Text, typeof(string));
             s_types[1014] = new PgTypeInfo(1014, "bpchar[]", "_bpchar", PgDbType.Char, s_types[1042], typeof(string[]));
 
@@ -365,13 +364,18 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal static PgTypeInfo GetTypeInfo(PgDbType providerType)
+        {
+            return Types.Values.First(x => x.ProviderType == providerType);
+        }
+
         internal static PgTypeInfo GetTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
-                return null;
+                return s_types[1043];
             }
-            return Types.Values.Single(x => x.SystemType == value.GetType());
+            return Types.Values.First(x => x.SystemType == value.GetType());
         }
     }
 }

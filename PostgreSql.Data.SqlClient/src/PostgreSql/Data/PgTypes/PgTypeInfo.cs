@@ -5,7 +5,7 @@ using System;
 using System.Data;
 using PostgreSql.Data.SqlClient;
 
-namespace PostgreSql.Data.Frontend
+namespace PostgreSql.Data.PgTypes
 {
     internal sealed class PgTypeInfo
     {

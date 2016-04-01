@@ -1247,12 +1247,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             string[] expectedColNames =
             {
-                "orderid", "customerid", "employeeid", "orderdate", "requireddate", "shippeddate", "shipvia",
-                "freight", "shipname", "shipaddress", "shipcity", "shipregion", "shippostalcode", "shipcountry"
+                "orderid", "customerid", "employeeid" , "orderdate", "requireddate", "shippeddate"   , "shipvia",
+                "freight", "shipname"  , "shipaddress", "shipcity" , "shipregion"  , "shippostalcode", "shipcountry"
             };
             string[] expectedColTypeNames =
             {
-                "int4"   , "bpchar" , "int4"   , "date"    , "date"    , "date"    , "int4",
+                "integer", "bpchar" , "integer", "date"    , "date"    , "date"    , "integer",
                 "numeric", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
             };
 
