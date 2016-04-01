@@ -1,8 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using PostgreSql.Data.Frontend;
+using System;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -226,7 +226,7 @@ namespace PostgreSql.Data.PgTypes
         
         public static implicit operator PgBoolean(bool x)
         {
-            return (PgBoolean)x;
+            return new PgBoolean(x);
         }
 
         public static bool operator true(PgBoolean x)

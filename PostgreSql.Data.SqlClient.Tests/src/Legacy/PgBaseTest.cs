@@ -272,7 +272,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
             {
                 using (var command = new PgCommand(commandText, _connection, transaction))
                 {
-                    command.Parameters.Add("@int4_field", PgDbType.Int32);
+                    command.Parameters.Add("@int4_field", PgDbType.Integer);
                     command.Parameters.Add("@char_field", PgDbType.Char);
                     command.Parameters.Add("@varchar_field", PgDbType.VarChar);
                     command.Parameters.Add("@single_field", PgDbType.Real);
@@ -314,7 +314,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                 using (var command = new PgCommand(commandText, _connection, transaction))
                 {
                     // Add command parameters
-                    command.Parameters.Add("@pk", PgDbType.Int32);
+                    command.Parameters.Add("@pk", PgDbType.Integer);
                     command.Parameters.Add("@point", PgDbType.Point);
                     command.Parameters.Add("@box", PgDbType.Box);
                     command.Parameters.Add("@circle", PgDbType.Circle);

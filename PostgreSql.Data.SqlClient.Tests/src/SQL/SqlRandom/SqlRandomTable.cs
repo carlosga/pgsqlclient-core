@@ -624,7 +624,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             int i = 0;
             if (createIdColumn)
             {
-                SqlRandomTypeInfo    keyType   = sourceCollection[PgDbType.Int32];
+                SqlRandomTypeInfo    keyType   = sourceCollection[PgDbType.Integer];
                 SqlRandomTableColumn keyColumn = keyType.CreateDefaultColumn(SqlRandomColumnOptions.None);
                 retColumns.Add(keyColumn);
                 totalRowSize += keyType.GetInRowSize(keyColumn, null);
@@ -743,7 +743,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         // thus, do not allow this
                         if (hasTimestamp || maxColumnsCount == 1)
                         {
-                            ti = sourceCollection[PgDbType.Int32];
+                            ti = sourceCollection[PgDbType.Integer];
                         }
                         else
                         {

@@ -68,7 +68,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 8;
 
         public SqlBigIntTypeInfo()
-            : base(PgDbType.Int64)
+            : base(PgDbType.BigInt)
         {
         }
 
@@ -110,7 +110,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 4;
 
         public SqlIntTypeInfo()
-            : base(PgDbType.Int32)
+            : base(PgDbType.Integer)
         {
         }
 
@@ -152,7 +152,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const int    StorageSize  = 2;
 
         public SqlSmallIntTypeInfo()
-            : base(PgDbType.Int16)
+            : base(PgDbType.SmallInt)
         {
         }
 

@@ -1,8 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using PostgreSql.Data.Frontend;
+using System;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -24,14 +24,21 @@ namespace PostgreSql.Data.PgTypes
         private bool     _isNotNull;
         private DateTime _value;
 
-        public PgDate(int dayTicks)
+        private PgDate(bool isNotNull)
         {
-            throw new NotImplementedException();
+            _isNotNull = isNotNull;
+            _value     = PostgresBaseDate;
+        }
+
+        public PgDate(int days)
+        {
+            _isNotNull = true;
+            _value     = PostgresBaseDate.AddDays(days);
         }
 
         public PgDate(DateTime value)
         {
-            _value     = value;
+            _value     = value.Date;
             _isNotNull = true;
         }
 
@@ -43,52 +50,100 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgDate operator -(PgDate x, TimeSpan t)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (t.Hours > 0 || t.Minutes > 0 || t.Seconds > 0 || t.Milliseconds > 0)
+            {
+                throw new OverflowException();
+            }
+            return (x.Value.Add(t));
         }
 
         public static PgBoolean operator !=(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value != y._value);
         }
 
         public static PgDate operator +(PgDate x, TimeSpan t)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (t.Hours > 0 || t.Minutes > 0 || t.Seconds > 0 || t.Milliseconds > 0)
+            {
+                throw new OverflowException();
+            }
+            return (x.Value.Subtract(t));
         }
 
         public static PgBoolean operator <(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value < y._value);
         }
 
         public static PgBoolean operator <=(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value <= y._value);
         }
 
         public static PgBoolean operator ==(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value == y._value);
         }
 
         public static PgBoolean operator >(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value > y._value);
         }
 
         public static PgBoolean operator >=(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value >= y._value);
         }
 
         public static explicit operator DateTime(PgDate x)
         {
+            if (x.IsNull)
+            {
+                throw new PgNullValueException();
+            }
             return x._value;
         }
 
         public static explicit operator PgDate(PgString x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return Parse(x.Value);
         }
 
         public static implicit operator PgDate(DateTime value)
@@ -124,77 +179,119 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgDate Add(PgDate x, TimeSpan t)
         {
-            throw new NotImplementedException();
+            return (x + t);
         }
 
-        public int CompareTo(object value)
+        public int CompareTo(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null || !(obj is PgDate))
+            {
+                return -1;
+            }
+
+            return CompareTo((PgDate)obj);
         }
 
         public int CompareTo(PgDate value)
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return ((value.IsNull) ? 0 : -1);
+            }
+            else if (value.IsNull)
+            {
+                return 1;
+            }
+
+            if (this < value)
+            {
+                return -1;
+            }
+            if (this > value)
+            {
+                return 1;
+            }
+            return 0;
         }
 
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                return false;
+            }
+            if (!(obj is PgDate))
+            {
+                return false;
+            }
+            return Equals(this, (PgDate)obj).Value;
         }
 
         public static PgBoolean Equals(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x == y);
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return 0;
+            }
+            return _value.GetHashCode();
         }
 
         public static PgBoolean GreaterThan(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x > y);
         }
 
         public static PgBoolean GreaterThanOrEqual(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x >= y);
         }
 
         public static PgBoolean LessThan(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x < y);
         }
 
         public static PgBoolean LessThanOrEqual(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x <= y);
         }
 
         public static PgBoolean NotEquals(PgDate x, PgDate y)
         {
-            throw new NotImplementedException();
+            return (x != y);
         }
 
         public static PgDate Parse(string s)
         {
-            throw new NotImplementedException();
+            if (PgTypeInfoProvider.IsNullString(s))
+            {
+                return Null;
+            }
+            return DateTime.Parse(s);
         }
 
         public static PgDate Subtract(PgDate x, TimeSpan t)
         {
-            throw new NotImplementedException();
+            return (x - t);
         }
 
         public PgString ToPgString()
         {
-            throw new NotImplementedException();
+            return ToString();
         }
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return _value.ToString();
         }
     }
 }

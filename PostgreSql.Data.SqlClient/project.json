@@ -11,8 +11,7 @@
         "netstandard1.5":{
             "imports" : ["netcore50"],
             "dependencies": {
-                "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
-                "NETStandard.Library": "1.5.0-rc2-*",  
+                "NETStandard.Library": "1.5.0-rc2-23928",
                 "System.Collections": "4.0.11-rc2-*",
                 "System.Collections.Concurrent": "4.0.12-rc2-*",
                 "System.Collections.NonGeneric": "4.0.1-rc2-*",

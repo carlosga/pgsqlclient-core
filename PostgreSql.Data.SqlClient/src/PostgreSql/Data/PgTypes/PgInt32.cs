@@ -1,8 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using PostgreSql.Data.Frontend;
+using System;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -16,6 +16,12 @@ namespace PostgreSql.Data.PgTypes
 
         private bool _isNotNull;
         private int  _value;
+
+        public PgInt32(bool isNotNull)
+        { 
+            _isNotNull = isNotNull;
+            _value     = 0;
+        }
 
         public PgInt32(int value)
         {
@@ -38,16 +44,21 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x - y);
+            long value = x._value - y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgBoolean operator !=(PgInt32 x, PgInt32 y)
         {
             if (x.IsNull || y.IsNull)
             {
-                return PgBoolean.False;
+                return PgBoolean.Null;
             }
-            return !(x == y);
+            return !(x._value == y._value);
         }
 
         public static PgInt32 operator %(PgInt32 x, PgInt32 y)
@@ -56,7 +67,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x % y);
+            long value = x._value % y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator &(PgInt32 x, PgInt32 y)
@@ -65,7 +81,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x._value & y._value);
+            long value = x._value & y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator *(PgInt32 x, PgInt32 y)
@@ -74,7 +95,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x * y);
+            long value = x._value * y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator /(PgInt32 x, PgInt32 y)
@@ -83,7 +109,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x._value / y._value);
+            long value = x._value / y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator ^(PgInt32 x, PgInt32 y)
@@ -92,7 +123,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x._value ^ y._value);
+            long value = x._value ^ y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator |(PgInt32 x, PgInt32 y)
@@ -101,7 +137,12 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (x._value | y._value);
+            long value = x._value | y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator ~(PgInt32 x)
@@ -110,25 +151,35 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (~x.Value);
+            long value = ~x._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgInt32 operator +(PgInt32 x, PgInt32 y)
         {
-            if (x.IsNull || y.IsNull)
+            if (x.IsNull)
             {
                 return Null;
             }
-            return (x._value + y._value);
+            long value = x._value + y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgInt32)value;
         }
 
         public static PgBoolean operator <(PgInt32 x, PgInt32 y)
         {
             if (x.IsNull || y.IsNull)
             {
-                return PgBoolean.False;
+                return PgBoolean.Null;
             }
-            return (x < y);
+            return (x._value < y._value);
         }
 
         public static PgBoolean operator <=(PgInt32 x, PgInt32 y)
@@ -137,14 +188,14 @@ namespace PostgreSql.Data.PgTypes
             {
                 return PgBoolean.False;
             }
-            return (x <= y);
+            return (x._value <= y._value);
         }
 
         public static PgBoolean operator ==(PgInt32 x, PgInt32 y)
         {
-            if ((x.IsNull && !y.IsNull) || (!x.IsNull && y.IsNull))
+            if (x.IsNull || y.IsNull)
             {
-                return false;
+                return PgBoolean.Null;
             }
             return (x._value == y._value);
         }
@@ -443,12 +494,12 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDecimal ToPgDecimal()
         {
-            return (PgDecimal)this;
+            return this;
         }
 
         public PgDouble ToPgDouble()
         {
-            return (PgDouble)this;
+            return this;
         }
 
         public PgInt16 ToPgInt16()
@@ -458,17 +509,17 @@ namespace PostgreSql.Data.PgTypes
 
         public PgInt64 ToPgInt64()
         {
-            return (PgInt64)this;
+            return this;
         }
 
         public PgMoney ToPgMoney()
         {
-            return (PgMoney)this;
+            return this;
         }
 
         public PgReal ToPgReal()
         {
-            return (PgReal)this;
+            return this;
         }
 
         public PgString ToPgString()

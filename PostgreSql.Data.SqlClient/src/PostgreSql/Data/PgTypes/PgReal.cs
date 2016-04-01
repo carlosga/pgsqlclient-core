@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Frontend;
 using System;
 
 namespace PostgreSql.Data.PgTypes
@@ -10,14 +11,24 @@ namespace PostgreSql.Data.PgTypes
     {
         public static readonly PgReal MaxValue = Single.MaxValue;
         public static readonly PgReal MinValue = Single.MinValue;
-        public static readonly PgReal Null     = new PgReal();
+        public static readonly PgReal Null     = new PgReal(false);
         public static readonly PgReal Zero     = 0.0f;
 
         private readonly bool  _isNotNull;
         private readonly float _value;
 
+        public PgReal(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _value     = 0.0f;
+        }
+
         public PgReal(double value)
         {
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
             _value     = (float)value;
             _isNotNull = true;
         }
@@ -30,112 +41,237 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgReal operator -(PgReal x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            double value = -x._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)value;
         }
 
         public static PgReal operator -(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return Null;
+            }
+            double value = x._value - y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)value;
         }
 
         public static PgBoolean operator !=(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value == y._value);
         }
 
         public static PgReal operator *(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return Null;
+            }
+            double value = x._value * y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)value;
         }
 
         public static PgReal operator /(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return Null;
+            }
+            double value = x._value / y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)value;
         }
 
         public static PgReal operator +(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return Null;
+            }
+            double value = x._value + y._value;
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)value;
         }
 
         public static PgBoolean operator <(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value < y._value);
         }
 
         public static PgBoolean operator <=(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value <= y._value);
         }
 
         public static PgBoolean operator ==(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value == y._value);
         }
 
         public static PgBoolean operator >(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value > y._value);
         }
 
         public static PgBoolean operator >=(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+            return (x._value >= y._value);
         }
 
         public static explicit operator PgReal(PgBoolean x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return x.ByteValue;
         }
 
         public static explicit operator PgReal(PgDouble x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (x.Value < MinValue.Value || x.Value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return (PgReal)x.Value;
         }
 
         public static explicit operator float(PgReal x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                throw new PgNullValueException();
+            }
+            return x._value;
         }
 
         public static explicit operator PgReal(PgString x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return Parse(x.Value);
         }
 
         public static implicit operator PgReal(float x)
         {
-            throw new NotImplementedException();
+            return new PgReal(x);
         }
 
         public static implicit operator PgReal(PgByte x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return new PgReal(x.Value);
         }
 
         public static implicit operator PgReal(PgDecimal x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (x.Value < (decimal)MinValue.Value || x.Value > (decimal)MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return new PgReal((float)x.Value);
         }
 
         public static implicit operator PgReal(PgInt16 x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return new PgReal(x.Value);
         }
 
         public static implicit operator PgReal(PgInt32 x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return new PgReal(x.Value);
         }
 
         public static implicit operator PgReal(PgInt64 x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (x.Value < MinValue.Value || x.Value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return new PgReal(x.Value);
         }
 
         public static implicit operator PgReal(PgMoney x)
         {
-            throw new NotImplementedException();
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (x.Value < (decimal)MinValue.Value || x.Value > (decimal)MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return new PgReal((float)x.Value);
         }
 
         public bool IsNull => !_isNotNull;
@@ -154,127 +290,169 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgReal Add(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x + y);
         }
 
-        public int CompareTo(object value)
+        public int CompareTo(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null || !(obj is PgReal))
+            {
+                return -1;
+            }
+
+            return CompareTo((PgReal)obj);
         }
 
         public int CompareTo(PgReal value)
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return ((value.IsNull) ? 0 : -1);
+            }
+            else if (value.IsNull)
+            {
+                return 1;
+            }
+
+            if (this < value)
+            {
+                return -1;
+            }
+            if (this > value)
+            {
+                return 1;
+            }
+            return 0;
         }
 
         public static PgReal Divide(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x / y);
         }
 
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                return false;
+            }
+            if (!(obj is PgReal))
+            {
+                return false;
+            }
+            return Equals(this, (PgReal)obj).Value;
         }
 
         public static PgBoolean Equals(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x == y);
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return 0;
+            }
+            return _value.GetHashCode();
         }
 
         public static PgBoolean GreaterThan(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x > y);
         }
 
         public static PgBoolean GreaterThanOrEqual(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x >= y);
         }
 
         public static PgBoolean LessThan(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x < y);
         }
 
         public static PgBoolean LessThanOrEqual(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x <= y);
         }
 
         public static PgReal Multiply(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x * y);
         }
 
         public static PgBoolean NotEquals(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x != y);
         }
 
         public static PgReal Parse(string s)
         {
-            throw new NotImplementedException();
+            if (PgTypeInfoProvider.IsNullString(s))
+            {
+                return Null;
+            }
+            return Single.Parse(s, PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgReal Subtract(PgReal x, PgReal y)
         {
-            throw new NotImplementedException();
+            return (x - y);
         }
 
         public PgBoolean ToPgBoolean()
         {
-            throw new NotImplementedException();
+            return (PgBoolean)this;
         }
 
         public PgByte ToPgByte()
         {
-            throw new NotImplementedException();
+            return (PgByte)this;
         }
 
         public PgDecimal ToPgDecimal()
         {
-            throw new NotImplementedException();
+            return (PgDecimal)this;
         }
 
         public PgDouble ToPgDouble()
         {
-            throw new NotImplementedException();
+            return (PgDouble)this;
         }
 
         public PgInt16 ToPgInt16()
         {
-            throw new NotImplementedException();
+            return (PgInt16)this;
         }
 
         public PgInt32 ToPgInt32()
         {
-            throw new NotImplementedException();
+            return (PgInt32)this;
         }
 
         public PgInt64 ToPgInt64()
         {
-            throw new NotImplementedException();
+            return (PgInt64)this;
         }
 
         public PgMoney ToPgMoney()
         {
-            throw new NotImplementedException();
+            return (PgMoney)this;
         }
 
         public PgString ToPgString()
         {
-            throw new NotImplementedException();
+            return (PgString)this;
         }
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
     }
 }

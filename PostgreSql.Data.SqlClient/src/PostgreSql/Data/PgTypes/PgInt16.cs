@@ -1,8 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using PostgreSql.Data.Frontend;
+using System;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -11,11 +11,17 @@ namespace PostgreSql.Data.PgTypes
     {
         public static readonly PgInt16 MaxValue =  32767;
         public static readonly PgInt16 MinValue = -32768;
-        public static readonly PgInt16 Null     = new PgInt16();
+        public static readonly PgInt16 Null     = new PgInt16(false);
         public static readonly PgInt16 Zero     = 0;
 
         private readonly bool  _isNotNull;
         private readonly short _value;
+
+        public PgInt16(bool isNotNull)
+        { 
+            _isNotNull = isNotNull;
+            _value     = 0;
+        }
 
         public PgInt16(short value)
         {
@@ -53,13 +59,9 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean operator !=(PgInt16 x, PgInt16 y)
         {
-            if (x.IsNull && y.IsNull)
+            if (x.IsNull || y.IsNull)
             {
-                return true;
-            }
-            else if ((x.IsNull && !y.IsNull) || (!x.IsNull && x.IsNull))
-            {
-                return false;
+                return PgBoolean.Null;
             }
             return (x._value != y._value);
         }
@@ -227,7 +229,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (PgInt16)x.ByteValue;
+            return x.ByteValue;
         }
 
         public static explicit operator PgInt16(PgDecimal x)
@@ -365,14 +367,36 @@ namespace PostgreSql.Data.PgTypes
             return (x | y);
         }
 
-        public int CompareTo(object value)
+        public int CompareTo(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null || !(obj is PgInt16))
+            {
+                return -1;
+            }
+
+            return CompareTo((PgInt16)obj);
         }
 
         public int CompareTo(PgInt16 value)
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return ((value.IsNull) ? 0 : -1);
+            }
+            else if (value.IsNull)
+            {
+                return 1;
+            }
+
+            if (this < value)
+            {
+                return -1;
+            }
+            if (this > value)
+            {
+                return 1;
+            }
+            return 0;
         }
 
         public static PgInt16 Divide(PgInt16 x, PgInt16 y)
@@ -380,14 +404,22 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            if (obj == null)
+            {
+                return false;
+            }
+            if (!(obj is PgInt16))
+            {
+                return false;
+            }
+            return Equals(this, (PgInt16)obj).Value;
         }
 
         public static PgBoolean Equals(PgInt16 x, PgInt16 y)
         {
-            throw new NotImplementedException();
+            return (x == y);
         }
 
         public override int GetHashCode()
@@ -450,7 +482,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Null;
             }
-            return (PgInt16)Int16.Parse(s, PgTypeInfoProvider.InvariantCulture);
+            return Int16.Parse(s, PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt16 Subtract(PgInt16 x, PgInt16 y)
@@ -475,35 +507,31 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDouble ToPgDouble()
         {
-            return (PgDouble)this;
+            return this;
         }
 
         public PgInt32 ToPgInt32()
         {
-            return (PgInt32)this;
+            return this;
         }
 
         public PgInt64 ToPgInt64()
         {
-            return (PgInt64)this;
+            return this;
         }
 
         public PgMoney ToPgMoney()
         {
-            return (PgMoney)this;
+            return this;
         }
 
         public PgReal ToPgReal()
         {
-            return (PgReal)this;
+            return this;
         }
 
         public PgString ToPgString()
         {
-            if (IsNull)
-            {
-                return PgString.Null;
-            }
             return (PgString)this;
         }
 

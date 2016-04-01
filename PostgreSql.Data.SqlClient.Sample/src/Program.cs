@@ -22,8 +22,10 @@ namespace PostgreSql.Data.SqlClient.Sample
             
             var count = 0;
             
+            Console.WriteLine(csb.ToString());
+            
             using (PgConnection c = new PgConnection(csb.ToString()))
-            {
+            {@
                 c.Open();
                 string sqlBatch = "select * from titles";
                 using (PgCommand cmd = new PgCommand(sqlBatch, c))

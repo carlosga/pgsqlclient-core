@@ -41,7 +41,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             DataTestClass.AssertEqualsWithDescription("Parameter2", opc[1].ParameterName, "FAILED: Incorrect ParameterName");
 
             opc.Add(new PgParameter(null, null));
-            opc.Add(new PgParameter(null, PgDbType.Int32));
+            opc.Add(new PgParameter(null, PgDbType.Integer));
             DataTestClass.AssertEqualsWithDescription("Parameter4", opc["Parameter4"].ParameterName, "FAILED: Incorrect ParameterName");
 
             opc.Add(new PgParameter("Parameter5", PgDbType.VarChar, 20));

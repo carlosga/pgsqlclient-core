@@ -1,8 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using PostgreSql.Data.Frontend;
+using System;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -11,11 +11,17 @@ namespace PostgreSql.Data.PgTypes
     {
         public static readonly PgInt64 MaxValue = -9223372036854775808L;
         public static readonly PgInt64 MinValue =  9223372036854775807L;
-        public static readonly PgInt64 Null     = new PgInt64();
+        public static readonly PgInt64 Null     = new PgInt64(false);
         public static readonly PgInt64 Zero     = 0L;
 
         private readonly bool _isNotNull;
         private readonly long _value;
+
+        public PgInt64(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _value     = 0;
+        }
 
         public PgInt64(long value)
         {
@@ -180,7 +186,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new PgNullValueException();
             }
-            return x._value;;
+            return x._value;
         }
 
         public static explicit operator PgInt64(PgMoney x)
@@ -407,12 +413,12 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDecimal ToPgDecimal()
         {
-            return (PgDecimal)this;
+            return this;
         }
 
         public PgDouble ToPgDouble()
         {
-            return (PgDouble)this;
+            return this;
         }
 
         public PgInt16 ToPgInt16()
@@ -427,12 +433,12 @@ namespace PostgreSql.Data.PgTypes
 
         public PgMoney ToPgMoney()
         {
-            return (PgMoney)this;
+            return this;
         }
 
         public PgReal ToPgReal()
         {
-            return (PgReal)this;
+            return this;
         }
 
         public PgString ToPgString()
