@@ -90,14 +90,28 @@ namespace PostgreSql.Data.PgTypes
             return (left.X != right.X || left.Y != right.Y);
         }
 
-        public override string ToString()
+        public PgString ToPgString()
         {
-            CultureInfo culture = CultureInfo.InvariantCulture;
-
-            return String.Format(culture, "{0} {1}", _x, _y);
+            return ToString();
         }
 
-        public override int GetHashCode() => (_x.GetHashCode() ^ _y.GetHashCode());
+        public override string ToString()
+        {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return String.Format(PgTypeInfoProvider.InvariantCulture, "{0} {1}", _x, _y);
+        }
+
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (_x.GetHashCode() ^ _y.GetHashCode());;
+        }
 
         public bool Equals(PgPoint2D other)
         {

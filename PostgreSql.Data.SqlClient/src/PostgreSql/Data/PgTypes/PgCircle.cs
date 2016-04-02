@@ -86,8 +86,28 @@ namespace PostgreSql.Data.PgTypes
             return (left.Center != right.Center || left.Radius != right.Radius);
         }
 
-        public override string ToString() => $"<{_center},{_radius}>";
-        public override int GetHashCode() => _center.GetHashCode() ^ _radius.GetHashCode();
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
+        {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return $"<{_center},{_radius}>";
+        }
+
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return _center.GetHashCode() ^ _radius.GetHashCode();
+        }
 
         public bool Equals(PgCircle other)
         {

@@ -106,14 +106,28 @@ namespace PostgreSql.Data.PgTypes
             return (lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z);
         }
 
-        public override string ToString()
+        public PgString ToPgString()
         {
-            CultureInfo culture = CultureInfo.InvariantCulture;
-
-            return String.Format(culture, "{0} {1} {2}", _x, _y, _z);
+            return ToString();
         }
 
-        public override int GetHashCode() => (_x.GetHashCode() ^ _y.GetHashCode() ^ _z.GetHashCode());
+        public override string ToString()
+        {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return String.Format(PgTypeInfoProvider.InvariantCulture, "{0} {1} {2}", _x, _y, _z);
+        }
+
+        public override int GetHashCode() 
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (_x.GetHashCode() ^ _y.GetHashCode() ^ _z.GetHashCode());
+        }
 
         public bool Equals(PgPoint3D other)
         {

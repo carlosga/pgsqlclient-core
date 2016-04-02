@@ -126,9 +126,29 @@ namespace PostgreSql.Data.PgTypes
 
         public static explicit operator TimeSpan(PgInterval x) => x.Value;
         public static explicit operator PgInterval(string x)   => new PgInterval(TimeSpan.Parse(x));
-        
-        public override string ToString() => _value.ToString();
-        public override int GetHashCode() => _value.GetHashCode();
+
+        public string ToPgString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
+        {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return _value.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return _value.GetHashCode();
+        }
 
         public bool Equals(PgInterval other)
         {

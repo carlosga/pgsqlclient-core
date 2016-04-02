@@ -86,8 +86,18 @@ namespace PostgreSql.Data.PgTypes
             return notequals;
         }
 
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
         public override string ToString()
         {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+
             System.Text.StringBuilder b = new System.Text.StringBuilder();
 
             b.Append("(");
@@ -107,7 +117,15 @@ namespace PostgreSql.Data.PgTypes
             return b.ToString();
         }
 
-        public override int GetHashCode() => (_points.GetHashCode());
+        public override int GetHashCode() 
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            
+            return (_points.GetHashCode());
+        }
 
         public bool Equals(PgPolygon other)
         {

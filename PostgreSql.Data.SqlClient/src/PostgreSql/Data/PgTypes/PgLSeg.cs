@@ -76,16 +76,33 @@ namespace PostgreSql.Data.PgTypes
             return (left.StartPoint != right.StartPoint || left.EndPoint != right.EndPoint);
         }
 
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
         public override string ToString()
         {
-            return String.Format("[({0},{1}),({2},{3})]"
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return String.Format(PgTypeInfoProvider.InvariantCulture
+                               , "[({0},{1}),({2},{3})]"
                                , _startPoint.X
                                , _startPoint.Y
                                , _endPoint.X
                                , _endPoint.Y);
         }
 
-        public override int GetHashCode() => (_startPoint.GetHashCode() ^ _endPoint.GetHashCode());
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (_startPoint.GetHashCode() ^ _endPoint.GetHashCode());
+        }
 
         public bool Equals(PgLSeg other)
         {

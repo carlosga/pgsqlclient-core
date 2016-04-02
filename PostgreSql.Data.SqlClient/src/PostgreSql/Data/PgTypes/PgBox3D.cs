@@ -97,8 +97,28 @@ namespace PostgreSql.Data.PgTypes
             return (left.UpperRight != right.UpperRight || left.LowerLeft != right.LowerLeft);
         }
 
-        public override string ToString() => $"BOX3D({_lowerLeft.ToString()},{_upperRight.ToString()})";
-        public override int GetHashCode() => (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
+        {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return $"BOX3D({_lowerLeft},{_upperRight})";
+        }
+
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
+        }
 
         public bool Equals(PgBox3D other)
         {

@@ -90,8 +90,18 @@ namespace PostgreSql.Data.PgTypes
             return !(x == y);
         }
 
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
         public override string ToString()
         {
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+
             System.Text.StringBuilder b = new System.Text.StringBuilder();
 
             b.Append(_isClosedPath ? "(" : "[");
@@ -111,7 +121,14 @@ namespace PostgreSql.Data.PgTypes
             return b.ToString();
         }
 
-        public override int GetHashCode() => (_points.GetHashCode() ^ _isClosedPath.GetHashCode());
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (_points.GetHashCode() ^ _isClosedPath.GetHashCode());
+        }
 
         public bool Equals(PgPath other)
         {

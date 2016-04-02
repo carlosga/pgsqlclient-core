@@ -84,16 +84,33 @@ namespace PostgreSql.Data.PgTypes
             return (left.UpperRight != right.UpperRight || left.LowerLeft != right.LowerLeft);
         }
 
+        public PgString ToPgString()
+        {
+            return ToString();
+        }
+
         public override string ToString()
         {
-            return String.Format("(({0},{1}),({2},{3}))"
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return String.Format(PgTypeInfoProvider.InvariantCulture
+                               , "(({0},{1}),({2},{3}))"
                                , _lowerLeft.X
                                , _lowerLeft.Y
                                , _upperRight.X
                                , _upperRight.Y);
         }
 
-        public override int GetHashCode() => (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
+        public override int GetHashCode()
+        {
+            if (IsNull)
+            {
+                return 0;
+            }
+            return (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
+        }
 
         public bool Equals(PgBox other)
         {
