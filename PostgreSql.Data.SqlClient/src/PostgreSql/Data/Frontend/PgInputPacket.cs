@@ -124,15 +124,15 @@ namespace PostgreSql.Data.Frontend
         internal decimal ReadMoney()  => ((decimal)ReadInt64() / 100);
         internal double  ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
         
-        internal PgDate      ReadDate()      => PgDate.FromDays(ReadInt32());
-        internal PgTime      ReadTime()      => PgTime.FromMicroseconds(ReadInt64());
-        internal PgTimestamp ReadTimestamp() => PgTimestamp.FromMicroseconds(ReadInt64());
+        internal PgDate      ReadDate()      => new PgDate(ReadInt32());
+        internal PgTime      ReadTime()      => new PgTime(ReadInt64());
+        internal PgTimestamp ReadTimestamp() => new PgTimestamp(ReadInt64());
 
 #warning TODO: Handle the time zone offset
         internal TimeSpan ReadTimeWithTZ() => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
         internal DateTimeOffset ReadTimestampWithTZ()
         {
-            var dt    = PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
+            var dt = PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
@@ -174,57 +174,6 @@ namespace PostgreSql.Data.Frontend
            }
 
            return new PgPath(isClosedPath, points);
-        }
-
-        internal Array ReadArray(PgTypeInfo type, int length)
-        {
-            // Read number of dimensions
-            int dimensions = ReadInt32();
-
-            // Create arrays for the lengths and lower bounds
-            int[] lengths     = new int[dimensions];
-            int[] lowerBounds = new int[dimensions];
-
-            // Read flags value
-            int flags = ReadInt32();
-            if (flags != 0)
-            {
-                throw new NotSupportedException("Invalid flags value");
-            }
-
-            // Read array element type
-            int oid         = ReadInt32();
-            var elementType = PgTypeInfoProvider.Types[oid];
-
-            // Read array lengths and lower bounds
-            for (int i = 0; i < dimensions; ++i)
-            {
-                lengths[i]     = ReadInt32();
-                lowerBounds[i] = ReadInt32();
-            }
-
-            // Read Array data
-            if (elementType.IsPrimitive)
-            {
-                return ReadPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
-            }
-            else
-            {
-                return ReadNonPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
-            }
-        }
-
-        internal Array ReadVector(PgTypeInfo type, int length)
-        {
-            var elementType = type.ElementType;
-            var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
-
-            for (int i = 0; i < data.Length; ++i)
-            {
-                data.SetValue(ReadValue(elementType, elementType.Size), i);
-            }
-
-            return data;
         }
 
         internal object ReadValue(PgFieldDescriptor descriptor, int length)
@@ -329,6 +278,44 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        private Array ReadArray(PgTypeInfo type, int length)
+        {
+            // Read number of dimensions
+            int dimensions = ReadInt32();
+
+            // Create arrays for the lengths and lower bounds
+            int[] lengths     = new int[dimensions];
+            int[] lowerBounds = new int[dimensions];
+
+            // Read flags value
+            int flags = ReadInt32();
+            if (flags != 0)
+            {
+                throw new NotSupportedException("Invalid flags value");
+            }
+
+            // Read array element type
+            int oid         = ReadInt32();
+            var elementType = PgTypeInfoProvider.Types[oid];
+
+            // Read array lengths and lower bounds
+            for (int i = 0; i < dimensions; ++i)
+            {
+                lengths[i]     = ReadInt32();
+                lowerBounds[i] = ReadInt32();
+            }
+
+            // Read Array data
+            if (elementType.IsPrimitive)
+            {
+                return ReadPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
+            }
+            else
+            {
+                return ReadNonPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
+            }
+        }
+
         private Array ReadPrimitiveArray(PgTypeInfo elementType
                                        , int        length
                                        , int        dimensions
@@ -377,6 +364,19 @@ namespace PostgreSql.Data.Frontend
 
                 offset    += byteCount;
                 _position += byteCount;
+            }
+
+            return data;
+        }
+
+        private Array ReadVector(PgTypeInfo type, int length)
+        {
+            var elementType = type.ElementType;
+            var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));
+
+            for (int i = 0; i < data.Length; ++i)
+            {
+                data.SetValue(ReadValue(elementType, elementType.Size), i);
             }
 
             return data;

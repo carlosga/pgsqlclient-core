@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
 {
@@ -20,32 +21,13 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             
-            var count = 0;
             
-            Console.WriteLine(csb.ToString());
-            
-            using (PgConnection c = new PgConnection(csb.ToString()))
-            {@
-                c.Open();
-                string sqlBatch = "select * from titles";
-                using (PgCommand cmd = new PgCommand(sqlBatch, c))
-                using (PgDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read()) 
-                    {
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            Console.Write($"{reader.GetValue(i)} | ");
-                        }
-                        
-                        Console.WriteLine(String.Empty);
-                        
-                        ++count; 
-                    }
-                }
-            }
-        
-            Console.WriteLine($"Finished ({count}) !!");
+            DateTime d  = DateTime.Today;
+            object   o  = d;
+            PgDate   p1 = (PgDate)d;
+            PgDate   p2 = (PgDate)o;
+                                
+            Console.WriteLine($"Finished!!");
         } 
     }
 }

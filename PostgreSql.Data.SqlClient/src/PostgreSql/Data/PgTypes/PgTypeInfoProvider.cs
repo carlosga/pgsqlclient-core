@@ -354,12 +354,12 @@ namespace PostgreSql.Data.PgTypes
                 case DbType.DateTimeOffset:
                     return PgDbType.TimestampTZ;
 
-                case DbType.Guid:
-                case DbType.VarNumeric:
-                case DbType.SByte:
-                case DbType.UInt16:
-                case DbType.UInt32:
-                case DbType.UInt64:
+                // case DbType.Guid:
+                // case DbType.VarNumeric:
+                // case DbType.SByte:
+                // case DbType.UInt16:
+                // case DbType.UInt32:
+                // case DbType.UInt64:
                 default:
                     throw new InvalidOperationException("Invalid data type specified.");
             }
@@ -380,10 +380,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return Types.Values.First(x => x.PgType == value.GetType());
             }
-            else
-            {
-                return Types.Values.First(x => x.SystemType == value.GetType());
-            }
+            return Types.Values.First(x => x.SystemType == value.GetType());
         }
     }
 }

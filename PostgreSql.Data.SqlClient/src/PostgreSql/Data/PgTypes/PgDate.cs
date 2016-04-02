@@ -19,15 +19,10 @@ namespace PostgreSql.Data.PgTypes
         internal static readonly DateTime UnixBaseDate      = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         internal static readonly DateTime PostgresBaseDate  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        internal static PgDate FromDays(int days)
-        {
-            return new PgDate(PostgresBaseDate.AddDays(days));
-        }
-
         private bool     _isNotNull;
         private DateTime _value;
 
-        public int DaysSinceEpoch
+        internal int DaysSinceEpoch
         {
             get
             {
@@ -47,6 +42,11 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDate(int year, int month, int day)
             : this(new DateTime(year, month, day)) 
+        {
+        }
+
+        public PgDate(int daysSinceEpoch)
+            : this(PostgresBaseDate.AddDays(daysSinceEpoch))
         {
         }
 

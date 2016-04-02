@@ -17,11 +17,6 @@ namespace PostgreSql.Data.PgTypes
             return new PgTime(TimeSpan.Parse(s));
         }
 
-        internal static PgTime FromMicroseconds(long microseconds)
-        {
-            return new PgTime(TimeSpan.FromMilliseconds(microseconds * 0.001));
-        }
-
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
@@ -66,6 +61,12 @@ namespace PostgreSql.Data.PgTypes
         {
             _value     = new TimeSpan(hours, minutes, seconds, milliseconds);
             _isNotNull = true;
+        }
+
+        public PgTime(long microseconds)
+        {
+            _isNotNull = true;
+            _value     = TimeSpan.FromMilliseconds(microseconds * 0.001);
         }
 
         public int CompareTo(object obj)

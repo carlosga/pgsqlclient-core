@@ -100,18 +100,17 @@ namespace PostgreSql.Data.Frontend
         internal void WriteDate(PgDate value)           => Write(value.DaysSinceEpoch);
         internal void WriteTime(PgTime value)           => Write(value.TotalMicroseconds);
         internal void WriteTimestamp(PgTimestamp value) => Write(value.TotalMicroseconds);
+        internal void WriteInterval(PgInterval value)
+        {
+            Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
+            Write(value.Days / 30);
+        }
 
 #warning TODO: Need a custom PgTimeTZ or let PgTime handle the time zone offset
         internal void WriteTimeWithTZ(PgTime time) => Write(time.TotalMicroseconds);
         internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
         {
             Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch));
-        }
-
-        internal void WriteInterval(PgInterval value)
-        {
-            Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
-            Write(value.Days / 30);
         }
 
         internal void Write(PgPoint point)
@@ -167,7 +166,9 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(PgParameter parameter)
         {
-            if (parameter.Value == System.DBNull.Value || parameter.Value == null)
+            if (parameter.Value         == System.DBNull.Value 
+             || parameter.Value         == null 
+             || parameter.TypeInfo.Size == 0 /* Void */)
             {
                 // -1 indicates a NULL argument value
                 Write(-1);
