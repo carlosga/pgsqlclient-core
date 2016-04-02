@@ -236,7 +236,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 byte precision = p.Precision;
                 byte scale = p.Scale;
-                Console.WriteLine("\t\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.ProviderType.ToString("G") + " FOR " + p.SourceColumn + "\"");
+                Console.WriteLine("\t\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.PgDbType.ToString("G") + " FOR " + p.SourceColumn + "\"");
                 Console.WriteLine("\t\t" + p.Size.ToString() + ", " + precision.ToString() + ", " + scale.ToString() + ", " + p.Direction.ToString("G") + ", " + DBConvertToString(p.Value));
             }
         }

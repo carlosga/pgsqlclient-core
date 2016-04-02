@@ -481,7 +481,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     p = cmd.CreateParameter();
                     p.ParameterName = "@p" + ci;
-                    p.ProviderType  = _columns[ci].Type;
+                    p.PgDbType      = _columns[ci].Type;
 
                     parameters[ci] = p;
                 }
