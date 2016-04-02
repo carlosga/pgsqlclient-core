@@ -6,55 +6,54 @@ using System;
 
 namespace PostgreSql.Data.PgTypes
 {
-    public struct PgByte
-        : INullable, IComparable<PgByte>, IComparable, IEquatable<PgByte>
+    public struct PgBit
+        : INullable, IComparable<PgBit>, IComparable, IEquatable<PgBit>
     {
-        public static readonly PgByte MaxValue = Byte.MaxValue;
-        public static readonly PgByte MinValue = Byte.MinValue;
-        public static readonly PgByte Null     = new PgByte(false);
-        public static readonly PgByte One      = new PgByte(1);
-        public static readonly PgByte Zero     = new PgByte(0);
+        public static readonly PgBit MaxValue = 1;
+        public static readonly PgBit MinValue = 0;
+        public static readonly PgBit Null     = new PgBit(false);
+        public static readonly PgBit One      = new PgBit(1);
+        public static readonly PgBit Zero     = new PgBit(0);
 
         private readonly bool _isNotNull;
         private readonly byte _value;
 
-        private PgByte(bool isNotNull)
+        private PgBit(bool isNotNull)
         {
             _isNotNull = isNotNull;
             _value     = 0;
         }
 
-        public PgByte(byte value)
+        public PgBit(byte value)
         {
+            if (value < MinValue.Value || value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
             _value     = value;
             _isNotNull = true;
         }
 
-        public static PgByte operator -(PgByte x, PgByte y)
+        public static PgBit operator -(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
                 return Null;
             }
-
             int value = (x._value - y._value);
             if (value < MinValue.Value || value > MaxValue.Value)
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgBoolean operator !=(PgByte x, PgByte y)
+        public static PgBoolean operator !=(PgBit x, PgBit y)
         {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x._value != y._value);
+            return !(x == y);
         }
 
-        public static PgByte operator %(PgByte x, PgByte y)
+        public static PgBit operator %(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -65,10 +64,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator &(PgByte x, PgByte y)
+        public static PgBit operator &(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -79,10 +78,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator *(PgByte x, PgByte y)
+        public static PgBit operator *(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -93,10 +92,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator /(PgByte x, PgByte y)
+        public static PgBit operator /(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -107,10 +106,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator ^(PgByte x, PgByte y)
+        public static PgBit operator ^(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -121,10 +120,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator |(PgByte x, PgByte y)
+        public static PgBit operator |(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -135,19 +134,19 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgByte operator ~(PgByte x)
+        public static PgBit operator ~(PgBit x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return (PgByte)(~x._value);
+            return (PgBit)(~x._value);
         }
 
-        public static PgByte operator +(PgByte x, PgByte y)
+        public static PgBit operator +(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -158,10 +157,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (PgByte)value;
+            return (PgBit)value;
         }
 
-        public static PgBoolean operator <(PgByte x, PgByte y)
+        public static PgBoolean operator <(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -170,7 +169,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value < y._value);
         }
 
-        public static PgBoolean operator <=(PgByte x, PgByte y)
+        public static PgBoolean operator <=(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -179,7 +178,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value <= y._value);
         }
 
-        public static PgBoolean operator ==(PgByte x, PgByte y)
+        public static PgBoolean operator ==(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -188,7 +187,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value == y._value);
         }
 
-        public static PgBoolean operator >(PgByte x, PgByte y)
+        public static PgBoolean operator >(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -197,7 +196,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value > y._value);
         }
 
-        public static PgBoolean operator >=(PgByte x, PgByte y)
+        public static PgBoolean operator >=(PgBit x, PgBit y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -205,17 +204,8 @@ namespace PostgreSql.Data.PgTypes
             }
             return (x._value >= y._value);
         }
-
-        public static explicit operator PgByte(PgBit x)
-        {
-            if (x.IsNull)
-            {
-                return Null;
-            }
-            return x.Value;
-        }
         
-        public static explicit operator PgByte(PgBoolean x)
+        public static explicit operator PgBit(PgBoolean x)
         {
             if (x.IsNull)
             {
@@ -224,7 +214,20 @@ namespace PostgreSql.Data.PgTypes
             return x.Value ? One : Zero;
         }
 
-        public static explicit operator byte(PgByte x)
+        public static explicit operator PgBit(PgByte x)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            if (x.Value < MinValue.Value || x.Value > MaxValue.Value)
+            {
+                throw new OverflowException();
+            }
+            return x.Value;
+        }
+
+        public static explicit operator byte(PgBit x)
         {
             if (x.IsNull)
             {
@@ -233,7 +236,7 @@ namespace PostgreSql.Data.PgTypes
             return x._value;
         }
 
-        public static explicit operator PgByte(PgDecimal x)
+        public static explicit operator PgBit(PgDecimal x)
         {
             if (x.IsNull)
             {
@@ -243,10 +246,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
 
-        public static explicit operator PgByte(PgDouble x)
+        public static explicit operator PgBit(PgDouble x)
         {
             if (x.IsNull)
             {
@@ -256,10 +259,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
         
-        public static explicit operator PgByte(PgInt16 x)
+        public static explicit operator PgBit(PgInt16 x)
         {
             if (x.IsNull)
             {
@@ -269,10 +272,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
         
-        public static explicit operator PgByte(PgInt32 x)
+        public static explicit operator PgBit(PgInt32 x)
         {
             if (x.IsNull)
             {
@@ -282,10 +285,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
         
-        public static explicit operator PgByte(PgInt64 x)
+        public static explicit operator PgBit(PgInt64 x)
         {
             if (x.IsNull)
             {
@@ -295,10 +298,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
 
-        public static explicit operator PgByte(PgMoney x)
+        public static explicit operator PgBit(PgMoney x)
         {
             if (x.IsNull)
             {
@@ -308,10 +311,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
 
-        public static explicit operator PgByte(PgReal x)
+        public static explicit operator PgBit(PgReal x)
         {
             if (x.IsNull)
             {
@@ -321,10 +324,10 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return new PgByte((byte)x.Value);
+            return new PgBit((byte)x.Value);
         }
 
-        public static explicit operator PgByte(PgString x)
+        public static explicit operator PgBit(PgString x)
         {
             if (x.IsNull)
             {
@@ -333,9 +336,9 @@ namespace PostgreSql.Data.PgTypes
             return Parse(x.Value);
         }
 
-        public static implicit operator PgByte(byte x)
+        public static implicit operator PgBit(byte x)
         {
-            return (PgByte)x;
+            return (PgBit)x;
         }
 
         public bool IsNull => !_isNotNull;
@@ -352,32 +355,32 @@ namespace PostgreSql.Data.PgTypes
             } 
         }
 
-        public static PgByte Add(PgByte x, PgByte y)
+        public static PgBit Add(PgBit x, PgBit y)
         {
             return (x + y);
         }
 
-        public static PgByte BitwiseAnd(PgByte x, PgByte y)
+        public static PgBit BitwiseAnd(PgBit x, PgBit y)
         {
             return (x & y);
         }
 
-        public static PgByte BitwiseOr(PgByte x, PgByte y)
+        public static PgBit BitwiseOr(PgBit x, PgBit y)
         {
             return (x | y);
         }
 
         public int CompareTo(object obj)
         {
-            if (obj == null || !(obj is PgByte))
+            if (obj == null || !(obj is PgBit))
             {
                 return -1;
             }
 
-            return CompareTo((PgByte)obj);
+            return CompareTo((PgBit)obj);
         }
 
-        public int CompareTo(PgByte value)
+        public int CompareTo(PgBit value)
         {
             if (IsNull)
             {
@@ -399,12 +402,12 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgByte Divide(PgByte x, PgByte y)
+        public static PgBit Divide(PgBit x, PgBit y)
         {
             return (x / y);
         }
 
-        public bool Equals(PgByte other)
+        public bool Equals(PgBit other)
         {
             return (this == other).Value;
         }
@@ -415,15 +418,15 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            if (!(obj is PgByte))
+            if (!(obj is PgBit))
             {
                 return false;
             }
 
-            return Equals((PgByte)obj);
+            return Equals((PgBit)obj);
         }
 
-        public static PgBoolean Equals(PgByte x, PgByte y)
+        public static PgBoolean Equals(PgBit x, PgBit y)
         {
             return (x == y);
         }
@@ -437,52 +440,52 @@ namespace PostgreSql.Data.PgTypes
             return (_value.GetHashCode());
         }
 
-        public static PgBoolean GreaterThan(PgByte x, PgByte y)
+        public static PgBoolean GreaterThan(PgBit x, PgBit y)
         {
             return (x > y);
         }
 
-        public static PgBoolean GreaterThanOrEqual(PgByte x, PgByte y)
+        public static PgBoolean GreaterThanOrEqual(PgBit x, PgBit y)
         {
             return (x >= y);
         }
 
-        public static PgBoolean LessThan(PgByte x, PgByte y)
+        public static PgBoolean LessThan(PgBit x, PgBit y)
         {
             return (x < y);
         }
 
-        public static PgBoolean LessThanOrEqual(PgByte x, PgByte y)
+        public static PgBoolean LessThanOrEqual(PgBit x, PgBit y)
         {
             return (x >= y);
         }
 
-        public static PgByte Mod(PgByte x, PgByte y)
+        public static PgBit Mod(PgBit x, PgBit y)
         {
             return (x % y);
         }
 
-        public static PgByte Modulus(PgByte x, PgByte y)
+        public static PgBit Modulus(PgBit x, PgBit y)
         {
             return (x % y);
         }
 
-        public static PgByte Multiply(PgByte x, PgByte y)
+        public static PgBit Multiply(PgBit x, PgBit y)
         {
             return (x * y);
         }
 
-        public static PgBoolean NotEquals(PgByte x, PgByte y)
+        public static PgBoolean NotEquals(PgBit x, PgBit y)
         {
             return (x != y);
         }
 
-        public static PgByte OnesComplement(PgByte x)
+        public static PgBit OnesComplement(PgBit x)
         {
             return ~x;
         }
 
-        public static PgByte Parse(string s)
+        public static PgBit Parse(string s)
         {
             if (PgTypeInfoProvider.IsNullString(s))
             {
@@ -491,7 +494,7 @@ namespace PostgreSql.Data.PgTypes
             return Byte.Parse(s, PgTypeInfoProvider.InvariantCulture);
         }
 
-        public static PgByte Subtract(PgByte x, PgByte y)
+        public static PgBit Subtract(PgBit x, PgBit y)
         {
             return (x - y);
         }
@@ -501,9 +504,9 @@ namespace PostgreSql.Data.PgTypes
             return (PgBoolean)this;
         }
 
-        public PgBit ToPgBit()
+        public PgByte TpPgByte()
         {
-            return (PgBit)this;
+            return (PgByte)this;
         }
 
         public PgDecimal ToPgDecimal()
@@ -555,7 +558,7 @@ namespace PostgreSql.Data.PgTypes
             return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
         
-        public static PgByte Xor(PgByte x, PgByte y)
+        public static PgBit Xor(PgBit x, PgBit y)
         {
             return (x ^ y);
         }

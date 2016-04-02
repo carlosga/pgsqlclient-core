@@ -7,7 +7,10 @@ using System.Globalization;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgPoint2D
+        : INullable, IEquatable<PgPoint2D>
     {
+        public static readonly PgPoint2D Null = new PgPoint2D(false);
+
         public static PgPoint2D Parse(string s)
         {
             if (s == null)
@@ -33,16 +36,48 @@ namespace PostgreSql.Data.PgTypes
             return new PgPoint2D(x, y);
         }
 
+        private readonly bool   _isNotNull;
         private readonly double _x;
         private readonly double _y;
 
-        public double X => _x;
-        public double Y => _y;
+        public bool IsNull => !_isNotNull;
+
+        public double X
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _x;
+            }
+        }
+
+        public double Y
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _y;
+            }
+        }
+
+        private PgPoint2D(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _x         = 0;
+            _y         = 0;
+        }
 
         public PgPoint2D(double x, double y)
         {
-            _x = x;
-            _y = y;
+            _isNotNull = true;
+            _x         = x;
+            _y         = y;
         }
 
         public static bool operator ==(PgPoint2D left, PgPoint2D right)
@@ -64,6 +99,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override int GetHashCode() => (_x.GetHashCode() ^ _y.GetHashCode());
 
+        public bool Equals(PgPoint2D other)
+        {
+            return (this == other);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -74,10 +114,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-
-            PgPoint2D value = (PgPoint2D)obj;
-
-            return ((PgPoint2D)value) == this;
+            return Equals((PgPoint2D)obj);
         }
     }
 }

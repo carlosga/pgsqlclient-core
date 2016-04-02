@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgMoney
-        : IComparable, INullable
+        : INullable, IComparable<PgMoney>, IComparable, IEquatable<PgMoney>
     {
         public static readonly PgMoney MaxValue = (decimal) 92233720368547758.07;
         public static readonly PgMoney MinValue = (decimal)-92233720368547758.08;
@@ -184,6 +184,15 @@ namespace PostgreSql.Data.PgTypes
             return (PgMoney)x;
         }
 
+        public static explicit operator PgMoney(PgBit x)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return (PgMoney)x.Value;
+        }
+
         public static explicit operator PgMoney(PgBoolean x)
         {
             if (x.IsNull)
@@ -340,6 +349,11 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
+        public bool Equals(PgMoney other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -350,7 +364,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            return Equals(this, (PgMoney)obj).Value;
+            return Equals((PgMoney)obj);
         }
 
         public static PgBoolean Equals(PgMoney x, PgMoney y)
@@ -445,6 +459,11 @@ namespace PostgreSql.Data.PgTypes
                 throw new PgNullValueException();
             }
             return (long)_value;
+        }
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
         }
 
         public PgBoolean ToPgBoolean()

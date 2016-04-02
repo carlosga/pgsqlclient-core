@@ -6,11 +6,11 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgTimestamp
-        : IComparable, INullable
+        : INullable, IComparable<PgTimestamp>, IComparable, IEquatable<PgTimestamp>
     {
         public static readonly PgTimestamp MaxValue = DateTime.MaxValue;
         public static readonly PgTimestamp MinValue = DateTime.MinValue;
-        public static readonly PgTimestamp Null     = new PgTimestamp();
+        public static readonly PgTimestamp Null     = new PgTimestamp(false);
 
         internal const long MicrosecondsPerDay    = 86400000000L;
         internal const long MicrosecondsPerHour   = 3600000000L;
@@ -24,10 +24,16 @@ namespace PostgreSql.Data.PgTypes
         private readonly bool     _isNotNull;
         private readonly DateTime _value;
 
+        private PgTimestamp(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _value     = DateTime.Now;
+        }
+
         public PgTimestamp(DateTime value)
         {
-            _value     = value;
             _isNotNull = true;
+            _value     = value;
         }
 
         public PgTimestamp(int dayTicks, int timeTicks)
@@ -183,6 +189,11 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException();
         }
 
+        public bool Equals(PgTimestamp other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object value)
         {
             throw new NotImplementedException();
@@ -190,7 +201,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgTimestamp x, PgTimestamp y)
         {
-            throw new NotImplementedException();
+            return (x == y);
         }
 
         public override int GetHashCode()

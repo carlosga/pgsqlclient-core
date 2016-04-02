@@ -17,12 +17,12 @@ namespace PostgreSql.Data.SqlClient
         private bool                  _sourceColumnNullMapping;
         private string                _parameterName;
         private string                _sourceColumn;
-        private object                _value;
-        private object                _pgvalue;
         private byte                  _precision;
         private byte                  _scale;
         private int                   _size;
-        private PgDbType              _providerType;
+        private object                _value;
+        private object                _pgvalue;
+        private PgDbType              _pgDbType;
         private PgTypeInfo            _typeInfo;
         private PgParameterCollection _parent;
 
@@ -52,19 +52,18 @@ namespace PostgreSql.Data.SqlClient
 
         public override DbType DbType
         {
-            get { return PgTypeInfoProvider.GetDbType(_providerType); }
-            set { ProviderType = PgTypeInfoProvider.GetProviderType(value); }
+            get { return PgTypeInfoProvider.GetDbType(_pgDbType); }
+            set { PgDbType = PgTypeInfoProvider.GetProviderType(value); }
         }
 
-        public PgDbType ProviderType
+        public PgDbType PgDbType
         {
-            get { return _providerType; }
+            get { return _pgDbType; }
             set
             {
-                _providerType = value;
-                _isTypeSet    = true;
-                TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
-#warning TODO: Reset Value ?? and get the new type info.
+                _pgDbType  = value;
+                _isTypeSet = true;
+                _typeInfo  = PgTypeInfoProvider.GetTypeInfo(value);
             }
         }
 
@@ -89,16 +88,7 @@ namespace PostgreSql.Data.SqlClient
         public override object Value
         {
             get { return _value; }
-            set
-            {
-                _value = (value == null) ? DBNull.Value : value;
-
-                if (!_isTypeSet)
-                {
-                    TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
-                    _providerType = TypeInfo.ProviderType;
-                }
-            }
+            set { PgValue = value; }
         }
 
         public object PgValue
@@ -106,12 +96,12 @@ namespace PostgreSql.Data.SqlClient
             get { return _pgvalue; }
             set
             {
-                _pgvalue = (value == null) ? DBNull.Value : value;
+                _pgvalue = ((value is INullable) ? value : null);
+                _value   = value; 
 
                 if (!_isTypeSet)
                 {
-                    TypeInfo      = PgTypeInfoProvider.GetTypeInfo(value);
-                    _providerType = TypeInfo.ProviderType;
+                    UpdateTypeInfo(value);
                 }
             }
         }
@@ -122,23 +112,19 @@ namespace PostgreSql.Data.SqlClient
             set { _sourceColumnNullMapping = value; }
         }
 
-        internal PgTypeInfo TypeInfo
-        {
-            get { return _typeInfo; }
-            set { _typeInfo = value; }
-        }
-
         internal PgParameterCollection Parent
         {
             get { return _parent; }
             set { _parent = value; }
         }
 
+        internal PgTypeInfo TypeInfo => _typeInfo;
+
         public PgParameter()
         {
-            _direction     = ParameterDirection.Input;
-            _isNullable    = false;
-            _providerType  = PgDbType.VarChar;
+            _direction  = ParameterDirection.Input;
+            _isNullable = false;
+            _pgDbType   = PgDbType.VarChar;
         }
 
         public PgParameter(string parameterName, object value) 
@@ -148,23 +134,23 @@ namespace PostgreSql.Data.SqlClient
             Value          = value;
         }
 
-        public PgParameter(string parameterName, PgDbType dbType) 
+        public PgParameter(string parameterName, PgDbType pgDbType) 
             : this()
         {
             _parameterName = parameterName;
-            ProviderType   = dbType;
+            PgDbType       = pgDbType;
         }
 
-        public PgParameter(string parameterName, PgDbType dbType, int size) 
+        public PgParameter(string parameterName, PgDbType pgDbType, int size) 
             : this()
         {
             _parameterName = parameterName;
             _size          = size;
-            ProviderType   = dbType;
+            PgDbType       = pgDbType;
         }
 
         public PgParameter(string   parameterName
-                         , PgDbType dbType
+                         , PgDbType pgDbType
                          , int      size
                          , string   sourceColumn)
             : this()
@@ -172,11 +158,11 @@ namespace PostgreSql.Data.SqlClient
             _parameterName = parameterName;
             _size          = size;
             _sourceColumn  = sourceColumn;
-            ProviderType   = dbType;
+            PgDbType       = pgDbType;
         }
 
         public PgParameter(string             parameterName
-                         , PgDbType           dbType
+                         , PgDbType           pgDbType
                          , int                size
                          , ParameterDirection direction
                          , bool               isNullable
@@ -186,15 +172,15 @@ namespace PostgreSql.Data.SqlClient
                          , DataRowVersion     sourceVersion
                          , object             value)
         {
-            _parameterName  = parameterName;
-            _size           = size;
-            _direction      = direction;
-            _isNullable     = isNullable;
-            _precision      = precision;
-            _scale          = scale;
-            _sourceColumn   = sourceColumn;
-            _value          = value;
-            ProviderType    = dbType;
+            _parameterName = parameterName;
+            _size          = size;
+            _direction     = direction;
+            _isNullable    = isNullable;
+            _precision     = precision;
+            _scale         = scale;
+            _sourceColumn  = sourceColumn;
+            _value         = value;
+            PgDbType       = pgDbType;
         }
 
         public override string ToString() => _parameterName;
@@ -202,6 +188,16 @@ namespace PostgreSql.Data.SqlClient
         public override void ResetDbType()
         {
             throw new Exception("The method or operation is not implemented.");
+        }
+
+        private void UpdateTypeInfo(object value)
+        {
+            _typeInfo = PgTypeInfoProvider.GetTypeInfo(value);
+
+            if (!_isTypeSet)
+            {
+                _pgDbType = TypeInfo.ProviderType;
+            }
         }
     }
 }

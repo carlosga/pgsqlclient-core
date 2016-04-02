@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgInt16
-        : INullable, IComparable
+        : INullable, IComparable<PgInt16>, IComparable, IEquatable<PgInt16>
     {
         public static readonly PgInt16 MaxValue =  32767;
         public static readonly PgInt16 MinValue = -32768;
@@ -223,6 +223,15 @@ namespace PostgreSql.Data.PgTypes
             return (x._value >= y._value);
         }
 
+        public static explicit operator PgInt16(PgBit x)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return x.Value;
+        }
+
         public static explicit operator PgInt16(PgBoolean x)
         {
             if (x.IsNull)
@@ -404,6 +413,11 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
+        public bool Equals(PgInt16 other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -414,7 +428,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            return Equals(this, (PgInt16)obj).Value;
+            return Equals((PgInt16)obj);
         }
 
         public static PgBoolean Equals(PgInt16 x, PgInt16 y)
@@ -488,6 +502,11 @@ namespace PostgreSql.Data.PgTypes
         public static PgInt16 Subtract(PgInt16 x, PgInt16 y)
         {
             return (x - y);
+        }
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
         }
 
         public PgBoolean ToPgBoolean()

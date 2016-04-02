@@ -21,7 +21,7 @@ namespace PostgreSql.Data.PgTypes
     ///     NumericDigit *digits;       /* base-NBASE digits */
     /// } NumericVar;
     public struct PgDecimal
-        : IComparable, INullable
+        : INullable, IComparable<PgDecimal>, IComparable, IEquatable<PgDecimal>
     {
         private const int NUMERIC_SIGN_MASK     = 0xC000;
         private const int NUMERIC_POS           = 0x0000;
@@ -130,6 +130,11 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public static explicit operator PgDecimal(double x)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static explicit operator PgDecimal(PgBit x)
         {
             throw new NotImplementedException();
         }
@@ -261,6 +266,11 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException();
         }
 
+        public bool Equals(PgDecimal other)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool Equals(object value)
         {
             throw new NotImplementedException();
@@ -337,6 +347,11 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public double ToDouble()
+        {
+            throw new NotImplementedException();
+        }
+
+        public PgBit ToPgBit()
         {
             throw new NotImplementedException();
         }

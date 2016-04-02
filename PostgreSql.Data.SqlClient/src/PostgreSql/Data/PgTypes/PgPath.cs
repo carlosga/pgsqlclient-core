@@ -6,35 +6,75 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgPath
+        : INullable, IEquatable<PgPath>
     {
+        public static readonly PgPath Null = new PgPath(false);
+
         public static PgPath Parse(string s)
         {
             throw new NotSupportedException();
         }
 
+        private readonly bool      _isNotNull;
         private readonly PgPoint[] _points;
-        private readonly bool _isClosedPath;
+        private readonly bool      _isClosedPath;
 
-        public PgPoint[] Points       => _points;
-        public bool      IsClosedPath => _isClosedPath;
+        public bool IsNull => _isNotNull;
+
+        public PgPoint[] Points
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _points;
+            }
+        }
+
+        public bool IsClosedPath
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _isClosedPath;
+            }
+        }
+
+        private PgPath(bool isNotNull)
+        {
+            _isNotNull    = isNotNull;
+            _points       = null;
+            _isClosedPath = false;
+        }
 
         public PgPath(bool isClosedPath, PgPoint[] points)
         {
+            _isNotNull    = true;
+            _points       = (PgPoint[])points.Clone();
             _isClosedPath = isClosedPath;
-            _points = (PgPoint[])points.Clone();
         }
 
-        public static bool operator ==(PgPath left, PgPath right)
+        public static PgBoolean operator ==(PgPath x, PgPath y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
+
             bool equals = false;
 
-            if (left.Points.Length == right.Points.Length)
+            if (x.Points.Length == y.Points.Length)
             {
                 equals = true;
 
-                for (int i = 0; i < left.Points.Length; ++i)
+                for (int i = 0; i < x.Points.Length; ++i)
                 {
-                    if (left.Points[i] != right.Points[i])
+                    if (x.Points[i] != y.Points[i])
                     {
                         equals = false;
                         break;
@@ -45,25 +85,9 @@ namespace PostgreSql.Data.PgTypes
             return equals;
         }
 
-        public static bool operator !=(PgPath left, PgPath right)
+        public static PgBoolean operator !=(PgPath x, PgPath y)
         {
-            bool notequals = true;
-
-            if (left.Points.Length == right.Points.Length)
-            {
-                notequals = false;
-
-                for (int i = 0; i < left.Points.Length; ++i)
-                {
-                    if (left.Points[i] != right.Points[i])
-                    {
-                        notequals = true;
-                        break;
-                    }
-                }
-            }
-
-            return notequals;
+            return !(x == y);
         }
 
         public override string ToString()
@@ -89,6 +113,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override int GetHashCode() => (_points.GetHashCode() ^ _isClosedPath.GetHashCode());
 
+        public bool Equals(PgPath other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -99,10 +128,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-
-            PgPath value = (PgPath)obj;
-
-            return ((PgPath)value) == this;
+            return Equals((PgPath)obj);
         }
     }
 }

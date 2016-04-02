@@ -136,17 +136,17 @@ namespace PostgreSql.Data.Frontend
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
-        internal PgTimeSpan ReadInterval()
+        internal PgInterval ReadInterval()
         {
             var interval = TimeSpan.FromSeconds(ReadDouble());
 
-            return new PgTimeSpan(interval.Add(TimeSpan.FromDays(ReadInt32() * 30)));
+            return new PgInterval(interval.Add(TimeSpan.FromDays(ReadInt32() * 30)));
         }
 
-        internal PgPoint  ReadPoint()   => new PgPoint(ReadDouble(), ReadDouble());
-        internal PgCircle ReadCircle()  => new PgCircle(ReadPoint(), ReadDouble());
-        internal PgLine   ReadLine()    => new PgLine(ReadPoint(), ReadPoint());
-        internal PgLSeg   ReadLSeg()    => new PgLSeg(ReadPoint(), ReadPoint());
+        internal PgPoint  ReadPoint()  => new PgPoint(ReadDouble(), ReadDouble());
+        internal PgCircle ReadCircle() => new PgCircle(ReadPoint(), ReadDouble());
+        internal PgLine   ReadLine()   => new PgLine(ReadPoint(), ReadPoint());
+        internal PgLSeg   ReadLSeg()   => new PgLSeg(ReadPoint(), ReadPoint());
 
         internal PgBox ReadBox()
         {

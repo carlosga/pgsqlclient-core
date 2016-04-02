@@ -6,12 +6,18 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgBinary
-        : INullable, IComparable
+        : INullable, IComparable<PgBinary>, IComparable, IEquatable<PgBinary>
     {
-        public static readonly PgBinary Null = new PgBinary();
+        public static readonly PgBinary Null = new PgBinary(false);
 
         private readonly bool   _isNotNull;
         private readonly byte[] _value;
+
+        private PgBinary(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _value     = null;
+        }
 
         public PgBinary(byte[] value)
         {
@@ -126,7 +132,12 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException();
         }
 
-        public override bool Equals(object value)
+        public bool Equals(PgBinary obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
         {
             throw new NotImplementedException();
         }

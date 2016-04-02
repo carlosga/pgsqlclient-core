@@ -6,42 +6,93 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgCircle
+        : INullable, IEquatable<PgCircle>
     {
+        public static readonly PgCircle Null = new PgCircle(false);
+
         public static PgCircle Parse(string s)
         {
             throw new NotSupportedException();
         }
 
+        private readonly bool    _isNotNull;
         private readonly PgPoint _center;
-        private readonly double _radius;
+        private readonly double  _radius;
 
-        public PgPoint Center => _center;
-        public double  Radius => _radius;
+        public bool IsNull => !_isNotNull;
+
+        public PgPoint Center 
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                
+                return _center;
+            }
+        }
+
+        public double Radius
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                
+                return _radius;
+            }
+        }
+
+        private PgCircle(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _center    = PgPoint.Null;
+            _radius    = 0;
+        }
 
         public PgCircle(PgPoint center, double radius)
         {
-            _center = center;
-            _radius = radius;
+            _isNotNull = true;
+            _center    = center;
+            _radius    = radius;
         }
 
         public PgCircle(double x, double y, double radius)
         {
-            _center = new PgPoint(x, y);
-            _radius = radius;
+            _isNotNull = true;
+            _center    = new PgPoint(x, y);
+            _radius    = radius;
         }
 
-        public static bool operator ==(PgCircle left, PgCircle right)
+        public static PgBoolean operator ==(PgCircle left, PgCircle right)
         {
+            if (left.IsNull || right.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (left.Center == right.Center && left.Radius == right.Radius);
         }
 
-        public static bool operator !=(PgCircle left, PgCircle right)
+        public static PgBoolean operator !=(PgCircle left, PgCircle right)
         {
+            if (left.IsNull || right.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (left.Center != right.Center || left.Radius != right.Radius);
         }
 
-        public override string ToString() => $"<{_center},{_radius}>";        
+        public override string ToString() => $"<{_center},{_radius}>";
         public override int GetHashCode() => _center.GetHashCode() ^ _radius.GetHashCode();
+
+        public bool Equals(PgCircle other)
+        {
+            return (this == other).Value;
+        }
 
         public override bool Equals(object obj)
         {
@@ -54,9 +105,7 @@ namespace PostgreSql.Data.PgTypes
                 return false;
             }
 
-            PgCircle value = (PgCircle)obj;
-
-            return ((PgCircle)value) == this;
+            return Equals((PgCircle)obj);
         }
     }
 }

@@ -6,25 +6,25 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgTime 
-        : IComparable, INullable
+        : INullable, IComparable<PgTime>, IComparable, IEquatable<PgTime>
     {
+        public static readonly PgTime MinValue = new PgTime( 0, 0, 0);
+        public static readonly PgTime MaxValue = new PgTime(24, 0, 0);
+        public static readonly PgTime Null     = new PgTime(false);
+
         public static PgTime Parse(string s)
         {
             return new PgTime(TimeSpan.Parse(s));
         }
 
-        public static readonly PgTime Null     = new PgTime();
-        public static readonly PgTime MinValue = new PgTime( 0, 0, 0);
-        public static readonly PgTime MaxValue = new PgTime(24, 0, 0);
-
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
         public bool IsNull       => !_isNotNull;
-        public int  Hours        => _value.Hours;
-        public int  Milliseconds => _value.Milliseconds;
-        public int  Minutes      => _value.Minutes;
-        public int  Seconds      => _value.Seconds;
+        public int  Hours        => Value.Hours;
+        public int  Milliseconds => Value.Milliseconds;
+        public int  Minutes      => Value.Minutes;
+        public int  Seconds      => Value.Seconds;
 
         public TimeSpan Value
         {
@@ -36,6 +36,12 @@ namespace PostgreSql.Data.PgTypes
                 }
                 return _value;
             }
+        }
+
+        public PgTime(bool isNotNull)
+        {
+            _isNotNull = false;
+            _value     = TimeSpan.Zero;
         }
 
         public PgTime(TimeSpan value)
@@ -62,15 +68,22 @@ namespace PostgreSql.Data.PgTypes
             {
                 return -1;
             }
-            
-            var pgt = (PgTime)obj;
-            
-            if (pgt == null)
+
+            return CompareTo((PgTime)obj);
+        }
+
+        public int CompareTo(PgTime other)
+        {
+            if (IsNull)
             {
-                return -1;
+                return ((other.IsNull) ? 0 : -1);
+            }
+            else if (other.IsNull)
+            {
+                return 1;
             }
             
-            return _value.CompareTo(pgt._value);
+            return _value.CompareTo(other._value);
         }
 
         public static bool GreatherThan(PgTime x, PgTime y)        => (x > y);
@@ -157,6 +170,11 @@ namespace PostgreSql.Data.PgTypes
         public override string ToString() => _value.ToString();
         public override int GetHashCode() => _value.GetHashCode();
 
+        public bool Equals(PgTime other)
+        {
+            return (this == other);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -167,10 +185,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-
-            PgTime value = (PgTime)obj;
-
-            return ((PgTime)value) == this;
+            return Equals((PgTime)obj);
         }
     }
 }

@@ -353,8 +353,8 @@ namespace PostgreSql.Data.SqlClient
             return (_row[i] == DBNull.Value);
         }
 
-        public TimeSpan   GetTimeSpan(int i)   => GetPgTimeSpan(i).Value;
-        public PgTimeSpan GetPgTimeSpan(int i) => GetValueWithNullCheck<PgTimeSpan>(i);
+        public TimeSpan   GetTimeSpan(int i)   => GetValueWithNullCheck<TimeSpan>(i);
+        public PgInterval GetPgInterval(int i) => GetValueWithNullCheck<PgInterval>(i);
         public PgPoint    GetPgPoint(int i)    => GetValueWithNullCheck<PgPoint>(i);
         public PgBox      GetPgBox(int i)      => GetValueWithNullCheck<PgBox>(i);
         public PgLSeg     GetPgLSeg(int i)     => GetValueWithNullCheck<PgLSeg>(i);

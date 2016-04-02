@@ -6,19 +6,42 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgPolygon
+        : INullable, IEquatable<PgPolygon>
     {
+        public static readonly PgPolygon Null = new PgPolygon(false);
+
         public static PgPolygon Parse(string s)
         {
             throw new NotSupportedException();
         }
 
+        private readonly bool      _isNotNull;
         private readonly PgPoint[] _points;
 
-        public PgPoint[] Points => _points;
+        public bool IsNull => !_isNotNull;
+
+        public PgPoint[] Points
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _points;
+            }
+        }
+
+        private PgPolygon(bool isNotNull)
+        {
+            _isNotNull = false;
+            _points    = null;
+        }
 
         public PgPolygon(PgPoint[] points)
         {
-            _points = (PgPoint[])points.Clone();
+            _isNotNull = true;
+            _points    = (PgPoint[])points.Clone();
         }
 
         public static bool operator ==(PgPolygon left, PgPolygon right)
@@ -86,6 +109,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override int GetHashCode() => (_points.GetHashCode());
 
+        public bool Equals(PgPolygon other)
+        {
+            return (this == other);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -96,10 +124,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-
-            PgPolygon value = (PgPolygon)obj;
-
-            return ((PgPolygon)value) == this;
+            return Equals((PgPolygon)obj);
         }
     }
 }

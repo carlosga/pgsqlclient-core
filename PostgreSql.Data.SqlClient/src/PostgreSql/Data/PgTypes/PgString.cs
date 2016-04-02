@@ -45,7 +45,7 @@ namespace PostgreSql.Data.PgTypes
     }
 
     public struct PgString
-        : IComparable, INullable
+        : INullable, IComparable<PgString>, IComparable, IEquatable<PgString>
     {
         public static readonly int BinarySort       = (int)PgCompareOptions.BinarySort;
         public static readonly int BinarySort2      = (int)PgCompareOptions.BinarySort2;
@@ -122,6 +122,11 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public static PgBoolean operator >=(PgString x, PgString y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static explicit operator PgString(PgBit x)
         {
             throw new NotImplementedException();
         }
@@ -246,6 +251,11 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException(); 
         }
 
+        public bool Equals(PgString other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object value)
         { 
             throw new NotImplementedException(); 
@@ -292,6 +302,11 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public static PgBoolean NotEquals(PgString x, PgString y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public PgBit ToPgBit()
         {
             throw new NotImplementedException();
         }

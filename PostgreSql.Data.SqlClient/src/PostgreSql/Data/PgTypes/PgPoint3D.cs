@@ -7,7 +7,10 @@ using System.Globalization;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgPoint3D
+        : INullable, IEquatable<PgPoint3D>
     {
+        public static readonly PgPoint3D Null = new PgPoint3D(false);
+
         public static PgPoint3D Parse(string s)
         {
             if (s == null)
@@ -34,19 +37,63 @@ namespace PostgreSql.Data.PgTypes
             return new PgPoint3D(x, y, z);
         }
 
+        private readonly bool   _isNotNull;
         private readonly double _x;
         private readonly double _y;
         private readonly double _z;
 
-        public double X => _x;
-        public double Y => _y;
-        public double Z => _z;
+        public bool IsNull => !_isNotNull;
+
+        public double X
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _x;
+            }
+        }
+
+        public double Y
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _y;
+            }
+        }
+
+        public double Z
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _z;
+            }
+        }
+
+        private PgPoint3D(bool isNotNull)
+        {
+            _isNotNull = isNotNull;
+            _x         = 0;
+            _y         = 0;
+            _z         = 0;
+        }
 
         public PgPoint3D(double x, double y, double z)
         {
-            _x = x;
-            _y = y;
-            _z = z;
+            _isNotNull = true;
+            _x         = x;
+            _y         = y;
+            _z         = z;
         }
 
         public static bool operator ==(PgPoint3D lhs, PgPoint3D rhs)
@@ -68,6 +115,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override int GetHashCode() => (_x.GetHashCode() ^ _y.GetHashCode() ^ _z.GetHashCode());
 
+        public bool Equals(PgPoint3D other)
+        {
+            return (this == other);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -78,10 +130,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-
-            PgPoint3D value = (PgPoint3D)obj;
-
-            return ((PgPoint3D)value) == this;
+            return Equals((PgPoint3D)obj);
         }
     }
 }

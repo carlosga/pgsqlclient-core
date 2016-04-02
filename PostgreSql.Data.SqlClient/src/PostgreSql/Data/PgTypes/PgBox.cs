@@ -6,37 +6,81 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgBox
+        : INullable, IEquatable<PgBox>
     {
+        public static readonly PgBox Null = new PgBox(false); 
+
         public static PgBox Parse(string s)
         {
             throw new NotSupportedException();
         }
 
+        private readonly bool    _isNotNull;
         private readonly PgPoint _upperRight;
         private readonly PgPoint _lowerLeft;
+        
+        public bool IsNull => !_isNotNull;
 
-        public PgPoint UpperRight => _upperRight;
-        public PgPoint LowerLeft  => _lowerLeft;
+        public PgPoint UpperRight
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _upperRight;
+            }
+        }
+
+        public PgPoint LowerLeft
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return _lowerLeft;
+            }
+        }
+
+        private PgBox(bool isNotNull)
+        {
+            _isNotNull  = isNotNull;
+            _lowerLeft  = PgPoint.Null;
+            _upperRight = PgPoint.Null;
+        }
 
         public PgBox(PgPoint lowerLeft, PgPoint upperRight)
         {
+            _isNotNull  = false;
             _lowerLeft  = lowerLeft;
             _upperRight = upperRight;
         }
 
         public PgBox(double x1, double y1, double x2, double y2)
         {
+            _isNotNull  = false;
             _lowerLeft  = new PgPoint(x1, y1);
             _upperRight = new PgPoint(x2, y2);
         }
 
-        public static bool operator ==(PgBox left, PgBox right)
+        public static PgBoolean operator ==(PgBox left, PgBox right)
         {
+            if (left.IsNull || right.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (left.UpperRight == right.UpperRight && left.LowerLeft == right.LowerLeft);
         }
 
-        public static bool operator !=(PgBox left, PgBox right)
+        public static PgBoolean operator !=(PgBox left, PgBox right)
         {
+            if (left.IsNull || right.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (left.UpperRight != right.UpperRight || left.LowerLeft != right.LowerLeft);
         }
 
@@ -51,6 +95,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override int GetHashCode() => (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
 
+        public bool Equals(PgBox other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -62,9 +111,7 @@ namespace PostgreSql.Data.PgTypes
                 return false;
             }
 
-            PgBox value = (PgBox)obj;
-
-            return ((PgBox)value) == this;
+            return Equals((PgBox)obj);
         }
     }
 }

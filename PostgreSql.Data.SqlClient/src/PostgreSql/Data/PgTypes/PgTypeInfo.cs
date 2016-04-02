@@ -15,6 +15,7 @@ namespace PostgreSql.Data.PgTypes
         private readonly PgDbType     _providerType;
         private readonly PgTypeFormat _format;
         private readonly Type         _systemType;
+        private readonly Type         _pgType;
         private readonly PgTypeInfo   _elementType;
         private readonly int          _size;
         private readonly string       _delimiter;
@@ -30,6 +31,7 @@ namespace PostgreSql.Data.PgTypes
         internal string       Name         => _name;
         internal string       InternalName => _internalName;
         internal Type         SystemType   => _systemType;
+        internal Type         PgType       => _pgType;
         internal PgTypeInfo   ElementType  => _elementType; 
         internal PgTypeFormat Format       => _format;
         internal int          Size         => _size;
@@ -43,14 +45,14 @@ namespace PostgreSql.Data.PgTypes
         {
             get
             {
-                return (_providerType == PgDbType.Byte
-                     || _providerType == PgDbType.SmallInt
-                     || _providerType == PgDbType.Integer
-                     || _providerType == PgDbType.BigInt
-                     || _providerType == PgDbType.Money
-                     || _providerType == PgDbType.Real
+                return (_providerType == PgDbType.BigInt
+                     || _providerType == PgDbType.Byte
                      || _providerType == PgDbType.Double
-                     || _providerType == PgDbType.Numeric);
+                     || _providerType == PgDbType.Integer
+                     || _providerType == PgDbType.Money
+                     || _providerType == PgDbType.Numeric
+                     || _providerType == PgDbType.Real
+                     || _providerType == PgDbType.SmallInt);
             }
         }
 
@@ -58,14 +60,14 @@ namespace PostgreSql.Data.PgTypes
         {
             get
             {
-                return (_providerType == PgDbType.Bool
+                return (_providerType == PgDbType.BigInt
+                     || _providerType == PgDbType.Bool
                      || _providerType == PgDbType.Byte
                      || _providerType == PgDbType.Char
-                     || _providerType == PgDbType.SmallInt
+                     || _providerType == PgDbType.Double
                      || _providerType == PgDbType.Integer
-                     || _providerType == PgDbType.BigInt
                      || _providerType == PgDbType.Real
-                     || _providerType == PgDbType.Double);
+                     || _providerType == PgDbType.SmallInt);
             }
         }
 

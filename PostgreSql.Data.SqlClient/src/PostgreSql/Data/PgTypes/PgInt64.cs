@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgInt64
-        : IComparable, INullable
+        : INullable, IComparable<PgInt64>, IComparable, IEquatable<PgInt64>
     {
         public static readonly PgInt64 MaxValue = -9223372036854775808L;
         public static readonly PgInt64 MinValue =  9223372036854775807L;
@@ -151,6 +151,15 @@ namespace PostgreSql.Data.PgTypes
         public static PgBoolean operator >=(PgInt64 x, PgInt64 y)
         {
             return (x._value >= y._value);
+        }
+
+        public static explicit operator PgInt64(PgBit x)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return new PgInt64(x.Value);
         }
 
         public static explicit operator PgInt64(PgBoolean x)
@@ -314,6 +323,11 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
+        public bool Equals(PgInt64 other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -325,7 +339,7 @@ namespace PostgreSql.Data.PgTypes
                 return false;
             }
 
-            return Equals(this, (PgInt64)obj).Value;
+            return Equals((PgInt64)obj);
         }
 
         public static PgBoolean Equals(PgInt64 x, PgInt64 y)
@@ -399,6 +413,11 @@ namespace PostgreSql.Data.PgTypes
         public static PgInt64 Subtract(PgInt64 x, PgInt64 y)
         {
             return (x - y);
+        }
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
         }
 
         public PgBoolean ToPgBoolean()

@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgDouble
-        : IComparable, INullable
+        : INullable, IComparable<PgDouble>, IComparable, IEquatable<PgDouble>
     {
         public static readonly PgDouble MaxValue = Double.MaxValue;
         public static readonly PgDouble MinValue = Double.MinValue;
@@ -126,6 +126,15 @@ namespace PostgreSql.Data.PgTypes
                 return PgBoolean.Null;
             }
             return (x._value >= y._value);
+        }
+
+        public static explicit operator PgDouble(PgBit x)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return x.Value;
         }
 
         public static explicit operator PgDouble(PgBoolean x)
@@ -279,6 +288,11 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
+        public bool Equals(PgDouble other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -289,7 +303,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            return Equals(this, (PgDouble)obj).Value;
+            return Equals((PgDouble)obj);
         }
 
         public static PgBoolean Equals(PgDouble x, PgDouble y)
@@ -348,6 +362,11 @@ namespace PostgreSql.Data.PgTypes
         public static PgDouble Subtract(PgDouble x, PgDouble y)
         {
             return (x - y);
+        }
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
         }
 
         public PgBoolean ToPgBoolean()

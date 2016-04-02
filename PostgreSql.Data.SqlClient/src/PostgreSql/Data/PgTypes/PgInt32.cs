@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgInt32
-        : IComparable, INullable
+        : INullable, IComparable<PgInt32>, IComparable, IEquatable<PgInt32>
     {
         public static readonly PgInt32 MaxValue =  2147483647;
         public static readonly PgInt32 MinValue = -2147483648;
@@ -218,9 +218,14 @@ namespace PostgreSql.Data.PgTypes
             return (x._value >= y._value);
         }
 
+        public static explicit operator PgInt32(PgBit x)
+        {
+            return ((x.IsNull) ? Null : new PgInt32(x.Value));
+        }
+
         public static explicit operator PgInt32(PgBoolean x)
         {
-            return ((x.IsNull) ? Null : new PgInt32((int)(x.ByteValue)));
+            return ((x.IsNull) ? Null : new PgInt32(x.ByteValue));
         }
 
         public static explicit operator PgInt32(PgDecimal x)
@@ -396,6 +401,11 @@ namespace PostgreSql.Data.PgTypes
             return (x / y);
         }
 
+        public bool Equals(PgInt32 other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -406,7 +416,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            return Equals(this, (PgInt32)obj).Value;
+            return Equals((PgInt32)obj);
         }
 
         public static PgBoolean Equals(PgInt32 x, PgInt32 y)
@@ -480,6 +490,11 @@ namespace PostgreSql.Data.PgTypes
         public static PgInt32 Subtract(PgInt32 x, PgInt32 y)
         {
             return (x - y);
+        }
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
         }
 
         public PgBoolean ToPgBoolean()

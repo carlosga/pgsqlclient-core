@@ -7,10 +7,10 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgBoolean
-        : IComparable, INullable
+        : INullable, IComparable<PgBoolean>, IComparable, IEquatable<PgBoolean>
     {
         public static readonly PgBoolean False = false;
-        public static readonly PgBoolean Null  = new PgBoolean();
+        public static readonly PgBoolean Null  = new PgBoolean((bool?)null);
         public static readonly PgBoolean One   = new PgBoolean(1);
         public static readonly PgBoolean True  = true;
         public static readonly PgBoolean Zero  = new PgBoolean(0);
@@ -18,16 +18,22 @@ namespace PostgreSql.Data.PgTypes
         private readonly bool _isNotNull;
         private readonly bool _value;
 
+        private PgBoolean(bool? isNotNull)
+        {
+            _isNotNull = ((isNotNull.HasValue) ? isNotNull.Value : false);
+            _value     = false;
+        }
+
         public PgBoolean(bool value)
         {
-            _value     = value;
             _isNotNull = true;
+            _value     = value;
         }
 
         public PgBoolean(int value)
         {
-            _value     = ((value == 0) ? false : true);
             _isNotNull = true;
+            _value     = ((value == 0) ? false : true);
         }
 
         public static PgBoolean operator !(PgBoolean x)
@@ -136,6 +142,15 @@ namespace PostgreSql.Data.PgTypes
                 throw new PgNullValueException();
             }
             return x._value;
+        }
+
+        public static explicit operator PgBoolean(PgBit x)
+        {
+            if (x.IsNull)
+            {
+                throw new PgNullValueException();
+            }
+            return new PgBoolean(x.Value);
         }
 
         public static explicit operator PgBoolean(PgByte x)
@@ -321,6 +336,11 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
+        public bool Equals(PgBoolean other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -332,14 +352,14 @@ namespace PostgreSql.Data.PgTypes
                 return false;
             }
 
-            return Equals(this, (PgBoolean)obj).Value;
+            return Equals((PgBoolean)obj);
         }
-        
+
         public static PgBoolean Equals(PgBoolean x, PgBoolean y)
         {
             return (x == y);
         }
-        
+
         public override int GetHashCode()
         {
             if (IsNull)
@@ -413,7 +433,12 @@ namespace PostgreSql.Data.PgTypes
                     return false;
             }
         }
-        
+
+        public PgBit ToPgBit()
+        {
+            return (PgBit)this;
+        }
+
         public PgByte ToPgByte()
         {
             return (PgByte)this;

@@ -7,7 +7,7 @@ using System;
 namespace PostgreSql.Data.PgTypes
 {
     public struct PgDate
-        : IComparable, INullable
+        : INullable, IComparable<PgDate>, IComparable, IEquatable<PgDate>
     {
         public static readonly PgDate MaxValue = DateTime.MaxValue.Date;    // .NET => 01/01/0001 => Postgres =>    4713 BC
         public static readonly PgDate MinValue = DateTime.MinValue.Date;    // .NET => 31/12/999  => Postgres => 5874897 AD
@@ -214,6 +214,11 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
+        public bool Equals(PgDate other)
+        {
+            return (this == other).Value;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -224,7 +229,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            return Equals(this, (PgDate)obj).Value;
+            return Equals((PgDate)obj);
         }
 
         public static PgBoolean Equals(PgDate x, PgDate y)
