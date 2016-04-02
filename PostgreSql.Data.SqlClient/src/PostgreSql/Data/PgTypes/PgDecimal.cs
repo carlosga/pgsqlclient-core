@@ -403,7 +403,11 @@ namespace PostgreSql.Data.PgTypes
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            if (IsNull)
+            {
+                return PgTypeInfoProvider.NullString;
+            }
+            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
 
         public static PgDecimal Truncate(PgDecimal n, int position)

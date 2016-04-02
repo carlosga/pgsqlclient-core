@@ -120,13 +120,13 @@ namespace PostgreSql.Data.Frontend
         //      return *((float*)&value);
         // }
 
-        internal float    ReadSingle() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
-        internal decimal  ReadMoney()  => ((decimal)ReadInt64() / 100);
-        internal double   ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-
-        internal DateTime ReadDate()       => PgDate.PostgresBaseDate.AddDays(ReadInt32());
-        internal TimeSpan ReadTime()       => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
-        internal DateTime ReadTimestamp()  => PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
+        internal float   ReadSingle() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
+        internal decimal ReadMoney()  => ((decimal)ReadInt64() / 100);
+        internal double  ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
+        
+        internal PgDate      ReadDate()      => PgDate.FromDays(ReadInt32());
+        internal PgTime      ReadTime()      => PgTime.FromMicroseconds(ReadInt64());
+        internal PgTimestamp ReadTimestamp() => PgTimestamp.FromMicroseconds(ReadInt64());
 
 #warning TODO: Handle the time zone offset
         internal TimeSpan ReadTimeWithTZ() => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
@@ -136,13 +136,8 @@ namespace PostgreSql.Data.Frontend
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
-        internal PgInterval ReadInterval()
-        {
-            var interval = TimeSpan.FromSeconds(ReadDouble());
-
-            return new PgInterval(interval.Add(TimeSpan.FromDays(ReadInt32() * 30)));
-        }
-
+        internal PgInterval ReadInterval() => PgInterval.FromInterval(ReadDouble(), ReadInt32());
+                
         internal PgPoint  ReadPoint()  => new PgPoint(ReadDouble(), ReadDouble());
         internal PgCircle ReadCircle() => new PgCircle(ReadPoint(), ReadDouble());
         internal PgLine   ReadLine()   => new PgLine(ReadPoint(), ReadPoint());
@@ -239,7 +234,7 @@ namespace PostgreSql.Data.Frontend
 
         internal object ReadValue(PgTypeInfo typeInfo, int length)
         {
-            switch (typeInfo.ProviderType)
+            switch (typeInfo.PgDbType)
             {
                 case PgDbType.Void:
                     return DBNull.Value;

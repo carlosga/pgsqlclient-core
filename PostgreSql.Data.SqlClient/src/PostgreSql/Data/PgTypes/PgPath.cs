@@ -21,6 +21,19 @@ namespace PostgreSql.Data.PgTypes
 
         public bool IsNull => _isNotNull;
 
+        internal int SizeInBytes
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                // ((typeInfo.Size * path.Points.Length) + 5))
+                return (int)(16 + (16 * _points.Length));
+            }
+        } 
+
         public PgPoint[] Points
         {
             get

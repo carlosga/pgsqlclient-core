@@ -7,6 +7,7 @@ namespace PostgreSql.Data.SqlClient
     {
         Array
       , BigInt
+      , Bit
       , Bool
       , Box
       , Box2D

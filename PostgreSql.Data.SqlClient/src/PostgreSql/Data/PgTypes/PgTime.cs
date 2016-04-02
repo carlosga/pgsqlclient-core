@@ -17,14 +17,20 @@ namespace PostgreSql.Data.PgTypes
             return new PgTime(TimeSpan.Parse(s));
         }
 
+        internal static PgTime FromMicroseconds(long microseconds)
+        {
+            return new PgTime(TimeSpan.FromMilliseconds(microseconds * 0.001));
+        }
+
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
-        public bool IsNull       => !_isNotNull;
-        public int  Hours        => Value.Hours;
-        public int  Milliseconds => Value.Milliseconds;
-        public int  Minutes      => Value.Minutes;
-        public int  Seconds      => Value.Seconds;
+        public bool IsNull            => !_isNotNull;
+        public int  Hours             => Value.Hours;
+        public int  Milliseconds      => Value.Milliseconds;
+        public int  Minutes           => Value.Minutes;
+        public int  Seconds           => Value.Seconds;
+        public long TotalMicroseconds => (long)Value.TotalMilliseconds * 1000;
 
         public TimeSpan Value
         {

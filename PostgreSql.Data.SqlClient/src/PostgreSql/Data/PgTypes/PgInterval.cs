@@ -17,16 +17,26 @@ namespace PostgreSql.Data.PgTypes
         {
             return new PgInterval(TimeSpan.Parse(s));
         }
+        
+        internal static PgInterval FromInterval(double seconds, double days)
+        {
+            return new PgInterval(TimeSpan.FromSeconds(seconds).Add(TimeSpan.FromDays(days * 30)));
+        }
 
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
-        public bool IsNull       => !_isNotNull;
-        public int  Days         => Value.Days;
-        public int  Hours        => Value.Hours;
-        public int  Milliseconds => Value.Milliseconds;
-        public int  Minutes      => Value.Minutes;
-        public int  Seconds      => Value.Seconds;
+        public bool   IsNull            => !_isNotNull;
+        public int    Days              => Value.Days;
+        public int    Hours             => Value.Hours;
+        public int    Milliseconds      => Value.Milliseconds;
+        public int    Minutes           => Value.Minutes;
+        public int    Seconds           => Value.Seconds;
+        public double TotalDays         => Value.TotalDays;
+        public double TotalHours        => Value.TotalHours;
+        public double TotalMinutes      => Value.TotalMinutes;
+        public double TotalSeconds      => Value.TotalSeconds;
+        public double TotalMilliseconds => Value.TotalMilliseconds;
         
         public TimeSpan Value
         {
@@ -69,6 +79,15 @@ namespace PostgreSql.Data.PgTypes
         public static PgBoolean LessThan(PgInterval x, PgInterval y)            => (x < y);
         public static PgBoolean LessThanOrEqual(PgInterval x, PgInterval y)     => (x <= y);
         public static PgBoolean NotEquals(PgInterval x, PgInterval y)           => (x != y);
+
+        public static PgInterval operator -(PgInterval x, TimeSpan t)
+        {
+            if (x.IsNull)
+            {
+                return Null;
+            }
+            return (x._value.Subtract(t));
+        }
 
         public static PgBoolean operator ==(PgInterval x, PgInterval y)
         {
@@ -126,6 +145,11 @@ namespace PostgreSql.Data.PgTypes
 
         public static explicit operator TimeSpan(PgInterval x) => x.Value;
         public static explicit operator PgInterval(string x)   => new PgInterval(TimeSpan.Parse(x));
+
+        public static implicit operator PgInterval(TimeSpan value)
+        {
+            return new PgInterval(value);
+        }
 
         public string ToPgString()
         {

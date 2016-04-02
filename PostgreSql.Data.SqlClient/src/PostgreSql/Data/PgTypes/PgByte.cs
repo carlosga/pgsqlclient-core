@@ -224,15 +224,6 @@ namespace PostgreSql.Data.PgTypes
             return x.Value ? One : Zero;
         }
 
-        public static explicit operator byte(PgByte x)
-        {
-            if (x.IsNull)
-            {
-                throw new PgNullValueException();
-            }
-            return x._value;
-        }
-
         public static explicit operator PgByte(PgDecimal x)
         {
             if (x.IsNull)
@@ -331,6 +322,15 @@ namespace PostgreSql.Data.PgTypes
                 return Null;
             }
             return Parse(x.Value);
+        }
+
+        public static implicit operator byte(PgByte x)
+        {
+            if (x.IsNull)
+            {
+                throw new PgNullValueException();
+            }
+            return x._value;
         }
 
         public static implicit operator PgByte(byte x)

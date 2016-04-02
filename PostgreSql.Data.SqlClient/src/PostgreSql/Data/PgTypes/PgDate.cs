@@ -14,15 +14,30 @@ namespace PostgreSql.Data.PgTypes
         public static readonly PgDate Null     = new PgDate();
 
         internal static readonly string   DateStyle         = "ISO";
-
         internal static readonly long     UnixEpochDays     = 2440588; // 1970, 1, 1
-        internal static readonly DateTime UnixBaseDate      = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
         internal static readonly long     PostgresEpochDays = 2451545; // 2000, 1, 1
+        internal static readonly DateTime UnixBaseDate      = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         internal static readonly DateTime PostgresBaseDate  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        internal static PgDate FromDays(int days)
+        {
+            return new PgDate(PostgresBaseDate.AddDays(days));
+        }
 
         private bool     _isNotNull;
         private DateTime _value;
+
+        public int DaysSinceEpoch
+        {
+            get
+            {
+                if (IsNull)
+                {
+                    throw new PgNullValueException();
+                }
+                return (int)_value.Subtract(PgDate.PostgresBaseDate).TotalDays;
+            }
+        }
 
         private PgDate(bool isNotNull)
         {
@@ -30,21 +45,19 @@ namespace PostgreSql.Data.PgTypes
             _value     = PostgresBaseDate;
         }
 
-        public PgDate(int days)
+        public PgDate(int year, int month, int day)
+            : this(new DateTime(year, month, day)) 
         {
-            _isNotNull = true;
-            _value     = PostgresBaseDate.AddDays(days);
         }
 
         public PgDate(DateTime value)
         {
+            if (value < MinValue || value > MaxValue || value.TimeOfDay != TimeSpan.Zero)
+            {
+                throw new OverflowException();
+            }
+#warning TODO: Throw exception if the value parameter contains time info
             _value     = value.Date;
-            _isNotNull = true;
-        }
-
-        public PgDate(int year, int month, int day)
-        {
-            _value     = new DateTime(year, month, day);
             _isNotNull = true;
         }
 
@@ -58,7 +71,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new OverflowException();
             }
-            return (x.Value.Add(t));
+            return (x._value.Add(t));
         }
 
         public static PgBoolean operator !=(PgDate x, PgDate y)

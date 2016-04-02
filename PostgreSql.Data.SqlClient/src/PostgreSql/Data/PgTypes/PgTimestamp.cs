@@ -13,16 +13,23 @@ namespace PostgreSql.Data.PgTypes
         public static readonly PgTimestamp Null     = new PgTimestamp(false);
 
         internal const long MicrosecondsPerDay    = 86400000000L;
-        internal const long MicrosecondsPerHour   = 3600000000L;
-        internal const long MicrosecondsPerMinute = 60000000L;
-        internal const long MicrosecondsPerSecond = 1000000L;
-        internal const long SecondsPerDay	      = 86400L;
+        // internal const long MicrosecondsPerHour   = 3600000000L;
+        // internal const long MicrosecondsPerMinute = 60000000L;
+        // internal const long MicrosecondsPerSecond = 1000000L;
+        // internal const long SecondsPerDay	      = 86400L;
 
         // Julian-date equivalents of Day 0 in Unix and Postgres
         internal static readonly long MicrosecondsBetweenEpoch = ((PgDate.PostgresEpochDays - PgDate.UnixEpochDays) * MicrosecondsPerDay);
+        
+        internal static PgTimestamp FromMicroseconds(long microseconds)
+        {
+            return PgDate.UnixBaseDate.AddMilliseconds(microseconds * 0.001);
+        }
 
         private readonly bool     _isNotNull;
         private readonly DateTime _value;
+                
+        public long TotalMicroseconds => (long)(Value.Subtract(PgDate.UnixBaseDate).TotalMilliseconds * 1000);
 
         private PgTimestamp(bool isNotNull)
         {

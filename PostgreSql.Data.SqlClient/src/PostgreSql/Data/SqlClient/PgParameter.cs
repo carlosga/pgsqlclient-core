@@ -96,8 +96,8 @@ namespace PostgreSql.Data.SqlClient
             get { return _pgvalue; }
             set
             {
+                _value   = value;
                 _pgvalue = ((value is INullable) ? value : null);
-                _value   = value; 
 
                 if (!_isTypeSet)
                 {
@@ -131,7 +131,7 @@ namespace PostgreSql.Data.SqlClient
             : this()
         {
             _parameterName = parameterName;
-            Value          = value;
+            PgValue        = value;
         }
 
         public PgParameter(string parameterName, PgDbType pgDbType) 
@@ -179,8 +179,8 @@ namespace PostgreSql.Data.SqlClient
             _precision     = precision;
             _scale         = scale;
             _sourceColumn  = sourceColumn;
-            _value         = value;
             PgDbType       = pgDbType;
+            PgValue        = value;
         }
 
         public override string ToString() => _parameterName;
@@ -196,7 +196,7 @@ namespace PostgreSql.Data.SqlClient
 
             if (!_isTypeSet)
             {
-                _pgDbType = TypeInfo.ProviderType;
+                _pgDbType = TypeInfo.PgDbType;
             }
         }
     }
