@@ -9,19 +9,24 @@ namespace PostgreSql.Data.PgTypes
     public struct PgBit
         : INullable, IComparable<PgBit>, IComparable, IEquatable<PgBit>
     {
-        public static readonly PgBit MaxValue = 1;
-        public static readonly PgBit MinValue = 0;
+        public static readonly PgBit MaxValue = new PgBit(true, 1);
+        public static readonly PgBit MinValue = new PgBit(true, 0);
         public static readonly PgBit Null     = new PgBit(false);
-        public static readonly PgBit One      = new PgBit(1);
-        public static readonly PgBit Zero     = new PgBit(0);
+        public static readonly PgBit One      = MaxValue;
+        public static readonly PgBit Zero     = MinValue;
 
         private readonly bool _isNotNull;
         private readonly byte _value;
 
         private PgBit(bool isNotNull)
+            : this(isNotNull, 0)
+        {
+        }
+
+        private PgBit(bool isNotNull, byte value)
         {
             _isNotNull = isNotNull;
-            _value     = 0;
+            _value     = value;
         }
 
         public PgBit(byte value)

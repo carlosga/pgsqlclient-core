@@ -9,18 +9,23 @@ namespace PostgreSql.Data.PgTypes
     public struct PgMoney
         : INullable, IComparable<PgMoney>, IComparable, IEquatable<PgMoney>
     {
-        public static readonly PgMoney MaxValue = (decimal) 92233720368547758.07;
-        public static readonly PgMoney MinValue = (decimal)-92233720368547758.08;
+        public static readonly PgMoney MaxValue = new PgMoney(true,  92233720368547758.07M);
+        public static readonly PgMoney MinValue = new PgMoney(true, -92233720368547758.08M);
         public static readonly PgMoney Null     = new PgMoney(false);
-        public static readonly PgMoney Zero;
+        public static readonly PgMoney Zero     = new PgMoney(true, 0M);
 
         private readonly bool    _isNotNull;
         private readonly decimal _value; 
 
         private PgMoney(bool isNotNull)
+            : this(false, 0M)
+        {
+        }
+
+        private PgMoney(bool isNotNull, decimal value)
         {
             _isNotNull = isNotNull;
-            _value     = 0;
+            _value     = value;
         }
 
         public PgMoney(decimal value)

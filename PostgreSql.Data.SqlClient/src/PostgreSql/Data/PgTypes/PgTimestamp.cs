@@ -37,26 +37,19 @@ namespace PostgreSql.Data.PgTypes
             _value     = value;
         }
 
-        public PgTimestamp(int dayTicks, int timeTicks)
-        {
-            throw new NotImplementedException();
-        }
-
         public PgTimestamp(int year, int month, int day)
+            : this(year, month, day, 0, 0, 0, 0)
         {
-            _value      = new DateTime(year, month, day);
-             _isNotNull = true;
         }
 
         public PgTimestamp(int year, int month, int day, int hour, int minute, int second)
+            : this(year, month, day, hour, minute, second, 0)
         {
-            _value     = new DateTime(year, month, day, hour, minute, second);
-            _isNotNull = true;
         }
 
         public PgTimestamp(int year, int month, int day, int hour, int minute, int second, double millisecond)
         {
-            _value    = new DateTime(year, month, day, hour, minute, second);
+            _value    = new DateTime(year, month, day, hour, minute, second, (int)millisecond);
            _isNotNull = true;
         }
 

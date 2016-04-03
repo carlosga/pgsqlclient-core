@@ -9,18 +9,23 @@ namespace PostgreSql.Data.PgTypes
     public struct PgReal
         : INullable, IComparable<PgReal>, IComparable, IEquatable<PgReal>
     {
-        public static readonly PgReal MaxValue = Single.MaxValue;
-        public static readonly PgReal MinValue = Single.MinValue;
+        public static readonly PgReal MaxValue = new PgReal(true, Single.MaxValue);
+        public static readonly PgReal MinValue = new PgReal(true, Single.MinValue);
         public static readonly PgReal Null     = new PgReal(false);
-        public static readonly PgReal Zero     = 0.0f;
+        public static readonly PgReal Zero     = new PgReal(true, 0.0f);
 
         private readonly bool  _isNotNull;
         private readonly float _value;
 
-        public PgReal(bool isNotNull)
+        private PgReal(bool isNotNull)
+            : this(isNotNull, 0.0f)
+        {
+        }
+
+        private PgReal(bool isNotNull, float value)
         {
             _isNotNull = isNotNull;
-            _value     = 0.0f;
+            _value     = value;
         }
 
         public PgReal(double value)

@@ -316,7 +316,7 @@ namespace PostgreSql.Data.SqlClient
         public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
         public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
 
-        public override Guid  GetGuid(int i)
+        public override Guid GetGuid(int i)
         {
             throw new NotSupportedException("Guid datatype is not supported");
         }

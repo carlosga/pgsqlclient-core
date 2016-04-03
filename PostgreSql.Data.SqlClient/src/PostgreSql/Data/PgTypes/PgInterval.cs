@@ -98,14 +98,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value == y._value);
         }
 
-        public static PgBoolean operator !=(PgInterval x, PgInterval y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x._value != y._value);
-        }
+        public static PgBoolean operator !=(PgInterval x, PgInterval y) => !(x == y);
 
         public static PgBoolean operator >(PgInterval x, PgInterval y)
         {
@@ -143,18 +136,11 @@ namespace PostgreSql.Data.PgTypes
             return (x._value <= y._value);
         }
 
-        public static explicit operator TimeSpan(PgInterval x) => x.Value;
-        public static explicit operator PgInterval(string x)   => new PgInterval(TimeSpan.Parse(x));
+        public static explicit operator TimeSpan(PgInterval x)     => x.Value;
+        public static explicit operator PgInterval(string x)       => new PgInterval(TimeSpan.Parse(x));
+        public static implicit operator PgInterval(TimeSpan value) => new PgInterval(value);
 
-        public static implicit operator PgInterval(TimeSpan value)
-        {
-            return new PgInterval(value);
-        }
-
-        public string ToPgString()
-        {
-            return ToString();
-        }
+        public string ToPgString() => ToString();
 
         public override string ToString()
         {
@@ -174,10 +160,7 @@ namespace PostgreSql.Data.PgTypes
             return _value.GetHashCode();
         }
 
-        public bool Equals(PgInterval other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgInterval other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {

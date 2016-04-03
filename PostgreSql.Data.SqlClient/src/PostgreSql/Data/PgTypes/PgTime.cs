@@ -8,41 +8,48 @@ namespace PostgreSql.Data.PgTypes
     public struct PgTime 
         : INullable, IComparable<PgTime>, IComparable, IEquatable<PgTime>
     {
-        public static readonly PgTime MinValue = new PgTime( 0, 0, 0);
-        public static readonly PgTime MaxValue = new PgTime(24, 0, 0);
+        public static readonly PgTime MinValue = new PgTime(true,  0);
+        public static readonly PgTime MaxValue = new PgTime(true, 24);
         public static readonly PgTime Null     = new PgTime(false);
 
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
         public PgTime(bool isNotNull)
+            : this(isNotNull, 0)
+        {
+        }
+
+        public PgTime(bool isNotNull, int hours, int minutes = 0, int seconds = 0, int milliseconds = 0)
         {
             _isNotNull = false;
             _value     = TimeSpan.Zero;
+        }
+
+        public PgTime(int hours, int minutes, int seconds)
+            : this(hours, minutes, seconds, 0)
+        {
+        }
+
+        public PgTime(int hours, int minutes, int seconds, int milliseconds)
+            : this(new TimeSpan(hours, minutes, seconds, milliseconds))
+        {
+        }
+
+        public PgTime(long microseconds)
+            : this(TimeSpan.FromMilliseconds(microseconds * 0.001))
+        {
         }
 
         public PgTime(TimeSpan value)
         {
             _value     = value;
             _isNotNull = true;
-        }
 
-        public PgTime(int hours, int minutes, int seconds)
-        {
-            _value     = new TimeSpan(hours, minutes, seconds);
-            _isNotNull = true;
-        }
-
-        public PgTime(int hours, int minutes, int seconds, int milliseconds)
-        {
-            _value     = new TimeSpan(hours, minutes, seconds, milliseconds);
-            _isNotNull = true;
-        }
-
-        public PgTime(long microseconds)
-        {
-            _isNotNull = true;
-            _value     = TimeSpan.FromMilliseconds(microseconds * 0.001);
+            if (_value < MinValue || _value > MaxValue)
+            {
+                throw new OverflowException();
+            }
         }
 
         public static PgTime operator -(PgTime x, PgTime y)
