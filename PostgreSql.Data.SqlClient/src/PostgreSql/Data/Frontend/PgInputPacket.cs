@@ -120,23 +120,28 @@ namespace PostgreSql.Data.Frontend
         //      return *((float*)&value);
         // }
 
-        internal float   ReadSingle() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
-        internal decimal ReadMoney()  => ((decimal)ReadInt64() / 100);
-        internal double  ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-        
+        internal float       ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
+        internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
+        internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());        
         internal PgDate      ReadDate()      => new PgDate(ReadInt32());
         internal PgTime      ReadTime()      => new PgTime(ReadInt64());
         internal PgTimestamp ReadTimestamp() => new PgTimestamp(ReadInt64());
+        internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
 
+        internal TimeSpan ReadTimeWithTZ()
+        {
+            var value = ReadInt64();
 #warning TODO: Handle the time zone offset
-        internal TimeSpan ReadTimeWithTZ() => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+            var tz    = ReadInt32(); // time zone in seconds
+            
+            return TimeSpan.FromMilliseconds(value * 0.001);
+        }
+
         internal DateTimeOffset ReadTimestampWithTZ()
         {
             var dt = PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
-
-        internal PgInterval ReadInterval() => PgInterval.FromInterval(ReadDouble(), ReadInt32());
 
         internal PgPoint  ReadPoint()  => new PgPoint(ReadDouble(), ReadDouble());
         internal PgCircle ReadCircle() => new PgCircle(ReadPoint(), ReadDouble());

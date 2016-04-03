@@ -8,22 +8,17 @@ namespace PostgreSql.Data.PgTypes
     public struct PgTime 
         : INullable, IComparable<PgTime>, IComparable, IEquatable<PgTime>
     {
-        public static readonly PgTime MinValue = new PgTime(true,  0);
-        public static readonly PgTime MaxValue = new PgTime(true, 24);
-        public static readonly PgTime Null     = new PgTime(false);
+        public static readonly PgTime MinValue = new PgTime(true ,  0);
+        public static readonly PgTime MaxValue = new PgTime(true , 24);
+        public static readonly PgTime Null     = new PgTime(false,  0);
 
         private readonly bool     _isNotNull;
         private readonly TimeSpan _value;
 
-        public PgTime(bool isNotNull)
-            : this(isNotNull, 0)
+        private PgTime(bool isNotNull, int hours)
         {
-        }
-
-        public PgTime(bool isNotNull, int hours, int minutes = 0, int seconds = 0, int milliseconds = 0)
-        {
-            _isNotNull = false;
-            _value     = TimeSpan.Zero;
+            _isNotNull = isNotNull;
+            _value     = new TimeSpan(0, hours, 0, 0, 0);
         }
 
         public PgTime(int hours, int minutes, int seconds)
@@ -32,7 +27,7 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public PgTime(int hours, int minutes, int seconds, int milliseconds)
-            : this(new TimeSpan(hours, minutes, seconds, milliseconds))
+            : this(new TimeSpan(0, hours, minutes, seconds, milliseconds))
         {
         }
 
@@ -46,7 +41,7 @@ namespace PostgreSql.Data.PgTypes
             _value     = value;
             _isNotNull = true;
 
-            if (_value < MinValue || _value > MaxValue)
+            if (_value < MinValue._value || _value > MaxValue._value)
             {
                 throw new OverflowException();
             }
@@ -59,7 +54,7 @@ namespace PostgreSql.Data.PgTypes
                 return Null;
             }
             var value = x._value - y._value;
-            if (value < MinValue || value > MaxValue)
+            if (value < MinValue._value || value > MaxValue._value)
             {
                 throw new OverflowException();
             }
@@ -75,7 +70,7 @@ namespace PostgreSql.Data.PgTypes
                 return Null;
             }
             var value = x._value + y._value;
-            if (value < MinValue || value > MaxValue)
+            if (value < MinValue._value || value > MaxValue._value)
             {
                 throw new OverflowException();
             }
@@ -243,7 +238,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 return PgTypeInfoProvider.NullString;
             }
-            return _value.ToString();
+            return _value.ToString(/*"HH:mm:ss.ffffff", PgTypeInfoProvider.InvariantCulture*/);
         }
     }
 }
