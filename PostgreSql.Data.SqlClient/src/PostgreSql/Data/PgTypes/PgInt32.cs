@@ -218,15 +218,8 @@ namespace PostgreSql.Data.PgTypes
             return (x._value >= y._value);
         }
 
-        public static explicit operator PgInt32(PgBit x)
-        {
-            return ((x.IsNull) ? Null : new PgInt32(x.Value));
-        }
-
-        public static explicit operator PgInt32(PgBoolean x)
-        {
-            return ((x.IsNull) ? Null : new PgInt32(x.ByteValue));
-        }
+        public static explicit operator PgInt32(PgBit x)     => ((x.IsNull) ? Null : new PgInt32(x.Value));
+        public static explicit operator PgInt32(PgBoolean x) => ((x.IsNull) ? Null : new PgInt32(x.ByteValue));
 
         public static explicit operator PgInt32(PgDecimal x)
         {
@@ -311,10 +304,7 @@ namespace PostgreSql.Data.PgTypes
             return Parse(x.Value);
         }
 
-        public static implicit operator PgInt32(int x)
-        {
-            return new PgInt32(x);
-        }
+        public static implicit operator PgInt32(int x) => new PgInt32(x);
 
         public static implicit operator PgInt32(PgByte x)
         {
@@ -349,20 +339,9 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgInt32 Add(PgInt32 x, PgInt32 y)
-        {
-            return (x + y);
-        }
-
-        public static PgInt32 BitwiseAnd(PgInt32 x, PgInt32 y)
-        {
-            return (x & y);
-        }
-
-        public static PgInt32 BitwiseOr(PgInt32 x, PgInt32 y)
-        {
-            return (x | y);
-        }
+        public static PgInt32 Add(PgInt32 x, PgInt32 y)        => (x + y);
+        public static PgInt32 BitwiseAnd(PgInt32 x, PgInt32 y) => (x & y);
+        public static PgInt32 BitwiseOr(PgInt32 x, PgInt32 y)  => (x | y);
 
         public int CompareTo(object obj)
         {
@@ -396,15 +375,9 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgInt32 Divide(PgInt32 x, PgInt32 y)
-        {
-            return (x / y);
-        }
+        public static PgInt32 Divide(PgInt32 x, PgInt32 y) => (x / y);
 
-        public bool Equals(PgInt32 other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgInt32 other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {
@@ -419,10 +392,7 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgInt32)obj);
         }
 
-        public static PgBoolean Equals(PgInt32 x, PgInt32 y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgInt32 x, PgInt32 y) => (x == y);
 
         public override int GetHashCode()
         {
@@ -433,50 +403,15 @@ namespace PostgreSql.Data.PgTypes
             return _value.GetHashCode();
         }
 
-        public static PgBoolean GreaterThan(PgInt32 x, PgInt32 y)
-        {
-            return (x > y);
-        }
-
-        public static PgBoolean GreaterThanOrEqual(PgInt32 x, PgInt32 y)
-        {
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgInt32 x, PgInt32 y)
-        {
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEqual(PgInt32 x, PgInt32 y)
-        {
-            return (x <= y);
-        }
-
-        public static PgInt32 Mod(PgInt32 x, PgInt32 y)
-        {
-            return (x % y);
-        }
-
-        public static PgInt32 Modulus(PgInt32 x, PgInt32 y)
-        {
-            return (x % y);
-        }
-
-        public static PgInt32 Multiply(PgInt32 x, PgInt32 y)
-        {
-            return (x * y);
-        }
-
-        public static PgBoolean NotEquals(PgInt32 x, PgInt32 y)
-        {
-            return (x != y);
-        }
-
-        public static PgInt32 OnesComplement(PgInt32 x)
-        {
-            return ~x;
-        }
+        public static PgBoolean GreaterThan(PgInt32 x, PgInt32 y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgInt32 x, PgInt32 y) => (x >= y);
+        public static PgBoolean LessThan(PgInt32 x, PgInt32 y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgInt32 x, PgInt32 y)    => (x <= y);
+        public static PgInt32   Mod(PgInt32 x, PgInt32 y)                => (x % y);
+        public static PgInt32   Modulus(PgInt32 x, PgInt32 y)            => (x % y);
+        public static PgInt32   Multiply(PgInt32 x, PgInt32 y)           => (x * y);
+        public static PgBoolean NotEquals(PgInt32 x, PgInt32 y)          => (x != y);
+        public static PgInt32   OnesComplement(PgInt32 x)                => ~x;
 
         public static PgInt32 Parse(string s)
         {
@@ -487,60 +422,18 @@ namespace PostgreSql.Data.PgTypes
             return Int32.Parse(s, PgTypeInfoProvider.InvariantCulture);
         }
 
-        public static PgInt32 Subtract(PgInt32 x, PgInt32 y)
-        {
-            return (x - y);
-        }
+        public static PgInt32 Subtract(PgInt32 x, PgInt32 y) => (x - y);
 
-        public PgBit ToPgBit()
-        {
-            return (PgBit)this;
-        }
-
-        public PgBoolean ToPgBoolean()
-        {
-            return (PgBoolean)this;
-        }
-
-        public PgByte ToPgByte()
-        {
-            return (PgByte)this;
-        }
-
-        public PgDecimal ToPgDecimal()
-        {
-            return this;
-        }
-
-        public PgDouble ToPgDouble()
-        {
-            return this;
-        }
-
-        public PgInt16 ToPgInt16()
-        {
-            return (PgInt16)this;
-        }
-
-        public PgInt64 ToPgInt64()
-        {
-            return this;
-        }
-
-        public PgMoney ToPgMoney()
-        {
-            return this;
-        }
-
-        public PgReal ToPgReal()
-        {
-            return this;
-        }
-
-        public PgString ToPgString()
-        {
-            return (PgString)this;
-        }
+        public PgBit     ToPgBit()     => (PgBit)this;
+        public PgBoolean ToPgBoolean   => (PgBoolean)this;
+        public PgByte    ToPgByte()    => (PgByte)this;
+        public PgDecimal ToPgDecimal() => (PgDecimal)this;
+        public PgDouble  ToPgDouble()  => (PgDouble)this;
+        public PgInt16   ToPgInt16()   => (PgInt16)this;
+        public PgInt64   ToPgInt64()   => (PgInt64)this;
+        public PgMoney   ToPgMoney()   => (PgMoney)this;
+        public PgReal    ToPgReal()    => (PgReal)this;
+        public PgString  ToPgString()  => (PgString)this;
 
         public override string ToString()
         {
@@ -551,9 +444,6 @@ namespace PostgreSql.Data.PgTypes
             return _value.ToString(PgTypeInfoProvider.InvariantCulture);
         }
 
-        public static PgInt32 Xor(PgInt32 x, PgInt32 y)
-        {
-            return (x ^ y);
-        }
+        public static PgInt32 Xor(PgInt32 x, PgInt32 y) => (x ^ y);
     }
 }

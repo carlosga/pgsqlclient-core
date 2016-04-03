@@ -4,6 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using PostgreSql.Data.PgTypes;
 using System.Data.Common;
 using System.Diagnostics;
 using System;
@@ -627,12 +628,12 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object ReadInternal(DbDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
-            ValidateReadType(typeof(TimeSpan), asType);
+            ValidateReadType(typeof(PgTime), asType);
             if (reader.IsDBNull(ordinal))
             {
                 return DBNull.Value;   
             }
-            return ((PgDataReader)reader).GetTimeSpan(ordinal);
+            return ((PgDataReader)reader).GetPgTime(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
@@ -719,12 +720,12 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object ReadInternal(DbDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
-            ValidateReadType(typeof(TimeSpan), asType);
+            ValidateReadType(typeof(PgInterval), asType);
             if (reader.IsDBNull(ordinal))
             {
                 return DBNull.Value;   
             }
-            return ((PgDataReader)reader).GetTimeSpan(ordinal);
+            return (reader as PgDataReader).GetPgInterval(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)

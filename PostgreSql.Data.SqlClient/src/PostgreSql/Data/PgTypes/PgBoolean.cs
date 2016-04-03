@@ -204,7 +204,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new PgNullValueException();
             }
-            return new PgBoolean((x.Value != 0));
+            return new PgBoolean(x.Value != 0);
         }
 
         public static explicit operator PgBoolean(PgMoney x)
@@ -213,7 +213,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new PgNullValueException();
             }
-            return new PgBoolean((x.Value != 0));
+            return new PgBoolean(x.Value != 0);
         }
 
         public static explicit operator PgBoolean(PgReal x)
@@ -222,7 +222,7 @@ namespace PostgreSql.Data.PgTypes
             {
                 throw new PgNullValueException();
             }
-            return new PgBoolean((x.Value != 0));
+            return new PgBoolean(x.Value != 0);
         }
 
         public static explicit operator PgBoolean(PgString x)
@@ -234,20 +234,9 @@ namespace PostgreSql.Data.PgTypes
             return Parse(x.Value);
         }
 
-        public static bool operator false(PgBoolean x)
-        {
-            return (x.Value == false);
-        }
-        
-        public static implicit operator PgBoolean(bool x)
-        {
-            return new PgBoolean(x);
-        }
-
-        public static bool operator true(PgBoolean x)
-        {
-            return (x.Value == true);
-        }
+        public static bool operator false(PgBoolean x)    => (x.Value == false);
+        public static implicit operator PgBoolean(bool x) => new PgBoolean(x);
+        public static bool operator true(PgBoolean x)     => (x.Value == true);
 
         public byte ByteValue 
         {
@@ -299,10 +288,7 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgBoolean And(PgBoolean x, PgBoolean y)
-        {
-            return (x & y);
-        }
+        public static PgBoolean And(PgBoolean x, PgBoolean y) => (x & y);
 
         public int CompareTo(object obj)
         {
@@ -336,10 +322,7 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public bool Equals(PgBoolean other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgBoolean other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {
@@ -355,10 +338,7 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgBoolean)obj);
         }
 
-        public static PgBoolean Equals(PgBoolean x, PgBoolean y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgBoolean x, PgBoolean y) => (x == y);
 
         public override int GetHashCode()
         {
@@ -369,40 +349,13 @@ namespace PostgreSql.Data.PgTypes
             return _value.GetHashCode();
         }
         
-        public static PgBoolean GreaterThan(PgBoolean x, PgBoolean y)
-        {
-            return (x > y);
-        }
-
-        public static PgBoolean GreaterThanOrEquals(PgBoolean x, PgBoolean y)
-        {
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgBoolean x, PgBoolean y)
-        {
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEquals(PgBoolean x, PgBoolean y)
-        {
-            return (x <= y);
-        }
-
-        public static PgBoolean NotEquals(PgBoolean x, PgBoolean y)
-        {
-            return (x != y);
-        }
-
-        public static PgBoolean OnesComplement(PgBoolean x)
-        {
-            return (~x);
-        }
-
-        public static PgBoolean Or(PgBoolean x, PgBoolean y)
-        {
-            return (x | y);
-        }
+        public static PgBoolean GreaterThan(PgBoolean x, PgBoolean y)         => (x > y);
+        public static PgBoolean GreaterThanOrEquals(PgBoolean x, PgBoolean y) => (x >= y);
+        public static PgBoolean LessThan(PgBoolean x, PgBoolean y)            => (x < y);
+        public static PgBoolean LessThanOrEquals(PgBoolean x, PgBoolean y)    => (x <= y);
+        public static PgBoolean NotEquals(PgBoolean x, PgBoolean y)           => (x != y);
+        public static PgBoolean OnesComplement(PgBoolean x)                   => (~x);
+        public static PgBoolean Or(PgBoolean x, PgBoolean y)                  => (x | y);
 
         public static PgBoolean Parse(string s)
         {
@@ -434,55 +387,16 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public PgBit ToPgBit()
-        {
-            return (PgBit)this;
-        }
-
-        public PgByte ToPgByte()
-        {
-            return (PgByte)this;
-        }
-
-        public PgDecimal ToPgDecimal()
-        {
-            return (PgDecimal)this;
-        }
-
-        public PgDouble ToPgDouble()
-        {
-            return (PgDouble)this;
-        }
-
-        public PgInt16 ToPgInt16()
-        {
-            return (PgInt16)this;
-        }
-
-        public PgInt32 ToPgInt32()
-        {
-            return (PgInt32)this;
-        }
-
-        public PgInt64 ToPgInt64()
-        {
-            return (PgInt64)this;
-        }
-
-        public PgMoney ToPgMoney()
-        {
-            return (PgMoney)this;
-        }
-
-        public PgReal ToPgReal()
-        {
-            return (PgReal)this;
-        }
-
-        public PgString ToPgString()
-        {
-            return (PgString)this;
-        }
+        public PgBit     ToPgBit()     => (PgBit)this;
+        public PgByte    ToPgByte()    => (PgByte)this;
+        public PgDecimal ToPgDecimal() => (PgDecimal)this;
+        public PgDouble  ToPgDouble()  => (PgDouble)this;
+        public PgInt16   ToPgInt16()   => (PgInt16)this;
+        public PgInt32   ToPgInt32()   => (PgInt32)this;
+        public PgInt64   ToPgInt64()   => (PgInt64)this;
+        public PgMoney   ToPgMoney()   => (PgMoney)this;
+        public PgReal    ToPgReal()    => (PgReal)this;
+        public PgString  ToPgString()  => (PgString)this;
 
         public override string ToString()
         {
@@ -493,9 +407,6 @@ namespace PostgreSql.Data.PgTypes
             return _value.ToString();
         }
         
-        public static PgBoolean Xor(PgBoolean x, PgBoolean y)
-        {
-            return (x ^ y);
-        }
+        public static PgBoolean Xor(PgBoolean x, PgBoolean y) => (x ^ y);
     }
 }

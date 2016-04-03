@@ -9,9 +9,9 @@ namespace PostgreSql.Data.PgTypes
     public struct PgDate
         : INullable, IComparable<PgDate>, IComparable, IEquatable<PgDate>
     {
-        public static readonly PgDate MaxValue = DateTime.MaxValue.Date;    // .NET => 01/01/0001 => Postgres =>    4713 BC
-        public static readonly PgDate MinValue = DateTime.MinValue.Date;    // .NET => 31/12/999  => Postgres => 5874897 AD
-        public static readonly PgDate Null     = new PgDate();
+        public static readonly PgDate MaxValue = new PgDate(true, DateTime.MaxValue.Date); // .NET => 31/12/9999 => Postgres => 5874897 AD
+        public static readonly PgDate MinValue = new PgDate(true, DateTime.MinValue.Date); // .NET => 01/01/0001 => Postgres =>    4713 BC
+        public static readonly PgDate Null     = new PgDate(false);
 
         internal static readonly string   DateStyle         = "ISO";
         internal static readonly long     UnixEpochDays     = 2440588; // 1970, 1, 1
@@ -19,29 +19,22 @@ namespace PostgreSql.Data.PgTypes
         internal static readonly DateTime UnixBaseDate      = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         internal static readonly DateTime PostgresBaseDate  = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        private bool     _isNotNull;
-        private DateTime _value;
-
-        internal int DaysSinceEpoch
-        {
-            get
-            {
-                if (IsNull)
-                {
-                    throw new PgNullValueException();
-                }
-                return (int)_value.Subtract(PgDate.PostgresBaseDate).TotalDays;
-            }
-        }
+        private readonly bool     _isNotNull;
+        private readonly DateTime _value;
 
         private PgDate(bool isNotNull)
+            : this(isNotNull, PostgresBaseDate)
+        {
+        }
+
+        private PgDate(bool isNotNull, DateTime date)
         {
             _isNotNull = isNotNull;
-            _value     = PostgresBaseDate;
+            _value     = date;
         }
 
         public PgDate(int year, int month, int day)
-            : this(new DateTime(year, month, day)) 
+            : this(new DateTime(year, month, day))
         {
         }
 
@@ -52,13 +45,13 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDate(DateTime value)
         {
-            if (value < MinValue || value > MaxValue || value.TimeOfDay != TimeSpan.Zero)
+            _isNotNull = true;
+            _value     = value.Date;
+
+            if (_value < MinValue.Value || _value > MaxValue.Value || _value.TimeOfDay != TimeSpan.Zero)
             {
                 throw new OverflowException();
             }
-#warning TODO: Throw exception if the value parameter contains time info
-            _value     = value.Date;
-            _isNotNull = true;
         }
 
         public static PgDate operator -(PgDate x, TimeSpan t)
@@ -74,14 +67,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value.Add(t));
         }
 
-        public static PgBoolean operator !=(PgDate x, PgDate y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x._value != y._value);
-        }
+        public static PgBoolean operator !=(PgDate x, PgDate y) => !(x == y);
 
         public static PgDate operator +(PgDate x, TimeSpan t)
         {
@@ -159,24 +145,11 @@ namespace PostgreSql.Data.PgTypes
             return Parse(x.Value);
         }
 
-        public static implicit operator PgDate(DateTime value)
-        {
-            return new PgDate(value);
-        }
+        public static implicit operator PgDate(DateTime x) => new PgDate(x);
 
-        public int DayTicks
-        { 
-            get
-            {
-                if (IsNull)
-                {
-                    throw new PgNullValueException();
-                }
-                return (int)_value.Date.Ticks;
-            } 
-        }
-
-        public bool IsNull => !_isNotNull;
+        public int  DayTicks       => (int)Value.Date.Ticks;
+        public int  DaysSinceEpoch => (int)Value.Subtract(PostgresBaseDate).TotalDays;
+        public bool IsNull         => !_isNotNull;
 
         public DateTime Value
         {
@@ -187,13 +160,10 @@ namespace PostgreSql.Data.PgTypes
                     throw new PgNullValueException();
                 }
                 return _value;
-            } 
+            }
         }
 
-        public static PgDate Add(PgDate x, TimeSpan t)
-        {
-            return (x + t);
-        }
+        public static PgDate Add(PgDate x, TimeSpan t) => (x + t);
 
         public int CompareTo(object obj)
         {
@@ -216,21 +186,10 @@ namespace PostgreSql.Data.PgTypes
                 return 1;
             }
 
-            if (this < value)
-            {
-                return -1;
-            }
-            if (this > value)
-            {
-                return 1;
-            }
-            return 0;
+            return _value.CompareTo(value._value);
         }
 
-        public bool Equals(PgDate other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgDate other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {
@@ -245,10 +204,7 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgDate)obj);
         }
 
-        public static PgBoolean Equals(PgDate x, PgDate y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgDate x, PgDate y) => (x == y);
 
         public override int GetHashCode()
         {
@@ -259,30 +215,11 @@ namespace PostgreSql.Data.PgTypes
             return _value.GetHashCode();
         }
 
-        public static PgBoolean GreaterThan(PgDate x, PgDate y)
-        {
-            return (x > y);
-        }
-
-        public static PgBoolean GreaterThanOrEqual(PgDate x, PgDate y)
-        {
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgDate x, PgDate y)
-        {
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEqual(PgDate x, PgDate y)
-        {
-            return (x <= y);
-        }
-
-        public static PgBoolean NotEquals(PgDate x, PgDate y)
-        {
-            return (x != y);
-        }
+        public static PgBoolean GreaterThan(PgDate x, PgDate y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgDate x, PgDate y) => (x >= y);
+        public static PgBoolean LessThan(PgDate x, PgDate y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgDate x, PgDate y)    => (x <= y);
+        public static PgBoolean NotEquals(PgDate x, PgDate y)          => (x != y);
 
         public static PgDate Parse(string s)
         {
@@ -293,15 +230,9 @@ namespace PostgreSql.Data.PgTypes
             return DateTime.Parse(s);
         }
 
-        public static PgDate Subtract(PgDate x, TimeSpan t)
-        {
-            return (x - t);
-        }
+        public static PgDate Subtract(PgDate x, TimeSpan t) => (x - t);
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
+        public PgString ToPgString() => ToString();
 
         public override string ToString()
         {

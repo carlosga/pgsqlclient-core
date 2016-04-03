@@ -179,6 +179,11 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException();
         }
 
+        public static implicit operator PgDecimal(PgInt16 x)
+        {
+            throw new NotImplementedException();
+        }
+
         public static implicit operator PgDecimal(PgInt32 x)
         {
             throw new NotImplementedException();

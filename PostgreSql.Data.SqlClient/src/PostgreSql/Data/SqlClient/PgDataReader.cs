@@ -188,9 +188,6 @@ namespace PostgreSql.Data.SqlClient
             return (_row != null);
         }
 
-        public override bool GetBoolean(int i) => GetValueWithNullCheck<bool>(i);
-        public override byte GetByte(int i)    => GetValueWithNullCheck<byte>(i);
-
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
             if (IsClosed)
@@ -233,8 +230,6 @@ namespace PostgreSql.Data.SqlClient
 
             return bytesRead;
         }
-
-        public override char GetChar(int i) => GetValueWithNullCheck<char>(i);
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
@@ -279,6 +274,53 @@ namespace PostgreSql.Data.SqlClient
             return charsRead;
         }
 
+        public override Boolean        GetBoolean(int i)        => GetValue<Boolean>(i);
+        public override Byte           GetByte(int i)           => GetValue<Byte>(i);
+        public override Char           GetChar(int i)           => GetValue<Char>(i);
+        public override DateTime       GetDateTime(int i)       => GetValue<DateTime>(i);
+        public          DateTimeOffset GetDateTimeOffset(int i) => GetValue<DateTimeOffset>(i);
+        public override Decimal        GetDecimal(int i)        => GetValue<Decimal>(i);
+        public override Double         GetDouble(int i)         => GetValue<Double>(i);
+        public override Single         GetFloat(int i)          => GetValue<Single>(i);
+        public override Int16          GetInt16(int i)          => GetValue<Int16>(i);
+        public override Int32          GetInt32(int i)          => GetValue<Int32>(i);
+        public override Int64          GetInt64(int i)          => GetValue<Int64>(i);
+        public          TimeSpan       GetTimeSpan(int i)       => GetValue<TimeSpan>(i);
+        public override String         GetString(int i)         => GetValue<String>(i);
+
+        public PgBinary    GetPgBinary(int i)    => GetValue<PgBinary>(i);
+        public PgBit       GetPgBit(int i)       => GetValue<PgBit>(i);
+        public PgBoolean   GetPgBoolean(int i)   => GetValue<PgBoolean>(i);
+        public PgBox       GetPgBox(int i)       => GetValue<PgBox>(i);
+        public PgBox2D     GetPgBox2D(int i)     => GetValue<PgBox2D>(i);
+        public PgBox3D     GetPgBox3D(int i)     => GetValue<PgBox3D>(i);
+        public PgByte      GetPgByte(int i)      => GetValue<PgByte>(i);
+        public PgCircle    GetPgCircle(int i)    => GetValue<PgCircle>(i);
+        public PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
+        public PgDecimal   GetPgDecimal(int i)   => GetValue<PgDecimal>(i);
+        public PgDouble    GetPgDouble(int i)    => GetValue<PgDouble>(i);
+        public PgInt16     GetPgInt16(int i)     => GetValue<PgInt16>(i);
+        public PgInt32     GetPgInt32(int i)     => GetValue<PgInt32>(i);
+        public PgInt64     GetPgInt64(int i)     => GetValue<PgInt64>(i);
+        public PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
+        public PgLine      GetPgLine(int i)      => GetValue<PgLine>(i);
+        public PgLSeg      GetPgLSeg(int i)      => GetValue<PgLSeg>(i);
+        public PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
+        public PgPath      GetPgPath(int i)      => GetValue<PgPath>(i);
+        public PgPoint     GetPgPoint(int i)     => GetValue<PgPoint>(i);
+        public PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
+        public PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
+        public PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
+        public PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
+        public PgString    GetPgString(int i)    => GetValue<PgString>(i);
+        public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
+        public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
+
+        public override Guid  GetGuid(int i)
+        {
+            throw new NotSupportedException("Guid datatype is not supported");
+        }
+
         public override string GetDataTypeName(int i)
         {
             CheckIndex(i);
@@ -286,28 +328,12 @@ namespace PostgreSql.Data.SqlClient
             return _statement.RowDescriptor[i].TypeInfo.Name;
         }
 
-        public override DateTime       GetDateTime(int i)       => GetValueWithNullCheck<DateTime>(i);
-        public          DateTimeOffset GetDateTimeOffset(int i) => GetValueWithNullCheck<DateTimeOffset>(i);
-        public override Decimal        GetDecimal(int i)        => GetValueWithNullCheck<decimal>(i);
-        public override double         GetDouble(int i)         => GetValueWithNullCheck<double>(i);
-
         public override Type GetFieldType(int i)
         {
             CheckIndex(i);
 
             return _statement.RowDescriptor[i].TypeInfo.SystemType;
         }
-
-        public override float GetFloat(int i) => GetValueWithNullCheck<float>(i);
-        
-        public override Guid  GetGuid(int i)
-        {
-            throw new NotSupportedException("Guid datatype is not supported");
-        }
-
-        public override Int16 GetInt16(int i) => GetValueWithNullCheck<Int16>(i);
-        public override Int32 GetInt32(int i) => GetValueWithNullCheck<Int32>(i);
-        public override Int64 GetInt64(int i) => GetValueWithNullCheck<Int64>(i);
 
         public override String GetName(int i)
         {
@@ -325,8 +351,6 @@ namespace PostgreSql.Data.SqlClient
 
             return _statement.RowDescriptor.IndexOf(name);
         }
-
-        public override string GetString(int i) => GetValueWithNullCheck<string>(i);
 
         public override object GetValue(int i)
         {
@@ -352,16 +376,6 @@ namespace PostgreSql.Data.SqlClient
 
             return (_row[i] == DBNull.Value);
         }
-
-        public TimeSpan   GetTimeSpan(int i)   => GetValueWithNullCheck<TimeSpan>(i);
-        public PgInterval GetPgInterval(int i) => GetValueWithNullCheck<PgInterval>(i);
-        public PgPoint    GetPgPoint(int i)    => GetValueWithNullCheck<PgPoint>(i);
-        public PgBox      GetPgBox(int i)      => GetValueWithNullCheck<PgBox>(i);
-        public PgLSeg     GetPgLSeg(int i)     => GetValueWithNullCheck<PgLSeg>(i);
-        public PgCircle   GetPgCircle(int i)   => GetValueWithNullCheck<PgCircle>(i);
-        public PgPath     GetPgPath(int i)     => GetValueWithNullCheck<PgPath>(i);
-        public PgPolygon  GetPgPolygon(int i)  => GetValueWithNullCheck<PgPolygon>(i);
-        public PgBox2D    GetPgBox2D(int i)    => GetValueWithNullCheck<PgBox2D>(i);
 
         public override Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
         public override object GetProviderSpecificValue(int i)            => GetValue(i);
@@ -417,7 +431,7 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        private T GetValueWithNullCheck<T>(int i)
+        private T GetValue<T>(int i)
         {
             CheckNull(i);
 

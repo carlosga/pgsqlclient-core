@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -20,12 +17,9 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Encrypt                  = false;
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
-            
-            
-            DateTime d  = DateTime.Today;
-            object   o  = d;
-            PgDate   p1 = (PgDate)d;
-            PgDate   p2 = (PgDate)o;
+                        
+            object o  = PgDate.MaxValue;
+            var    p2 = (DateTime)o;
                                 
             Console.WriteLine($"Finished!!");
         } 
