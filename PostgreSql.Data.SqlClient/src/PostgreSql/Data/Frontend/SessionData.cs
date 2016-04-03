@@ -2,12 +2,42 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed class SessionData
     {
+        internal static readonly ReadOnlyDictionary<string, Encoding> Encodings;
+
+        static SessionData()
+        {
+            Dictionary<string, Encoding> encodings = new Dictionary<string, Encoding>(4);
+
+            // http://www.postgresql.org/docs/9.1/static/multibyte.html
+            encodings["SQL_ASCII"]  = new ASCIIEncoding();                      // ASCII
+            encodings["UNICODE"]    = new UTF8Encoding(false);	                // Unicode (UTF-8)
+            encodings["UTF8"]       = new UTF8Encoding(false);	                // UTF-8
+            encodings["LATIN1"]     = Encoding.GetEncoding("iso-8859-1");       // ISO 8859-1/ECMA 94 (Latin alphabet no.1)
+
+            // encodings["EUC_JP"]     = Encoding.GetEncoding("euc-jp");        // Japanese EUC
+            // encodings["EUC_CN"]     = Encoding.GetEncoding("euc-cn");		// Chinese EUC
+            // encodings["LATIN2"]     = Encoding.GetEncoding("iso-8859-2");    // ISO 8859-2/ECMA 94 (Latin alphabet no.2)
+            // encodings["LATIN4"]     = Encoding.GetEncoding(1257);		    // ISO 8859-4/ECMA 94 (Latin alphabet no.4)
+            // encodings["ISO_8859_7"] = Encoding.GetEncoding(1253);		    // ISO 8859-7/ECMA 118 (Latin/Greek)
+            // encodings["LATIN9"]     = Encoding.GetEncoding("iso-8859-15");	// ISO 8859-15 (Latin alphabet no.9)
+            // encodings["KOI8"]       = Encoding.GetEncoding("koi8-r");		// KOI8-R(U)
+            // encodings["WIN"]        = Encoding.GetEncoding("windows-1251");	// Windows CP1251
+            // encodings["WIN1251"]    = Encoding.GetEncoding("windows-1251");  // Windows CP1251
+            // encodings["WIN1256"]    = Encoding.GetEncoding("windows-1256");	// Windows CP1256 (Arabic)
+            // encodings["WIN1258"]    = Encoding.GetEncoding("windows-1258");	// TCVN-5712/Windows CP1258 (Vietnamese)
+            // encodings["WIN1256"]    = Encoding.GetEncoding("windows-874");   // Windows CP874 (Thai)
+
+            Encodings = new ReadOnlyDictionary<string, Encoding>(encodings);
+        }
+
         private string        _serverVersion;
         private Encoding      _serverEncoding;
         private Encoding      _clientEncoding;
@@ -51,11 +81,11 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case "server_encoding":
-                    _serverEncoding = PgCharacterSet.Charsets[value].Encoding;
+                    _serverEncoding = Encodings[value];
                     break;
 
                 case "client_encoding":
-                    _clientEncoding = PgCharacterSet.Charsets[value].Encoding;
+                    _clientEncoding = Encodings[value];
                     break;
 
                 case "application_name":

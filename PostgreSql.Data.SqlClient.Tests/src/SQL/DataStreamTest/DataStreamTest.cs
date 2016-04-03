@@ -115,20 +115,20 @@ namespace PostgreSql.Data.SqlClient.Tests
                 using (PgDataReader rdr = cmd.ExecuteReader())
                 {
                     rdr.Read();
-                    object v = null;
-
-                    DateTime d;
-                    decimal m;
-                    string s = null;
-                    int i;
+                    
+                    object  v = null;
+                    PgDate  d = PgDate.Null;
+                    decimal m = 0.0M;
+                    string  s = null;
+                    int     i = 0;
 
                     // read data out of buffer
                     v = rdr.GetValue( 0); i = (int)v;
                     v = rdr.GetValue( 1); s = v is DBNull ? null : (string)v;
                     v = rdr.GetValue( 2); i = (int)v;
-                    v = rdr.GetValue( 3); d = (DateTime)v;
-                    v = rdr.GetValue( 4); d = (DateTime)v;
-                    v = rdr.GetValue( 5); d = (DateTime)v;
+                    v = rdr.GetValue( 3); d = (PgDate)v;
+                    v = rdr.GetValue( 4); d = (PgDate)v;
+                    v = rdr.GetValue( 5); d = (PgDate)v;
                     v = rdr.GetValue( 6); i = (int)v;
                     v = rdr.GetValue( 7); m = (decimal)v;
                     v = rdr.GetValue( 8); s = v is DBNull ? null : (string)v;

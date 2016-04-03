@@ -137,7 +137,7 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal PgInterval ReadInterval() => PgInterval.FromInterval(ReadDouble(), ReadInt32());
-                
+
         internal PgPoint  ReadPoint()  => new PgPoint(ReadDouble(), ReadDouble());
         internal PgCircle ReadCircle() => new PgCircle(ReadPoint(), ReadDouble());
         internal PgLine   ReadLine()   => new PgLine(ReadPoint(), ReadPoint());

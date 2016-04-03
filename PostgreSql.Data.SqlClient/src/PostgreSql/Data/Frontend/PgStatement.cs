@@ -31,7 +31,7 @@ namespace PostgreSql.Data.Frontend
         internal int                RecordsAffected => _recordsAffected;
         internal PgRowDescriptor    RowDescriptor   => _rowDescriptor;
         internal PgStatementStatus  Status          => _status;
-        
+
         internal string StatementText
         {
             get { return _statementText; }
@@ -534,7 +534,7 @@ namespace PostgreSql.Data.Frontend
             _database.Send(packet);
 
             // Flush pending messages
-            _database.Flush();            
+            _database.Flush();
 
             // Receive response
             PgInputPacket response = null;
@@ -557,7 +557,7 @@ namespace PostgreSql.Data.Frontend
             {
                 ClosePortal();
             }
-            
+
             // Update status
             _status = PgStatementStatus.Executed;
         }
@@ -746,7 +746,7 @@ namespace PostgreSql.Data.Frontend
             {
                 int length = packet.ReadInt32();
 
-                if (length <= 0)
+                if (length == -1)
                 {
                     values[i] = DBNull.Value;
                 }

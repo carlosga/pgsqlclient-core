@@ -277,7 +277,6 @@ namespace PostgreSql.Data.SqlClient
         public override Boolean        GetBoolean(int i)        => GetValue<Boolean>(i);
         public override Byte           GetByte(int i)           => GetValue<Byte>(i);
         public override Char           GetChar(int i)           => GetValue<Char>(i);
-        public override DateTime       GetDateTime(int i)       => GetValue<DateTime>(i);
         public          DateTimeOffset GetDateTimeOffset(int i) => GetValue<DateTimeOffset>(i);
         public override Decimal        GetDecimal(int i)        => GetValue<Decimal>(i);
         public override Double         GetDouble(int i)         => GetValue<Double>(i);
@@ -285,8 +284,23 @@ namespace PostgreSql.Data.SqlClient
         public override Int16          GetInt16(int i)          => GetValue<Int16>(i);
         public override Int32          GetInt32(int i)          => GetValue<Int32>(i);
         public override Int64          GetInt64(int i)          => GetValue<Int64>(i);
-        public          TimeSpan       GetTimeSpan(int i)       => GetValue<TimeSpan>(i);
+        public          TimeSpan       GetTimeSpan(int i)       => GetValue<PgTime>(i).Value;
         public override String         GetString(int i)         => GetValue<String>(i);
+
+        public override DateTime GetDateTime(int i)
+        {
+            CheckNull(i);
+            
+            if (_row[i] is PgDate)
+            {
+                return ((PgDate)_row[i]).Value;
+            }
+            else if (_row[i] is PgTimestamp)
+            {
+                return ((PgTimestamp)_row[i]).Value;
+            }
+            return (DateTime)_row[i];
+        }
 
         public PgBinary    GetPgBinary(int i)    => GetValue<PgBinary>(i);
         public PgBit       GetPgBit(int i)       => GetValue<PgBit>(i);
