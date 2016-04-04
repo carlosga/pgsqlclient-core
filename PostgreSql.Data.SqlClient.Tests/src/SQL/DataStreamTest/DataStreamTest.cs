@@ -117,7 +117,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     rdr.Read();
                     
                     object  v = null;
-                    PgDate  d = PgDate.Null;
+                    PgDate  d;
                     decimal m = 0.0M;
                     string  s = null;
                     int     i = 0;

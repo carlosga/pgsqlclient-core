@@ -293,7 +293,7 @@ namespace PostgreSql.Data.SqlClient
             
             if (_row[i] is PgDate)
             {
-                return ((PgDate)_row[i]).Value;
+                return ((PgDate)_row[i]).ToDateTime();
             }
             else if (_row[i] is PgTimestamp)
             {

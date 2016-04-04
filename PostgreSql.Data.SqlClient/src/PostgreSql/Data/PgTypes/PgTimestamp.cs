@@ -18,12 +18,14 @@ namespace PostgreSql.Data.PgTypes
         // internal const long MicrosecondsPerSecond = 1000000L;
         // internal const long SecondsPerDay	      = 86400L;
 
-        internal static readonly long MicrosecondsBetweenEpoch = ((PgDate.PostgresEpochDays - PgDate.UnixEpochDays) * MicrosecondsPerDay);
+        internal static readonly long MicrosecondsBetweenEpoch = 10957 * MicrosecondsPerDay;
+
+        internal static readonly DateTime EpochDateTime = new DateTime(2000, 01, 01, 0, 0, 0, DateTimeKind.Utc);
 
         private readonly bool     _isNotNull;
         private readonly DateTime _value;
-                
-        public long TotalMicroseconds => (long)(Value.Subtract(PgDate.PostgresBaseDate).TotalMilliseconds * 1000);
+
+        public long TotalMicroseconds => (long)(Value.Subtract(EpochDateTime).TotalMilliseconds * 1000);
 
         private PgTimestamp(bool isNotNull)
         {
@@ -56,7 +58,7 @@ namespace PostgreSql.Data.PgTypes
         public PgTimestamp(long microseconds)
         {
             _isNotNull = true;
-            _value     = PgDate.UnixBaseDate.AddMilliseconds(microseconds * 0.001);
+            _value     = EpochDateTime.AddMilliseconds(microseconds * 0.001);
         }
 
         public static PgTimestamp operator -(PgTimestamp x, TimeSpan t)

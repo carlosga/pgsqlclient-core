@@ -122,8 +122,8 @@ namespace PostgreSql.Data.Frontend
 
         internal float       ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
-        internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());        
-        internal PgDate      ReadDate()      => new PgDate(ReadInt32());
+        internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
+        internal PgDate      ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
         internal PgTime      ReadTime()      => new PgTime(ReadInt64());
         internal PgTimestamp ReadTimestamp() => new PgTimestamp(ReadInt64());
         internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
@@ -139,7 +139,7 @@ namespace PostgreSql.Data.Frontend
 
         internal DateTimeOffset ReadTimestampWithTZ()
         {
-            var dt = PgDate.PostgresBaseDate.AddMilliseconds(ReadInt64() * 0.001);
+            var dt = PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
             return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
         }
 
