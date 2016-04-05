@@ -4,6 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using PostgreSql.Data.PgTypes;
 using System.Text;
 using System.Data.Common;
 using System.Globalization;
@@ -19,10 +20,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         // max size on the row for large blob types to prevent row overflow, when creating the table:
         // "Warning: The table "TestTable" has been created, but its maximum row size exceeds the allowed maximum of 8060 bytes. INSERT or UPDATE to this table will fail if the resulting row exceeds the size limit."
         // tests show that the actual size is 36, I added 4 more bytes for extra
-        protected const int          LargeVarDataRowUsage = 40; // var types
-        protected const int          LargeDataRowUsage    = 40; // text
+        protected const int LargeVarDataRowUsage = 40; // var types
+        protected const int LargeDataRowUsage    = 40; // text
         // protected internal const int XmlRowUsage          = 40; //
-        protected const int          VariantRowUsage      = 40;
+        protected const int VariantRowUsage      = 40;
 
         public readonly PgDbType Type;
 
@@ -135,7 +136,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// helper method to read character data from the reader
         /// </summary>
-        protected object ReadCharData(DbDataReader reader, int ordinal, Type asType)
+        protected object ReadCharData(PgDataReader reader, int ordinal, Type asType)
         {
             if (reader.IsDBNull(ordinal))
             {
@@ -159,7 +160,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// helper method to read byte-array data from the reader
         /// </summary>
-        protected object ReadByteArray(DbDataReader reader, int ordinal, Type asType)
+        protected object ReadByteArray(PgDataReader reader, int ordinal, Type asType)
         {
             if (reader.IsDBNull(ordinal))
             {
@@ -339,9 +340,22 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
+        /// helper method to reads date from the reader
+        /// </summary>
+        protected object ReadDate(PgDataReader reader, int ordinal, Type asType)
+        {
+            ValidateReadType(typeof(PgDate), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;   
+            }
+            return reader.GetPgDate(ordinal);
+        }
+
+        /// <summary>
         /// helper method to reads datetime from the reader
         /// </summary>
-        protected object ReadDateTime(DbDataReader reader, int ordinal, Type asType)
+        protected object ReadDateTime(PgDataReader reader, int ordinal, Type asType)
         {
             ValidateReadType(typeof(DateTime), asType);
             if (reader.IsDBNull(ordinal))
@@ -362,7 +376,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// this method is called to read the value from the data reader
         /// </summary>
-        public object Read(DbDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        public object Read(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
             if (reader == null || asType == null)
             {
@@ -372,7 +386,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             return ReadInternal(reader, ordinal, columnInfo, asType);
         }
 
-        protected abstract object ReadInternal(DbDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType);
+        protected abstract object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType);
 
         /// <summary>
         /// used to check if this column can be compared; returns true by default (timestamp and column set columns return false)

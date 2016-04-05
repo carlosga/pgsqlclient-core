@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -113,6 +114,8 @@ namespace PostgreSql.Data.Frontend
             return (uint)v2 | ((long)v1 << 32);
         }
 
+        internal decimal ReadNumeric(int length) => Decimal.Parse(ReadString(length), PgTypeInfoProvider.InvariantCulture);
+
         internal float       ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
         internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
@@ -204,7 +207,7 @@ namespace PostgreSql.Data.Frontend
                     return ReadByte();
 
                 case PgDbType.Numeric:
-                    return Decimal.Parse(ReadString(length), NumberFormatInfo.InvariantInfo);
+                    return ReadNumeric(length);
 
                 case PgDbType.Money:
                     return ReadMoney();

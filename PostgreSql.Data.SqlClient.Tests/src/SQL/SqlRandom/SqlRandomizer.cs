@@ -4,6 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using PostgreSql.Data.PgTypes;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
@@ -439,9 +440,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// generates random, but valid date value for SQL Server
         /// </summary>
-        public DateTime NextDate()
+        public PgDate NextDate()
         {
-            return NextDateTime(DateTime.MinValue, DateTime.MaxValue);
+            return (PgDate)NextDateTime(DateTime.MinValue, DateTime.MaxValue);
         }
 
         /// <summary>

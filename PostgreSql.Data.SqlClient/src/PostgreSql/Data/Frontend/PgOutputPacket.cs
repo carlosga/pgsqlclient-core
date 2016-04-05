@@ -4,61 +4,113 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Globalization;
+using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed class PgOutputPacket
     {
-        private readonly byte[]       _buffer;
-        private readonly MemoryStream _stream;
-        private readonly SessionData  _sessionData;
-        private readonly char         _packetType;
+        private readonly char        _packetType;
+        private readonly SessionData _sessionData;
+        
+        private byte[] _buffer;
+        private int    _position;
 
         internal char PacketType => _packetType;
-        internal int  Position   => (int)_stream.Position;
-        internal int  Length     => (int)_stream.Length;
+        internal int  Position   => _position;
+        internal int  Length     => _buffer.Length;
 
         internal PgOutputPacket(char packetType, SessionData sessionData)
         {
             _packetType  = packetType;
-            _stream      = new MemoryStream();
-            _buffer      = new byte[8];
             _sessionData = sessionData;
+            _buffer      = new byte[4]; // First 4 bytes are for the packet length
+            _position    = 4;
         }
 
         internal void Reset()
         {
-            _stream.SetLength(0);
+            Array.Resize(ref _buffer, 4);
+            _position = 4;
         }
 
-        internal void Write(byte[] buffer)                       => Write(buffer, 0, buffer.Length);
-        internal void Write(byte[] buffer, int index, int count) => _stream.Write(buffer, index, count);
-        internal void Write(char ch)                             => _stream.WriteByte((byte)ch);
-        internal void Write(bool value)                          => _stream.WriteByte((byte)(value ? 1 : 0));
-        internal void WriteByte(byte value)                      => _stream.WriteByte(value);
+        internal void Write(byte[] buffer) => Write(buffer, 0, buffer.Length);
+        internal void Write(char ch)       => WriteByte((byte)ch);
+        internal void Write(bool value)    => WriteByte((byte)(value ? 1 : 0));
+
+        internal void Write(byte[] buffer, int offset, int count)
+        {
+            Contract.Requires<ArgumentNullException>(buffer != null, nameof(buffer));
+            Contract.Requires(offset > 0);
+            Contract.Requires(count > 0);
+
+            EnsureCapacity(count);
+
+            Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
+
+            _position += count;
+        }
+        
+        internal void WriteByte(byte value)
+        {
+            EnsureCapacity(1);
+
+            _buffer[_position++] = value;
+        }
+
+        internal void Write(short value)
+        {
+            EnsureCapacity(2);
+
+            _buffer[_position++] = (byte)((value >> 8) & 0xFF);
+            _buffer[_position++] = (byte)((value     ) & 0xFF);
+        }
+
+        internal void Write(int value)
+        {
+            EnsureCapacity(4);
+
+            _buffer[_position++] = (byte)((value >> 24) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 16) & 0xFF);
+            _buffer[_position++] = (byte)((value >>  8) & 0xFF);
+            _buffer[_position++] = (byte)((value      ) & 0xFF);
+        }
+
+        internal void Write(long value)
+        {
+            EnsureCapacity(8);
+
+            Write((int)(value >> 32));
+            Write((int)(value));
+        }
 
         internal void WriteNullString(string value)
         {
+            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
+            
+            EnsureCapacity(value.Length + 1);
+                        
             if (value != null && value.Length > 0)
             {
                 Write(_sessionData.ClientEncoding.GetBytes(value));
             }
+            
             WriteByte(0);
         }
 
         internal void WriteString(string value)
         {
-            if (value == null || value.Length == 0)
+            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
+                        
+            if (value.Length == 0)
             {
                 Write(0);
             }
             else
             {
+                EnsureCapacity(value.Length + 4);
+                
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
 
                 Write(buffer.Length);
@@ -66,30 +118,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(short value)
-        {
-            _buffer[0] = (byte)((value >> 8) & 0xFF);
-            _buffer[1] = (byte)((value     ) & 0xFF);
-
-            _stream.Write(_buffer, 0, 2);
-        }
-
-        internal void Write(int value)
-        {
-            _buffer[0] = (byte)((value >> 24) & 0xFF);
-            _buffer[1] = (byte)((value >> 16) & 0xFF);
-            _buffer[2] = (byte)((value >>  8) & 0xFF);
-            _buffer[3] = (byte)((value      ) & 0xFF);
-
-            _stream.Write(_buffer, 0, 4);
-        }
-
-        internal void Write(long value)
-        {
-            Write((int)(value >> 32));
-            Write((int)(value));
-        }
-
+        internal void Write(decimal value)              => WriteString(value.ToString(PgTypeInfoProvider.InvariantCulture));
         internal void Write(float value)                => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)               => Write(BitConverter.DoubleToInt64Bits(value));
         internal void WriteDate(PgDate value)           => Write(value.DaysSinceEpoch);
@@ -97,6 +126,8 @@ namespace PostgreSql.Data.Frontend
         internal void WriteTimestamp(PgTimestamp value) => Write(value.TotalMicroseconds);
         internal void WriteInterval(PgInterval value)
         {
+            EnsureCapacity(8);
+            
             Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
             Write(value.Days / 30);
         }
@@ -110,6 +141,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(PgPoint point)
         {
+            EnsureCapacity(16);
             Write(point.X);
             Write(point.Y);
         }
@@ -161,6 +193,9 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(PgTypeInfo typeInfo, object value)
         {
+            Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
+            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
+            
             switch (typeInfo.PgDbType)
             {
                 case PgDbType.Array:
@@ -169,7 +204,7 @@ namespace PostgreSql.Data.Frontend
                     break;
                     
                 case PgDbType.Bytea:
-                    WriteBuffer((PgBinary)value);
+                    Write((byte[])value);
                     break;
 
                 case PgDbType.Bit:
@@ -201,7 +236,7 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case PgDbType.Numeric:
-                    WriteString(((PgDecimal)value).ToString());
+                    Write((decimal)value);
                     break;
 
                 case PgDbType.Real:
@@ -288,7 +323,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal byte[] ToArray() => _stream.ToArray();
+        private byte[] ToArray() => _buffer;
 
         internal void WriteTo(Stream stream)
         {
@@ -298,18 +333,17 @@ namespace PostgreSql.Data.Frontend
                 stream.WriteByte((byte)_packetType);
             }
 
+            int position = _position;
+            
+            _position = 0;
+            
             // Write packet length
-            var length = _stream.Length + 4;
-
-            _buffer[0] = (byte)(length >> 24);
-            _buffer[1] = (byte)(length >> 16);
-            _buffer[2] = (byte)(length >> 8);
-            _buffer[3] = (byte)(length);
-
-            stream.Write(_buffer, 0, 4);
+            Write(position);       
+            
+            _position = position;
 
             // Write packet contents
-            _stream.WriteTo(stream);
+            stream.Write(_buffer, 0, _position);
         }
 
         private void WriteArray(PgTypeInfo typeInfo, object value)
@@ -350,11 +384,48 @@ namespace PostgreSql.Data.Frontend
             Write(packet.ToArray());
         }
 
-        internal void WriteBuffer(PgBinary value)
+        /// FoundationDB client (BSD License)
+        private void EnsureCapacity(int count)
         {
-            byte[] buffer = value.Value;
-            Write(buffer.Length);
-            Write(buffer);
+            Contract.Requires(count >= 0);
+
+            if (_buffer == null || (_position + count) > _buffer.Length)
+            {
+                // double the size of the buffer, or use the minimum required
+                long newSize = Math.Max(_buffer == null ? 0 : (((long)_buffer.Length) << 1), _position + count);
+
+                // .NET (as of 4.5) cannot allocate an array with more than 2^31 - 1 items...
+                if (newSize > 0x7fffffffL) 
+                {
+                    throw new OutOfMemoryException();
+                }
+
+                // round up to 16 bytes, to reduce fragmentation
+                int size = Align((int)newSize);
+
+                Array.Resize(ref _buffer, size);
+            }
+
+            Contract.Ensures(_buffer != null && _buffer.Length >= _position + count);
+        }
+
+        /// FoundationDB client (BSD License)
+        private static int Align(int size)
+        {
+            const int ALIGNMENT = 16; // MUST BE A POWER OF TWO!
+            const int MASK      = (-ALIGNMENT) & int.MaxValue;
+
+            if (size <= ALIGNMENT)
+            {
+                if (size < 0)
+                {
+                    throw new ArgumentOutOfRangeException("size", "Size cannot be negative");
+                }
+                return ALIGNMENT;
+            }
+
+            // force an exception if we overflow above 2GB
+            checked { return (size + (ALIGNMENT - 1)) & MASK; }
         }
     }
 }

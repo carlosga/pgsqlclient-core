@@ -310,25 +310,25 @@ namespace PostgreSql.Data.SqlClient
         public PgBox3D     GetPgBox3D(int i)     => GetValue<PgBox3D>(i);
         public PgByte      GetPgByte(int i)      => GetValue<PgByte>(i);
         public PgCircle    GetPgCircle(int i)    => GetValue<PgCircle>(i);
-        public PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
-        public PgDecimal   GetPgDecimal(int i)   => GetValue<PgDecimal>(i);
         public PgDouble    GetPgDouble(int i)    => GetValue<PgDouble>(i);
         public PgInt16     GetPgInt16(int i)     => GetValue<PgInt16>(i);
         public PgInt32     GetPgInt32(int i)     => GetValue<PgInt32>(i);
         public PgInt64     GetPgInt64(int i)     => GetValue<PgInt64>(i);
+        public PgDecimal   GetPgDecimal(int i)   => GetValue<PgDecimal>(i);
+        public PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
+        public PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
+        public PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
+        public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
+        public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
         public PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
         public PgLine      GetPgLine(int i)      => GetValue<PgLine>(i);
         public PgLSeg      GetPgLSeg(int i)      => GetValue<PgLSeg>(i);
-        public PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
         public PgPath      GetPgPath(int i)      => GetValue<PgPath>(i);
         public PgPoint     GetPgPoint(int i)     => GetValue<PgPoint>(i);
         public PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
         public PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
         public PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
-        public PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
         public PgString    GetPgString(int i)    => GetValue<PgString>(i);
-        public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
-        public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
 
         public override Guid GetGuid(int i)
         {

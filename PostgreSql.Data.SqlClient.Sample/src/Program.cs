@@ -1,5 +1,4 @@
 ﻿using System;
-using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
 {
@@ -21,7 +20,7 @@ namespace PostgreSql.Data.SqlClient.Sample
              using (var connection = new PgConnection(csb.ToString()))
              {
                  connection.Open();
-                 using (var command = new PgCommand("SELECT * FROM temp_table", connection))
+                 using (var command = new PgCommand("SELECT * FROM orders", connection))
                  {
                     using (var reader = command.ExecuteReader())
                     {
