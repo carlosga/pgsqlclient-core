@@ -8,7 +8,7 @@ namespace PostgreSql.Data.Frontend
     internal static class ConnectionStringSynonyms
     {
         internal static readonly Dictionary<string, string> Synonyms = GetSynonyms();
-        
+
         internal const string DataSource               = "data source";
         internal const string Server                   = "server";
         internal const string Host                     = "host";

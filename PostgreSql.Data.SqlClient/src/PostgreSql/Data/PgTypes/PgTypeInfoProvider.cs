@@ -229,9 +229,9 @@ namespace PostgreSql.Data.PgTypes
             types[1033] = new PgTypeInfo(1033, "aclitem"    , "aclitem"  , PgDbType.VarChar, PgTypeFormat.Text, typeof(string), typeof(string));
             types[1034] = new PgTypeInfo(1034, "aclitem[]"  , "_aclitem" , PgDbType.Array  , types[1033], typeof(string), typeof(string[]));
 
-            types[  24] = new PgTypeInfo(  24, "regproc"    , "regproc"  , PgDbType.VarChar  , PgTypeFormat.Text, typeof(string), typeof(string[]));
-            types[1790] = new PgTypeInfo(1790, "refcursor"  , "refcursor", PgDbType.Refcursor, PgTypeFormat.Text, typeof(string), typeof(string[]));
-            types[2205] = new PgTypeInfo(2205, "regclass"   , "regclass" , PgDbType.VarChar  , PgTypeFormat.Text, typeof(string), typeof(string[]));
+            types[  24] = new PgTypeInfo(  24, "regproc"    , "regproc"  , PgDbType.VarChar, PgTypeFormat.Text, typeof(string), typeof(string[]));
+            types[1790] = new PgTypeInfo(1790, "refcursor"  , "refcursor", PgDbType.VarChar, PgTypeFormat.Text, typeof(string), typeof(string[]));
+            types[2205] = new PgTypeInfo(2205, "regclass"   , "regclass" , PgDbType.VarChar, PgTypeFormat.Text, typeof(string), typeof(string[]));
 
             //
             // PSEUDO-TYPES

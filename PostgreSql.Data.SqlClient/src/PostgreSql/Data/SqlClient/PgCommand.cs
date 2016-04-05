@@ -389,14 +389,11 @@ namespace PostgreSql.Data.SqlClient
             
             var row = _statement.FetchRow();
 
-            if (!row.IsEmpty())
+            for (int i = 0; i < _parameters.Count; ++i)
             {
-                for (int i = 0; i < _parameters.Count; ++i)
+                if (_parameters[i].Direction != ParameterDirection.Input)
                 {
-                    if (_parameters[i].Direction != ParameterDirection.Input)
-                    {
-                        _parameters[i].Value = row[i];
-                    }
+                    _parameters[i].Value = row[i];
                 }
             }
         }

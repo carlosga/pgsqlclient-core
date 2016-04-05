@@ -28,7 +28,6 @@ namespace PostgreSql.Data.SqlClient
       , Point
       , Polygon
       , Real
-      , Refcursor
       , SmallInt
       , Text
       , Time

@@ -18,7 +18,7 @@ namespace PostgreSql.Data.PgTypes
         private readonly Type         _pgType;
         private readonly PgTypeInfo   _elementType;
         private readonly int          _size;
-        
+
         internal int          Oid          => _oid;
         internal string       Name         => _name;
         internal string       InternalName => _internalName;
@@ -30,7 +30,7 @@ namespace PostgreSql.Data.PgTypes
         internal int          Size         => _size;
         internal bool         IsArray      => (_pgDbType == PgDbType.Array);
         internal bool         IsBinary     => (_pgDbType == PgDbType.Bytea);
-        internal bool         IsRefCursor  => (_pgDbType == PgDbType.Refcursor);
+        internal bool         IsRefCursor  => (_oid      == (int)PostgreSql.Data.PgTypes.Oid.RefCursor);
 
         internal bool IsNumeric
         {

@@ -13,7 +13,7 @@ namespace PostgreSql.Data.Frontend
     {
         private readonly char        _packetType;
         private readonly SessionData _sessionData;
-        
+
         private byte[] _buffer;
         private int    _position;
 
@@ -88,21 +88,21 @@ namespace PostgreSql.Data.Frontend
         internal void WriteNullString(string value)
         {
             Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-            
+
             EnsureCapacity(value.Length + 1);
-                        
+
             if (value != null && value.Length > 0)
             {
                 Write(_sessionData.ClientEncoding.GetBytes(value));
             }
-            
+
             WriteByte(0);
         }
 
         internal void WriteString(string value)
         {
             Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-                        
+
             if (value.Length == 0)
             {
                 Write(0);
@@ -110,7 +110,7 @@ namespace PostgreSql.Data.Frontend
             else
             {
                 EnsureCapacity(value.Length + 4);
-                
+
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
 
                 Write(buffer.Length);
@@ -127,7 +127,7 @@ namespace PostgreSql.Data.Frontend
         internal void WriteInterval(PgInterval value)
         {
             EnsureCapacity(8);
-            
+
             Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
             Write(value.Days / 30);
         }
@@ -202,7 +202,7 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Vector:
                     WriteArray(typeInfo, value);
                     break;
-                    
+
                 case PgDbType.Bytea:
                     Write((byte[])value);
                     break;
@@ -334,11 +334,11 @@ namespace PostgreSql.Data.Frontend
             }
 
             int position = _position;
-            
+
             _position = 0;
-            
+
             // Write packet length
-            Write(position);       
+            Write(position);
             
             _position = position;
 

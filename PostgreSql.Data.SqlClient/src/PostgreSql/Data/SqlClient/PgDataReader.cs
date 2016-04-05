@@ -26,7 +26,7 @@ namespace PostgreSql.Data.SqlClient
         private bool            _open;
         private int             _position;
         private int             _recordsAffected;
-        private object[]        _row;
+        private DataRecord      _row;
         private CommandBehavior _behavior;
         private PgCommand       _command;
         private PgConnection    _connection;
@@ -378,9 +378,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckPosition();
 
-            Array.Copy(_row, values, FieldCount);
-
-            return values.Length;
+            return _row.GetValues(values);
         }
 
         public override bool IsDBNull(int i)
@@ -397,7 +395,8 @@ namespace PostgreSql.Data.SqlClient
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
-        internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
+#warning Disabled for now
+        // internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
 
         internal void Close()
         {
@@ -463,7 +462,7 @@ namespace PostgreSql.Data.SqlClient
                 _refCursors.Clear();
 
                 // Add refcusor's names to the queue
-                object[] row = null;
+                DataRecord row = null;
 
                 while (_statement.HasRows)
                 {

@@ -22,7 +22,7 @@ namespace PostgreSql.Data.Frontend
         private bool              _allRowsFetched;
         private int               _recordsAffected;
         private PgRowDescriptor   _rowDescriptor;
-        private Queue<object[]>   _rows;
+        private Queue<DataRecord> _rows;
         private PgParameter       _outParameter;
         private PgStatementStatus _status;
 
@@ -71,7 +71,7 @@ namespace PostgreSql.Data.Frontend
             _allRowsFetched  = false;
             _outParameter    = new PgParameter();
             _rowDescriptor   = new PgRowDescriptor();
-            _rows            = new Queue<object[]>(_database.ConnectionOptions.FetchSize);
+            _rows            = new Queue<DataRecord>(_database.ConnectionOptions.FetchSize);
         }
 
         #region IDisposable Support
@@ -359,8 +359,8 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal object[] FetchRow()
-        {           
+        internal DataRecord FetchRow()
+        {
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
@@ -414,9 +414,9 @@ namespace PostgreSql.Data.Frontend
 
                 while (stmt._hasRows)
                 {
-                    object[] row = stmt.FetchRow();
+                    var row = stmt.FetchRow();
 
-                    stmtPlan.Append($"{row[0]} \r\n");
+                    stmtPlan.Append($"{row.GetString(0)} \r\n");
                 }
             }
 
@@ -749,24 +749,24 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessDataRow(PgInputPacket packet)
         {
-            var count  = packet.ReadInt16();
-            var values = new object[count];
-            
+            var values = new object[packet.ReadInt16()];
+
             for (int i = 0; i < values.Length; i++)
             {
                 int length = packet.ReadInt32();
+                var field  = _rowDescriptor[i];
 
-                if (length == -1)
+                if (length == -1 || field.TypeInfo.PgDbType == PgDbType.Void)
                 {
                     values[i] = DBNull.Value;
                 }
                 else
                 {
-                    values[i] = packet.ReadValue(_rowDescriptor[i], length);
+                    values[i] = packet.ReadValue(field.TypeInfo, length);
                 }
             }
 
-            _rows.Enqueue(values);
+            _rows.Enqueue(new DataRecord(_rowDescriptor, values));
         }
 
         private void ClearRows()

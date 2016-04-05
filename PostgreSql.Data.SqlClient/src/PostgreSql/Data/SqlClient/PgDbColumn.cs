@@ -64,36 +64,36 @@ namespace PostgreSql.Data.SqlClient
             NumericScale     = descriptor.NumericScale;
         }
 
-        internal void Populate(object[] row)
+        internal void Populate(DataRecord row)
         {
-            if (row[0] != null && row[0] != DBNull.Value)
+            if (!row.IsDBNull(0))
             {
-                BaseSchemaName = (string)row[0];
+                BaseSchemaName = row.GetString(0);
             }
-            if (row[1] != null && row[1] != DBNull.Value)
+            if (!row.IsDBNull(1))
             {
-                BaseTableName = (string)row[1];
+                BaseTableName = row.GetString(1);
             }
-            if (row[2] != null && row[2] != DBNull.Value)
+            if (!row.IsDBNull(2))
             {
-                BaseColumnName = (string)row[2];
+                BaseColumnName = row.GetString(2);
             }
-            if (row[3] != null && row[3] != DBNull.Value)
+            if (!row.IsDBNull(3))
             {
-                AllowDBNull = !(bool)row[3];
+                AllowDBNull = !row.GetBoolean(3);
             }
-            if (row[4] != null && row[4] != DBNull.Value)
+            if (!row.IsDBNull(4))
             {
-                IsAutoIncrement = (bool)row[4];
+                IsAutoIncrement = row.GetBoolean(4);
                 IsReadOnly	    = IsAutoIncrement;
             }
-            if (row[5] != null && row[5] != DBNull.Value)
+            if (!row.IsDBNull(5))
             {
-                IsKey = (bool)row[5];
+                IsKey = row.GetBoolean(5);
             }
-            if (row[6] != null && row[6] != DBNull.Value)
+            if (!row.IsDBNull(6))
             {
-                IsUnique = (bool)row[6];
+                IsUnique = row.GetBoolean(6);
             }
 
             IsAliased = !ColumnName.CaseInsensitiveCompare(BaseColumnName);

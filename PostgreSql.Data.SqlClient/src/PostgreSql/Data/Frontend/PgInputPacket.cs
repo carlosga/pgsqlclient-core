@@ -196,7 +196,6 @@ namespace PostgreSql.Data.Frontend
                     return ReadString(length).TrimEnd();
 
                 case PgDbType.VarChar:
-                case PgDbType.Refcursor:
                 case PgDbType.Text:
                     return ReadString(length);
 

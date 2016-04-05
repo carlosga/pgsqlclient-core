@@ -33,7 +33,8 @@ namespace PostgreSql.Data.SqlClient
 
             if (_reader.Read())
             {
-                _current = _reader.GetDataRecord();
+#warning Disabled for now
+                // _current = _reader.GetDataRecord();
                 return true;
             }
             
@@ -41,7 +42,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _reader.Dispose();
             }
-            
+
             return false;
         }
 
