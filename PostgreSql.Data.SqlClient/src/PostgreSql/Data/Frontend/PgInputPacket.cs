@@ -113,13 +113,6 @@ namespace PostgreSql.Data.Frontend
             return (uint)v2 | ((long)v1 << 32);
         }
 
-        // internal unsafe float ReadSingle()
-        // {
-        //     var value = ReadInt32();
-
-        //      return *((float*)&value);
-        // }
-
         internal float       ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
         internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());

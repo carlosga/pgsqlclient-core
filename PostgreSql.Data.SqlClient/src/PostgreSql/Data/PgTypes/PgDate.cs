@@ -37,15 +37,15 @@ namespace PostgreSql.Data.PgTypes
         private const int    MonthsPerYear   = 12;
         private const int    DaysPerWeek     = 7;
         private const int    MinYear         = -4713;
-        private const int    MaxYear         = 294276;
+        private const int    MaxYear         = 5874897;
         private const int    UnixEpochDays   = 2440588;     // 1970-01-01
         private const int    EpochDays       = 2451545;     // 2000-01-01
         private const int    CommonEraDays   = 1721426;     // 0001-01-01
-        private const int    MaxDays         = 109203528;   // 294277-1-1 (with integers)
+        private const int    MaxDays         = 2147483493;  // 5874897-12-31
         private const int    MinDays         = 0;           // 4713 BC
 
-        private static readonly int[]  DaysPerMonthOnNonLeapYear = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-        private static readonly int[]  DaysPerMonthOnLeapYear    = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+        private static readonly int[]  DaysInMonthOnNonLeapYear = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+        private static readonly int[]  DaysInMonthOnLeapYear    = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
         internal static readonly string DateStyle     = "ISO";
         internal static readonly PgDate CommonEraDate = new PgDate(CommonEraDays);
@@ -55,6 +55,20 @@ namespace PostgreSql.Data.PgTypes
         public static readonly PgDate Epoch     = new PgDate(EpochDays);
 
         public static PgDate Today => new PgDate(DateTime.Today.Date);
+
+        public static int DaysInMonth(int year, int month)
+        {
+            return IsLeapYear(year) ? DaysInMonthOnLeapYear[month - 1] : DaysInMonthOnNonLeapYear[month - 1];
+        }
+
+        public static bool IsLeapYear(int year)
+        {
+            // http://www.postgresql.org/docs/8.0/static/datetime-units-history.html
+            // Every year divisible by 4 is a leap year.
+            // However, every year divisible by 100 is not a leap year.
+            // However, every year divisible by 400 is a leap year after all.
+            return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+        }
 
         private readonly int _days;
 
@@ -251,19 +265,33 @@ namespace PostgreSql.Data.PgTypes
             return $"{year}/{month}/{day}";
         }
 
-        public static bool IsLeapYear(int year)
+        public PgDate AddDays(int value) => new PgDate(_days + value);
+
+        public PgDate AddMonths(int value)
         {
-            // http://www.postgresql.org/docs/8.0/static/datetime-units-history.html
-            // Every year divisible by 4 is a leap year.
-            // However, every year divisible by 100 is not a leap year.
-            // However, every year divisible by 400 is a leap year after all.
-            return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+            int year = GetDatePart(_days, DatePart.Year);
+            int month = GetDatePart(_days, DatePart.Month);
+            int day = GetDatePart(_days, DatePart.Day);
+            int zmonth = month - 1 + value;
+            if (zmonth >= 0)
+            {
+                month = zmonth % 12 + 1;
+                year += zmonth / 12;
+            }
+            else
+            {
+                month = 12 + (zmonth + 1) % 12;
+                year += (zmonth - 11) / 12;
+            }
+            int daysInMonth = DaysInMonth(year, month);
+            if (day > daysInMonth)
+            {
+                day = daysInMonth;
+            }
+            return new PgDate(year, month, day);
         }
 
-        public PgDate AddDays(int value)   => new PgDate(_days + value);
-        public PgDate AddMonths(int value) => AddDays((int)(value * DaysPerMonth));
-        public PgDate AddYears(int value)  => AddDays((int)(value * DaysPerYear));
-        public PgDate AddWeeks(int value)  => AddDays((int)(value * DaysPerWeek));
+        public PgDate AddYears(int value) => AddMonths(value * 12);
 
         bool IsValidDate()
         {
@@ -278,11 +306,9 @@ namespace PostgreSql.Data.PgTypes
 
         static bool IsValidDate(int year, int month, int day)
         {
-            int maxDay = IsLeapYear(year) ? DaysPerMonthOnLeapYear[month - 1] : DaysPerMonthOnNonLeapYear[month - 1];
-
             return (year  != 0 && year  >= MinYear && year <= MaxYear
                  && month >= 1 && month <= 12
-                 && day   >= 1 && day   <= maxDay);
+                 && day   >= 1 && day   <= DaysInMonth(year, month));
         }
 
         static int GetDatePart(int days, DatePart datePart)
@@ -310,21 +336,25 @@ namespace PostgreSql.Data.PgTypes
         /// Portions Copyright (c) 1994, Regents of the University of California
         static void ToDate(int days, ref int year, ref int month, ref int day)
         {
-            int julian  = days + 32044;
-            int quad    = julian / DaysPer400Years;
-            int extra   = (julian - quad * DaysPer400Years) * 4 + 3;
-            int y;
+            uint julian;
+            uint quad;
+            uint extra;
+            uint y;
 
+            julian  = (uint)days;
+            julian += 32044;
+            quad    = julian / DaysPer400Years;
+            extra   = (julian - quad * DaysPer400Years) * 4 + 3;
             julian += 60 + quad * 3 + extra / DaysPer400Years;
             quad    = julian / DaysPer4Years;
             julian -= quad * DaysPer4Years;
             y       = julian * 4 / DaysPer4Years;
             julian  = ((y != 0) ? ((julian + 305) % 365) : ((julian + 306) % 366)) + 123;
             y      += quad * 4;
-            year    = y - 4800;     // 4800 = months per 400 years ??
+            year    = (int)(y - 4800);
             quad    = julian * 2141 / 65536;
-            day     = julian - 7834 * quad / 256;
-            month   = (quad + 10) % MonthsPerYear + 1;
+            day     = (int)(julian - 7834 * quad / 256);
+            month   = (int)((quad + 10) % MonthsPerYear + 1);
         }
 
         /// Ported from PostgreSql Source Code

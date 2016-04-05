@@ -263,7 +263,20 @@ namespace PostgreSql.Data.Frontend
 
                 for (int i = 0; i < parameters.Count; i++)
                 {
-                    packet.Write(parameters[i]);
+                    var parameter = parameters[i];
+
+                    if (parameter.Value         == System.DBNull.Value 
+                     || parameter.Value         == null 
+                     || parameter.TypeInfo.Size == 0 /* Void */)
+                    {
+                        // -1 indicates a NULL argument value
+                        packet.Write(-1);
+                    }
+                    else
+                    {
+                        packet.Write(parameter.TypeInfo
+                                   , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
+                    }
                 }
 
                 // Send the format code for the function result
@@ -498,7 +511,20 @@ namespace PostgreSql.Data.Frontend
             packet.Write((short)parameters.Count);
             for (int i = 0; i < parameters.Count; i++)
             {
-                packet.Write(parameters[i]);
+                var parameter = parameters[i];
+
+                if (parameter.Value         == System.DBNull.Value 
+                 || parameter.Value         == null 
+                 || parameter.TypeInfo.Size == 0 /* Void */)
+                {
+                    // -1 indicates a NULL argument value
+                    packet.Write(-1);
+                }
+                else
+                {
+                    packet.Write(parameter.TypeInfo
+                               , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
+                }
             }
 
             // Send column information
@@ -700,22 +726,6 @@ namespace PostgreSql.Data.Frontend
             _outParameter.Value = packet.ReadValue(_outParameter.TypeInfo, packet.ReadInt32());
         }
 
-        // private void ProcessParameterDescription(PgInputPacket packet)
-        // {
-        //     int oid   = 0;
-        //     int count = packet.ReadInt16();
-
-        //     _parameters.Clear();
-        //     _parameters.Capacity = count;
-
-        //     for (int i = 0; i < count; i++)
-        //     {
-        //         oid = packet.ReadInt32();
-
-        //         _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
-        //     }
-        // }
-
         private void ProcessRowDescription(PgInputPacket packet)
         {
             int count = packet.ReadInt16();
@@ -766,5 +776,21 @@ namespace PostgreSql.Data.Frontend
             _hasRows        = false;
             _allRowsFetched = false;
         }
+
+        // private void ProcessParameterDescription(PgInputPacket packet)
+        // {
+        //     int oid   = 0;
+        //     int count = packet.ReadInt16();
+
+        //     _parameters.Clear();
+        //     _parameters.Capacity = count;
+
+        //     for (int i = 0; i < count; i++)
+        //     {
+        //         oid = packet.ReadInt32();
+
+        //         _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
+        //     }
+        // }
     }
 }

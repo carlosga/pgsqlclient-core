@@ -90,11 +90,6 @@ namespace PostgreSql.Data.Frontend
             Write((int)(value));
         }
 
-        // internal unsafe void Write(float value)
-        // {
-        //      Write(*((int*)&value));
-        // }
-
         internal void Write(float value)                => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)               => Write(BitConverter.DoubleToInt64Bits(value));
         internal void WriteDate(PgDate value)           => Write(value.DaysSinceEpoch);
@@ -164,91 +159,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(PgParameter parameter)
-        {
-            if (parameter.Value         == System.DBNull.Value 
-             || parameter.Value         == null 
-             || parameter.TypeInfo.Size == 0 /* Void */)
-            {
-                // -1 indicates a NULL argument value
-                Write(-1);
-            }
-            else
-            {
-                Write(parameter.TypeInfo, ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
-            }
-        }
-
-        internal byte[] ToArray() => _stream.ToArray();
-
-        internal void WriteTo(Stream stream)
-        {
-            if (_packetType != PgFrontEndCodes.UNTYPED)
-            {
-                // Write packet Type
-                stream.WriteByte((byte)_packetType);
-            }
-
-            // Write packet length
-            var length = _stream.Length + 4;
-
-            _buffer[0] = (byte)(length >> 24);
-            _buffer[1] = (byte)(length >> 16);
-            _buffer[2] = (byte)(length >> 8);
-            _buffer[3] = (byte)(length);
-
-            stream.Write(_buffer, 0, 4);
-
-            // Write packet contents
-            _stream.WriteTo(stream);
-        }
-
-        private void WriteArray(PgTypeInfo typeInfo, object value)
-        {
-            // Handle this type as Array values
-            var array = value as System.Array;
-
-            // Get array element type
-            var elementType = typeInfo.ElementType;
-            var packet      = new PgOutputPacket(PgFrontEndCodes.UNTYPED, _sessionData);
-
-            // Write the number of dimensions
-            packet.Write(array.Rank);
-
-            // Write flags (always 0)
-            packet.Write(0);
-
-            // Write base type of the array elements
-            packet.Write(typeInfo.ElementType.Oid);
-
-            // Write lengths and lower bounds
-            for (int i = 0; i < array.Rank; ++i)
-            {
-                packet.Write(array.GetLength(i));
-                packet.Write(array.GetLowerBound(i) + 1);
-            }
-
-            // Write array values
-            for (int i = 0; i < array.Length; ++i)
-            {
-                packet.Write(elementType, array.GetValue(i));
-            }
-
-            // Write parameter size
-            Write(packet.Length);
-
-            // Write parameter data
-            Write(packet.ToArray());
-        }
-
-        internal void WriteBuffer(PgBinary value)
-        {
-            byte[] buffer = value.Value;
-            Write(buffer.Length);
-            Write(buffer);
-        }
-
-        private void Write(PgTypeInfo typeInfo, object value)
+        internal void Write(PgTypeInfo typeInfo, object value)
         {
             switch (typeInfo.PgDbType)
             {
@@ -375,6 +286,75 @@ namespace PostgreSql.Data.Frontend
                     Write(path);
                     break;
             }
+        }
+
+        internal byte[] ToArray() => _stream.ToArray();
+
+        internal void WriteTo(Stream stream)
+        {
+            if (_packetType != PgFrontEndCodes.UNTYPED)
+            {
+                // Write packet Type
+                stream.WriteByte((byte)_packetType);
+            }
+
+            // Write packet length
+            var length = _stream.Length + 4;
+
+            _buffer[0] = (byte)(length >> 24);
+            _buffer[1] = (byte)(length >> 16);
+            _buffer[2] = (byte)(length >> 8);
+            _buffer[3] = (byte)(length);
+
+            stream.Write(_buffer, 0, 4);
+
+            // Write packet contents
+            _stream.WriteTo(stream);
+        }
+
+        private void WriteArray(PgTypeInfo typeInfo, object value)
+        {
+            // Handle this type as Array values
+            var array = value as System.Array;
+
+            // Get array element type
+            var elementType = typeInfo.ElementType;
+            var packet      = new PgOutputPacket(PgFrontEndCodes.UNTYPED, _sessionData);
+
+            // Write the number of dimensions
+            packet.Write(array.Rank);
+
+            // Write flags (always 0)
+            packet.Write(0);
+
+            // Write base type of the array elements
+            packet.Write(typeInfo.ElementType.Oid);
+
+            // Write lengths and lower bounds
+            for (int i = 0; i < array.Rank; ++i)
+            {
+                packet.Write(array.GetLength(i));
+                packet.Write(array.GetLowerBound(i) + 1);
+            }
+
+            // Write array values
+            for (int i = 0; i < array.Length; ++i)
+            {
+                packet.Write(elementType, array.GetValue(i));
+            }
+
+            // Write parameter size
+            Write(packet.Length);
+
+            // Write parameter data
+            Write(packet.ToArray());
+        }
+
+        internal void WriteBuffer(PgBinary value)
+        {
+            byte[] buffer = value.Value;
+            Write(buffer.Length);
+            Write(buffer);
         }
     }
 }
