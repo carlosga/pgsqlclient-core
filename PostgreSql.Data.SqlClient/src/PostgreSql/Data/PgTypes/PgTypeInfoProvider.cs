@@ -177,6 +177,7 @@ namespace PostgreSql.Data.PgTypes
             types[1018] = new PgTypeInfo(1018, "lseg[]", "_lseg", PgDbType.Array, types[601], typeof(PgLSeg[]), typeof(PgLSeg[]));
 
             // box | 32 bytes | Rectangular box | ((x1,y1),(x2,y2))
+            
             types[ 603] = new PgTypeInfo( 603, "box"  , "box" , PgDbType.Box  , types[600], PgTypeFormat.Binary, typeof(PgBox), typeof(PgBox[]), 32);
             types[1020] = new PgTypeInfo(1020, "box[]", "_box", PgDbType.Array, types[603], typeof(PgBox[]), typeof(PgBox[]));
 

@@ -60,9 +60,9 @@ namespace PostgreSql.Data.Frontend
             { 
                 _position++;
             }
-            
+
             int count = _position - start;
-            
+
             if (_position < _contents.Length)
             {
                 _position++;
@@ -110,7 +110,7 @@ namespace PostgreSql.Data.Frontend
         {
             int v1 = ReadInt32();
             int v2 = ReadInt32();
- 
+
             return (uint)v2 | ((long)v1 << 32);
         }
 
@@ -129,7 +129,7 @@ namespace PostgreSql.Data.Frontend
             var value = ReadInt64();
 #warning TODO: Handle the time zone offset
             var tz    = ReadInt32(); // time zone in seconds
-            
+
             return TimeSpan.FromMilliseconds(value * 0.001);
         }
 
@@ -146,35 +146,35 @@ namespace PostgreSql.Data.Frontend
 
         internal PgBox ReadBox()
         {
-           PgPoint upperRight = ReadPoint();
-           PgPoint lowerLeft  = ReadPoint();
+            PgPoint upperRight = ReadPoint();
+            PgPoint lowerLeft  = ReadPoint();
 
-           return new PgBox(lowerLeft, upperRight);
+            return new PgBox(lowerLeft, upperRight);
         }
 
         internal PgPolygon ReadPolygon()
         {
-           PgPoint[] points = new PgPoint[ReadInt32()];
+            PgPoint[] points = new PgPoint[ReadInt32()];
 
-           for (int i = 0; i < points.Length; i++)
-           {
-               points[i] = ReadPoint();
-           }
+            for (int i = 0; i < points.Length; i++)
+            {
+                points[i] = ReadPoint();
+            }
 
-           return new PgPolygon(points);
+            return new PgPolygon(points);
         }
 
         internal PgPath ReadPath()
         {
-           bool      isClosedPath = ReadBoolean();
-           PgPoint[] points       = new PgPoint[ReadInt32()];
+            bool isClosedPath = ReadBoolean();
+            var  points       = new PgPoint[ReadInt32()];
 
-           for (int i = 0; i < points.Length; i++)
-           {
-               points[i] = ReadPoint();
-           }
+            for (int i = 0; i < points.Length; i++)
+            {
+                points[i] = ReadPoint();
+            }
 
-           return new PgPath(isClosedPath, points);
+            return new PgPath(isClosedPath, points);
         }
 
         internal object ReadValue(PgFieldDescriptor descriptor, int length)

@@ -32,7 +32,7 @@ namespace PostgreSql.Data.SqlClient
                 {
                     _connectionOptions = new PgConnectionOptions(value);
                     _connectionString  = value;
-                } 
+                }
             }
         }
 
@@ -50,7 +50,7 @@ namespace PostgreSql.Data.SqlClient
 
         internal bool IsClosed      => (_state == ConnectionState.Closed);
         internal bool IsOpen        => (_state == ConnectionState.Open);
-        internal bool IsConnecting  => (_state == ConnectionState.Connecting);        
+        internal bool IsConnecting  => (_state == ConnectionState.Connecting);
 
         public PgConnection()
             : this(null)
@@ -114,7 +114,7 @@ namespace PostgreSql.Data.SqlClient
         #endregion
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
-        
+
         public new PgTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
             if (IsClosed)
@@ -126,9 +126,9 @@ namespace PostgreSql.Data.SqlClient
                 throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
             }
 
-            return _innerConnection.BeginTransaction(isolationLevel, null);            
+            return _innerConnection.BeginTransaction(isolationLevel, null);
         }
-        
+
         public PgTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
@@ -204,7 +204,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 ChangeState(ConnectionState.Broken);
                 throw;
-            }            
+            }
         }
 
         public override void Close()

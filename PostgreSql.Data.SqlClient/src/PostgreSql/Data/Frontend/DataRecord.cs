@@ -137,7 +137,7 @@ namespace PostgreSql.Data.Frontend
 
         internal bool           GetBoolean(int i)        => GetValue<bool>(i);
         internal byte           GetByte(int i)           => GetValue<byte>(i);
-        internal DateTime       GetDateTime(int i)       => GetValue<DateTime>(i);
+        internal char           GetChar(int i)           => GetValue<char>(i);
         internal DateTimeOffset GetDateTimeOffset(int i) => GetValue<DateTimeOffset>(i);
         internal TimeSpan       GetTimeSpan(int i)       => GetValue<TimeSpan>(i);
         internal decimal        GetDecimal(int i)        => GetValue<decimal>(i);
@@ -147,6 +147,21 @@ namespace PostgreSql.Data.Frontend
         internal int            GetInt32(int i)          => GetValue<int>(i);
         internal long           GetInt64(int i)          => GetValue<long>(i);
         internal string         GetString(int i)         => GetValue<string>(i);
+
+        internal DateTime GetDateTime(int i)
+        {
+            ThrowIfNull(i);
+
+            if (_values[i] is PgDate)
+            {
+                return ((PgDate)_values[i]).ToDateTime();
+            }
+            else if (_values[i] is PgTimestamp)
+            {
+                return ((PgTimestamp)_values[i]).Value;
+            }
+            return (DateTime)_values[i];
+        }
 
         internal PgBinary       GetPgBinary(int i)       => GetValue<PgBinary>(i);
         internal PgBit          GetPgBit(int i)          => GetValue<PgBit>(i);
@@ -208,7 +223,7 @@ namespace PostgreSql.Data.Frontend
 
             if (IsDBNull(i))
             {
-                throw new PgNullValueException();
+                throw new PgNullValueException("Data is Null. This method or property cannot be called on Null values.");
             }
         }
 
@@ -216,7 +231,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (i < 0 || i >= FieldCount)
             {
-                throw new IndexOutOfRangeException("Could not find specified column in results.");
+                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
             }
         }
     }

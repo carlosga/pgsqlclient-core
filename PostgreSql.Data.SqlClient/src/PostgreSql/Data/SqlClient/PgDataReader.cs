@@ -20,7 +20,7 @@ namespace PostgreSql.Data.SqlClient
 
         private static InvalidOperationException InvalidRead()
         {
-             return new InvalidOperationException("Invalid attempt to read when no data is present.");            
+             return new InvalidOperationException("Invalid attempt to read when no data is present.");
         }
 
         private bool            _open;
@@ -36,7 +36,7 @@ namespace PostgreSql.Data.SqlClient
         private ReadOnlyCollection<DbColumn> _metadata;
 
         public override object this[int i]       => GetValue(i);
-        public override object this[string name] => GetValue(GetOrdinal(name));
+        public override object this[string name] => GetValue(name);
 
         public override int  Depth
         {
@@ -53,8 +53,8 @@ namespace PostgreSql.Data.SqlClient
 
         public override bool IsClosed        => !_open;
         public override int  RecordsAffected => _open ? _recordsAffected : -1;
-        
-        public override int  FieldCount
+
+        public override int FieldCount
         {
             get
             {
@@ -65,7 +65,7 @@ namespace PostgreSql.Data.SqlClient
                 
                 return _statement?.RowDescriptor.Count ?? 0;
             }
-        } 
+        }
 
         public override bool HasRows
         {
@@ -195,40 +195,7 @@ namespace PostgreSql.Data.SqlClient
                 throw InvalidRead();
             }
 
-            if (IsDBNull(i))
-            {
-                return 0;
-            }
-
-            int bytesRead  = 0;
-            int realLength = length;
-
-            if (buffer == null)
-            {
-                byte[] data = (byte[])GetValue(i);
-
-                return data.Length;
-            }
-
-            byte[] byteArray = (byte[])GetValue(i);
-
-            if (length > (byteArray.Length - dataIndex))
-            {
-                realLength = byteArray.Length - (int)dataIndex;
-            }
-
-            Array.Copy(byteArray, (int)dataIndex, buffer, bufferIndex, realLength);
-
-            if ((byteArray.Length - dataIndex) < length)
-            {
-                bytesRead = byteArray.Length - (int)dataIndex;
-            }
-            else
-            {
-                bytesRead = length;
-            }
-
-            return bytesRead;
+            return _row.GetBytes(i, dataIndex, buffer, bufferIndex, length);
         }
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
@@ -238,68 +205,85 @@ namespace PostgreSql.Data.SqlClient
                 throw InvalidRead();
             }
 
-            if (IsDBNull(i))
-            {
-                return 0;
-            }
-
-            if (buffer == null)
-            {
-                char[] data = ((string)GetValue(i)).ToCharArray();
-
-                return data.Length;
-            }
-
-            int charsRead = 0;
-            int realLength = length;
-
-            char[] charArray = ((string)GetValue(i)).ToCharArray();
-
-            if (length > (charArray.Length - dataIndex))
-            {
-                realLength = charArray.Length - (int)dataIndex;
-            }
-
-            Array.Copy(charArray, (int)dataIndex, buffer, bufferIndex, realLength);
-
-            if ((charArray.Length - dataIndex) < length)
-            {
-                charsRead = charArray.Length - (int)dataIndex;
-            }
-            else
-            {
-                charsRead = length;
-            }
-
-            return charsRead;
+            return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
         }
 
-        public override Boolean        GetBoolean(int i)        => GetValue<Boolean>(i);
-        public override Byte           GetByte(int i)           => GetValue<Byte>(i);
-        public override Char           GetChar(int i)           => GetValue<Char>(i);
-        public          DateTimeOffset GetDateTimeOffset(int i) => GetValue<DateTimeOffset>(i);
-        public override Decimal        GetDecimal(int i)        => GetValue<Decimal>(i);
-        public override Double         GetDouble(int i)         => GetValue<Double>(i);
-        public override Single         GetFloat(int i)          => GetValue<Single>(i);
-        public override Int16          GetInt16(int i)          => GetValue<Int16>(i);
-        public override Int32          GetInt32(int i)          => GetValue<Int32>(i);
-        public override Int64          GetInt64(int i)          => GetValue<Int64>(i);
-        public          TimeSpan       GetTimeSpan(int i)       => GetValue<PgTime>(i).Value;
-        public override String         GetString(int i)         => GetValue<String>(i);
+        public override Boolean GetBoolean(int i)
+        {
+            CheckPosition();
+            return _row.GetBoolean(i);
+        }
+
+        public override Byte GetByte(int i)
+        {
+            CheckPosition();
+            return _row.GetByte(i);
+        }
+
+        public override Char GetChar(int i)
+        {
+            CheckPosition();
+            return _row.GetChar(i);
+        }
 
         public override DateTime GetDateTime(int i)
         {
-            CheckNull(i);
-            
-            if (_row[i] is PgDate)
-            {
-                return ((PgDate)_row[i]).ToDateTime();
-            }
-            else if (_row[i] is PgTimestamp)
-            {
-                return ((PgTimestamp)_row[i]).Value;
-            }
-            return (DateTime)_row[i];
+            CheckPosition();
+            return _row.GetDateTime(i);
+        }
+
+        public DateTimeOffset GetDateTimeOffset(int i)
+        {
+            CheckPosition();
+            return _row.GetDateTime(i);
+        }
+
+        public override Decimal GetDecimal(int i)
+        {
+            CheckPosition();
+            return _row.GetDecimal(i);
+        }
+
+        public override Double GetDouble(int i)
+        {
+            CheckPosition();
+            return _row.GetDouble(i);
+        }
+
+        public override Single GetFloat(int i)
+        {
+            CheckPosition();
+            return _row.GetFloat(i);
+        }
+
+        public override Int16 GetInt16(int i)
+        {
+            CheckPosition();
+            return _row.GetInt16(i);
+        }
+
+        public override Int32 GetInt32(int i)
+        {
+            CheckPosition();
+            return _row.GetInt32(i);
+        }
+
+        public override Int64 GetInt64(int i)
+        {
+            CheckPosition();
+            return _row.GetInt64(i);
+        }
+
+        public TimeSpan GetTimeSpan(int i)
+        {
+            CheckPosition();
+            return _row.GetTimeSpan(i);
+        }
+
+        public override String GetString(int i)
+        {
+            CheckPosition();
+            return _row.GetString(i);
         }
 
         public PgBinary    GetPgBinary(int i)    => GetValue<PgBinary>(i);
@@ -369,7 +353,6 @@ namespace PostgreSql.Data.SqlClient
         public override object GetValue(int i)
         {
             CheckPosition();
-            CheckIndex(i);
 
             return _row[i];
         }
@@ -384,9 +367,8 @@ namespace PostgreSql.Data.SqlClient
         public override bool IsDBNull(int i)
         {
             CheckPosition();
-            CheckIndex(i);
 
-            return (_row[i] == DBNull.Value);
+            return _row.IsDBNull(i);
         }
 
         public override Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
@@ -404,7 +386,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 return;
             }
-            
+
             try
             {
                 // This will update RecordsAffected property
@@ -428,7 +410,6 @@ namespace PostgreSql.Data.SqlClient
             }
             catch (System.Exception)
             {
-                
                 throw;
             }
             finally
@@ -444,11 +425,18 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        private object GetValue(string name)
+        {
+            CheckPosition();
+
+            return _row[name];
+        }
+        
         private T GetValue<T>(int i)
         {
-            CheckNull(i);
+            CheckPosition();
 
-            return (T)_row[i];
+            return _row.GetValue<T>(i);
         }
 
         private void InitializeRefCursors()
@@ -492,11 +480,12 @@ namespace PostgreSql.Data.SqlClient
             return _command.NextResult();
         }
 
-        private void CheckIndex(int i)
+        private void UpdateRecordsAffected()
         {
-            if (i < 0 || i >= FieldCount)
+            if (_command != null && !_command.IsDisposed && _command.RecordsAffected != -1)
             {
-                throw InvalidRead();
+                _recordsAffected  = ((_recordsAffected == -1) ? 0 : _recordsAffected);
+                _recordsAffected += _command.RecordsAffected;
             }
         }
 
@@ -512,20 +501,11 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        private void CheckNull(int i)
+        private void CheckIndex(int i)
         {
-            if (IsDBNull(i))
+            if (i < 0 || i >= FieldCount)
             {
-                throw new PgNullValueException("Data is Null. This method or property cannot be called on Null values.");
-            }
-        }
-
-        private void UpdateRecordsAffected()
-        {
-            if (_command != null && !_command.IsDisposed && _command.RecordsAffected != -1)
-            {
-                _recordsAffected  = ((_recordsAffected == -1) ? 0 : _recordsAffected);
-                _recordsAffected += _command.RecordsAffected;
+                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
             }
         }
     }

@@ -47,9 +47,9 @@ namespace PostgreSql.Data.Frontend
 
         internal bool IsPrepared
         {
-            get 
+            get
             {
-                return (_status == PgStatementStatus.Parsed 
+                return (_status == PgStatementStatus.Parsed
                      || _status == PgStatementStatus.Described
                      || _status == PgStatementStatus.Binded
                      || _status == PgStatementStatus.Executed);
@@ -205,7 +205,7 @@ namespace PostgreSql.Data.Frontend
             {
                 Prepare(parameters);
             }
-            
+
             try
             {
                 _database.Lock();
@@ -443,7 +443,7 @@ namespace PostgreSql.Data.Frontend
             {
                 packet.Write(parameters[i].TypeInfo.Oid);
             }
-            
+
             // Send packet to the server
             _database.Send(packet);
 
@@ -536,7 +536,7 @@ namespace PostgreSql.Data.Frontend
 
             // Send packet to the server
             _database.Send(packet);
-            
+
             // Update status
             _status = PgStatementStatus.Binded;
         }

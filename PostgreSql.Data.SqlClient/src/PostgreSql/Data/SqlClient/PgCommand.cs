@@ -68,7 +68,7 @@ namespace PostgreSql.Data.SqlClient
             get { return _designTimeVisible; }
             set { _designTimeVisible = value; }
         }
-        
+
         public new PgParameterCollection Parameters
         {
             get { return _parameters; }
@@ -217,7 +217,7 @@ namespace PostgreSql.Data.SqlClient
         {
             throw new NotSupportedException();
         }
-        
+
         public new PgParameter CreateParameter() => new PgParameter();
 
         public override int ExecuteNonQuery()
@@ -228,7 +228,7 @@ namespace PostgreSql.Data.SqlClient
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
-               
+
         public new PgDataReader ExecuteReader(CommandBehavior behavior) 
         {
             CheckCommand();
@@ -239,7 +239,7 @@ namespace PostgreSql.Data.SqlClient
 
             return _activeDataReader.Target as PgDataReader;
         }
-        
+
         public override object ExecuteScalar()
         {
             CheckCommand();

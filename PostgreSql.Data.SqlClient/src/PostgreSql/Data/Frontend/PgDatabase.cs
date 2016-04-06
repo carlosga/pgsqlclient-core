@@ -210,7 +210,7 @@ namespace PostgreSql.Data.Frontend
             {
                 return;
             }
-            
+
             _channel.WritePacket(PgFrontEndCodes.SYNC);
 
             PgInputPacket response = null;
@@ -218,7 +218,7 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 response = Read();
-                
+
                 HandlePacket(response);
             } while (!response.IsReadyForQuery);
         }
@@ -478,7 +478,7 @@ namespace PostgreSql.Data.Frontend
                         break;
                 }
             }
-            
+
             var error = new PgError(severity
                                   , message
                                   , code
@@ -493,7 +493,7 @@ namespace PostgreSql.Data.Frontend
             var exception = new PgException(error.Message, error);
             
             InfoMessage?.Invoke(exception);
-            
+
             if (error.Severity == PgCodes.ERROR_SEVERITY
              || error.Severity == PgCodes.FATAL_SEVERITY
              || error.Severity == PgCodes.PANIC_SEVERITY)

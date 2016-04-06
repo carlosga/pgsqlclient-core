@@ -13,6 +13,8 @@ namespace PostgreSql.Data.Frontend
     {
         private readonly char        _packetType;
         private readonly SessionData _sessionData;
+        private readonly int         _initialCapacity;
+        private readonly int         _offset;
 
         private byte[] _buffer;
         private int    _position;
@@ -23,16 +25,17 @@ namespace PostgreSql.Data.Frontend
 
         internal PgOutputPacket(char packetType, SessionData sessionData)
         {
-            _packetType  = packetType;
-            _sessionData = sessionData;
-            _buffer      = new byte[4]; // First 4 bytes are for the packet length
-            _position    = 4;
-        }
-
-        internal void Reset()
-        {
-            Array.Resize(ref _buffer, 4);
-            _position = 4;
+            _packetType      = packetType;
+            _sessionData     = sessionData;
+            _offset          = ((_packetType != PgFrontEndCodes.UNTYPED) ? 1 : 0);
+            _initialCapacity = 4 + _offset;
+            _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
+            _position        = _initialCapacity;
+            
+            if (_packetType != PgFrontEndCodes.UNTYPED)
+            {
+                _buffer[0] = (byte)_packetType;   
+            }
         }
 
         internal void Write(byte[] buffer) => Write(buffer, 0, buffer.Length);
@@ -42,14 +45,17 @@ namespace PostgreSql.Data.Frontend
         internal void Write(byte[] buffer, int offset, int count)
         {
             Contract.Requires<ArgumentNullException>(buffer != null, nameof(buffer));
-            Contract.Requires(offset > 0);
-            Contract.Requires(count > 0);
+            Contract.Requires(offset >= 0);
+            Contract.Requires(count >= 0);
 
-            EnsureCapacity(count);
+            if (count > 0)
+            {
+                EnsureCapacity(count);
 
-            Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
+                Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
 
-            _position += count;
+                _position += count;
+            }
         }
         
         internal void WriteByte(byte value)
@@ -142,30 +148,39 @@ namespace PostgreSql.Data.Frontend
         internal void Write(PgPoint point)
         {
             EnsureCapacity(16);
+            
             Write(point.X);
             Write(point.Y);
         }
 
         internal void Write(PgCircle circle)
         {
+            EnsureCapacity(24);
+            
             Write(circle.Center);
             Write(circle.Radius);
         }
 
         internal void Write(PgLine line)
         {
+            EnsureCapacity(32);
+
             Write(line.StartPoint);
             Write(line.EndPoint);
         }
 
         internal void Write(PgLSeg lseg)
         {
+            EnsureCapacity(32);
+
             Write(lseg.StartPoint);
             Write(lseg.EndPoint);
         }
 
         internal void Write(PgBox box)
         {
+            EnsureCapacity(32);
+
             Write(box.UpperRight);
             Write(box.LowerLeft);
         }
@@ -323,27 +338,18 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private byte[] ToArray() => _buffer;
-
         internal void WriteTo(Stream stream)
         {
-            if (_packetType != PgFrontEndCodes.UNTYPED)
-            {
-                // Write packet Type
-                stream.WriteByte((byte)_packetType);
-            }
+            // Save the current position
+            int length = _position;
 
-            int position = _position;
+            Seek(_offset);
 
-            _position = 0;
+            Write(length - _offset);
 
-            // Write packet length
-            Write(position);
-            
-            _position = position;
+            stream.Write(_buffer, 0, length);
 
-            // Write packet contents
-            stream.Write(_buffer, 0, _position);
+            Seek(length);
         }
 
         private void WriteArray(PgTypeInfo typeInfo, object value)
@@ -353,35 +359,42 @@ namespace PostgreSql.Data.Frontend
 
             // Get array element type
             var elementType = typeInfo.ElementType;
-            var packet      = new PgOutputPacket(PgFrontEndCodes.UNTYPED, _sessionData);
-
+            
+            // Save current position
+            var startPosition = _position;
+            
+            // Reserve space for the array size
+            Write(0);
+            
             // Write the number of dimensions
-            packet.Write(array.Rank);
+            Write(array.Rank);
 
             // Write flags (always 0)
-            packet.Write(0);
+            Write(0);
 
-            // Write base type of the array elements
-            packet.Write(typeInfo.ElementType.Oid);
+            // Write the array elements type Oid
+            Write(typeInfo.ElementType.Oid);
 
             // Write lengths and lower bounds
             for (int i = 0; i < array.Rank; ++i)
             {
-                packet.Write(array.GetLength(i));
-                packet.Write(array.GetLowerBound(i) + 1);
+                Write(array.GetLength(i));
+                Write(array.GetLowerBound(i) + 1);
             }
 
             // Write array values
             for (int i = 0; i < array.Length; ++i)
             {
-                packet.Write(elementType, array.GetValue(i));
+                Write(elementType, array.GetValue(i));
             }
 
-            // Write parameter size
-            Write(packet.Length);
+            // Save current position
+            int endPosition = _position;
 
-            // Write parameter data
-            Write(packet.ToArray());
+            // Write array size
+            Seek(startPosition);
+            Write(endPosition - startPosition);
+            Seek(endPosition);
         }
 
         /// FoundationDB client (BSD License)
@@ -426,6 +439,37 @@ namespace PostgreSql.Data.Frontend
 
             // force an exception if we overflow above 2GB
             checked { return (size + (ALIGNMENT - 1)) & MASK; }
+        }
+
+        private int Seek(int offset, SeekOrigin origin = SeekOrigin.Begin)
+        {
+            int newPosition = 0;
+
+            switch (origin)
+            {
+            case SeekOrigin.Begin:
+                newPosition = offset;
+                break;
+            case SeekOrigin.Current:
+            case SeekOrigin.End:
+                newPosition = _position + offset;
+                break;
+            }
+
+            if (newPosition > _buffer.Length)
+            {
+                _position = _buffer.Length;
+            }
+            else if (newPosition < 0)
+            {
+                _position = 0;
+            }
+            else
+            {
+                _position = newPosition;
+            }
+
+            return _position;
         }
     }
 }

@@ -2,12 +2,43 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace PostgreSql.Data.Frontend
 {
     internal static class ConnectionStringSynonyms
     {
-        internal static readonly Dictionary<string, string> Synonyms = GetSynonyms();
+        internal static readonly ReadOnlyDictionary<string, string> Synonyms;
+
+        static ConnectionStringSynonyms()
+        {
+            var synonyms = new Dictionary<string, string>(22);
+
+            synonyms.Add(ConnectionStringSynonyms.DataSource              , ConnectionStringKeywords.DataSource);
+            synonyms.Add(ConnectionStringSynonyms.Server                  , ConnectionStringKeywords.DataSource);
+            synonyms.Add(ConnectionStringSynonyms.Host                    , ConnectionStringKeywords.DataSource);
+            synonyms.Add(ConnectionStringSynonyms.Database                , ConnectionStringKeywords.InitialCatalog);
+            synonyms.Add(ConnectionStringSynonyms.InitialCatalog          , ConnectionStringKeywords.InitialCatalog);
+            synonyms.Add(ConnectionStringSynonyms.UserId                  , ConnectionStringKeywords.UserId);
+            synonyms.Add(ConnectionStringSynonyms.UserName                , ConnectionStringKeywords.UserId);
+            synonyms.Add(ConnectionStringSynonyms.User                    , ConnectionStringKeywords.UserId);
+            synonyms.Add(ConnectionStringSynonyms.UserPassword            , ConnectionStringKeywords.Password);
+            synonyms.Add(ConnectionStringSynonyms.Password                , ConnectionStringKeywords.Password);
+            synonyms.Add(ConnectionStringSynonyms.PortNumber              , ConnectionStringKeywords.PortNumber);
+            synonyms.Add(ConnectionStringSynonyms.Port                    , ConnectionStringKeywords.PortNumber);
+            synonyms.Add(ConnectionStringSynonyms.PacketSize              , ConnectionStringKeywords.PacketSize);
+            synonyms.Add(ConnectionStringSynonyms.ConnectionTimeout       , ConnectionStringKeywords.ConnectionTimeout);
+            synonyms.Add(ConnectionStringSynonyms.Pooling                 , ConnectionStringKeywords.Pooling);
+            synonyms.Add(ConnectionStringSynonyms.ConnectionLifetime      , ConnectionStringKeywords.ConnectionLifetime);
+            synonyms.Add(ConnectionStringSynonyms.MinPoolSize             , ConnectionStringKeywords.MinPoolSize);
+            synonyms.Add(ConnectionStringSynonyms.MaxPoolSize             , ConnectionStringKeywords.MaxPoolSize);
+            synonyms.Add(ConnectionStringSynonyms.Encrypt                 , ConnectionStringKeywords.Encrypt);
+            synonyms.Add(ConnectionStringSynonyms.MultipleActiveResultSets, ConnectionStringKeywords.MultipleActiveResultSets);
+            synonyms.Add(ConnectionStringSynonyms.FetchSize               , ConnectionStringKeywords.FetchSize);
+            synonyms.Add(ConnectionStringSynonyms.SearchPath              , ConnectionStringKeywords.SearchPath);
+
+            Synonyms = new ReadOnlyDictionary<string, string>(synonyms);
+        }
 
         internal const string DataSource               = "data source";
         internal const string Server                   = "server";
@@ -42,36 +73,6 @@ namespace PostgreSql.Data.Frontend
         internal static string GetSynonym(string key)
         {
             return Synonyms[key];
-        }
-
-        private static Dictionary<string, string> GetSynonyms()
-        {
-            var synonyms = new Dictionary<string, string>(23);
-
-            synonyms.Add(ConnectionStringSynonyms.DataSource              , ConnectionStringKeywords.DataSource);
-            synonyms.Add(ConnectionStringSynonyms.Server                  , ConnectionStringKeywords.DataSource);
-            synonyms.Add(ConnectionStringSynonyms.Host                    , ConnectionStringKeywords.DataSource);
-            synonyms.Add(ConnectionStringSynonyms.Database                , ConnectionStringKeywords.InitialCatalog);
-            synonyms.Add(ConnectionStringSynonyms.InitialCatalog          , ConnectionStringKeywords.InitialCatalog);
-            synonyms.Add(ConnectionStringSynonyms.UserId                  , ConnectionStringKeywords.UserId);
-            synonyms.Add(ConnectionStringSynonyms.UserName                , ConnectionStringKeywords.UserId);
-            synonyms.Add(ConnectionStringSynonyms.User                    , ConnectionStringKeywords.UserId);
-            synonyms.Add(ConnectionStringSynonyms.UserPassword            , ConnectionStringKeywords.Password);
-            synonyms.Add(ConnectionStringSynonyms.Password                , ConnectionStringKeywords.Password);
-            synonyms.Add(ConnectionStringSynonyms.PortNumber              , ConnectionStringKeywords.PortNumber);
-            synonyms.Add(ConnectionStringSynonyms.Port                    , ConnectionStringKeywords.PortNumber);
-            synonyms.Add(ConnectionStringSynonyms.PacketSize              , ConnectionStringKeywords.PacketSize);
-            synonyms.Add(ConnectionStringSynonyms.ConnectionTimeout       , ConnectionStringKeywords.ConnectionTimeout);
-            synonyms.Add(ConnectionStringSynonyms.Pooling                 , ConnectionStringKeywords.Pooling);
-            synonyms.Add(ConnectionStringSynonyms.ConnectionLifetime      , ConnectionStringKeywords.ConnectionLifetime);
-            synonyms.Add(ConnectionStringSynonyms.MinPoolSize             , ConnectionStringKeywords.MinPoolSize);
-            synonyms.Add(ConnectionStringSynonyms.MaxPoolSize             , ConnectionStringKeywords.MaxPoolSize);
-            synonyms.Add(ConnectionStringSynonyms.Encrypt                 , ConnectionStringKeywords.Encrypt);
-            synonyms.Add(ConnectionStringSynonyms.MultipleActiveResultSets, ConnectionStringKeywords.MultipleActiveResultSets);
-            synonyms.Add(ConnectionStringSynonyms.FetchSize               , ConnectionStringKeywords.FetchSize);
-            synonyms.Add(ConnectionStringSynonyms.SearchPath              , ConnectionStringKeywords.SearchPath);
-            
-            return synonyms;
         }
     }
 }

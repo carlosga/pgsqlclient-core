@@ -205,20 +205,20 @@ namespace PostgreSql.Data.Frontend
             var complete = new ManualResetEvent(false);
             var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
 
-            args.Completed += (object sender, SocketAsyncEventArgs saeargs) => 
+            args.Completed += (object sender, SocketAsyncEventArgs saeargs) =>
             {
                 var mre = saeargs.UserToken as ManualResetEvent;
                 mre.Set();
             };
 
             var result = _socket.ConnectAsync(args);
-            
+
             complete.WaitOne(connectTimeout * 1000);
 
             if (!result || !_socket.Connected || args.SocketError != SocketError.Success)
             {
-                complete.Reset();                
-                Socket.CancelConnectAsync(args);                
+                complete.Reset();
+                Socket.CancelConnectAsync(args);
                 complete.WaitOne();
                 
                 throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
@@ -297,7 +297,7 @@ namespace PostgreSql.Data.Frontend
             _secureStream   = null;
             _networkStream  = null;
             _socket         = null;
-            
+
             UserCertificateValidation = null;
             UserCertificateSelection  = null;
         }

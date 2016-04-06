@@ -28,7 +28,7 @@ namespace PostgreSql.Data.SqlClient
 
         internal bool HasActiveTransaction
         {
-            get 
+            get
             {
                  return (_activeTransaction != null 
                       && _activeTransaction.IsAlive

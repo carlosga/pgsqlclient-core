@@ -16,7 +16,7 @@ namespace PostgreSql.Data.SqlClient
         }
 
         public override DbConnectionStringBuilder CreateConnectionStringBuilder() => new PgConnectionStringBuilder();
-        
+
         public override DbConnection CreateConnection() => new PgConnection();
         public override DbCommand    CreateCommand()    => new PgCommand();
         public override DbParameter  CreateParameter()  => new PgParameter();
