@@ -71,7 +71,7 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                return (_values[i] as byte[]).Length;
+                return ((byte[])_values[i]).Length;
             }
 
             if ((bufferIndex + length) > buffer.Length)
@@ -79,7 +79,7 @@ namespace PostgreSql.Data.Frontend
                 throw new IndexOutOfRangeException("The index passed was outside the range of {bufferIndex} through {length}.");
             }
 
-            byte[] byteArray =_values[i] as byte[];
+            byte[] byteArray = (byte[])_values[i];
 
             if (length > (byteArray.Length - dataIndex))
             {
@@ -109,7 +109,7 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                return (_values[i] as string).Length;
+                return ((string)_values[i]).Length;
             }
 
             if ((bufferIndex + length) > buffer.Length)
@@ -119,7 +119,7 @@ namespace PostgreSql.Data.Frontend
 
             int    charsRead  = 0;
             int    realLength = length;
-            char[] charArray  = (_values[i] as string).ToCharArray();
+            char[] charArray  = ((string)_values[i]).ToCharArray();
 
             if (length > (charArray.Length - dataIndex))
             {

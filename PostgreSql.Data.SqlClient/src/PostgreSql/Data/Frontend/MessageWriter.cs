@@ -222,9 +222,13 @@ namespace PostgreSql.Data.Frontend
                     Write((byte[])value);
                     break;
 
+                case PgDbType.Bool:
+                    Write(typeInfo.Size);
+                    Write((bool)value);
+                    break;
+
                 case PgDbType.Bit:
                 case PgDbType.Byte:
-                case PgDbType.Bool:
                     Write(typeInfo.Size);
                     WriteByte((byte)value);
                     break;
