@@ -12,28 +12,28 @@ using System.Text;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgInputPacket
+    internal sealed class MessageReader
     {
-        private readonly char        _packetType;
+        private readonly char        _messageType;
         private readonly byte[]      _contents;
         private readonly SessionData _sessionData;
 
         private int _position;
 
-        internal char PacketType        => _packetType;
+        internal char MessageType       => _messageType;
         internal int  Length            => _contents.Length;
         internal int  Position          => _position;
         internal bool EOF               => (_position >= _contents.Length);
-        internal bool IsReadyForQuery   => (_packetType == PgBackendCodes.READY_FOR_QUERY);
-        internal bool IsCommandComplete => (_packetType == PgBackendCodes.COMMAND_COMPLETE);
-        internal bool IsPortalSuspended => (_packetType == PgBackendCodes.PORTAL_SUSPENDED);
-        internal bool IsNoData          => (_packetType == PgBackendCodes.NODATA);
-        internal bool IsCloseComplete   => (_packetType == PgBackendCodes.CLOSE_COMPLETE);
-        internal bool IsRowDescription  => (_packetType == PgBackendCodes.ROW_DESCRIPTION);
+        internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
+        internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
+        internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
+        internal bool IsNoData          => (_messageType == BackendMessages.NoData);
+        internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
+        internal bool IsRowDescription  => (_messageType == BackendMessages.RowDescription);
 
-        internal PgInputPacket(char packetType, byte[] contents, SessionData sessionData)
+        internal MessageReader(char messageType, byte[] contents, SessionData sessionData)
         {
-            _packetType  = packetType;
+            _messageType = messageType;
             _contents    = contents;
             _sessionData = sessionData;
             _position    = 0;
@@ -177,12 +177,12 @@ namespace PostgreSql.Data.Frontend
             return new PgPath(isClosedPath, points);
         }
 
-        internal object ReadValue(PgFieldDescriptor descriptor, int length)
+        internal object ReadValue(FieldDescriptor descriptor, int length)
         {
             return ReadValue(descriptor.TypeInfo, length);
         }
 
-        internal object ReadValue(PgTypeInfo typeInfo, int length)
+        internal object ReadValue(TypeInfo typeInfo, int length)
         {
             switch (typeInfo.PgDbType)
             {
@@ -278,7 +278,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private Array ReadArray(PgTypeInfo type, int length)
+        private Array ReadArray(TypeInfo type, int length)
         {
             // Read number of dimensions
             int dimensions = ReadInt32();
@@ -316,7 +316,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private Array ReadPrimitiveArray(PgTypeInfo elementType
+        private Array ReadPrimitiveArray(TypeInfo elementType
                                        , int        length
                                        , int        dimensions
                                        , int        flags
@@ -333,7 +333,7 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        private Array ReadNonPrimitiveArray(PgTypeInfo elementType
+        private Array ReadNonPrimitiveArray(TypeInfo elementType
                                           , int        length
                                           , int        dimensions
                                           , int        flags
@@ -351,7 +351,7 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        private byte[] DecodeArrayData(PgTypeInfo type, int elementCount, int length)
+        private byte[] DecodeArrayData(TypeInfo type, int elementCount, int length)
         {
             byte[] data   = new byte[length];
             int    offset = 0;
@@ -369,7 +369,7 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        private Array ReadVector(PgTypeInfo type, int length)
+        private Array ReadVector(TypeInfo type, int length)
         {
             var elementType = type.ElementType;
             var data        =  Array.CreateInstance(elementType.SystemType, (length / elementType.Size));

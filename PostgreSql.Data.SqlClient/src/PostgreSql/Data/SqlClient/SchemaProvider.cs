@@ -30,10 +30,10 @@ namespace PostgreSql.Data.SqlClient
                  + "AND pg_attribute.attnum       = $2 "
                  + "AND pg_attribute.attisdropped = false";
 
-        private readonly PgConnection    _connection;
-        private readonly PgRowDescriptor _descriptor;
+        private readonly PgConnection  _connection;
+        private readonly RowDescriptor _descriptor;
 
-        internal SchemaProvider(PgConnection connection, PgRowDescriptor descriptor)
+        internal SchemaProvider(PgConnection connection, RowDescriptor descriptor)
         {
             _connection = connection;
             _descriptor = descriptor;

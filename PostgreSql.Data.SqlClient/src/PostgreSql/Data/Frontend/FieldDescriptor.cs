@@ -5,7 +5,7 @@ using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgFieldDescriptor
+    internal sealed class FieldDescriptor
     {
         private readonly string     _name;
         private readonly int        _tableOid;
@@ -13,7 +13,7 @@ namespace PostgreSql.Data.Frontend
         private readonly int        _typeOid;
         private readonly short      _typeSize;
         private readonly int        _typeModifier;
-        private readonly PgTypeInfo _typeInfo;
+        private readonly TypeInfo _typeInfo;
 
         internal string     Name             => _name;
         internal int        TableOid         => _tableOid;
@@ -21,18 +21,18 @@ namespace PostgreSql.Data.Frontend
         internal int        TypeOid          => _typeOid;
         internal short      TypeSize         => _typeSize;
         internal int        TypeModifier     => _typeModifier;
-        internal PgTypeInfo TypeInfo         => _typeInfo;
+        internal TypeInfo TypeInfo         => _typeInfo;
         internal int        NumericPrecision => ((_typeInfo.IsNumeric) ? ((_typeModifier & 0xFFFF) >> 16) : 0);
         internal int        NumericScale     => ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4) & 0xFFFF) : 0);
         internal bool       IsExpression     => (_tableOid == 0 && _columnId == 0);
 
-        internal PgFieldDescriptor(string     name
-                                 , int        tableOid
-                                 , short      columnId
-                                 , int        typeOid
-                                 , short      typeSize
-                                 , int        typeModifier
-                                 , PgTypeInfo typeInfo)
+        internal FieldDescriptor(string     name
+                               , int        tableOid
+                               , short      columnId
+                               , int        typeOid
+                               , short      typeSize
+                               , int        typeModifier
+                               , TypeInfo typeInfo)
         {
             _name         = name;
             _tableOid     = tableOid;

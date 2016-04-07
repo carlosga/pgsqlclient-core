@@ -30,7 +30,7 @@ namespace PostgreSql.Data.SqlClient
         private CommandBehavior _behavior;
         private PgCommand       _command;
         private PgConnection    _connection;
-        private PgStatement     _statement;
+        private Statement       _statement;
         private Queue<string>   _refCursors;
 
         private ReadOnlyCollection<DbColumn> _metadata;
@@ -46,7 +46,6 @@ namespace PostgreSql.Data.SqlClient
                 {
                     throw InvalidRead();
                 }
-                
                 return 0;
             }
         }
@@ -62,7 +61,6 @@ namespace PostgreSql.Data.SqlClient
                 {
                     throw InvalidRead();
                 }
-                
                 return _statement?.RowDescriptor.Count ?? 0;
             }
         }
@@ -75,7 +73,6 @@ namespace PostgreSql.Data.SqlClient
                 {
                     throw InvalidRead();
                 }
-                
                 return _statement.HasRows;
             }
         }
@@ -377,8 +374,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
-#warning Disabled for now
-        // internal PgDataRecord GetDataRecord() => new PgDataRecord(_statement.RowDescriptor, _row);
+        internal PgDataRecord GetDataRecord() => new PgDataRecord(_row);
 
         internal void Close()
         {
@@ -431,7 +427,7 @@ namespace PostgreSql.Data.SqlClient
 
             return _row[name];
         }
-        
+
         private T GetValue<T>(int i)
         {
             CheckPosition();

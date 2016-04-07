@@ -14,9 +14,14 @@ using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgNetworkChannel
+    internal sealed class Transport
         : IDisposable
     {
+        // SSL Request code
+        private const int SslRequestHi = 1234;
+        private const int SslRequestLo = 5679;
+        private const int SslRequest   = (SslRequestHi << 16) | SslRequestLo;
+
         internal RemoteCertificateValidationCallback UserCertificateValidation
         {
             get;
@@ -37,7 +42,7 @@ namespace PostgreSql.Data.Frontend
 
         internal bool DataAvailable => _networkStream?.DataAvailable ?? false;
 
-        internal PgNetworkChannel()
+        internal Transport()
         {
             _buffer = new byte[8];
         }
@@ -118,7 +123,7 @@ namespace PostgreSql.Data.Frontend
             try
             {
                 // Notify the server that we are closing the connection.
-                WritePacket(PgFrontEndCodes.TERMINATE);
+                WriteMessage(FrontendMessages.Terminate);
             }
             catch
             {
@@ -130,11 +135,11 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal PgInputPacket ReadPacket(SessionData sessionData)
+        internal MessageReader ReadMessage(SessionData sessionData)
         {
             char type = (char)_stream.ReadByte();
 
-            if (type == PgBackendCodes.EMPTY_QUERY_RESPONSE)
+            if (type == BackendMessages.EmptyQueryResponse)
             {
                 return null;
             }
@@ -148,18 +153,18 @@ namespace PostgreSql.Data.Frontend
                 received += _stream.Read(buffer, received, length - received);
             }
 
-            return new PgInputPacket(type, buffer, sessionData);
+            return new MessageReader(type, buffer, sessionData);
         }
 
-        internal void WritePacket(char type)
+        internal void WriteMessage(char type)
         {
             _stream.WriteByte((byte)type);
             Write(4);
         }
 
-        internal void WritePacket(PgOutputPacket packet)
+        internal void WriteMessage(MessageWriter messsage)
         {
-            packet.WriteTo(_stream);
+            messsage.WriteTo(_stream);
         }
 
         private int ReadInt32()
@@ -263,7 +268,7 @@ namespace PostgreSql.Data.Frontend
 
         internal bool RequestSecureChannel()
         {
-            Write(PgCodes.SSL_REQUEST);
+            Write(SslRequest);
 
             return ((char)_stream.ReadByte() == 'S');
         }

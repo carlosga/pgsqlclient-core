@@ -6,21 +6,21 @@ using System.Collections.Generic;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgRowDescriptor
-        : IEnumerable<PgFieldDescriptor>
+    internal sealed class RowDescriptor
+        : IEnumerable<FieldDescriptor>
     {
-        private readonly List<PgFieldDescriptor> _descriptors;
+        private readonly List<FieldDescriptor> _descriptors;
 
-        internal PgFieldDescriptor this[int index] => _descriptors[index];
+        internal FieldDescriptor this[int index] => _descriptors[index];
 
         internal int Count => _descriptors.Count;
 
-        internal PgRowDescriptor()
+        internal RowDescriptor()
         {
-            _descriptors = new List<PgFieldDescriptor>();
+            _descriptors = new List<FieldDescriptor>();
         }
 
-        internal void Add(PgFieldDescriptor descriptor) => _descriptors.Add(descriptor);
+        internal void Add(FieldDescriptor descriptor) => _descriptors.Add(descriptor);
 
         internal int IndexOf(string name)
         {
@@ -43,7 +43,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void Clear() => _descriptors.Clear();
 
-        IEnumerator<PgFieldDescriptor> IEnumerable<PgFieldDescriptor>.GetEnumerator() => _descriptors.GetEnumerator();
+        IEnumerator<FieldDescriptor> IEnumerable<FieldDescriptor>.GetEnumerator() => _descriptors.GetEnumerator();
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _descriptors.GetEnumerator();
     }
 }

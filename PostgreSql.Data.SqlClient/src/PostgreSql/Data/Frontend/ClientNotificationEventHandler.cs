@@ -3,5 +3,5 @@
 
 namespace PostgreSql.Data.Frontend
 {
-    internal delegate void PgClientNotificationEventHandler(object sender, PgClientNotificationEventArgs e);
+    internal delegate void ClientNotificationEventHandler(object sender, ClientNotificationEventArgs e);
 }

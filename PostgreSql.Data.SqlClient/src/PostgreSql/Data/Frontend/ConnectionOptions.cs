@@ -7,10 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgConnectionOptions
+    internal sealed class ConnectionOptions
     {
-        private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);        
-        
+        private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);
+
         private string _dataSource;
         private string _database;
         private string _userId;
@@ -43,7 +43,7 @@ namespace PostgreSql.Data.Frontend
         internal string SearchPath               => _searchPath;
         internal int    FetchSize                => _fetchSize;
 
-        internal PgConnectionOptions(string connectionString)
+        internal ConnectionOptions(string connectionString)
         {
             if (connectionString == null)
             {
@@ -64,7 +64,7 @@ namespace PostgreSql.Data.Frontend
             _multipleActiveResultSets = false;
             _searchPath               = null;
             _fetchSize                = 200;
-            
+
             ParseConnectionString(connectionString);
         }
 
@@ -136,15 +136,15 @@ namespace PostgreSql.Data.Frontend
                         case ConnectionStringSynonyms.Encrypt:
                             _encrypt = Boolean.Parse(currentValue);
                             break;
-                            
+
                         case ConnectionStringSynonyms.MultipleActiveResultSets:
                             _multipleActiveResultSets = Boolean.Parse(currentValue);
                             break;
-                            
+
                         case ConnectionStringSynonyms.SearchPath:
                             _searchPath = currentValue;
                             break;
-                        
+
                         case ConnectionStringSynonyms.FetchSize:
                             _fetchSize = Int32.Parse(currentValue);
                             break;

@@ -9,9 +9,9 @@ using System.IO;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgOutputPacket
+    internal sealed class MessageWriter
     {
-        private readonly char        _packetType;
+        private readonly char        _messageType;
         private readonly SessionData _sessionData;
         private readonly int         _initialCapacity;
         private readonly int         _offset;
@@ -19,22 +19,22 @@ namespace PostgreSql.Data.Frontend
         private byte[] _buffer;
         private int    _position;
 
-        internal char PacketType => _packetType;
-        internal int  Position   => _position;
-        internal int  Length     => _buffer.Length;
+        internal char MessageType => _messageType;
+        internal int  Position    => _position;
+        internal int  Length      => _buffer.Length;
 
-        internal PgOutputPacket(char packetType, SessionData sessionData)
+        internal MessageWriter(char messageType, SessionData sessionData)
         {
-            _packetType      = packetType;
+            _messageType     = messageType;
             _sessionData     = sessionData;
-            _offset          = ((_packetType != PgFrontEndCodes.UNTYPED) ? 1 : 0);
+            _offset          = ((_messageType != FrontendMessages.Untyped) ? 1 : 0);
             _initialCapacity = 4 + _offset;
             _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
             _position        = _initialCapacity;
-            
-            if (_packetType != PgFrontEndCodes.UNTYPED)
+
+            if (_messageType != FrontendMessages.Untyped)
             {
-                _buffer[0] = (byte)_packetType;   
+                _buffer[0] = (byte)_messageType;   
             }
         }
 
@@ -148,7 +148,7 @@ namespace PostgreSql.Data.Frontend
         internal void Write(PgPoint point)
         {
             EnsureCapacity(16);
-            
+
             Write(point.X);
             Write(point.Y);
         }
@@ -156,7 +156,7 @@ namespace PostgreSql.Data.Frontend
         internal void Write(PgCircle circle)
         {
             EnsureCapacity(24);
-            
+
             Write(circle.Center);
             Write(circle.Radius);
         }
@@ -206,11 +206,11 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(PgTypeInfo typeInfo, object value)
+        internal void Write(TypeInfo typeInfo, object value)
         {
             Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
             Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-            
+
             switch (typeInfo.PgDbType)
             {
                 case PgDbType.Array:
@@ -352,7 +352,7 @@ namespace PostgreSql.Data.Frontend
             Seek(length);
         }
 
-        private void WriteArray(PgTypeInfo typeInfo, object value)
+        private void WriteArray(TypeInfo typeInfo, object value)
         {
             // Handle this type as Array values
             var array = value as System.Array;

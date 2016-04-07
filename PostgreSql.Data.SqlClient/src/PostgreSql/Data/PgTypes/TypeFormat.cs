@@ -3,7 +3,7 @@
 
 namespace PostgreSql.Data.PgTypes
 {
-    internal enum PgTypeFormat
+    internal enum TypeFormat
         : short
     {
         Text   = 0

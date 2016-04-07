@@ -18,14 +18,14 @@ namespace PostgreSql.Data.SqlClient
 
         public event EmptyPoolEventHandler EmptyPool;
 
-        private PgConnectionOptions _options;
-        private ArrayList           _locked;
-        private ArrayList           _unlocked;
-        private Thread              _cleanUpThread;
-        private string              _connectionString;
-        private bool                _isRunning;
-        private long                _lifeTime;
-        private object              _syncObject;
+        private ConnectionOptions _options;
+        private ArrayList         _locked;
+        private ArrayList         _unlocked;
+        private Thread            _cleanUpThread;
+        private string            _connectionString;
+        private bool              _isRunning;
+        private long              _lifeTime;
+        private object            _syncObject;
 
         public object SyncObject
         {
@@ -59,7 +59,7 @@ namespace PostgreSql.Data.SqlClient
         public PgConnectionPool(string connectionString)
         {
             _connectionString = connectionString;
-            _options          = new PgConnectionOptions(connectionString);
+            _options          = new ConnectionOptions(connectionString);
             _lifeTime         = _options.ConnectionLifeTime * TimeSpan.TicksPerSecond;
 
             if (_options.MaxPoolSize == 0)

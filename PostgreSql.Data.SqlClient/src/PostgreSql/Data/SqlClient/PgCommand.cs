@@ -18,7 +18,7 @@ namespace PostgreSql.Data.SqlClient
         private PgTransaction         _transaction;
         private PgParameterCollection _parameters;
         private UpdateRowSource       _updatedRowSource;
-        private PgStatement           _statement;
+        private Statement             _statement;
         private WeakReference         _activeDataReader;
         private CommandBehavior       _commandBehavior;
         private CommandType           _commandType;
@@ -121,7 +121,7 @@ namespace PostgreSql.Data.SqlClient
         }
 
         internal CommandBehavior CommandBehavior => _commandBehavior;
-        internal PgStatement     Statement       => _statement;
+        internal Statement       Statement       => _statement;
         internal int             RecordsAffected => (_statement?.RecordsAffected ?? -1);
         internal bool            IsDisposed      => _disposed;
 

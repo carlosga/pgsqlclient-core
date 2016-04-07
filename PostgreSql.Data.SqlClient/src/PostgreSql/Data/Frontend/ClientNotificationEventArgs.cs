@@ -5,7 +5,7 @@ using System;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgClientNotificationEventArgs
+    internal sealed class ClientNotificationEventArgs
         : EventArgs
     {
         private readonly int    _processId;
@@ -16,7 +16,7 @@ namespace PostgreSql.Data.Frontend
         internal string Condition => _condition;
         internal string Aditional => _aditional;
 
-        internal PgClientNotificationEventArgs(int processId, string condition, string addtional)
+        internal ClientNotificationEventArgs(int processId, string condition, string addtional)
         {
             _processId = processId;
             _condition = condition;

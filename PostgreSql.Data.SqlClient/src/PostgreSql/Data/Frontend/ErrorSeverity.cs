@@ -3,18 +3,10 @@
 
 namespace PostgreSql.Data.Frontend
 {
-    internal enum PgStatementStatus
+    internal static class ErrorSeverity
     {
-        Initial
-      , Broken
-      , Parsing
-      , Parsed
-      , Describing
-      , Described
-      , Binding
-      , Binded
-      , Executing
-      , Executed
-      , OnQuery
+        internal const string Error = "ERROR";
+        internal const string Fatal = "FATAL";
+        internal const string Panic = "PANIC";
     }
 }

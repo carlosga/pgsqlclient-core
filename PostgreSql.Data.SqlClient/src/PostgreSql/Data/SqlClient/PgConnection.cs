@@ -19,7 +19,7 @@ namespace PostgreSql.Data.SqlClient
         public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
         private PgConnectionInternal _innerConnection;
-        private PgConnectionOptions  _connectionOptions;
+        private ConnectionOptions    _connectionOptions;
         private ConnectionState      _state;
         private string               _connectionString;
 
@@ -30,7 +30,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    _connectionOptions = new PgConnectionOptions(value);
+                    _connectionOptions = new ConnectionOptions(value);
                     _connectionString  = value;
                 }
             }
@@ -86,7 +86,7 @@ namespace PostgreSql.Data.SqlClient
                         _connectionString  = null;
                         _connectionOptions = null;
                     }
-                    
+
                     base.Dispose(disposing);
                 }
 
@@ -112,6 +112,77 @@ namespace PostgreSql.Data.SqlClient
         //     // GC.SuppressFinalize(this);
         // }
         #endregion
+
+        public override void Open()
+        {
+            if (String.IsNullOrEmpty(_connectionString))
+            {
+                throw new InvalidOperationException("Connection String is not initialized.");
+            }
+            if (!IsClosed)
+            {
+                throw new InvalidOperationException("Connection already open, or is broken.");
+            }
+
+            try
+            {
+                ChangeState(ConnectionState.Connecting);
+
+                // Open connection
+                if (_connectionOptions.Pooling)
+                {
+                    _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
+                }
+                else
+                {
+                    _innerConnection = new PgConnectionInternal(_connectionString);
+                }
+
+                if (_connectionOptions.Encrypt)
+                {
+                    // Add SSL callback handlers
+                    _innerConnection.Connection.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
+                    _innerConnection.Connection.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
+                }
+
+                // Add Info message event handler
+                _innerConnection.Connection.InfoMessage = new InfoMessageCallback(OnInfoMessage);
+
+                // Add notification event handler
+                _innerConnection.Connection.Notification = new NotificationCallback(OnNotification);
+
+                // Connect
+                _innerConnection.Open(this);
+
+                // Set connection state to Open
+                ChangeState(ConnectionState.Open);
+            }
+            catch (Exception)
+            {
+                ChangeState(ConnectionState.Broken);
+                throw;
+            }
+        }
+
+        public override void Close()
+        {
+            if (!IsOpen)
+            {
+                return;
+            }
+
+            try
+            {
+                _innerConnection.Close();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                ChangeState(ConnectionState.Closed);
+            }
+        }
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
 
@@ -155,77 +226,6 @@ namespace PostgreSql.Data.SqlClient
         }
 
         public new PgCommand CreateCommand() => new PgCommand(String.Empty, this, _innerConnection?.ActiveTransaction);
-
-        public override void Open()
-        {
-            if (String.IsNullOrEmpty(_connectionString))
-            {
-                throw new InvalidOperationException("Connection String is not initialized.");
-            }
-            if (!IsClosed)
-            {
-                throw new InvalidOperationException("Connection already open, or is broken.");
-            }
-
-            try
-            {
-                ChangeState(ConnectionState.Connecting);
-
-                // Open connection
-                if (_connectionOptions.Pooling)
-                {
-                    _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
-                }
-                else
-                {
-                    _innerConnection = new PgConnectionInternal(_connectionString);
-                }
-
-                if (_connectionOptions.Encrypt)
-                {
-                    // Add SSL callback handlers
-                    _innerConnection.Database.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
-                    _innerConnection.Database.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
-                }
-
-                // Add Info message event handler
-                _innerConnection.Database.InfoMessage = new InfoMessageCallback(OnInfoMessage);
-
-                // Add notification event handler
-                _innerConnection.Database.Notification = new NotificationCallback(OnNotification);
-
-                // Connect
-                _innerConnection.Open(this);
-
-                // Set connection state to Open
-                ChangeState(ConnectionState.Open);
-            }
-            catch (Exception)
-            {
-                ChangeState(ConnectionState.Broken);
-                throw;
-            }
-        }
-
-        public override void Close()
-        {
-            if (!IsOpen)
-            {
-                return;
-            }
-
-            try
-            {
-                _innerConnection.Close();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                ChangeState(ConnectionState.Closed);
-            }
-        }
 
         protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
         {

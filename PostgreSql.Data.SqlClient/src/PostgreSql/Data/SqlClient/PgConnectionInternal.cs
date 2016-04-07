@@ -12,7 +12,7 @@ namespace PostgreSql.Data.SqlClient
 {
     internal sealed class PgConnectionInternal
     {
-        private PgDatabase    _database;
+        private Connection    _connection;
         private PgConnection  _owner;
         private WeakReference _activeTransaction;
         private string        _connectionString;
@@ -22,8 +22,8 @@ namespace PostgreSql.Data.SqlClient
 
         private ConcurrentDictionary<int, WeakReference<PgCommand>> _preparedCommands;
 
-        internal string        ServerVersion     => _database.SessionData.ServerVersion;
-        internal PgDatabase    Database          => _database;
+        internal string        ServerVersion     => _connection.SessionData.ServerVersion;
+        internal Connection    Connection        => _connection;
         internal PgTransaction ActiveTransaction => _activeTransaction?.Target as PgTransaction;
 
         internal bool HasActiveTransaction
@@ -32,7 +32,7 @@ namespace PostgreSql.Data.SqlClient
             {
                  return (_activeTransaction != null 
                       && _activeTransaction.IsAlive
-                      && _database.TransactionStatus != PgTransactionStatus.Default); 
+                      && _connection.TransactionStatus != TransactionStatus.Default); 
             }
         }
 
@@ -57,7 +57,7 @@ namespace PostgreSql.Data.SqlClient
         internal PgConnectionInternal(string connectionString)
         {
             _connectionString = connectionString;
-            _database         = new PgDatabase(connectionString);
+            _connection       = new Connection(connectionString);
             _preparedCommands = new ConcurrentDictionary<int, WeakReference<PgCommand>>();
             _created          = 0;
             _lifetime         = 0;
@@ -66,7 +66,7 @@ namespace PostgreSql.Data.SqlClient
         internal void Open(PgConnection owner)
         {
             // Connect
-            _database.Open();
+            _connection.Open();
 
             // Update owner
             _owner = owner;
@@ -85,13 +85,13 @@ namespace PostgreSql.Data.SqlClient
                 // Close connection permanently or send it back to the pool
                 if (_pooled)
                 {
-                    _database.ReleaseCallbacks();
+                    _connection.ReleaseCallbacks();
                     
                     PgPoolManager.Instance.GetPool(_connectionString).CheckIn(this);
                 }
                 else
                 {
-                    _database.Dispose();
+                    _connection.Dispose();
                 }
             }
             catch (Exception)
@@ -101,7 +101,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _owner             = null;
                 _activeTransaction = null;
-                _database          = null;
+                _connection          = null;
                 _preparedCommands  = null;
                 _connectionString  = null;
                 _created           = 0;
@@ -131,9 +131,9 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        internal PgStatement CreateStatement() => _database.CreateStatement();
+        internal Statement CreateStatement() => _connection.CreateStatement();
 
-        internal PgStatement CreateStatement(string stmtText) => _database.CreateStatement(stmtText);
+        internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
 
         internal void ClosePreparedCommands()
         {
@@ -169,7 +169,7 @@ namespace PostgreSql.Data.SqlClient
             try
             {
                 // Try to send a Sync message
-                _database.Sync();
+                _connection.Sync();
             }
             catch
             {

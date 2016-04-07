@@ -9,14 +9,14 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class DataRecord
     {
-        private readonly PgRowDescriptor _descriptor;
-        private readonly object[]        _values;
+        private readonly RowDescriptor _descriptor;
+        private readonly object[]      _values;
 
         internal int    FieldCount        => _descriptor.Count;
         internal object this[int i]       => GetValue(i);
         internal object this[string name] => GetValue(name);
 
-        internal DataRecord(PgRowDescriptor descriptor, object[] values)
+        internal DataRecord(RowDescriptor descriptor, object[] values)
         {
             _descriptor = descriptor;
             _values     = values;
@@ -71,12 +71,15 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                byte[] data = (byte[])_values[i];
-
-                return data.Length;
+                return (_values[i] as byte[]).Length;
             }
 
-            byte[] byteArray = (byte[])_values[i];
+            if ((bufferIndex + length) > buffer.Length)
+            {
+                throw new IndexOutOfRangeException("The index passed was outside the range of {bufferIndex} through {length}.");
+            }
+
+            byte[] byteArray =_values[i] as byte[];
 
             if (length > (byteArray.Length - dataIndex))
             {
@@ -106,22 +109,24 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                char[] data = ((string)_values[i]).ToCharArray();
-
-                return data.Length;
+                return (_values[i] as string).Length;
             }
 
-            int charsRead = 0;
-            int realLength = length;
+            if ((bufferIndex + length) > buffer.Length)
+            {
+                throw new IndexOutOfRangeException("The index passed was outside the range of {bufferIndex} through {length}.");
+            }
 
-            char[] charArray = ((string)_values[i]).ToCharArray();
+            int    charsRead  = 0;
+            int    realLength = length;
+            char[] charArray  = (_values[i] as string).ToCharArray();
 
             if (length > (charArray.Length - dataIndex))
             {
                 realLength = charArray.Length - (int)dataIndex;
             }
 
-            Buffer.BlockCopy(charArray, (int)dataIndex, buffer, bufferIndex, realLength);
+            Array.Copy(charArray, (int)dataIndex, buffer, bufferIndex, realLength);
 
             if ((charArray.Length - dataIndex) < length)
             {
@@ -163,33 +168,33 @@ namespace PostgreSql.Data.Frontend
             return (DateTime)_values[i];
         }
 
-        internal PgBinary       GetPgBinary(int i)       => GetValue<PgBinary>(i);
-        internal PgBit          GetPgBit(int i)          => GetValue<PgBit>(i);
-        internal PgBoolean      GetPgBoolean(int i)      => GetValue<PgBoolean>(i);
-        internal PgBox          GetPgBox(int i)          => GetValue<PgBox>(i);
-        internal PgBox2D        GetPgBox2D(int i)        => GetValue<PgBox2D>(i);
-        internal PgBox3D        GetPgBox3D(int i)        => GetValue<PgBox3D>(i);
-        internal PgByte         GetPgByte(int i)         => GetValue<PgByte>(i);
-        internal PgCircle       GetPgCircle(int i)       => GetValue<PgCircle>(i);
-        internal PgDate         GetPgDate(int i)         => GetValue<PgDate>(i);
-        internal PgTime         GetPgTime(int i)         => GetValue<PgTime>(i);
-        internal PgTimestamp    GetPgTimestamp(int i)    => GetValue<PgTimestamp>(i);
-        internal PgInterval     GetPgInterval(int i)     => GetValue<PgInterval>(i);
-        internal PgDecimal      GetPgNumeric(int i)      => GetValue<PgDecimal>(i);
-        internal PgMoney        GetPgMoney(int i)        => GetValue<PgMoney>(i);
-        internal PgReal         GetPgReal(int i)         => GetValue<PgReal>(i);
-        internal PgDouble       GetPgDouble(int i)       => GetValue<PgDouble>(i);
-        internal PgInt16        GetPgInt16(int i)        => GetValue<PgInt16>(i);
-        internal PgInt32        GetPgInt32(int i)        => GetValue<PgInt32>(i);
-        internal PgInt64        GetPgInt64(int i)        => GetValue<PgInt64>(i);
-        internal PgLine         GetPgLine(int i)         => GetValue<PgLine>(i);
-        internal PgLSeg         GetPgLSeg(int i)         => GetValue<PgLSeg>(i);
-        internal PgPath         GetPgPath(int i)         => GetValue<PgPath>(i);
-        internal PgPoint        GetPgPoint(int i)        => GetValue<PgPoint>(i);
-        internal PgPoint2D      GetPgPoint2D(int i)      => GetValue<PgPoint2D>(i);
-        internal PgPoint3D      GetPgPoint3D(int i)      => GetValue<PgPoint3D>(i);
-        internal PgPolygon      GetPgPolygon(int i)      => GetValue<PgPolygon>(i);
-        internal PgString       GetPgString(int i)       => GetValue<PgString>(i);
+        internal PgBinary    GetPgBinary(int i)    => GetValue<PgBinary>(i);
+        internal PgBit       GetPgBit(int i)       => GetValue<PgBit>(i);
+        internal PgBoolean   GetPgBoolean(int i)   => GetValue<PgBoolean>(i);
+        internal PgBox       GetPgBox(int i)       => GetValue<PgBox>(i);
+        internal PgBox2D     GetPgBox2D(int i)     => GetValue<PgBox2D>(i);
+        internal PgBox3D     GetPgBox3D(int i)     => GetValue<PgBox3D>(i);
+        internal PgByte      GetPgByte(int i)      => GetValue<PgByte>(i);
+        internal PgCircle    GetPgCircle(int i)    => GetValue<PgCircle>(i);
+        internal PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
+        internal PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
+        internal PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
+        internal PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
+        internal PgDecimal   GetPgNumeric(int i)   => GetValue<PgDecimal>(i);
+        internal PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
+        internal PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
+        internal PgDouble    GetPgDouble(int i)    => GetValue<PgDouble>(i);
+        internal PgInt16     GetPgInt16(int i)     => GetValue<PgInt16>(i);
+        internal PgInt32     GetPgInt32(int i)     => GetValue<PgInt32>(i);
+        internal PgInt64     GetPgInt64(int i)     => GetValue<PgInt64>(i);
+        internal PgLine      GetPgLine(int i)      => GetValue<PgLine>(i);
+        internal PgLSeg      GetPgLSeg(int i)      => GetValue<PgLSeg>(i);
+        internal PgPath      GetPgPath(int i)      => GetValue<PgPath>(i);
+        internal PgPoint     GetPgPoint(int i)     => GetValue<PgPoint>(i);
+        internal PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
+        internal PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
+        internal PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
+        internal PgString    GetPgString(int i)    => GetValue<PgString>(i);
 
         internal object GetValue(string name)
         {
@@ -212,7 +217,7 @@ namespace PostgreSql.Data.Frontend
 
         internal int GetValues(object[] values)
         {
-            Buffer.BlockCopy(_values, 0, values, 0, ((values.Length > FieldCount) ? FieldCount : values.Length));
+            Array.Copy(_values, values, ((values.Length > FieldCount) ? FieldCount : values.Length));
 
             return values.Length;
         }

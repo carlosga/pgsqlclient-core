@@ -10,10 +10,14 @@ using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgStatement
+    internal sealed class Statement
         : IDisposable
     {
-        private PgDatabase        _database;
+        // Statements and Portals
+        private const char STATEMENT = 'S';
+        private const char PORTAL    = 'P'; 
+
+        private Connection        _connection;
         private string            _statementText;
         private bool              _hasRows;
         private string            _tag;
@@ -21,16 +25,16 @@ namespace PostgreSql.Data.Frontend
         private string            _portalName;
         private bool              _allRowsFetched;
         private int               _recordsAffected;
-        private PgRowDescriptor   _rowDescriptor;
+        private RowDescriptor     _rowDescriptor;
         private Queue<DataRecord> _rows;
         private PgParameter       _outParameter;
-        private PgStatementStatus _status;
+        private StatementStatus   _status;
 
-        internal bool               HasRows         => _hasRows;
-        internal string             Tag             => _tag;
-        internal int                RecordsAffected => _recordsAffected;
-        internal PgRowDescriptor    RowDescriptor   => _rowDescriptor;
-        internal PgStatementStatus  Status          => _status;
+        internal bool            HasRows         => _hasRows;
+        internal string          Tag             => _tag;
+        internal int             RecordsAffected => _recordsAffected;
+        internal RowDescriptor   RowDescriptor   => _rowDescriptor;
+        internal StatementStatus Status          => _status;
 
         internal string StatementText
         {
@@ -49,29 +53,29 @@ namespace PostgreSql.Data.Frontend
         {
             get
             {
-                return (_status == PgStatementStatus.Parsed
-                     || _status == PgStatementStatus.Described
-                     || _status == PgStatementStatus.Binded
-                     || _status == PgStatementStatus.Executed);
+                return (_status == StatementStatus.Parsed
+                     || _status == StatementStatus.Described
+                     || _status == StatementStatus.Bound
+                     || _status == StatementStatus.Executed);
             }
         }
 
-        internal PgStatement(PgDatabase database)
-            : this(database, null)
+        internal Statement(Connection connection)
+            : this(connection, null)
         {
         }
 
-        internal PgStatement(PgDatabase database, string stmtText)
+        internal Statement(Connection connection, string stmtText)
         {
-            _database        = database;
-            _status          = PgStatementStatus.Initial;
+            _connection      = connection;
+            _status          = StatementStatus.Initial;
             _statementText   = stmtText;
             _recordsAffected = -1;
             _hasRows         = false;
             _allRowsFetched  = false;
             _outParameter    = new PgParameter();
-            _rowDescriptor   = new PgRowDescriptor();
-            _rows            = new Queue<DataRecord>(_database.ConnectionOptions.FetchSize);
+            _rowDescriptor   = new RowDescriptor();
+            _rows            = new Queue<DataRecord>(_connection.ConnectionOptions.FetchSize);
         }
 
         #region IDisposable Support
@@ -109,17 +113,17 @@ namespace PostgreSql.Data.Frontend
             // GC.SuppressFinalize(this);
         }
         #endregion
-        
+
         internal void Prepare(PgParameterCollection parameters)
         {
             try
             {
-                if (_status != PgStatementStatus.Initial)
+                if (_status != StatementStatus.Initial)
                 {
                     Close();
                 }
 
-                _database.Lock();
+                _connection.Lock();
 
                 string statementName = Guid.NewGuid().ToString();
                 
@@ -132,26 +136,26 @@ namespace PostgreSql.Data.Frontend
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 // Throw exception
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
         internal int ExecuteNonQuery(PgParameterCollection parameters)
         {
-            if (_status == PgStatementStatus.Initial)
+            if (_status == StatementStatus.Initial)
             {
                 Prepare(parameters);
             }
 
             try
             {
-                _database.Lock();
+                _connection.Lock();
 
                 Bind(parameters);
                 Execute(1);
@@ -162,53 +166,53 @@ namespace PostgreSql.Data.Frontend
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 // Throw exception
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
         internal void ExecuteReader(PgParameterCollection parameters)
         {
-            if (_status == PgStatementStatus.Initial)
+            if (_status == StatementStatus.Initial)
             {
                 Prepare(parameters);
             }
 
             try
             {
-                _database.Lock();
-                
+                _connection.Lock();
+
                 Bind(parameters);
                 Execute();
             }
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 // Throw exception
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
         internal object ExecuteScalar(PgParameterCollection parameters)
         {
-            if (_status == PgStatementStatus.Initial)
+            if (_status == StatementStatus.Initial)
             {
                 Prepare(parameters);
             }
 
             try
             {
-                _database.Lock();
+                _connection.Lock();
 
                 Bind(parameters);
                 Execute(1);
@@ -220,19 +224,19 @@ namespace PostgreSql.Data.Frontend
                 {
                     value = _rows.Dequeue()[0];
                 }
-                
+
                 return value;
             }
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 // Throw exception
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
@@ -240,26 +244,26 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                _database.Lock();
+                _connection.Lock();
 
                 // Update status
-                _status = PgStatementStatus.Executing;
+                _status = StatementStatus.Executing;
 
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.FUNCTION_CALL);
+                var message = _connection.CreateMessage(FrontendMessages.FunctionCall);
 
                 // Function id
-                packet.Write(id);
+                message.Write(id);
 
                 // Send parameters format code.
-                packet.Write((short)parameters.Count);
+                message.Write((short)parameters.Count);
 
                 for (int i = 0; i < parameters.Count; i++)
                 {
-                    packet.Write((short)parameters[i].TypeInfo.Format);
+                    message.Write((short)parameters[i].TypeInfo.Format);
                 }
 
                 // Send parameter values
-                packet.Write((short)parameters.Count);
+                message.Write((short)parameters.Count);
 
                 for (int i = 0; i < parameters.Count; i++)
                 {
@@ -270,45 +274,37 @@ namespace PostgreSql.Data.Frontend
                      || parameter.TypeInfo.Size == 0 /* Void */)
                     {
                         // -1 indicates a NULL argument value
-                        packet.Write(-1);
+                        message.Write(-1);
                     }
                     else
                     {
-                        packet.Write(parameter.TypeInfo
-                                   , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
+                        message.Write(parameter.TypeInfo
+                                    , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
                     }
                 }
 
                 // Send the format code for the function result
-                packet.Write(PgCodes.BINARY_FORMAT);
+                message.Write((short)TypeFormat.Binary);
 
                 // Send packet to the server
-                _database.Send(packet);
+                _connection.Send(message);
 
-                // Receive response
-                PgInputPacket response = null;
-
-                do
-                {
-                    response = _database.Read();
-                    
-                    HandleSqlMessage(response);
-                }
-                while (!response.IsReadyForQuery);
+                // Process response messages
+                ReadUntilReadyForQuery();
 
                 // Update status
-                _status = PgStatementStatus.Executed;
+                _status = StatementStatus.Executed;
             }
             catch
             {
                 // Update status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 // Throw exception
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
@@ -316,28 +312,20 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                _database.Lock();
-                
+                _connection.Lock();
+
                 // Update Status
-                _status = PgStatementStatus.OnQuery;
+                _status = StatementStatus.OnQuery;
 
-                var packet = _database.CreateOutputPacket(PgFrontEndCodes.QUERY);
+                var message = _connection.CreateMessage(FrontendMessages.Query);
 
-                packet.WriteNullString(_statementText);
+                message.WriteNullString(_statementText);
 
                 // Send packet to the server
-                _database.Send(packet);
+                _connection.Send(message);
 
-                // Receive response
-                PgInputPacket response = null;
-
-                do
-                {
-                    response = _database.Read();
-                    
-                    HandleSqlMessage(response);
-                }
-                while (!response.IsReadyForQuery);
+                // Process response messages
+                ReadUntilReadyForQuery();
 
                 if (_hasRows)
                 {
@@ -346,16 +334,16 @@ namespace PostgreSql.Data.Frontend
                 }
 
                 // Update status
-                _status = PgStatementStatus.Initial;
+                _status = StatementStatus.Initial;
             }
             catch
             {
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
                 throw;
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
@@ -379,12 +367,12 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                _database.Lock();
+                _connection.Lock();
 
                 ClosePortal();
                 CloseStatement();
                 
-                _database.Sync();
+                _connection.Sync();
 
                 _rowDescriptor.Resize(0);
             }
@@ -394,7 +382,7 @@ namespace PostgreSql.Data.Frontend
             }
             finally
             {
-                _database.ReleaseLock();
+                _connection.ReleaseLock();
             }
         }
 
@@ -408,7 +396,7 @@ namespace PostgreSql.Data.Frontend
                 stmtText += "VERBOSE ";
             }
 
-            using (var stmt = _database.CreateStatement(stmtText))
+            using (var stmt = _connection.CreateStatement(stmtText))
             {
                 stmt.Query();
 
@@ -426,7 +414,7 @@ namespace PostgreSql.Data.Frontend
         private void Parse(PgParameterCollection parameters)
         {
             // Update status
-            _status = PgStatementStatus.Parsing;
+            _status = StatementStatus.Parsing;
 
             // Clear actual row list
             ClearRows();
@@ -434,81 +422,81 @@ namespace PostgreSql.Data.Frontend
             // Initialize RowDescriptor and Parameters
             _rowDescriptor.Clear();
 
-            var packet = _database.CreateOutputPacket(PgFrontEndCodes.PARSE);
+            var message = _connection.CreateMessage(FrontendMessages.Parse);
 
-            packet.WriteNullString(_parseName);
-            packet.WriteNullString(_statementText);
-            packet.Write((short)parameters.Count);
+            message.WriteNullString(_parseName);
+            message.WriteNullString(_statementText);
+            message.Write((short)parameters.Count);
             for (int i = 0; i < parameters.Count; i++)
             {
-                packet.Write(parameters[i].TypeInfo.Oid);
+                message.Write(parameters[i].TypeInfo.Oid);
             }
 
-            // Send packet to the server
-            _database.Send(packet);
+            // Send the message
+            _connection.Send(message);
 
             // Update status
-            _status = PgStatementStatus.Parsed;
+            _status = StatementStatus.Parsed;
         }
 
-        private void DescribeStatement() => Describe(PgCodes.STATEMENT);
-        private void DescribePortal()    => Describe(PgCodes.PORTAL);
+        private void DescribeStatement() => Describe(STATEMENT);
+        private void DescribePortal()    => Describe(PORTAL);
 
         private void Describe(char type)
         {
             // Update status
-            _status = PgStatementStatus.Describing;
+            _status = StatementStatus.Describing;
 
-            var name   = ((type == PgCodes.STATEMENT) ? _parseName : _portalName);
-            var packet = _database.CreateOutputPacket(PgFrontEndCodes.DESCRIBE);
+            var name    = ((type == STATEMENT) ? _parseName : _portalName);
+            var message = _connection.CreateMessage(FrontendMessages.Describe);
 
-            packet.Write(type);
-            packet.WriteNullString(name);
+            message.Write(type);
+            message.WriteNullString(name);
 
             // Send packet to the server
-            _database.Send(packet);
+            _connection.Send(message);
 
             // Flush pending messages
-            _database.Flush();
+            _connection.Flush();
 
             // Receive Describe response
-            PgInputPacket response = null;
+            MessageReader rmessage = null;
 
             do
             {
-                response = _database.Read();
-                HandleSqlMessage(response);
-            } while (!response.IsRowDescription && !response.IsNoData);
+                rmessage = _connection.Read();
+                HandleSqlMessage(rmessage);
+            } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
 
             // Update status
-            _status = PgStatementStatus.Described;
+            _status = StatementStatus.Described;
         }
         
         private void Bind(PgParameterCollection parameters)
         {
             // Update status
-            _status = PgStatementStatus.Binding;
+            _status = StatementStatus.Binding;
 
             // Clear row data
             ClearRows();
-            
-            var packet = _database.CreateOutputPacket(PgFrontEndCodes.BIND);
+
+            var message = _connection.CreateMessage(FrontendMessages.Bind);
 
             // Destination portal name
-            packet.WriteNullString(_portalName);
+            message.WriteNullString(_portalName);
 
             // Prepared statement name
-            packet.WriteNullString(_parseName);
+            message.WriteNullString(_parseName);
 
             // Send parameters format code.
-            packet.Write((short)parameters.Count);
+            message.Write((short)parameters.Count);
             for (int i = 0; i < parameters.Count; i++)
             {
-                packet.Write((short)parameters[i].TypeInfo.Format);
+                message.Write((short)parameters[i].TypeInfo.Format);
             }
 
             // Send parameter values
-            packet.Write((short)parameters.Count);
+            message.Write((short)parameters.Count);
             for (int i = 0; i < parameters.Count; i++)
             {
                 var parameter = parameters[i];
@@ -518,64 +506,64 @@ namespace PostgreSql.Data.Frontend
                  || parameter.TypeInfo.Size == 0 /* Void */)
                 {
                     // -1 indicates a NULL argument value
-                    packet.Write(-1);
+                    message.Write(-1);
                 }
                 else
                 {
-                    packet.Write(parameter.TypeInfo
-                               , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
+                    message.Write(parameter.TypeInfo
+                                , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
                 }
             }
 
             // Send column information
-            packet.Write((short)_rowDescriptor.Count);
+            message.Write((short)_rowDescriptor.Count);
             for (int i = 0; i < _rowDescriptor.Count; i++)
             {
-                packet.Write((short)_rowDescriptor[i].TypeInfo.Format);
+                message.Write((short)_rowDescriptor[i].TypeInfo.Format);
             }
 
             // Send packet to the server
-            _database.Send(packet);
+            _connection.Send(message);
 
             // Update status
-            _status = PgStatementStatus.Binded;
+            _status = StatementStatus.Bound;
         }
 
         private void Execute()
         {
-            Execute(_database.ConnectionOptions.FetchSize);
+            Execute(_connection.ConnectionOptions.FetchSize);
         }
 
         private void Execute(int fetchSize)
         {
             // Update status
-            _status = PgStatementStatus.Executing;
+            _status = StatementStatus.Executing;
 
-            var packet = _database.CreateOutputPacket(PgFrontEndCodes.EXECUTE);
+            var message = _connection.CreateMessage(FrontendMessages.Execute);
 
-            packet.WriteNullString(_portalName);
-            packet.Write(fetchSize);	// Rows to retrieve ( 0 = nolimit )
+            message.WriteNullString(_portalName);
+            message.Write(fetchSize);	// Rows to retrieve ( 0 = nolimit )
 
             // Send packet to the server
-            _database.Send(packet);
+            _connection.Send(message);
 
             // Flush pending messages
-            _database.Flush();
+            _connection.Flush();
 
             // Receive response
-            PgInputPacket response = null;
+            MessageReader rmessage = null;
 
             do
             {
-                response = _database.Read();
-                
-                HandleSqlMessage(response);
+                rmessage = _connection.Read();
+
+                HandleSqlMessage(rmessage);
             }
-            while (!response.IsCommandComplete && !response.IsPortalSuspended);
+            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended);
 
             // If the command is finished and has returned rows
             // set all rows are received
-            _allRowsFetched = response.IsCommandComplete;
+            _allRowsFetched = rmessage.IsCommandComplete;
 
             // If all rows are received or the command doesn't return
             // rows perform a Sync.
@@ -585,21 +573,21 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Update status
-            _status = PgStatementStatus.Executed;
+            _status = StatementStatus.Executed;
         }
 
         private void CloseStatement()
         {
-            if (_status == PgStatementStatus.Parsed 
-             || _status == PgStatementStatus.Described)
+            if (_status == StatementStatus.Parsed 
+             || _status == StatementStatus.Described)
             {
-                Close(PgCodes.STATEMENT, _parseName);
+                Close(STATEMENT, _parseName);
 
                 // Clear remaing rows
                 ClearRows();
 
                 // Update Status
-                _status = PgStatementStatus.Initial;
+                _status = StatementStatus.Initial;
 
                 // Reset names
                 _parseName  = null;
@@ -609,14 +597,14 @@ namespace PostgreSql.Data.Frontend
 
         private void ClosePortal()
         {
-            if (_status == PgStatementStatus.Binded
-             || _status == PgStatementStatus.Executing
-             || _status == PgStatementStatus.Executed)
+            if (_status == StatementStatus.Bound
+             || _status == StatementStatus.Executing
+             || _status == StatementStatus.Executed)
             {
-                Close(PgCodes.PORTAL, _portalName);
+                Close(PORTAL, _portalName);
 
                 // Update Status
-                _status = PgStatementStatus.Described;
+                _status = StatementStatus.Described;
             }
         }
 
@@ -626,26 +614,26 @@ namespace PostgreSql.Data.Frontend
             {
                 if (name != null && name.Length > 0)
                 {
-                    var packet = _database.CreateOutputPacket(PgFrontEndCodes.CLOSE);
+                    var message = _connection.CreateMessage(FrontendMessages.Close);
 
-                    packet.Write(type);
-                    packet.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
+                    message.Write(type);
+                    message.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
 
                     // Send packet to the server
-                    _database.Send(packet);
+                    _connection.Send(message);
 
                     // Flush pending messages
-                    _database.Flush();
+                    _connection.Flush();
 
                     // Read until CLOSE COMPLETE message is received
-                    PgInputPacket response = null;
+                    MessageReader rmessage = null;
 
                     do
                     {
-                        response = _database.Read();
-                        HandleSqlMessage(response);
+                        rmessage = _connection.Read();
+                        HandleSqlMessage(rmessage);
                     }
-                    while (!response.IsCloseComplete);
+                    while (!rmessage.IsCloseComplete);
                 }
 
                 _tag             = null;
@@ -654,51 +642,51 @@ namespace PostgreSql.Data.Frontend
             catch
             {
                 // Update Status
-                _status = PgStatementStatus.Broken;
+                _status = StatementStatus.Broken;
 
                 // Throw exception
                 throw;
             }
         }
         
-        private void HandleSqlMessage(PgInputPacket packet)
+        private void HandleSqlMessage(MessageReader message)
         {
-            switch (packet.PacketType)
+            switch (message.MessageType)
             {
-                case PgBackendCodes.DATAROW:
+                case BackendMessages.DataRow:
                     _hasRows = true;
-                    ProcessDataRow(packet);
+                    ProcessDataRow(message);
                     break;
 
-                case PgBackendCodes.ROW_DESCRIPTION:
-                    ProcessRowDescription(packet);
+                case BackendMessages.RowDescription:
+                    ProcessRowDescription(message);
                     break;
 
-                case PgBackendCodes.FUNCTION_CALL_RESPONSE:
-                    ProcessFunctionResult(packet);
+                case BackendMessages.FunctionCallResponse:
+                    ProcessFunctionResult(message);
                     break;
 
-                case PgBackendCodes.COMMAND_COMPLETE:
+                case BackendMessages.CommandComplete:
                     ClosePortal();
-                    ProcessTag(packet);
+                    ProcessTag(message);
                     break;
 
-                case PgBackendCodes.EMPTY_QUERY_RESPONSE:
-                case PgBackendCodes.NODATA:
+                case BackendMessages.EmptyQueryResponse:
+                case BackendMessages.NoData:
                     ClearRows();
                     break;
 
-                // case PgBackendCodes.PARAMETER_DESCRIPTION:
-                // case PgBackendCodes.CLOSE_COMPLETE:
-                // case PgBackendCodes.BIND_COMPLETE:
-                // case PgBackendCodes.PARSE_COMPLETE:
+                // case BackendCodes.PARAMETER_DESCRIPTION:
+                // case BackendCodes.CLOSE_COMPLETE:
+                // case BackendCodes.BIND_COMPLETE:
+                // case BackendCodes.PARSE_COMPLETE:
                 //     break;
             }
         }
 
-        private void ProcessTag(PgInputPacket packet)
+        private void ProcessTag(MessageReader message)
         {
-            _tag = packet.ReadNullString();
+            _tag = message.ReadNullString();
             
             string[] elements = _tag.Split(' ');
 
@@ -721,39 +709,39 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private void ProcessFunctionResult(PgInputPacket packet)
+        private void ProcessFunctionResult(MessageReader message)
         {
-            _outParameter.Value = packet.ReadValue(_outParameter.TypeInfo, packet.ReadInt32());
+            _outParameter.Value = message.ReadValue(_outParameter.TypeInfo, message.ReadInt32());
         }
 
-        private void ProcessRowDescription(PgInputPacket packet)
+        private void ProcessRowDescription(MessageReader message)
         {
-            int count = packet.ReadInt16();
+            int count = message.ReadInt16();
 
             _rowDescriptor.Resize(count);
 
             for (int i = 0; i < count; i++)
             {
-                var name         = packet.ReadNullString();
-                var tableOid     = packet.ReadInt32();
-                var columnid     = packet.ReadInt16();
-                var typeOid      = packet.ReadInt32();
-                var typeSize     = packet.ReadInt16();
-                var typeModifier = packet.ReadInt32();
-                var format       = packet.ReadInt16();
+                var name         = message.ReadNullString();
+                var tableOid     = message.ReadInt32();
+                var columnid     = message.ReadInt16();
+                var typeOid      = message.ReadInt32();
+                var typeSize     = message.ReadInt16();
+                var typeModifier = message.ReadInt32();
+                var format       = message.ReadInt16();
                 var typeInfo     = PgTypeInfoProvider.Types[typeOid];
 
-                _rowDescriptor.Add(new PgFieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
+                _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }
         }
 
-        private void ProcessDataRow(PgInputPacket packet)
+        private void ProcessDataRow(MessageReader message)
         {
-            var values = new object[packet.ReadInt16()];
+            var values = new object[message.ReadInt16()];
 
             for (int i = 0; i < values.Length; i++)
             {
-                int length = packet.ReadInt32();
+                int length = message.ReadInt32();
                 var field  = _rowDescriptor[i];
 
                 if (length == -1 || field.TypeInfo.PgDbType == PgDbType.Void)
@@ -762,7 +750,7 @@ namespace PostgreSql.Data.Frontend
                 }
                 else
                 {
-                    values[i] = packet.ReadValue(field.TypeInfo, length);
+                    values[i] = message.ReadValue(field.TypeInfo, length);
                 }
             }
 
@@ -775,6 +763,19 @@ namespace PostgreSql.Data.Frontend
 
             _hasRows        = false;
             _allRowsFetched = false;
+        }
+
+        private void ReadUntilReadyForQuery()
+        {
+            MessageReader message = null;
+
+            do
+            {
+                message = _connection.Read();
+
+                HandleSqlMessage(message);
+            }
+            while (!message.IsReadyForQuery);
         }
 
         // private void ProcessParameterDescription(PgInputPacket packet)

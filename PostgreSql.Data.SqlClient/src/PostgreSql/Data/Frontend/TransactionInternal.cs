@@ -7,14 +7,14 @@ using PostgreSql.Data.SqlClient;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class PgTransactionInternal
+    internal sealed class TransactionInternal
     {
-        private readonly PgDatabase     _database;
+        private readonly Connection     _connection;
         private readonly IsolationLevel _isolationLevel;
 
-        internal PgTransactionInternal(PgDatabase database, IsolationLevel isolationLevel)
+        internal TransactionInternal(Connection connection, IsolationLevel isolationLevel)
         {
-            _database       = database;
+            _connection     = connection;
             _isolationLevel = isolationLevel;
         }
 
@@ -42,7 +42,7 @@ namespace PostgreSql.Data.Frontend
                     break;
             }
 
-            using (var stmt = _database.CreateStatement(sql))
+            using (var stmt = _connection.CreateStatement(sql))
             {
                 stmt.Query();
 
@@ -55,7 +55,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void Commit()
         {
-            using (var stmt = _database.CreateStatement("COMMIT TRANSACTION"))
+            using (var stmt = _connection.CreateStatement("COMMIT TRANSACTION"))
             {
                 stmt.Query();
 
@@ -68,7 +68,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void Rollback()
         {
-            using (var stmt = _database.CreateStatement("ROLLBACK TRANSACTION"))
+            using (var stmt = _connection.CreateStatement("ROLLBACK TRANSACTION"))
             {
                 stmt.Query();
 
@@ -85,8 +85,8 @@ namespace PostgreSql.Data.Frontend
             {
                 throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
-            
-            using (var stmt = _database.CreateStatement($"SAVEPOINT {savePointName}"))
+
+            using (var stmt = _connection.CreateStatement($"SAVEPOINT {savePointName}"))
             {
                 stmt.Query();
             }
@@ -99,7 +99,7 @@ namespace PostgreSql.Data.Frontend
                 throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
 
-            using (var stmt = _database.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
+            using (var stmt = _connection.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
                 stmt.Query();
             }
@@ -112,7 +112,7 @@ namespace PostgreSql.Data.Frontend
                 throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
 
-            using (var stmt = _database.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
+            using (var stmt = _connection.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
                 stmt.Query();
             }

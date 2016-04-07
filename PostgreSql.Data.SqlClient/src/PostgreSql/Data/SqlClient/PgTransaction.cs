@@ -11,9 +11,9 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgTransaction
         : DbTransaction
     {
-        private PgConnection          _connection;
-        private IsolationLevel        _isolationLevel;
-        private PgTransactionInternal _innerTransaction;
+        private PgConnection        _connection;
+        private IsolationLevel      _isolationLevel;
+        private TransactionInternal _innerTransaction;
 
         public override IsolationLevel IsolationLevel => _isolationLevel;
        
@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient
         {
             _connection       = connection;
             _isolationLevel   = isolationLevel;
-            _innerTransaction = connection.InnerConnection.Database.CreateTransaction(IsolationLevel);
+            _innerTransaction = connection.InnerConnection.Connection.CreateTransaction(IsolationLevel);
         }
 
         #region IDisposable Support

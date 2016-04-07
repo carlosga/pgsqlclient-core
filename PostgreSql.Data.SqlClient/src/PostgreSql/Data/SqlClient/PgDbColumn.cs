@@ -49,7 +49,7 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        internal PgDbColumn(PgFieldDescriptor descriptor)
+        internal PgDbColumn(FieldDescriptor descriptor)
         {
             ColumnName       = descriptor.Name;
             ColumnOrdinal    = descriptor.ColumnId;

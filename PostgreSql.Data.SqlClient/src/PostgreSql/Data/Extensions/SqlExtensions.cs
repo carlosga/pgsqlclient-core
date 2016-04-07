@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
-using PostgreSql.Data.SqlClient;
 
 namespace System
 {

@@ -10,6 +10,8 @@ namespace PostgreSql.Data.Authentication
 {
     internal static class MD5Authentication
     {
+        internal static string Prefix = "md5";
+
         internal static string EncryptPassword(byte[] salt,string userId, string password)
         {
             // MD5-encrypted password is required
@@ -17,7 +19,7 @@ namespace PostgreSql.Data.Authentication
             string userHash = GetMD5Hash(Encoding.UTF8.GetBytes(userId), password);
             string hash     = GetMD5Hash(salt, userHash);
 
-            return $"{PgCodes.MD5_PREFIX}{hash}";
+            return $"{Prefix}{hash}";
         }
 
         private static string GetMD5Hash(byte[] salt, string password)

@@ -23,7 +23,7 @@ namespace PostgreSql.Data.SqlClient
         private object                _value;
         private object                _pgvalue;
         private PgDbType              _pgDbType;
-        private PgTypeInfo            _typeInfo;
+        private TypeInfo            _typeInfo;
         private PgParameterCollection _parent;
 
         public override string ParameterName
@@ -118,7 +118,7 @@ namespace PostgreSql.Data.SqlClient
             set { _parent = value; }
         }
 
-        internal PgTypeInfo TypeInfo => _typeInfo;
+        internal TypeInfo TypeInfo => _typeInfo;
 
         public PgParameter()
         {
