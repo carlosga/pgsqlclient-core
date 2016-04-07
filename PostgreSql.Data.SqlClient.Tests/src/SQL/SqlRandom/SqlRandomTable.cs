@@ -560,7 +560,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             // append the first
             int columnIndex = (columnIndicies == null) ? indiciesOffset : columnIndicies[indiciesOffset];
-            selectBuilder.AppendFormat("SELECT [{0}]", _columnNames[columnIndex]);
+            selectBuilder.AppendFormat("SELECT {0}", _columnNames[columnIndex]);
             totalRowSize += _columns[columnIndex].GetInRowSize(null);
             countAdded++;
 
@@ -576,14 +576,14 @@ namespace PostgreSql.Data.SqlClient.Tests
                     break;
                 }
 
-                selectBuilder.AppendFormat(", [{0}]", _columnNames[columnIndex]);
+                selectBuilder.AppendFormat(", {0}", _columnNames[columnIndex]);
                 countAdded++;
             }
 
             selectBuilder.AppendFormat(" FROM {0}", tableName);
 
             if (PrimaryKeyColumnIndex.HasValue)
-                selectBuilder.AppendFormat(" ORDER BY [{0}]", _columnNames[PrimaryKeyColumnIndex.Value]);
+                selectBuilder.AppendFormat(" ORDER BY {0}", _columnNames[PrimaryKeyColumnIndex.Value]);
 
             return countAdded;
         }

@@ -67,7 +67,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             _connectionStrings = connStrings.ToArray();
 
             _sqlTypes = SqlRandomTypeInfoCollection.CreateSqlTypesCollection();
-            _endEvent    = new ManualResetEvent(false);
+            _endEvent = new ManualResetEvent(false);
 
             if (_randPool.ReproMode)
             {
@@ -234,7 +234,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     // destroy the temp table to free resources on the server
                     PgCommand cmd = con.CreateCommand();
                     cmd.CommandType = CommandType.Text;
-                    cmd.CommandText = "DROP TABLE " + tempTableName;
+                    cmd.CommandText = $"DROP TABLE {tempTableName}";
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -264,7 +264,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             if (cancel)
             {
                 int cancelAfterMilliseconds = rand.Next(5);
-                int cancelAfterSpinCount = rand.Next(1000);
+                int cancelAfterSpinCount    = rand.Next(1000);
 
                 ThreadPool.QueueUserWorkItem((object state) =>
                 {

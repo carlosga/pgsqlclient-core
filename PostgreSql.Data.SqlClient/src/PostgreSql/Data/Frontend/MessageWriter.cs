@@ -115,9 +115,28 @@ namespace PostgreSql.Data.Frontend
             }
             else
             {
-                EnsureCapacity(value.Length + 4);
-
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
+                
+                EnsureCapacity(buffer.Length + 4);
+
+                Write(buffer.Length);
+                Write(buffer);
+            }
+        }
+
+        internal void WriteChars(char[] value)
+        {
+            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
+
+            if (value.Length == 0)
+            {
+                Write(0);
+            }
+            else
+            {
+                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
+                
+                EnsureCapacity(buffer.Length + 4);
 
                 Write(buffer.Length);
                 Write(buffer);
@@ -236,7 +255,7 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Char:
                 case PgDbType.VarChar:
                 case PgDbType.Text:
-                    WriteString(value.ToString());
+                    WriteStringInternal(value);
                     break;
 
                 case PgDbType.SmallInt:
@@ -474,6 +493,22 @@ namespace PostgreSql.Data.Frontend
             }
 
             return _position;
+        }
+        
+        private void WriteStringInternal(object value)
+        {             
+            if (value is string)
+            {
+                WriteString((string)value);   
+            }
+            else if (value is char[])
+            {
+                WriteChars((char[])value);
+            }
+            else
+            {
+                WriteString(Convert.ToString(value));   
+            }
         }
     }
 }

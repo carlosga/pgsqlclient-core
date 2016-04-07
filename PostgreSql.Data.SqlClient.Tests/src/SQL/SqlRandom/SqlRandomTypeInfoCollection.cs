@@ -31,15 +31,15 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlSmallIntTypeInfo(),
 
             // date/time types
-            new SqlDateTypeInfo(),
-            new SqlDateTimeOffsetTypeInfo(),
+            // new SqlDateTypeInfo(),
+            // new SqlDateTimeOffsetTypeInfo(),
             // new SqlTimeTypeInfo(),
             // new SqlTimeWithTimeZoneTypeInfo(),
             // new SqlIntervalTypeInfo(),
 
             // fixed length blobs
-            new SqlCharTypeInfo(),
-            new SqlBinaryTypeInfo(),
+            // new SqlCharTypeInfo(),
+            // new SqlBinaryTypeInfo(),
 
             // large blobs
             new SqlTextTypeInfo(),

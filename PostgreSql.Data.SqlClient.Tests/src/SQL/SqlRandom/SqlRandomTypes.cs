@@ -151,7 +151,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlVarCharTypeInfo 
         : SqlRandomTypeInfo
     {
-        private const string TypePrefix      = "varchar";
+        private const string TypePrefix      = "character varying";
         private const int    DefaultCharSize = 1;
 
         internal SqlVarCharTypeInfo()
@@ -184,8 +184,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
-            int size = columnInfo.StorageSize.HasValue ? columnInfo.StorageSize.Value : DefaultCharSize;
-            return rand.NextUnicodeArray(0, size);
+            int storageSize = columnInfo.StorageSize.HasValue ? columnInfo.StorageSize.Value : DefaultCharSize;
+            return rand.NextUnicodeArray(0, storageSize);
         }
 
         protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)

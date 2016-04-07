@@ -414,7 +414,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             string expectedAsString = IsNullOrDbNull(expected) ? "null" : "\"" + ValueAsString(columnInfo, expected) + "\"";
             string actualAsString = IsNullOrDbNull(actual) ? "null" : "\"" + ValueAsString(columnInfo, actual) + "\"";
-
+            
             return string.Format(CultureInfo.InvariantCulture,
                 "  Column type: {0}\n" +
                 "  Expected value: {1}\n" +
