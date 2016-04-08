@@ -19,7 +19,6 @@ namespace PostgreSql.Data.SqlClient
         public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
         private PgConnectionInternal _innerConnection;
-        private ConnectionOptions    _connectionOptions;
         private ConnectionState      _state;
         private string               _connectionString;
 
@@ -30,21 +29,20 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    _connectionOptions = new ConnectionOptions(value);
-                    _connectionString  = value;
+                    _connectionString = value;
                 }
             }
         }
 
-        public override string          Database                 => _connectionOptions?.Database;
-        public override string          DataSource               => _connectionOptions?.DataSource;
+        public override string          Database                 => _innerConnection?.Database;
+        public override string          DataSource               => _innerConnection?.DataSource;
         public override string          ServerVersion            => _innerConnection?.ServerVersion;
+        public override int             ConnectionTimeout        => (_innerConnection?.ConnectionTimeout ?? 15);
+        public          int             PacketSize               => (_innerConnection?.PacketSize ?? 8192);
+        public          bool            MultipleActiveResultSets => (_innerConnection?.MultipleActiveResultSets ?? false);
+        public          string          SearchPath               => (_innerConnection?.SearchPath);
+        public          int             FetchSize                => (_innerConnection?.FetchSize ?? 200);
         public override ConnectionState State                    => _state;
-        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
-        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
-        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
-        public          string          SearchPath               => (_connectionOptions?.SearchPath);
-        public          int             FetchSize                => (_connectionOptions?.FetchSize ?? 200);
 
         internal PgConnectionInternal InnerConnection => _innerConnection;
 
@@ -82,9 +80,8 @@ namespace PostgreSql.Data.SqlClient
                     finally
                     {
                         // Cleanup
-                        _innerConnection   = null;
-                        _connectionString  = null;
-                        _connectionOptions = null;
+                        _innerConnection  = null;
+                        _connectionString = null;
                     }
 
                     base.Dispose(disposing);
@@ -128,17 +125,19 @@ namespace PostgreSql.Data.SqlClient
             {
                 ChangeState(ConnectionState.Connecting);
 
+                var connectionOptions = new ConnectionOptions(_connectionString);
+
                 // Open connection
-                if (_connectionOptions.Pooling)
+                if (connectionOptions.Pooling)
                 {
                     _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
                 }
                 else
                 {
-                    _innerConnection = new PgConnectionInternal(_connectionString);
+                    _innerConnection = new PgConnectionInternal(connectionOptions);
                 }
 
-                if (_connectionOptions.Encrypt)
+                if (_innerConnection.Encrypt)
                 {
                     // Add SSL callback handlers
                     _innerConnection.Connection.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
@@ -220,9 +219,28 @@ namespace PostgreSql.Data.SqlClient
             return _innerConnection.BeginTransaction(isolationLevel, transactionName);
         }
 
-        public override void ChangeDatabase(string db)
+        public override void ChangeDatabase(string database)
         {
-            throw new NotImplementedException();
+            if (_state == ConnectionState.Closed)
+            {
+                throw new InvalidOperationException("ChangeDatabase requires an open and available Connection.");
+            }
+
+            if (database == null || database.Trim().Length == 0)
+            {
+                throw new InvalidOperationException("Database name is not valid.");
+            }
+
+            try
+            {
+               _innerConnection.ChangeDatabase(database);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                ChangeState(ConnectionState.Broken);
+                throw new PgException("Cannot change database.");
+            }
         }
 
         public new PgCommand CreateCommand() => new PgCommand(String.Empty, this, _innerConnection?.ActiveTransaction);

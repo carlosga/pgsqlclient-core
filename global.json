@@ -5,7 +5,7 @@
         "PostgreSql.Data.SqlClient.Sample"
     ],
     "sdk": {
-        "version": "1.0.0-rc2-20221",
+        "version": "1.0.0-rc2-24008",
         "architecture": "x64",
         "runtime": "coreclr"
     }

@@ -20,7 +20,7 @@ https://github.com/aspnet/Configuration/
     - Time zones
     - COPY protocol
     - ...
-           
+
 - Basic MARS support ( client side ).
 
     - Check how it works when using several parametrized queries.

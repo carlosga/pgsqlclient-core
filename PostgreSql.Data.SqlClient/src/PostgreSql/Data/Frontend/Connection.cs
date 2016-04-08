@@ -60,9 +60,18 @@ namespace PostgreSql.Data.Frontend
             set;
         }
 
-        internal SessionData       SessionData       => _sessionData;
-        internal ConnectionOptions ConnectionOptions => _connectionOptions;
-        internal TransactionStatus TransactionStatus => _transactionStatus;
+        internal SessionData       SessionData              => _sessionData;
+        internal TransactionStatus TransactionStatus        => _transactionStatus;
+        internal string            ConnectionString         => _connectionOptions?.ConnectionString;
+        internal string            Database                 => _connectionOptions?.Database;
+        internal string            DataSource               => _connectionOptions?.DataSource;
+        internal int               ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
+        internal int               PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
+        internal bool              MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
+        internal string            SearchPath               => (_connectionOptions?.SearchPath);
+        internal int               FetchSize                => (_connectionOptions?.FetchSize ?? 200);
+        internal bool              Pooling                  => (_connectionOptions?.Pooling ?? false);
+        internal bool              Encrypt                  => (_connectionOptions?.Encrypt ?? false);
 
         private SemaphoreSlim _asyncActiveSemaphore;
         internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
@@ -72,9 +81,9 @@ namespace PostgreSql.Data.Frontend
             return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
         }
 
-        internal Connection(string connectionString)
+        internal Connection(ConnectionOptions connectionOptions)
         {
-            _connectionOptions = new ConnectionOptions(connectionString);
+            _connectionOptions = connectionOptions;
             _transport         = new Transport();
         }
 
@@ -132,28 +141,8 @@ namespace PostgreSql.Data.Frontend
             {
                 Lock();
 
-                // Reset instance data
-                _open        = false;
-                _sessionData = new SessionData();
+                OpenInternal();
 
-                // Wire up SSL callbacks
-                if (_connectionOptions.Encrypt)
-                {
-                    _transport.UserCertificateValidation = UserCertificateValidation;
-                    _transport.UserCertificateSelection  = UserCertificateSelection;
-                }
-
-                // Open the channel
-                _transport.Open(_connectionOptions.DataSource
-                            , _connectionOptions.PortNumber
-                            , _connectionOptions.ConnectionTimeout
-                            , _connectionOptions.PacketSize
-                            , _connectionOptions.Encrypt);
-
-                // Send startup message
-                SendStartupMessage();
-
-                // Release lock
                 ReleaseLock();
             }
             catch (Exception)
@@ -193,6 +182,27 @@ namespace PostgreSql.Data.Frontend
                 UserCertificateValidation = null;
                 UserCertificateSelection  = null;
 
+                ReleaseLock();
+            }
+        }
+
+        internal void ChangeDatabase(string database)
+        {
+            try
+            {
+                Lock();
+
+                // Update the current database name
+                _connectionOptions.ChangeDatabase(database);
+
+                // Close current transport
+                _transport.Close();
+
+                // Reopen against the new database
+                OpenInternal();
+            }
+            finally
+            {
                 ReleaseLock();
             }
         }
@@ -277,6 +287,30 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal void Send(MessageWriter message) => _transport.WriteMessage(message);
+
+        private void OpenInternal()
+        {
+            // Reset instance data
+            _open        = false;
+            _sessionData = new SessionData();
+
+            // Wire up SSL callbacks
+            if (_connectionOptions.Encrypt)
+            {
+                _transport.UserCertificateValidation = UserCertificateValidation;
+                _transport.UserCertificateSelection  = UserCertificateSelection;
+            }
+
+            // Open the channel
+            _transport.Open(_connectionOptions.DataSource
+                          , _connectionOptions.PortNumber
+                          , _connectionOptions.ConnectionTimeout
+                          , _connectionOptions.PacketSize
+                          , _connectionOptions.Encrypt);
+
+            // Send startup message
+            SendStartupMessage();
+        }
 
         private void SendStartupMessage()
         {
@@ -509,37 +543,5 @@ namespace PostgreSql.Data.Frontend
 
         private void HandleParameterStatus(MessageReader message)
             => _sessionData.SetValue(message.ReadNullString(), message.ReadNullString());
-
-        // internal void GetDatabaseTypeInfo()
-        // {
-        //     // if (!_database.ConnectionOptions.UseDatabaseOids)
-        //     // {
-        //     //     return;
-        //     // }
-
-        //     string sql = "SELECT oid FROM pg_type WHERE typname=$1";
-
-        //     using (var statement = CreateStatement(sql))
-        //     {
-        //         // Set parameter type info
-        //         s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
-
-        //         // Prepare statement execution
-        //         statement.Prepare(s_typeInfoParams);
-
-        //         // Grab real oids
-        //         foreach (var type in _sessionData.DataTypes)
-        //         {
-        //             s_typeInfoParams[0].Value = type.Name;
-
-        //             int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
-
-        //             if (realOid != null && realOid.Value != type.Oid)
-        //             {
-        //                 type.Oid = realOid.Value;
-        //             }
-        //         }
-        //     }
-        // }
     }
 }

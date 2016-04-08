@@ -11,6 +11,7 @@ namespace PostgreSql.Data.Frontend
     {
         private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);
 
+        private string _connectionString;
         private string _dataSource;
         private string _database;
         private string _userId;
@@ -27,6 +28,7 @@ namespace PostgreSql.Data.Frontend
         private string _searchPath;
         private int    _fetchSize;
 
+        internal string ConnectionString         => _connectionString;
         internal string DataSource               => _dataSource;
         internal string Database                 => _database;
         internal string UserID                   => _userId;
@@ -50,6 +52,7 @@ namespace PostgreSql.Data.Frontend
                 throw new InvalidOperationException("connectionString cannot be null.");
             }
 
+            _connectionString         = connectionString;
             _dataSource               = "localhost";
             _userId                   = "postgres";
             _password                 = null;
@@ -66,6 +69,12 @@ namespace PostgreSql.Data.Frontend
             _fetchSize                = 200;
 
             ParseConnectionString(connectionString);
+        }
+
+        internal void ChangeDatabase(string database)
+        {
+#warning TODO: Rebuild the connection string ??
+            _database = database;
         }
 
         private void ParseConnectionString(string connectionString)

@@ -192,7 +192,7 @@ namespace PostgreSql.Data.SqlClient
 
         private PgConnectionInternal Create()
         {
-            var connection = new PgConnectionInternal(_connectionString);
+            var connection = new PgConnectionInternal(new ConnectionOptions(_connectionString));
 
             connection.Pooled  = true;
             connection.Created = DateTime.Now.Ticks;

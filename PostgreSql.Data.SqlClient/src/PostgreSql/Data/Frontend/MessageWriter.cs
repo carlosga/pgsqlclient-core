@@ -105,7 +105,7 @@ namespace PostgreSql.Data.Frontend
             WriteByte(0);
         }
 
-        internal void WriteString(string value)
+        internal void Write(string value)
         {
             Contract.Requires<ArgumentNullException>(value != null, nameof(value));
 
@@ -124,7 +124,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void WriteChars(char[] value)
+        internal void Write(char[] value)
         {
             Contract.Requires<ArgumentNullException>(value != null, nameof(value));
 
@@ -143,13 +143,13 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(decimal value)              => WriteString(value.ToString(PgTypeInfoProvider.InvariantCulture));
-        internal void Write(float value)                => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-        internal void Write(double value)               => Write(BitConverter.DoubleToInt64Bits(value));
-        internal void WriteDate(PgDate value)           => Write(value.DaysSinceEpoch);
-        internal void WriteTime(PgTime value)           => Write(value.TotalMicroseconds);
-        internal void WriteTimestamp(PgTimestamp value) => Write(value.TotalMicroseconds);
-        internal void WriteInterval(PgInterval value)
+        internal void Write(decimal value)     => Write(value.ToString(PgTypeInfoProvider.InvariantCulture));
+        internal void Write(float value)       => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+        internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
+        internal void Write(PgDate value)      => Write(value.DaysSinceEpoch);
+        internal void Write(PgTime value)      => Write(value.TotalMicroseconds);
+        internal void Write(PgTimestamp value) => Write(value.TotalMicroseconds);
+        internal void Write(PgInterval value)
         {
             EnsureCapacity(8);
 
@@ -158,8 +158,8 @@ namespace PostgreSql.Data.Frontend
         }
 
 #warning TODO: Need a custom PgTimeTZ or let PgTime handle the time zone offset
-        internal void WriteTimeWithTZ(PgTime time) => Write(time.TotalMicroseconds);
-        internal void WriteTimestampWithTZ(DateTimeOffset timestamp)
+        internal void WriteTZ(PgTime time) => Write(time.TotalMicroseconds);
+        internal void WriteTZ(DateTimeOffset timestamp)
         {
             Write((long)((timestamp.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch));
         }
@@ -289,37 +289,37 @@ namespace PostgreSql.Data.Frontend
 
                 case PgDbType.Money:
                     Write(typeInfo.Size);
-                    Write((int)((decimal)value * 100));
+                    Write((long)((decimal)value * 100));
                     break;
 
                 case PgDbType.Interval:
                     Write(typeInfo.Size);
-                    WriteInterval((PgInterval)value);
+                    Write((PgInterval)value);
                     break;
 
                 case PgDbType.Date:
                     Write(typeInfo.Size);
-                    WriteDate((PgDate)value);
+                    Write((PgDate)value);
                     break;
 
                 case PgDbType.Time:
                     Write(typeInfo.Size);
-                    WriteTime((PgTime)value);
-                    break;
-
-                case PgDbType.TimeTZ:
-                    Write(typeInfo.Size);
-                    WriteTimeWithTZ((PgTime)value);
+                    Write((PgTime)value);
                     break;
 
                 case PgDbType.Timestamp:
                     Write(typeInfo.Size);
-                    WriteTimestamp((PgTimestamp)value);
+                    Write((PgTimestamp)value);
+                    break;
+
+                case PgDbType.TimeTZ:
+                    Write(typeInfo.Size);
+                    WriteTZ((PgTime)value);
                     break;
 
                 case PgDbType.TimestampTZ:
                     Write(typeInfo.Size);
-                    WriteTimestampWithTZ((DateTimeOffset)value);
+                    WriteTZ((DateTimeOffset)value);
                     break;
 
                 case PgDbType.Point:
@@ -496,18 +496,18 @@ namespace PostgreSql.Data.Frontend
         }
         
         private void WriteStringInternal(object value)
-        {             
+        {
             if (value is string)
             {
-                WriteString((string)value);   
+                Write((string)value);
             }
             else if (value is char[])
             {
-                WriteChars((char[])value);
+                Write((char[])value);
             }
             else
             {
-                WriteString(Convert.ToString(value));   
+                Write(Convert.ToString(value));   
             }
         }
     }

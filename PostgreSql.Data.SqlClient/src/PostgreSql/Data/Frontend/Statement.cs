@@ -75,7 +75,7 @@ namespace PostgreSql.Data.Frontend
             _allRowsFetched  = false;
             _outParameter    = new PgParameter();
             _rowDescriptor   = new RowDescriptor();
-            _rows            = new Queue<DataRecord>(_connection.ConnectionOptions.FetchSize);
+            _rows            = new Queue<DataRecord>(_connection.FetchSize);
         }
 
         #region IDisposable Support
@@ -531,7 +531,7 @@ namespace PostgreSql.Data.Frontend
 
         private void Execute()
         {
-            Execute(_connection.ConnectionOptions.FetchSize);
+            Execute(_connection.FetchSize);
         }
 
         private void Execute(int fetchSize)

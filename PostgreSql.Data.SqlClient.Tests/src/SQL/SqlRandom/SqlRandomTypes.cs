@@ -15,26 +15,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "bytea";
-        
+
         public SqlBinaryTypeInfo()
             : base(PgDbType.Bytea)
         {
         }
 
-        public override bool CanBeSparseColumn
-        {
-            get { return false; }
-        }
+        public override bool CanBeSparseColumn => false;
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return LargeDataRowUsage;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => LargeDataRowUsage;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -60,15 +50,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return 0.125; // 8 bits => 1 byte
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "bool";
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => 0.125; // 8 bits => 1 byte
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => "bool";
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -80,7 +63,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(Boolean), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetBoolean(ordinal);
         }
@@ -209,20 +192,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
         }
 
-        public override bool CanBeSparseColumn
-        {
-            get { return false; }
-        }
-
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return LargeDataRowUsage;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        public override bool CanBeSparseColumn => false;
+        
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => LargeDataRowUsage;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -244,22 +217,15 @@ namespace PostgreSql.Data.SqlClient.Tests
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "smallint";
-        private const int    StorageSize  = 2;
+        private const int    StorageSize = 2;
 
         public SqlSmallIntTypeInfo()
             : base(PgDbType.SmallInt)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -293,15 +259,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -335,15 +294,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -355,7 +307,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(Int64), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetInt64(ordinal);
         }
@@ -369,6 +321,8 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlDecimalTypeInfo 
         : SqlRandomTypeInfo
     {
+        private const string TypeSqlName = "numeric";
+
         private int _defaultPrecision = 18;
 
         public SqlDecimalTypeInfo()
@@ -402,10 +356,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "numeric";
-        }
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
         {
@@ -422,7 +373,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(decimal), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetDecimal(ordinal);
         }
@@ -433,26 +384,54 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqFloatTypeInfo 
+    internal sealed class SqlMoneyTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeTSqlName = "money";
+        private const int    StorageSize  = 8;
+
+        public SqlMoneyTypeInfo()
+            : base(PgDbType.Money)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeTSqlName;
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextMoney();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(decimal), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetDecimal(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<decimal>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlFloatTypeInfo 
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "real";
         private const int    StorageSize = 4;
 
-        public SqFloatTypeInfo()
+        public SqlFloatTypeInfo()
             : base(PgDbType.Real)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return TypeSqlName;
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
         {
@@ -476,27 +455,63 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
         {
-            return CompareValues<Double>(expected, actual);
+            return CompareValues<float>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlDoubleTypeInfo 
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "double precision";
+        private const int    StorageSize = 8;
+
+        public SqlDoubleTypeInfo()
+            : base(PgDbType.Double)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextDouble();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(double), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetDouble(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<double>(expected, actual);
         }
     }
 
     internal sealed class SqlDateTypeInfo 
         : SqlRandomTypeInfo
     {
+        private const string TypeSqlName = "date";
+        private const int    StorageSize = 4;
+
         public SqlDateTypeInfo()
             : base(PgDbType.Date)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return 4;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "date";
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -514,107 +529,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlDateTimeTypeInfo 
-        : SqlRandomTypeInfo
-    {
-        private const int StorageSize = 8;
-        
-        public SqlDateTimeTypeInfo()
-            : base(PgDbType.Timestamp)
-        {
-        }
-
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "timestamp";
-        }
-
-        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
-        {
-            return rand.NextDateTime();
-        }
-
-        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
-        {
-            return ReadDateTime(reader, ordinal, asType);
-        }
-
-        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
-        {
-            return CompareValues<DateTime>(expected, actual);
-        }
-    }
-
-    internal sealed class SqlDateTimeOffsetTypeInfo 
-        : SqlRandomTypeInfo
-    {
-        private const int StorageSize = 8;
-        
-        public SqlDateTimeOffsetTypeInfo()
-            : base(PgDbType.TimestampTZ)
-        {
-        }
-
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "timestamp with time zone";
-        }
-
-        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
-        {
-            return CreateDefaultColumn(options);
-        }
-
-        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
-        {
-            return rand.NextDateTimeOffset();
-        }
-
-        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
-        {
-            ValidateReadType(typeof(DateTimeOffset), asType);
-            if (reader.IsDBNull(ordinal))
-            {
-                return DBNull.Value;
-            }
-            return ((PgDataReader)reader).GetDateTimeOffset(ordinal);
-        }
-
-        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
-        {
-            return CompareValues<DateTimeOffset>(expected, actual);
-        }
-    }
-
     internal sealed class SqlTimeTypeInfo 
         : SqlRandomTypeInfo
     {
-        private const int StorageSize = 8;
+        private const string TypeSqlName = "time";
+        private const int    StorageSize = 8;
 
         public SqlTimeTypeInfo()
             : base(PgDbType.Time)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "time ";
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
         {
@@ -642,25 +569,49 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTimeWithTimeZoneTypeInfo 
+    internal sealed class SqlTimestampTypeInfo 
         : SqlRandomTypeInfo
     {
-        private const int StorageSize = 12;
+        private const string TypeSqlName = "timestamp";
+        private const int    StorageSize = 8;
+
+        public SqlTimestampTypeInfo()
+            : base(PgDbType.Timestamp)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextDateTime();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            return ReadDateTime(reader, ordinal, asType);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<DateTime>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlTimeTzTypeInfo 
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "time with time zone";
+        private const int    StorageSize = 12;
         
-        public SqlTimeWithTimeZoneTypeInfo()
-            : base(PgDbType.Time)
+        public SqlTimeTzTypeInfo()
+            : base(PgDbType.TimeTZ)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "time ";
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
         {
@@ -687,26 +638,60 @@ namespace PostgreSql.Data.SqlClient.Tests
             return CompareValues<TimeSpan>(expected, actual);
         }
     }
-    
+
+    internal sealed class SqlTimestampTzTypeInfo 
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "timestamp with time zone";
+        private const int    StorageSize = 8;
+
+        public SqlTimestampTzTypeInfo()
+            : base(PgDbType.TimestampTZ)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextDateTimeOffset();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(DateTimeOffset), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return ((PgDataReader)reader).GetDateTimeOffset(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<DateTimeOffset>(expected, actual);
+        }
+    }
+
     internal sealed class SqlIntervalTypeInfo
         : SqlRandomTypeInfo
     {
-        private const int StorageSize = 16;
+        private const string TypeSqlName = "interval"; 
+        private const int    StorageSize = 16;
 
         public SqlIntervalTypeInfo()
             : base(PgDbType.Interval)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
-        {
-            return StorageSize;
-        }
-
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
-        {
-            return "interval ";
-        }
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
         {

@@ -15,7 +15,8 @@ namespace PostgreSql.Data.SqlClient.Tests
     /// <summary>
     /// Generates random values for SQL Server testing, such as DateTime and Money. Instances of this class are not thread safe!
     /// </summary>
-    public sealed class SqlRandomizer : Randomizer
+    public sealed class SqlRandomizer 
+        : Randomizer
     {
         /// <summary>
         /// default limit for allocation size
@@ -627,14 +628,14 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         #region Monetary types
 
-        // /// <summary>
-        // /// generates random MONEY value
-        // /// </summary>
-        // /// <returns></returns>
-        // public decimal NextMoney()
-        // {
-        //     return (decimal)NextDouble((double)SqlMoney.MinValue.Value, (double)SqlMoney.MaxValue.Value);
-        // }
+        /// <summary>
+        /// generates random MONEY value
+        /// </summary>
+        /// <returns></returns>
+        public decimal NextMoney()
+        {
+            return (decimal)NextDouble((double)PgMoney.MinValue.Value, (double)PgMoney.MaxValue.Value);
+        }
 
         #endregion
 

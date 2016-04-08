@@ -26,15 +26,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlBooleanTypeInfo(),
 
             // integer data types
-            new SqlBigIntTypeInfo(),
-            new SqlIntTypeInfo(),
             new SqlSmallIntTypeInfo(),
+            new SqlIntTypeInfo(),
+            new SqlBigIntTypeInfo(),
 
             // date/time types
             // new SqlDateTypeInfo(),
-            // new SqlDateTimeOffsetTypeInfo(),
             // new SqlTimeTypeInfo(),
-            // new SqlTimeWithTimeZoneTypeInfo(),
+            // new SqlTimestampTypeInfo(),
+            // new SqlTimeTzTypeInfo(),
+            // new SqlTimestampTzTypeInfo(),
             // new SqlIntervalTypeInfo(),
 
             // fixed length blobs
@@ -48,9 +49,11 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlDecimalTypeInfo(),
 
             // money types
+            new SqlMoneyTypeInfo(),
 
             // float types
-            new SqFloatTypeInfo(),
+            new SqlFloatTypeInfo(),
+            new SqlDoubleTypeInfo()
         };
 
         // reset it each time collection is modified

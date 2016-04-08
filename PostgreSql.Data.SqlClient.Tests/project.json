@@ -3,7 +3,7 @@
     "compilationOptions": {
         "emitEntryPoint": true,
         "allowUnsafe": false,
-        "warningsAsErrors" : false       
+        "warningsAsErrors" : false
     },
     "frameworks": {
         "netcoreapp1.0": {
@@ -11,7 +11,7 @@
             "dependencies": {
                 "Microsoft.NETCore.App": {
                     "type": "platform",
-                    "version": "1.0.0-rc2-23928"
+                    "version": "1.0.0-rc2-24008"
                 },
                 "Microsoft.CSharp": "4.0.1-rc2-*",
                 "System.Collections": "4.0.11-rc2-*",
@@ -42,7 +42,7 @@
                     "target"  : "project",
                     "version" : "0.0.1"
                 }
-            }            
+            }
         }
     },
     "configurations": {
