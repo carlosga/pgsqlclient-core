@@ -34,7 +34,7 @@ namespace PostgreSql.Data.Frontend
 
             if (_messageType != FrontendMessages.Untyped)
             {
-                _buffer[0] = (byte)_messageType;   
+                _buffer[0] = (byte)_messageType;
             }
         }
 
@@ -238,7 +238,9 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case PgDbType.Bytea:
-                    Write((byte[])value);
+                    var buffer = (byte[])value;
+                    Write(buffer.Length);
+                    Write(buffer);
                     break;
 
                 case PgDbType.Bool:

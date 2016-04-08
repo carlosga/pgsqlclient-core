@@ -40,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             // fixed length blobs
             // new SqlCharTypeInfo(),
-            // new SqlBinaryTypeInfo(),
+            new SqlBinaryTypeInfo(),
 
             // large blobs
             new SqlTextTypeInfo(),

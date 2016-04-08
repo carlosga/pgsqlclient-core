@@ -338,7 +338,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (!cancel)
                 {
-                    throw;   
+                    throw;
                 }
 
                 bool expected = false;
