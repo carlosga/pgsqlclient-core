@@ -433,6 +433,24 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
+        public virtual long NextInt64(long minValue, long maxValue)
+        {
+            if (minValue > maxValue)
+            {
+                throw new ArgumentOutOfRangeException("minValue > maxValue");
+            }
+
+            long range = (long)maxValue - minValue;
+            if (range <= (long)Int64.MaxValue)
+            {
+                return ((long)(Sample() * range) + minValue);
+            }
+            else
+            {
+                return (long)((long)(GetSampleForLargeRange() * range) + minValue);
+            }
+        }
+
         /*=====================================Next=====================================
         **Returns: An int [0..maxValue)
         **Arguments: maxValue -- One more than the greatest legal return value.

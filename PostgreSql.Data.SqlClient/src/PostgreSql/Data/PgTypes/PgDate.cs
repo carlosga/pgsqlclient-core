@@ -134,9 +134,13 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        internal PgDate(int days)
+        public PgDate(int days)
         {
             _days = days;
+            if (days < MinDays || days > MaxDays)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
         }
 
         //public static PgTimestamp operator -(PgDate x, TimeSpan t)

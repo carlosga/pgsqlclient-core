@@ -362,12 +362,6 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public char[] NextUnicodeArray(int minSize = 0, int? maxSize = 8000)
         {
-            // enforce max allocation size for char array
-            // if (!maxSize.HasValue || maxSize.Value > _maxDataSize)
-            // {
-            //     maxSize = _maxDataSize;
-            // }
-
             int size = maxSize.HasValue ? maxSize.Value : 1;
             char[] resArray = new char[size];
             FillUnicodeCharArray(resArray);
@@ -415,17 +409,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             int lastDigit = (int)(totalMilliseconds % 10);
             if (lastDigit < 3)
             {
-                lastDigit = 0;   
+                lastDigit = 0;
             }
             else if (lastDigit < 7)
             {
-                lastDigit = 3;   
+                lastDigit = 3;
             }
             else
             {
-                lastDigit = 7;   
+                lastDigit = 7;
             }
-
             totalMilliseconds = (totalMilliseconds / 10) * 10 + lastDigit;
             return new DateTime(totalMilliseconds * TimeSpan.TicksPerMillisecond);
         }
@@ -439,11 +432,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// generates random, but valid date value for SQL Server
+        /// generates random, but valid date value for PostgreSQL
         /// </summary>
         public PgDate NextDate()
         {
-            return (PgDate)NextDateTime(DateTime.MinValue, DateTime.MaxValue);
+            return new PgDate(NextIntInclusive(minValue: 0, maxValueInclusive: 2147483493));
         }
 
         /// <summary>
@@ -457,11 +450,28 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// generates random TIME value for SQL Server (one day clock, 100 nano second precision)
+        /// generates random TIME value for PostgreSQL 
         /// </summary>
         public TimeSpan NextTime()
         {
-            return TimeSpan.FromTicks(Math.Abs(NextBigInt()) % TimeSpan.TicksPerDay);
+            var ts = TimeSpan.FromTicks(NextBigIntInclusive(minValue: 0, maxValueInclusive: TimeSpan.TicksPerDay));
+            // round to timespan type resolution (increments of .000, .003, or .007 seconds)
+            long totalMilliseconds = ts.Ticks / TimeSpan.TicksPerMillisecond;
+            int  lastDigit         = (int)(totalMilliseconds % 10);
+            if (lastDigit < 3)
+            {
+                lastDigit = 0;
+            }
+            else if (lastDigit < 7)
+            {
+                lastDigit = 3;
+            }
+            else
+            {
+                lastDigit = 7;
+            }
+            totalMilliseconds = (totalMilliseconds / 10) * 10 + lastDigit;
+            return new TimeSpan(totalMilliseconds * TimeSpan.TicksPerMillisecond);
         }
 
         #endregion
@@ -476,7 +486,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             double res;
             if (minValue >= maxValueExclusive)
             {
-                throw new ArgumentException("minValue >= maxValueExclusive");   
+                throw new ArgumentException("minValue >= maxValueExclusive");
             }
 
             double rand01 = base.NextDouble();
@@ -547,7 +557,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (minValue == maxValueInclusive)
             {
-                return minValue;   
+                return minValue;
             }
 
             int res;
@@ -581,6 +591,39 @@ namespace PostgreSql.Data.SqlClient.Tests
             byte[] temp = new byte[8];
             base.NextBytes(temp);
             return BitConverter.ToInt64(temp, 0);
+        }
+
+        /// <summary>
+        /// generates random number in the given range, both min and max values can be in the range of returned values.
+        /// </summary>
+        public long NextBigIntInclusive(long minValue = Int64.MinValue, long maxValueInclusive = Int64.MaxValue)
+        {
+            if (minValue == maxValueInclusive)
+            {
+                return minValue;
+            }
+
+            long res;
+            if (maxValueInclusive == Int64.MaxValue)
+            {
+                if (minValue == Int64.MinValue)
+                {
+                    byte[] temp = new byte[8];
+                    base.NextBytes(temp);
+                    res = BitConverter.ToInt64(temp, 0);
+                }
+                else
+                {
+                    res = base.NextInt64(minValue - 1, maxValueInclusive) + 1;
+                }
+            }
+            else // maxValue < Int64.MaxValue
+            {
+                res = base.NextInt64(minValue, maxValueInclusive + 1);
+            }
+
+            Debug.Assert(res >= minValue && res <= maxValueInclusive);
+            return res;
         }
 
         /// <summary>

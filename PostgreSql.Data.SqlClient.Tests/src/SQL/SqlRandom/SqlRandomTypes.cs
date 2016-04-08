@@ -237,7 +237,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(short), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetInt16(ordinal);
         }
@@ -272,7 +272,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(int), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetInt32(ordinal);
         }
@@ -440,7 +440,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
-            return rand.NextReal();   
+            return rand.NextReal();
         }
 
         protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
@@ -448,7 +448,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(float), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetFloat(ordinal);
         }
@@ -555,12 +555,12 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
-            ValidateReadType(typeof(PgTime), asType);
+            ValidateReadType(typeof(TimeSpan), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
-            return ((PgDataReader)reader).GetPgTime(ordinal);
+            return reader.GetTimeSpan(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
@@ -628,9 +628,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(TimeSpan), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
-            return ((PgDataReader)reader).GetTimeSpan(ordinal);
+            return reader.GetTimeSpan(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
@@ -670,7 +670,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 return DBNull.Value;
             }
-            return ((PgDataReader)reader).GetDateTimeOffset(ordinal);
+            return reader.GetDateTimeOffset(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
@@ -708,9 +708,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(PgInterval), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
-            return (reader as PgDataReader).GetPgInterval(ordinal);
+            return reader.GetPgInterval(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)

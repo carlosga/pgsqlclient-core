@@ -120,7 +120,7 @@ namespace PostgreSql.Data.Frontend
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
         internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
         internal PgDate      ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
-        internal PgTime      ReadTime()      => new PgTime(ReadInt64());
+        internal TimeSpan    ReadTime()      => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
         internal PgTimestamp ReadTimestamp() => new PgTimestamp(ReadInt64());
         internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
 

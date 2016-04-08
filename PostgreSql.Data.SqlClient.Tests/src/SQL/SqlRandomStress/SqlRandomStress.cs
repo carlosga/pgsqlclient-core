@@ -16,10 +16,9 @@ using System;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
-    // [Ignore("Disabled")]
     public static class SqlRandomStress
     {
-        private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);        
+        private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);
         private const int ThreadCountDefault = 4;
         private const int IterationsPerTableDefault = 50;
 

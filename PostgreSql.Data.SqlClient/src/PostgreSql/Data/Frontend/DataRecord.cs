@@ -177,7 +177,6 @@ namespace PostgreSql.Data.Frontend
         internal PgByte      GetPgByte(int i)      => GetValue<PgByte>(i);
         internal PgCircle    GetPgCircle(int i)    => GetValue<PgCircle>(i);
         internal PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
-        internal PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
         internal PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
         internal PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
         internal PgDecimal   GetPgNumeric(int i)   => GetValue<PgDecimal>(i);

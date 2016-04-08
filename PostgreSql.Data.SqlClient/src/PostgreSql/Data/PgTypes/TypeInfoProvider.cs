@@ -91,13 +91,13 @@ namespace PostgreSql.Data.PgTypes
 
             // time [ (p) ] [ without time zone ] | 8 bytes | time of day (no date) | 00:00:00 | 24:00:00 | 1 microsecond / 14 digits
 
-            types[1083] = new TypeInfo(1083, "time"  , "time" , PgDbType.Time , TypeFormat.Binary, typeof(TimeSpan), typeof(PgTime), 8);
-            types[1183] = new TypeInfo(1183, "time[]", "_time", PgDbType.Array, types[1083], typeof(TimeSpan[]), typeof(PgTime[]));
+            types[1083] = new TypeInfo(1083, "time"  , "time" , PgDbType.Time , TypeFormat.Binary, typeof(TimeSpan), typeof(TimeSpan), 8);
+            types[1183] = new TypeInfo(1183, "time[]", "_time", PgDbType.Array, types[1083], typeof(TimeSpan[]), typeof(TimeSpan[]));
             
             // time [ (p) ] with time zone | 12 bytes | times of day only, with time zone | 00:00:00+1459 | 24:00:00-1459 | 1 microsecond / 14 digits
 
-            types[1266] = new TypeInfo(1266, "timetz"  , "timetz" , PgDbType.TimeTZ, TypeFormat.Binary, typeof(DateTimeOffset), typeof(PgTime), 12);
-            types[1270] = new TypeInfo(1270, "timetz[]", "_timetz", PgDbType.Array , types[1266], typeof(DateTimeOffset[]), typeof(PgTime));
+            types[1266] = new TypeInfo(1266, "timetz"  , "timetz" , PgDbType.TimeTZ, TypeFormat.Binary, typeof(DateTimeOffset), typeof(TimeSpan), 12);
+            types[1270] = new TypeInfo(1270, "timetz[]", "_timetz", PgDbType.Array , types[1266], typeof(DateTimeOffset[]), typeof(TimeSpan));
 
             // interval [ fields ] [ (p) ] | 16 bytes | time interval | -178000000 years | 178000000 years | 1 microsecond / 14 digits
 

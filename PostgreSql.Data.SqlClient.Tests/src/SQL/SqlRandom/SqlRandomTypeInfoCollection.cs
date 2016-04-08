@@ -31,8 +31,8 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlBigIntTypeInfo(),
 
             // date/time types
-            // new SqlDateTypeInfo(),
-            // new SqlTimeTypeInfo(),
+            new SqlDateTypeInfo(),
+            new SqlTimeTypeInfo(),
             // new SqlTimestampTypeInfo(),
             // new SqlTimeTzTypeInfo(),
             // new SqlTimestampTzTypeInfo(),
