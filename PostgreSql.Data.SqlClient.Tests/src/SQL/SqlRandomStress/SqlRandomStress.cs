@@ -278,7 +278,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                     }
                     if (cancel)
                     {
-                        cmd.Cancel();
+#warning TODO: Enable when command cancelation gets implemented 
+                        // cmd.Cancel();
                     }
                 });
             }

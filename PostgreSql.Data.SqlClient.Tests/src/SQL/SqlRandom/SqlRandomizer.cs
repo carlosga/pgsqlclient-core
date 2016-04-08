@@ -327,39 +327,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public void FillUnicodeCharArray(char[] result)
         {
-            // if (result == null)
-            // {
-            //     throw new ArgumentNullException("result");   
-            // }
-
-            // if (result.Length == 0)
-            // {
-            //     return;   
-            // }
-
-            // // generate the first chunk of the array with true random values
-            // int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
-            // for (int i = 0; i < trueRandomCount; i++)            
-            // {
-            //     result[i] = (char)NextIntInclusive(0, maxValueInclusive: 0xD800 - 1); // do not include surrogates   
-            // }
-
-            // Repeat(result, trueRandomCount);
             if (result == null)
             {
-                throw new ArgumentNullException("result");   
+                throw new ArgumentNullException("result");
             }
 
             if (result.Length == 0)
             {
                 return;
-            }                
+            }
 
             // generate the first chunk of the array with true random values
             int trueRandomCount = base.Next(1, Math.Min(result.Length, RepeatThreshold));
             for (int i = 0; i < trueRandomCount; i++)
             {
-                result[i] = (char)NextIntInclusive(0x0020, maxValueInclusive: 0xFFFF);                
+                result[i] = (char)NextIntInclusive(0x0020, maxValueInclusive: 0xFFFF);
             }
             Repeat(result, trueRandomCount);
         }
@@ -378,18 +360,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// generates random unicode array with high probability of small-size arrays. The result does not include surrogate pairs or characters.
         /// </summary>
-        public char[] NextUnicodeArray(int minSize = 0, int? maxSize = null)
+        public char[] NextUnicodeArray(int minSize = 0, int? maxSize = 8000)
         {
             // enforce max allocation size for char array
-            if (!maxSize.HasValue || maxSize.Value > _maxDataSize)
-            {
-                maxSize = _maxDataSize;   
-            }
+            // if (!maxSize.HasValue || maxSize.Value > _maxDataSize)
+            // {
+            //     maxSize = _maxDataSize;
+            // }
 
             int size = maxSize.HasValue ? maxSize.Value : 1;
             char[] resArray = new char[size];
             FillUnicodeCharArray(resArray);
-            return resArray;
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(resArray);
+            return System.Text.Encoding.UTF8.GetString(buffer).ToCharArray();
         }
 
         /// <summary>

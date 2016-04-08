@@ -1,22 +1,22 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": ".NET Core Launch (console)",
-			"type": "coreclr",
-			"request": "launch",
-			"preLaunchTask": "build",
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
             "justMyCode": false,
-			"program": "${workspaceRoot}/bin/Debug/netstandardapp1.5/ubuntu.14.04-x64/PostgreSql.Data.PostgreSqlClient.Tests",
-			"args": [],
-			"cwd": "${workspaceRoot}",
-			"stopAtEntry": true
-		},
-		{
-			"name": ".NET Core Attach",
-			"type": "coreclr",
-			"request": "attach",
-			"processName": "<example>"
-		}
-	]
+            "program": "${workspaceRoot}/bin/Debug/netcoreapp1.0/ubuntu.14.04-x64/PostgreSql.Data.SqlClient.Tests",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "stopAtEntry": true
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processName": "<example>"
+        }
+    ]
 }
