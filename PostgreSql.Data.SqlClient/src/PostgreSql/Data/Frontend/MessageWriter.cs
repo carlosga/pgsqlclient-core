@@ -238,9 +238,7 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case PgDbType.Bytea:
-                    var buffer = (byte[])value;
-                    Write(buffer.Length);
-                    Write(buffer);
+                    WriteBufferInternal((byte[])value);
                     break;
 
                 case PgDbType.Bool:
@@ -350,15 +348,11 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case PgDbType.Polygon:
-                    var polygon = (PgPolygon)value;
-                    Write(polygon.SizeInBytes);
-                    Write(polygon);
+                    WritePolygonInternal((PgPolygon)value);
                     break;
 
                 case PgDbType.Path:
-                    var path = (PgPath)value;
-                    Write(path.SizeInBytes);
-                    Write(path);
+                    WritePathInternal((PgPath)value);
                     break;
             }
         }
@@ -496,21 +490,48 @@ namespace PostgreSql.Data.Frontend
 
             return _position;
         }
-        
+
+        private void WriteBufferInternal(byte[] buffer)
+        {
+            EnsureCapacity(buffer.Length + 4);
+            Write(buffer.Length);
+            Write(buffer);
+        }
+
         private void WriteStringInternal(object value)
         {
-            if (value is string)
+            var str = value as string;
+            if (str != null)
             {
-                Write((string)value);
-            }
-            else if (value is char[])
-            {
-                Write((char[])value);
+                Write(str);
             }
             else
             {
-                Write(Convert.ToString(value));   
+                var chars = value as char[];
+                if (chars != null)
+                {
+                    Write(chars);
+                }
+                else
+                {
+                    Write(Convert.ToString(value));
+                }
             }
+        }
+
+        private void WritePathInternal(PgPath path)
+        {
+            int sizeInBytes = (16 * path.Points.Length) + 5;
+            Write(sizeInBytes);
+            Write(path);
+        }
+
+        private void WritePolygonInternal(PgPolygon polygon)
+        {
+            int sizeInBytes = (16 * polygon.Points.Length) + 4;
+            EnsureCapacity(sizeInBytes + 4);
+            Write(sizeInBytes);
+            Write(polygon);
         }
     }
 }

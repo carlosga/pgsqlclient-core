@@ -20,19 +20,6 @@ namespace PostgreSql.Data.PgTypes
 
         public bool IsNull => !_isNotNull;
 
-        internal int SizeInBytes
-        {
-            get
-            {
-                if (IsNull)
-                {
-                    throw new PgNullValueException();
-                }
-                // (typeInfo.Size * polygon.Points.Length) + 4)
-                return (int)(40 + (16 * _points.Length));
-            }
-        }
-
         public PgPoint[] Points
         {
             get
@@ -54,7 +41,7 @@ namespace PostgreSql.Data.PgTypes
         public PgPolygon(PgPoint[] points)
         {
             _isNotNull = true;
-            _points    = (PgPoint[])points.Clone();
+            _points    = points;
         }
 
         public static bool operator ==(PgPolygon left, PgPolygon right)

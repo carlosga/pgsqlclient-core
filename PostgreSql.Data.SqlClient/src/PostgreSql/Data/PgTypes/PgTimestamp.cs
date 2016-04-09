@@ -157,6 +157,16 @@ namespace PostgreSql.Data.PgTypes
             return new PgDate(x._value.Date);
         }
 
+        public static explicit operator PgTime(PgTimestamp x)
+        {
+            if (x.IsNull)
+            {
+                throw new PgNullValueException();
+            }
+
+            return new PgTime(x._value.TimeOfDay);
+        }
+
         public static explicit operator TimeSpan(PgTimestamp x)
         {
             if (x.IsNull)

@@ -25,6 +25,10 @@ https://github.com/aspnet/Configuration/
 
     - Check how it works when using several parametrized queries.
 
+- Geometric types operators:
+
+http://www.postgresql.org/docs/8.2/static/functions-geometry.html
+
 ## TO BE DONE
 
 - Complext types support & unit tests.

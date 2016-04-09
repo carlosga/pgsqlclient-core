@@ -717,5 +717,285 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             return CompareValues<TimeSpan>(expected, actual);
         }
-    }    
+    }
+
+    internal sealed class SqlPointTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "point"; 
+        private const int    StorageSize = 16;
+
+        public SqlPointTypeInfo()
+            : base(PgDbType.Point)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextPoint();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgPoint), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgPoint(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgPoint>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlBoxTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "box"; 
+        private const int    StorageSize = 32;
+
+        public SqlBoxTypeInfo()
+            : base(PgDbType.Box)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextBox();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgBox), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgBox(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgBox>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlCircleTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "circle"; 
+        private const int    StorageSize = 24;
+
+        public SqlCircleTypeInfo()
+            : base(PgDbType.Circle)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextCircle();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgCircle), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgCircle(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgCircle>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlLineTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "line"; 
+        private const int    StorageSize = 32;
+
+        public SqlLineTypeInfo()
+            : base(PgDbType.Line)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextLine();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgLine), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgBox(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgLine>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlLSegTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "lseg";
+        private const int    StorageSize = 32;
+
+        public SqlLSegTypeInfo()
+            : base(PgDbType.LSeg)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextLSeg();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgLSeg), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgLSeg(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgLSeg>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlPathTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "path";
+        private const int    StorageSize = -1;
+
+        public SqlPathTypeInfo()
+            : base(PgDbType.Path)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextOpenPath();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgPath), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgPath(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgPath>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlPolygonTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "polygon";
+        private const int    StorageSize = -1;
+
+        public SqlPolygonTypeInfo()
+            : base(PgDbType.Polygon)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        public override SqlRandomTableColumn CreateRandomColumn(SqlRandomizer rand, SqlRandomColumnOptions options)
+        {
+            return CreateDefaultColumn(options);
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextPolygon();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PgPolygon), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetPgPolygon(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PgPolygon>(expected, actual);
+        }
+    }
 }

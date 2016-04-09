@@ -19,20 +19,7 @@ namespace PostgreSql.Data.PgTypes
         private readonly PgPoint[] _points;
         private readonly bool      _isClosedPath;
 
-        public bool IsNull => _isNotNull;
-
-        internal int SizeInBytes
-        {
-            get
-            {
-                if (IsNull)
-                {
-                    throw new PgNullValueException();
-                }
-                // ((typeInfo.Size * path.Points.Length) + 5))
-                return (int)(16 + (16 * _points.Length));
-            }
-        } 
+        public bool IsNull => !_isNotNull;
 
         public PgPoint[] Points
         {
@@ -65,10 +52,10 @@ namespace PostgreSql.Data.PgTypes
             _isClosedPath = false;
         }
 
-        public PgPath(bool isClosedPath, PgPoint[] points)
+        public PgPath(PgPoint[] points, bool isClosedPath = false)
         {
             _isNotNull    = true;
-            _points       = (PgPoint[])points.Clone();
+            _points       = points;
             _isClosedPath = isClosedPath;
         }
 

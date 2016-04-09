@@ -143,14 +143,7 @@ namespace PostgreSql.Data.Frontend
         internal PgCircle ReadCircle() => new PgCircle(ReadPoint(), ReadDouble());
         internal PgLine   ReadLine()   => new PgLine(ReadPoint(), ReadPoint());
         internal PgLSeg   ReadLSeg()   => new PgLSeg(ReadPoint(), ReadPoint());
-
-        internal PgBox ReadBox()
-        {
-            PgPoint upperRight = ReadPoint();
-            PgPoint lowerLeft  = ReadPoint();
-
-            return new PgBox(lowerLeft, upperRight);
-        }
+        internal PgBox    ReadBox()    => new PgBox(ReadPoint(), ReadPoint());
 
         internal PgPolygon ReadPolygon()
         {
@@ -174,7 +167,7 @@ namespace PostgreSql.Data.Frontend
                 points[i] = ReadPoint();
             }
 
-            return new PgPath(isClosedPath, points);
+            return new PgPath(points, isClosedPath);
         }
 
         internal object ReadValue(FieldDescriptor descriptor, int length)

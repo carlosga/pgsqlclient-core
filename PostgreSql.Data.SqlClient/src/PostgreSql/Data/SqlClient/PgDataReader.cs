@@ -299,6 +299,7 @@ namespace PostgreSql.Data.SqlClient
         public PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
         public PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
         public PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
+        public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
         public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
         public PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
         public PgLine      GetPgLine(int i)      => GetValue<PgLine>(i);

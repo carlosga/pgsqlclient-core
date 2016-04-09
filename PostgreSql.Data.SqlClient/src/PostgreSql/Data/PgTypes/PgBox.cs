@@ -18,7 +18,7 @@ namespace PostgreSql.Data.PgTypes
         private readonly bool    _isNotNull;
         private readonly PgPoint _upperRight;
         private readonly PgPoint _lowerLeft;
-        
+
         public bool IsNull => !_isNotNull;
 
         public PgPoint UpperRight
@@ -52,36 +52,42 @@ namespace PostgreSql.Data.PgTypes
             _upperRight = PgPoint.Null;
         }
 
-        public PgBox(PgPoint lowerLeft, PgPoint upperRight)
-        {
-            _isNotNull  = false;
-            _lowerLeft  = lowerLeft;
-            _upperRight = upperRight;
-        }
-
         public PgBox(double x1, double y1, double x2, double y2)
+            : this(new PgPoint(x1, y1), new PgPoint(x2, y2))
         {
-            _isNotNull  = false;
-            _lowerLeft  = new PgPoint(x1, y1);
-            _upperRight = new PgPoint(x2, y2);
         }
 
-        public static PgBoolean operator ==(PgBox left, PgBox right)
+        public PgBox(PgPoint p1, PgPoint p2)
         {
-            if (left.IsNull || right.IsNull)
+            if (p1.IsNull || p2.IsNull)
+            {
+                throw new PgNullValueException();
+            }
+            _isNotNull = true;
+            if (p1.X > p2.X && p1.Y < p2.Y)
+            {
+                _upperRight = p1;
+                _lowerLeft  = p2;
+            }
+            else
+            {
+                _upperRight = p2;
+                _lowerLeft  = p1;
+            }
+        }
+
+        public static PgBoolean operator ==(PgBox x, PgBox y)
+        {
+            if (x.IsNull || y.IsNull)
             {
                 return PgBoolean.Null;
             }
-            return (left.UpperRight == right.UpperRight && left.LowerLeft == right.LowerLeft);
+            return (x.UpperRight == y.UpperRight && x.LowerLeft == y.LowerLeft);
         }
 
-        public static PgBoolean operator !=(PgBox left, PgBox right)
+        public static PgBoolean operator !=(PgBox x, PgBox y)
         {
-            if (left.IsNull || right.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (left.UpperRight != right.UpperRight || left.LowerLeft != right.LowerLeft);
+            return !(x == y);
         }
 
         public PgString ToPgString()
@@ -97,10 +103,10 @@ namespace PostgreSql.Data.PgTypes
             }
             return String.Format(PgTypeInfoProvider.InvariantCulture
                                , "(({0},{1}),({2},{3}))"
-                               , _lowerLeft.X
-                               , _lowerLeft.Y
                                , _upperRight.X
-                               , _upperRight.Y);
+                               , _upperRight.Y
+                               , _lowerLeft.X
+                               , _lowerLeft.Y);
         }
 
         public override int GetHashCode()

@@ -665,6 +665,86 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         #endregion
 
+        #region Geometric Types
+
+        /// <summary>
+        /// generates random POINT value
+        /// </summary>
+        /// <returns></returns>
+        public PgPoint NextPoint()
+        {
+            return new PgPoint(NextDouble(Double.MinValue, Double.MaxValue)
+                             , NextDouble(Double.MinValue, Double.MaxValue));
+        }
+
+        /// <summary>
+        /// generates random BOX value
+        /// </summary>
+        /// <returns></returns>
+        public PgBox NextBox()
+        {
+            return new PgBox(NextPoint(), NextPoint());
+        }
+
+        /// <summary>
+        /// generates random Circle value
+        /// </summary>
+        /// <returns></returns>
+        public PgCircle NextCircle()
+        {
+            return new PgCircle(NextPoint(), NextDouble());
+        }
+
+        /// <summary>
+        /// generates random LINE value
+        /// </summary>
+        /// <returns></returns>
+        public PgLine NextLine()
+        {
+            return new PgLine(NextPoint(), NextPoint());
+        }
+
+        /// <summary>
+        /// generates random LSEG value
+        /// </summary>
+        /// <returns></returns>
+        public PgLSeg NextLSeg()
+        {
+            return new PgLSeg(NextPoint(), NextPoint());
+        }
+
+        /// <summary>
+        /// generates random Open PATH value
+        /// </summary>
+        /// <returns></returns>
+        public PgPath NextOpenPath()
+        {
+            int count  = NextIntInclusive(minValue: 2, maxValueInclusive: 100) * 2;
+            var points = new PgPoint[count];
+            for (int i = 0; i < count; i++)
+            {
+                points[i] = NextPoint();
+            }
+            return new PgPath(points);
+        }
+
+        /// <summary>
+        /// generates random POLYGON value
+        /// </summary>
+        /// <returns></returns>
+        public PgPolygon NextPolygon()
+        {
+            int count  = NextIntInclusive(minValue: 2, maxValueInclusive: 100) * 2;
+            var points = new PgPoint[count];
+            for (int i = 0; i < count; i++)
+            {
+                points[i] = NextPoint();
+            }
+            return new PgPolygon(points);
+        }
+
+        #endregion
+
         #region helper methods to create random SQL object names
 
         /// <summary>

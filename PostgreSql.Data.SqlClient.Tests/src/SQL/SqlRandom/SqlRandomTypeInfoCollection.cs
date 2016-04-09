@@ -53,7 +53,15 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             // float types
             new SqlFloatTypeInfo(),
-            new SqlDoubleTypeInfo()
+            new SqlDoubleTypeInfo(),
+
+            // Geometric types
+            new SqlPointTypeInfo(),
+            // new SqlBoxTypeInfo(),
+            new SqlCircleTypeInfo(),
+            // new SqlLineTypeInfo(),
+            new SqlLSegTypeInfo(),
+            new SqlPathTypeInfo()
         };
 
         // reset it each time collection is modified

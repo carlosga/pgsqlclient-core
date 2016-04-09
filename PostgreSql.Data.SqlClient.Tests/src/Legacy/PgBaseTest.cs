@@ -329,7 +329,7 @@ namespace PostgreSql.Data.SqlClient.UnitTests
                         command.Parameters["@box"].Value = new PgBox(new PgPoint(0, i), new PgPoint(i, i));
                         command.Parameters["@circle"].Value = new PgCircle(new PgPoint(i, 0), i);
                         command.Parameters["@lseg"].Value = new PgLSeg(new PgPoint(-1, 0), new PgPoint(1, 0));
-                        command.Parameters["@path"].Value = new PgPath(false, new PgPoint[] { new PgPoint(0, 0), new PgPoint(1, 0) });
+                        command.Parameters["@path"].Value = new PgPath(new PgPoint[] { new PgPoint(0, 0), new PgPoint(1, 0) });
                         command.Parameters["@polygon"].Value = new PgPolygon(new PgPoint[] { new PgPoint(1, 1), new PgPoint(0, 0) });
 
                         command.ExecuteNonQuery();

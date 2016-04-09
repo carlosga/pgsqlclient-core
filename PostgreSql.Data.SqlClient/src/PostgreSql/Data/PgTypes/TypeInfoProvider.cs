@@ -91,8 +91,8 @@ namespace PostgreSql.Data.PgTypes
 
             // time [ (p) ] [ without time zone ] | 8 bytes | time of day (no date) | 00:00:00 | 24:00:00 | 1 microsecond / 14 digits
 
-            types[1083] = new TypeInfo(1083, "time"  , "time" , PgDbType.Time , TypeFormat.Binary, typeof(TimeSpan), typeof(TimeSpan), 8);
-            types[1183] = new TypeInfo(1183, "time[]", "_time", PgDbType.Array, types[1083], typeof(TimeSpan[]), typeof(TimeSpan[]));
+            types[1083] = new TypeInfo(1083, "time"  , "time" , PgDbType.Time , TypeFormat.Binary, typeof(TimeSpan), typeof(PgTime), 8);
+            types[1183] = new TypeInfo(1183, "time[]", "_time", PgDbType.Array, types[1083], typeof(TimeSpan[]), typeof(PgTime[]));
             
             // time [ (p) ] with time zone | 12 bytes | times of day only, with time zone | 00:00:00+1459 | 24:00:00-1459 | 1 microsecond / 14 digits
 
@@ -177,7 +177,7 @@ namespace PostgreSql.Data.PgTypes
             types[1018] = new TypeInfo(1018, "lseg[]", "_lseg", PgDbType.Array, types[601], typeof(PgLSeg[]), typeof(PgLSeg[]));
 
             // box | 32 bytes | Rectangular box | ((x1,y1),(x2,y2))
-            
+
             types[ 603] = new TypeInfo( 603, "box"  , "box" , PgDbType.Box  , types[600], TypeFormat.Binary, typeof(PgBox), typeof(PgBox[]), 32);
             types[1020] = new TypeInfo(1020, "box[]", "_box", PgDbType.Array, types[603], typeof(PgBox[]), typeof(PgBox[]));
 
