@@ -123,7 +123,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             return _columnNames[c];
         }
 
-        public string GetColumnTSqlType(int c)
+        public string GetColumnSqlType(int c)
         {
             return _columns[c].GetSqlTypeDefinition();
         }
@@ -224,7 +224,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public string GenerateCreateTableTSql(string tableName)
+        public string GenerateCreateTableSql(string tableName)
         {
             StringBuilder tsql = new StringBuilder();
 
@@ -237,7 +237,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     tsql.Append(", ");   
                 }
 
-                tsql.AppendFormat("{0} {1}", GetColumnName(c), GetColumnTSqlType(c));
+                tsql.AppendFormat("{0} {1}", GetColumnName(c), GetColumnSqlType(c));
                 if (IsPrimaryKey(c))
                 {
                     tsql.Append(" PRIMARY KEY");
@@ -343,7 +343,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             PgCommand cmd = con.CreateCommand();
             
             cmd.CommandType = CommandType.Text;
-            cmd.CommandText = GenerateCreateTableTSql(tableName);
+            cmd.CommandText = GenerateCreateTableSql(tableName);
             
             try
             {
@@ -528,7 +528,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// generates SELECT statement; if columnIndicies is null the statement will include all the columns
         /// </summary>
-        public int GenerateSelectFromTableTSql(string tableName, StringBuilder selectBuilder, int[] columnIndicies = null, int indiciesOffset = -1, int indiciesCount = -1)
+        public int GenerateSelectFromTableSql(string tableName, StringBuilder selectBuilder, int[] columnIndicies = null, int indiciesOffset = -1, int indiciesCount = -1)
         {
             if (tableName == null || selectBuilder == null)
             {

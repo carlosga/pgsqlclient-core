@@ -400,7 +400,7 @@ namespace PostgreSql.Data.Frontend
             // Write lengths and lower bounds
             for (int i = 0; i < array.Rank; ++i)
             {
-                Write(array.GetUpperBound(i) + 1);
+                Write(array.GetLength(i));
                 Write(array.GetLowerBound(i) + 1);
             }
 
@@ -417,6 +417,49 @@ namespace PostgreSql.Data.Frontend
             Seek(startPosition);
             Write(endPosition - startPosition - 4);
             Seek(endPosition);
+        }
+
+        private void WriteBufferInternal(byte[] buffer)
+        {
+            EnsureCapacity(buffer.Length + 4);
+            Write(buffer.Length);
+            Write(buffer);
+        }
+
+        private void WriteStringInternal(object value)
+        {
+            var str = value as string;
+            if (str != null)
+            {
+                Write(str);
+            }
+            else
+            {
+                var chars = value as char[];
+                if (chars != null)
+                {
+                    Write(chars);
+                }
+                else
+                {
+                    Write(Convert.ToString(value));
+                }
+            }
+        }
+
+        private void WritePathInternal(PgPath path)
+        {
+            int sizeInBytes = (16 * path.Points.Length) + 5;
+            Write(sizeInBytes);
+            Write(path);
+        }
+
+        private void WritePolygonInternal(PgPolygon polygon)
+        {
+            int sizeInBytes = (16 * polygon.Points.Length) + 4;
+            EnsureCapacity(sizeInBytes + 4);
+            Write(sizeInBytes);
+            Write(polygon);
         }
 
         /// FoundationDB client (BSD License)
@@ -492,49 +535,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             return _position;
-        }
-
-        private void WriteBufferInternal(byte[] buffer)
-        {
-            EnsureCapacity(buffer.Length + 4);
-            Write(buffer.Length);
-            Write(buffer);
-        }
-
-        private void WriteStringInternal(object value)
-        {
-            var str = value as string;
-            if (str != null)
-            {
-                Write(str);
-            }
-            else
-            {
-                var chars = value as char[];
-                if (chars != null)
-                {
-                    Write(chars);
-                }
-                else
-                {
-                    Write(Convert.ToString(value));
-                }
-            }
-        }
-
-        private void WritePathInternal(PgPath path)
-        {
-            int sizeInBytes = (16 * path.Points.Length) + 5;
-            Write(sizeInBytes);
-            Write(path);
-        }
-
-        private void WritePolygonInternal(PgPolygon polygon)
-        {
-            int sizeInBytes = (16 * polygon.Points.Length) + 4;
-            EnsureCapacity(sizeInBytes + 4);
-            Write(sizeInBytes);
-            Write(polygon);
         }
     }
 }

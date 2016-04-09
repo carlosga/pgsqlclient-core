@@ -25,16 +25,12 @@ https://github.com/aspnet/Configuration/
 
     - Check how it works when using several parametrized queries.
 
-- Geometric types operators:
-
-http://www.postgresql.org/docs/8.2/static/functions-geometry.html
 
 ## TO BE DONE
 
 - Complext types support & unit tests.
 - COPY support & unit tests.
 - Custom struct types for postgresql types ?? ( PgDecimal, PgString, PgBinary, PgDateTime, PgTimestamp, ... )
-- Query cancellation.
 - Provider statistics ( SqlClient reference https://msdn.microsoft.com/en-us/library/7h2ahss8(v=vs.110).aspx )
 - Look at the missing authentication methods and see if they can be implemented.
   SSPI auth ??. If it gets implemented implement a new Authentication connection string parameter.
@@ -52,6 +48,8 @@ http://www.postgresql.org/docs/8.2/static/functions-geometry.html
 - Async support ??.
   (https://msdn.microsoft.com/es-es/library/system.data.sqlclient.sqlconnectionstringbuilder.authentication(v=vs.110).aspx)
 - Thread safety ??.
+- Connection runtime configuration. http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
+- Geometric types operators. http://www.postgresql.org/docs/8.2/static/functions-geometry.html
 
 ## DONE
 
@@ -60,13 +58,14 @@ http://www.postgresql.org/docs/8.2/static/functions-geometry.html
     - search_path.
     - fetch size.
     - MultipleActiveResultSets.
-- Renamed connection string options:    
+- Renamed connection string options:
     - ssl -> Encrypt.
 - Wire up SSL support ( TLS 1.2 only if possible ).
 - Merge PgStatement Parse & Describe in one single step, sending both packets in a single roundtrip.
 - Merge PgStatement Bind & Execute in one single step, sending both packets in a single roundtrip.
 - Implement IDbColumnSchemaGenerator on PgDataReader.
-    
+- Query cancellation.
+
 ## 50.2.7. Canceling Requests in Progress
 
 During the processing of a query, the frontend might request cancellation of the query. The cancel request is not sent directly on the open connection 

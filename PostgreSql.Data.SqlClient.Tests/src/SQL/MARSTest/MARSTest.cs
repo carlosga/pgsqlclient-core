@@ -20,7 +20,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
 #if DEBUG
         [Test]
-        [Ignore("Enabled when async support available")]
+        [Ignore("Enable when async support available")]
         public static void MARSAsyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
@@ -48,7 +48,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Test]
-        [Ignore("Enabled when command timeouts are available")]
+        [Ignore("Enable when command timeouts are available")]
         public static void MARSSyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))

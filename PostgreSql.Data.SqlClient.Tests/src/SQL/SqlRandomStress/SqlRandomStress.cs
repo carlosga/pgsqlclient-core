@@ -164,7 +164,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (Interlocked.Decrement(ref _runningThreads) == 0)
                 {
-                    _endEvent.Set();   
+                    _endEvent.Set();
                 }
             }
         }
@@ -175,7 +175,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                                   , Stopwatch                           watch)
         {
             Exception pendingException = null;
-            string tempTableName = null;
+            string    tempTableName    = null;
 
             try
             {
@@ -253,7 +253,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             int   selectedCount  = rand.NextIntInclusive(1, maxValueInclusive: columnCount);
 
             StringBuilder selectBuilder = new StringBuilder();
-            table.GenerateSelectFromTableTSql(tableName, selectBuilder, columnIndicies, 0, selectedCount);
+            table.GenerateSelectFromTableSql(tableName, selectBuilder, columnIndicies, 0, selectedCount);
             PgCommand cmd = con.CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = selectBuilder.ToString();
@@ -277,8 +277,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     }
                     if (cancel)
                     {
-#warning TODO: Enable when command cancelation gets implemented 
-                        // cmd.Cancel();
+                        cmd.Cancel();
                     }
                 });
             }

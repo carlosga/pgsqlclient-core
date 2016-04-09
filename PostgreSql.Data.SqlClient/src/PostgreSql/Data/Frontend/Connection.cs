@@ -32,7 +32,7 @@ namespace PostgreSql.Data.Frontend
         private ConnectionOptions _connectionOptions;
         private TransactionStatus _transactionStatus;
         private SessionData       _sessionData;
-        private int               _handle;
+        private int               _processId;
         private int               _secretKey;
         private bool              _open;
 
@@ -73,12 +73,17 @@ namespace PostgreSql.Data.Frontend
         internal bool              Pooling                  => (_connectionOptions?.Pooling ?? false);
         internal bool              Encrypt                  => (_connectionOptions?.Encrypt ?? false);
 
-        private SemaphoreSlim _asyncActiveSemaphore;
-        internal SemaphoreSlim LazyEnsureAsyncActiveSemaphoreInitialized()
+        private SemaphoreSlim _activeSemaphore;
+        private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
         {
             // Lazily-initialize _asyncActiveSemaphore.  As we're never accessing the SemaphoreSlim's
             // WaitHandle, we don't need to worry about Disposing it.
-            return LazyInitializer.EnsureInitialized(ref _asyncActiveSemaphore, () => new SemaphoreSlim(1, 1));
+            return LazyInitializer.EnsureInitialized(ref _activeSemaphore, () => new SemaphoreSlim(1, 1));
+        }
+        private SemaphoreSlim _cancelRequestSemaphore;
+        private SemaphoreSlim LazyEnsureCancelRequestSemaphoreInitialized()
+        {
+            return LazyInitializer.EnsureInitialized(ref _cancelRequestSemaphore, () => new SemaphoreSlim(1, 1));
         }
 
         internal Connection(ConnectionOptions connectionOptions)
@@ -125,13 +130,13 @@ namespace PostgreSql.Data.Frontend
 
         internal void Lock()
         {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
+            SemaphoreSlim sem = LazyEnsureActiveSemaphoreInitialized();
             sem.Wait();
         }
 
         internal void ReleaseLock()
         {
-            SemaphoreSlim sem = LazyEnsureAsyncActiveSemaphoreInitialized();
+            SemaphoreSlim sem = LazyEnsureActiveSemaphoreInitialized();
             sem.Release();
         }
 
@@ -168,21 +173,35 @@ namespace PostgreSql.Data.Frontend
             }
             finally
             {
-                _connectionOptions = null;
-                _sessionData       = null;
-                _transactionStatus = TransactionStatus.Default;
-                _handle            = -1;
-                _secretKey         = -1;
-                _transport           = null;
-                _open              = false;
+
+                ReleaseLock();
+
+                if (_activeSemaphore != null)
+                {
+                    _activeSemaphore.Dispose();
+                    _activeSemaphore = null;
+                }
+                if (_cancelRequestSemaphore != null)
+                {
+                    _cancelRequestSemaphore.Dispose();
+                    _cancelRequestSemaphore = null;
+                }
+
+                _connectionOptions      = null;
+                _sessionData            = null;
+                _transactionStatus      = TransactionStatus.Default;
+                _processId              = -1;
+                _secretKey              = -1;
+                _transport              = null;
+                _open                   = false;
+                _activeSemaphore        = null;
+                _cancelRequestSemaphore = null;
 
                 // Callback cleanup
                 InfoMessage               = null;
                 Notification              = null;
                 UserCertificateValidation = null;
                 UserCertificateSelection  = null;
-
-                ReleaseLock();
             }
         }
 
@@ -238,13 +257,45 @@ namespace PostgreSql.Data.Frontend
 
         internal void CancelRequest()
         {
-            var message = CreateMessage(FrontendMessages.Untyped);
+            SemaphoreSlim activeSem = LazyEnsureActiveSemaphoreInitialized();
+            if (activeSem.CurrentCount == 0)
+            {
+                // No pending requests
+                return;
+            }
+            SemaphoreSlim cancelSem = LazyEnsureCancelRequestSemaphoreInitialized();
+            if (cancelSem.CurrentCount == 1)
+            {
+                // A cancelation request is already in progress
+                return;
+            }
 
-            message.Write(CancelRequestCode);
-            message.Write(_handle);
-            message.Write(_secretKey);
+            Connection connection = null;
 
-            _transport.WriteMessage(message);
+            try
+            {
+                cancelSem.Wait();
+
+                connection = new Connection(_connectionOptions);
+                connection.Open();
+
+                var message = connection.CreateMessage(FrontendMessages.Untyped);
+
+                message.Write(CancelRequestCode);
+                message.Write(_processId);
+                message.Write(_secretKey);
+
+                connection.Send(message);
+            }
+            finally
+            {
+                if (connection != null)
+                {
+                    connection.Dispose();
+                }
+
+                cancelSem.Release();
+            }
         }
 
         internal MessageWriter CreateMessage(char type) => new MessageWriter(type, _sessionData);
@@ -316,6 +367,8 @@ namespace PostgreSql.Data.Frontend
         {
             // Send Startup message
             var message = CreateMessage(FrontendMessages.Untyped);
+
+            // http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
 
             // user name
             message.Write(ProtocolVersion3);
@@ -391,7 +444,7 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case BackendMessages.BackendKeyData:
-                    _handle    = message.ReadInt32();
+                    _processId = message.ReadInt32();
                     _secretKey = message.ReadInt32();
                     break;
 

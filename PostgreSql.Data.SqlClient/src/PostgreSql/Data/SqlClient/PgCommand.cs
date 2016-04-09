@@ -215,7 +215,10 @@ namespace PostgreSql.Data.SqlClient
         
         public override void Cancel()
         {
-            throw new NotSupportedException();
+            if (_statement != null && _statement.IsRunning)
+            {
+                _statement.Cancel();
+            }
         }
 
         public new PgParameter CreateParameter() => new PgParameter();

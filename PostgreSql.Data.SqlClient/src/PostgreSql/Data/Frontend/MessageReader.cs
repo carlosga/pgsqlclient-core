@@ -308,10 +308,10 @@ namespace PostgreSql.Data.Frontend
             {
                 data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
             }
-            
+
             // Read Array values
             ReadArrayValues(elementType, ref data);
-            
+
             return data;
         }
 
@@ -321,6 +321,7 @@ namespace PostgreSql.Data.Frontend
             int lowerBound = data.GetLowerBound(0);
             int upperBound = data.GetUpperBound(0);
             int size       = 0;
+
             for (int i = lowerBound; i <= upperBound; ++i)
             {
                 size = ReadInt32();

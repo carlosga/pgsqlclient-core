@@ -49,6 +49,18 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal bool IsRunning
+        {
+            get
+            {
+                return (_status == StatementStatus.Parsing
+                     || _status == StatementStatus.Describing
+                     || _status == StatementStatus.Binding
+                     || _status == StatementStatus.Executing
+                     || _status == StatementStatus.OnQuery);
+            }
+        }
+
         internal bool IsPrepared
         {
             get
@@ -113,6 +125,14 @@ namespace PostgreSql.Data.Frontend
             // GC.SuppressFinalize(this);
         }
         #endregion
+
+        internal void Cancel()
+        {
+            if (IsRunning)
+            {
+                _connection.CancelRequest();
+            }
+        }
 
         internal void Prepare(PgParameterCollection parameters)
         {
