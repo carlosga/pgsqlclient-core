@@ -18,10 +18,25 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            PgParameter p = new PgParameter();
+            short[] array = new short[10];
             
-            p.PgDbType = PgDbType.Array;
-            p.Value    = new short[10];  
+            for (int i = 0; i < 10; i++)
+            {
+                array[i] = (short)i;
+            } 
+
+            using (var connection = new PgConnection(csb.ToString()))
+            {
+                connection.Open();
+                
+                using (var command = new PgCommand("SELECT carray_6 FROM temp__8d3608a5160e8d0_87cecc", connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read()) {}  
+                    }
+                }
+            }
             
             Console.WriteLine("Finished !!");
         } 

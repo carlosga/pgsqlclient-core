@@ -298,68 +298,34 @@ namespace PostgreSql.Data.Frontend
                 lowerBounds[i] = ReadInt32();
             }
 
-            // Read Array data
-            if (elementType.IsPrimitive)
+            // Create array instance
+            Array data = null;
+            if (dimensions == 1)
             {
-                return ReadPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
+                data = Array.CreateInstance(elementType.SystemType, lengths[0]);
             }
             else
             {
-                return ReadNonPrimitiveArray(elementType, length, dimensions, flags, lengths, lowerBounds);
+                data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
             }
-        }
-
-        private Array ReadPrimitiveArray(TypeInfo elementType
-                                       , int        length
-                                       , int        dimensions
-                                       , int        flags
-                                       , int[]      lengths
-                                       , int[]      lowerBounds)
-        {
-            Array data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
-
-            // Read array data
-            byte[] sourceArray = DecodeArrayData(elementType, data.Length, length);
-
-            Array.Copy(sourceArray, 0, data, 0, sourceArray.Length);
-
+            
+            // Read Array values
+            ReadArrayValues(elementType, ref data);
+            
             return data;
         }
 
-        private Array ReadNonPrimitiveArray(TypeInfo elementType
-                                          , int        length
-                                          , int        dimensions
-                                          , int        flags
-                                          , int[]      lengths
-                                          , int[]      lowerBounds)
+        private void ReadArrayValues(TypeInfo elementType, ref Array data)
         {
-            Array data = Array.CreateInstance(elementType.SystemType, lengths, lowerBounds);
-
-            for (int i = data.GetLowerBound(0); i <= data.GetUpperBound(0); ++i)
+#warning TODO: Add proper support for multi-dimensional arrays 
+            int lowerBound = data.GetLowerBound(0);
+            int upperBound = data.GetUpperBound(0);
+            int size       = 0;
+            for (int i = lowerBound; i <= upperBound; ++i)
             {
-                int elementLen = ReadInt32();
+                size = ReadInt32();
                 data.SetValue(ReadValue(elementType, elementType.Size), i);
             }
-
-            return data;
-        }
-
-        private byte[] DecodeArrayData(TypeInfo type, int elementCount, int length)
-        {
-            byte[] data   = new byte[length];
-            int    offset = 0;
-
-            for (int i = 0; i < elementCount; ++i)
-            {
-                int byteCount = ReadInt32();
-
-                Array.Copy(_contents, _position, data, offset, byteCount);
-
-                offset    += byteCount;
-                _position += byteCount;
-            }
-
-            return data;
         }
 
         private Array ReadVector(TypeInfo type, int length)

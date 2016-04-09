@@ -383,7 +383,7 @@ namespace PostgreSql.Data.Frontend
             var startPosition = _position;
 
             // Ensure buffer capacity (approximated, should use lengths and lower bounds)
-            EnsureCapacity(array.Length * array.Rank * elementType.Size + 4);
+            EnsureCapacity(array.Length * elementType.Size + 4);
 
             // Reserve space for the array size
             Write(0);
