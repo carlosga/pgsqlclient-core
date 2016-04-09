@@ -378,13 +378,16 @@ namespace PostgreSql.Data.Frontend
 
             // Get array element type
             var elementType = typeInfo.ElementType;
-            
+
             // Save current position
             var startPosition = _position;
-            
+
+            // Ensure buffer capacity (approximated, should use lengths and lower bounds)
+            EnsureCapacity(array.Length * array.Rank * elementType.Size + 4);
+
             // Reserve space for the array size
             Write(0);
-            
+
             // Write the number of dimensions
             Write(array.Rank);
 
@@ -397,7 +400,7 @@ namespace PostgreSql.Data.Frontend
             // Write lengths and lower bounds
             for (int i = 0; i < array.Rank; ++i)
             {
-                Write(array.GetLength(i));
+                Write(array.GetUpperBound(i) + 1);
                 Write(array.GetLowerBound(i) + 1);
             }
 
@@ -412,7 +415,7 @@ namespace PostgreSql.Data.Frontend
 
             // Write array size
             Seek(startPosition);
-            Write(endPosition - startPosition);
+            Write(endPosition - startPosition - 4);
             Seek(endPosition);
         }
 

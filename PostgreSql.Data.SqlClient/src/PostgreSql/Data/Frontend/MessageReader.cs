@@ -321,7 +321,7 @@ namespace PostgreSql.Data.Frontend
             // Read array data
             byte[] sourceArray = DecodeArrayData(elementType, data.Length, length);
 
-            Buffer.BlockCopy(sourceArray, 0, data, 0, sourceArray.Length);
+            Array.Copy(sourceArray, 0, data, 0, sourceArray.Length);
 
             return data;
         }
@@ -353,7 +353,7 @@ namespace PostgreSql.Data.Frontend
             {
                 int byteCount = ReadInt32();
 
-                Buffer.BlockCopy(_contents, _position, data, offset, byteCount);
+                Array.Copy(_contents, _position, data, offset, byteCount);
 
                 offset    += byteCount;
                 _position += byteCount;
