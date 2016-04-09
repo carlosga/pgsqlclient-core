@@ -52,28 +52,29 @@ namespace PostgreSql.Data.PgTypes
             _upperRight = PgPoint.Null;
         }
 
-        public PgBox(double x1, double y1, double x2, double y2)
-            : this(new PgPoint(x1, y1), new PgPoint(x2, y2))
+        public PgBox(PgPoint p1, PgPoint p2)
+            : this(p1.X, p1.Y, p2.X, p2.Y)
         {
         }
 
-        public PgBox(PgPoint p1, PgPoint p2)
+        public PgBox(double x1, double y1, double x2, double y2)
         {
-            if (p1.IsNull || p2.IsNull)
-            {
-                throw new PgNullValueException();
-            }
             _isNotNull = true;
-            if (p1.X > p2.X && p1.Y < p2.Y)
+            // Reorder corners always as upper right corner and lower left corner.
+            if (x1 < x2)
             {
-                _upperRight = p1;
-                _lowerLeft  = p2;
+                var x = x1;
+                x1 = x2;
+                x2 = x;
             }
-            else
+            if (y1 < y2)
             {
-                _upperRight = p2;
-                _lowerLeft  = p1;
+                var y = y1;
+                y1 = y2;
+                y2 = y;
             }
+            _upperRight = new PgPoint(x1, y1);
+            _lowerLeft  = new PgPoint(x2, y2);
         }
 
         public static PgBoolean operator ==(PgBox x, PgBox y)

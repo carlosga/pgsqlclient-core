@@ -57,7 +57,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             // Geometric types
             new SqlPointTypeInfo(),
-            // new SqlBoxTypeInfo(),
+            new SqlBoxTypeInfo(),
             new SqlCircleTypeInfo(),
             // new SqlLineTypeInfo(),
             new SqlLSegTypeInfo(),
