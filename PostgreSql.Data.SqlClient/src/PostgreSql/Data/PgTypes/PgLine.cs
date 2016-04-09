@@ -85,9 +85,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return String.Format(PgTypeInfoProvider.InvariantCulture
+            return String.Format(TypeInfoProvider.InvariantCulture
                                , "(({0},{1}),({2},{3}))"
                                , _startPoint.X
                                , _startPoint.Y

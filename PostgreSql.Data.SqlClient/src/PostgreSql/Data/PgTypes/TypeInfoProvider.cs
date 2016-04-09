@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace PostgreSql.Data.PgTypes
 {
-    internal static class PgTypeInfoProvider
+    internal static class TypeInfoProvider
     {
         internal static readonly ReadOnlyDictionary<int, TypeInfo> Types;
 
@@ -19,7 +19,7 @@ namespace PostgreSql.Data.PgTypes
         
         internal static bool     IsNullString(string s) => (s == null || s == NullString);
 
-        static PgTypeInfoProvider()
+        static TypeInfoProvider()
         {
             Dictionary<int, TypeInfo> types = new Dictionary<int, TypeInfo>(100);
 
@@ -113,9 +113,9 @@ namespace PostgreSql.Data.PgTypes
             types[  21] = new TypeInfo(  21, "smallint"  , "int2"      , PgDbType.SmallInt, TypeFormat.Binary, typeof(short), typeof(PgInt16), sizeof(short));
             types[  22] = new TypeInfo(  22, "smallint[]", "int2vector", PgDbType.Vector  , types[21], typeof(short[]), typeof(PgInt16[]));
             types[1005] = new TypeInfo(1005, "smallint[]", "_int2"     , PgDbType.Array   , types[21], typeof(short[]), typeof(PgInt16[]));
-            
+
             // integer | 4 bytes | typical choice for integer | -2147483648 to +2147483647
-            
+
             types[  23] = new TypeInfo(  23, "integer"  , "int4" , PgDbType.Integer, TypeFormat.Binary, typeof(int), typeof(PgInt32), sizeof(int));
             types[1007] = new TypeInfo(1007, "integer[]", "_int4", PgDbType.Array  , types[23], typeof(int[]), typeof(PgInt32[]));
 
@@ -383,6 +383,32 @@ namespace PostgreSql.Data.PgTypes
                 return Types.Values.First(x => x.PgType == value.GetType());
             }
             return Types.Values.First(x => x.SystemType == value.GetType());
+        }
+
+        internal static TypeInfo GetArrayTypeInfo(object value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                throw new PgNullValueException();
+            }
+            if (value is INullable)
+            {
+                return Types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
+            }
+            return Types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+        }
+
+        internal static TypeInfo GetVectorTypeInfo(object value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                throw new PgNullValueException();
+            }
+            if (value is INullable)
+            {
+                return Types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
+            }
+            return Types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
     }
 }

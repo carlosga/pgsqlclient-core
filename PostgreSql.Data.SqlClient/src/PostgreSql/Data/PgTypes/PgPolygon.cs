@@ -95,7 +95,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
 
             System.Text.StringBuilder b = new System.Text.StringBuilder();

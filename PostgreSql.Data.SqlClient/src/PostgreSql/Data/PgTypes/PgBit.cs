@@ -434,11 +434,11 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBit Parse(string s)
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
-            return Byte.Parse(s, PgTypeInfoProvider.InvariantCulture);
+            return Byte.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
         public static PgBit Subtract(PgBit x, PgBit y)  => (x - y);
@@ -458,9 +458,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
         
         public static PgBit Xor(PgBit x, PgBit y) => (x ^ y);

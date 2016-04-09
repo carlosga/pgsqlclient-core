@@ -312,13 +312,13 @@ namespace PostgreSql.Data.PgTypes
         public static PgDouble  Multiply(PgDouble x, PgDouble y)           => (x * y);
         public static PgBoolean NotEquals(PgDouble x, PgDouble y)          => (x != y);
 
-        public static PgDouble  Parse(string s)      
+        public static PgDouble Parse(string s)      
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
-            return Double.Parse(s, PgTypeInfoProvider.InvariantCulture);
+            return Double.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
         public static PgDouble Subtract(PgDouble x, PgDouble y) => (x - y);
@@ -338,9 +338,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
     }
 }

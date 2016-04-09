@@ -95,7 +95,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
             return $"<{_center},{_radius}>";
         }

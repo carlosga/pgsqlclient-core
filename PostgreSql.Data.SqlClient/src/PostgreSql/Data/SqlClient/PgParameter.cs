@@ -52,8 +52,8 @@ namespace PostgreSql.Data.SqlClient
 
         public override DbType DbType
         {
-            get { return PgTypeInfoProvider.GetDbType(_pgDbType); }
-            set { PgDbType = PgTypeInfoProvider.GetProviderType(value); }
+            get { return TypeInfoProvider.GetDbType(_pgDbType); }
+            set { PgDbType = TypeInfoProvider.GetProviderType(value); }
         }
 
         public PgDbType PgDbType
@@ -63,7 +63,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _pgDbType  = value;
                 _isTypeSet = true;
-                _typeInfo  = PgTypeInfoProvider.GetTypeInfo(value);
+                _typeInfo  = TypeInfoProvider.GetTypeInfo(value);
             }
         }
 
@@ -99,7 +99,7 @@ namespace PostgreSql.Data.SqlClient
                 _value   = value;
                 _pgvalue = ((value is INullable) ? value : null);
 
-                if (!_isTypeSet)
+                if (!_isTypeSet || _pgDbType == PgDbType.Array)
                 {
                     UpdateTypeInfo(value);
                 }
@@ -192,7 +192,18 @@ namespace PostgreSql.Data.SqlClient
 
         private void UpdateTypeInfo(object value)
         {
-            _typeInfo = PgTypeInfoProvider.GetTypeInfo(value);
+            if (_pgDbType == PgDbType.Array)
+            {
+                _typeInfo = TypeInfoProvider.GetArrayTypeInfo(value);
+            }
+            else if (_pgDbType == PgDbType.Vector)
+            {
+                _typeInfo = TypeInfoProvider.GetVectorTypeInfo(value);
+            }
+            else
+            {
+                _typeInfo = TypeInfoProvider.GetTypeInfo(value);
+            }
 
             if (!_isTypeSet)
             {

@@ -131,7 +131,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlVarCharTypeInfo 
+    internal sealed class SqlVarCharTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypePrefix      = "character varying";
@@ -182,7 +182,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTextTypeInfo 
+    internal sealed class SqlTextTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "text";
@@ -213,7 +213,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlSmallIntTypeInfo 
+    internal sealed class SqlSmallIntTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "smallint";
@@ -248,11 +248,46 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlIntTypeInfo 
+    internal sealed class SqlSmallIntArrayTypeInfo
+        : SqlRandomTypeInfo
+    {
+        private const string TypeSqlName = "smallint[]";
+        private const int    StorageSize = -1;
+
+        public SqlSmallIntArrayTypeInfo()
+            : base(PgDbType.Array)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextSmallIntArray();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(short[]), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return (short[])reader.GetValue(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareSmallIntArray(expected, actual, false);
+        }
+    }
+
+    internal sealed class SqlIntTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "int";
-        private const int    StorageSize  = 4;
+        private const int    StorageSize = 4;
 
         public SqlIntTypeInfo()
             : base(PgDbType.Integer)
@@ -283,11 +318,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlBigIntTypeInfo 
+    internal sealed class SqlBigIntTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "bigint";
-        private const int    StorageSize  = 8;
+        private const int    StorageSize = 8;
 
         public SqlBigIntTypeInfo()
             : base(PgDbType.BigInt)
@@ -318,12 +353,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlDecimalTypeInfo 
+    internal sealed class SqlDecimalTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "numeric";
-
-        private int _defaultPrecision = 18;
+        private int _defaultPrecision    = 18;
 
         public SqlDecimalTypeInfo()
             : base(PgDbType.Numeric)
@@ -419,7 +453,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlFloatTypeInfo 
+    internal sealed class SqlFloatTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "real";
@@ -459,7 +493,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlDoubleTypeInfo 
+    internal sealed class SqlDoubleTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "double precision";
@@ -499,7 +533,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlDateTypeInfo 
+    internal sealed class SqlDateTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "date";
@@ -529,7 +563,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTimeTypeInfo 
+    internal sealed class SqlTimeTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "time";
@@ -569,7 +603,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTimestampTypeInfo 
+    internal sealed class SqlTimestampTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "timestamp";
@@ -599,7 +633,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTimeTzTypeInfo 
+    internal sealed class SqlTimeTzTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "time with time zone";
@@ -639,7 +673,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
     }
 
-    internal sealed class SqlTimestampTzTypeInfo 
+    internal sealed class SqlTimestampTzTypeInfo
         : SqlRandomTypeInfo
     {
         private const string TypeSqlName = "timestamp with time zone";
@@ -722,7 +756,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlPointTypeInfo
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "point"; 
+        private const string TypeSqlName = "point";
         private const int    StorageSize = 16;
 
         public SqlPointTypeInfo()
@@ -762,7 +796,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlBoxTypeInfo
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "box"; 
+        private const string TypeSqlName = "box";
         private const int    StorageSize = 32;
 
         public SqlBoxTypeInfo()
@@ -802,7 +836,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlCircleTypeInfo
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "circle"; 
+        private const string TypeSqlName = "circle";
         private const int    StorageSize = 24;
 
         public SqlCircleTypeInfo()
@@ -842,7 +876,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlLineTypeInfo
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "line"; 
+        private const string TypeSqlName = "line";
         private const int    StorageSize = 32;
 
         public SqlLineTypeInfo()

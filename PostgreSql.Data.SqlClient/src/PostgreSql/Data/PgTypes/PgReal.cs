@@ -408,11 +408,11 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgReal Parse(string s)
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
-            return Single.Parse(s, PgTypeInfoProvider.InvariantCulture);
+            return Single.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
         public static PgReal Subtract(PgReal x, PgReal y)
@@ -474,9 +474,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
     }
 }

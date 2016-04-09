@@ -106,7 +106,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
             return $"BOX({_lowerLeft},{_upperRight})";
         }

@@ -54,7 +54,7 @@ namespace PostgreSql.Data.PgTypes
         public static readonly int IgnoreNonSpace   = (int)PgCompareOptions.IgnoreNonSpace;
         public static readonly int IgnoreWidth      = (int)PgCompareOptions.IgnoreWidth;
         
-        public static readonly PgString Null = PgTypeInfoProvider.NullString;
+        public static readonly PgString Null = TypeInfoProvider.NullString;
 
         public PgString(string data)
         {

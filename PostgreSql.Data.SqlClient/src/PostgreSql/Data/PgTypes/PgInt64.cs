@@ -403,7 +403,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgInt64 Parse(string s)
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
@@ -469,9 +469,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt64 Xor(PgInt64 x, PgInt64 y)

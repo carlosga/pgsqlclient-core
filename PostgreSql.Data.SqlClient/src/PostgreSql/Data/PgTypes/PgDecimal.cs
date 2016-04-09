@@ -410,9 +410,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
 
         public static PgDecimal Truncate(PgDecimal n, int position)

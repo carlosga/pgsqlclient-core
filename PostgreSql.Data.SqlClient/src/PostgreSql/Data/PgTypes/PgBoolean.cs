@@ -359,7 +359,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Parse(string s)
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
@@ -402,7 +402,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
             return _value.ToString();
         }

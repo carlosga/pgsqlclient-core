@@ -437,11 +437,11 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgInt16 Parse(string s)
         {
-            if (PgTypeInfoProvider.IsNullString(s))
+            if (TypeInfoProvider.IsNullString(s))
             {
                 return Null;
             }
-            return Int16.Parse(s, PgTypeInfoProvider.InvariantCulture);
+            return Int16.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt16 Subtract(PgInt16 x, PgInt16 y) => (x - y);
@@ -461,9 +461,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return _value.ToString(PgTypeInfoProvider.InvariantCulture);
+            return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
 
         public static PgInt16 Xor(PgInt16 x, PgInt16 y) => (x ^ y);

@@ -61,7 +61,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlCircleTypeInfo(),
             // new SqlLineTypeInfo(),
             new SqlLSegTypeInfo(),
-            new SqlPathTypeInfo()
+            new SqlPathTypeInfo(),
+
+            // Array types
+            new SqlSmallIntArrayTypeInfo()
         };
 
         // reset it each time collection is modified

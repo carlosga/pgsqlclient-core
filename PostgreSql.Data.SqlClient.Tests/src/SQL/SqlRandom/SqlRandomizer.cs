@@ -745,6 +745,21 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         #endregion
 
+        #region Array types
+
+        public short[] NextSmallIntArray()
+        {
+            int     count = NextIntInclusive(minValue: 1, maxValueInclusive: 1000);
+            short[] array = new short[count];
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = NextSmallInt();
+            }
+            return array;
+        }
+
+        #endregion
+
         #region helper methods to create random SQL object names
 
         /// <summary>

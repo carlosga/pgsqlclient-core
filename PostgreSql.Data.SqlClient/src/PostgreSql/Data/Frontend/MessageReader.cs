@@ -114,7 +114,7 @@ namespace PostgreSql.Data.Frontend
             return (uint)v2 | ((long)v1 << 32);
         }
 
-        internal decimal ReadNumeric(int length) => Decimal.Parse(ReadString(length), PgTypeInfoProvider.InvariantCulture);
+        internal decimal ReadNumeric(int length) => Decimal.Parse(ReadString(length), TypeInfoProvider.InvariantCulture);
 
         internal float       ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
@@ -289,7 +289,7 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = PgTypeInfoProvider.Types[oid];
+            var elementType = TypeInfoProvider.Types[oid];
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)

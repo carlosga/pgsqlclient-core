@@ -5,6 +5,7 @@
 // See the LICENSE file in the project root for more information.
 
 using PostgreSql.Data.PgTypes;
+using System.Collections.Generic;
 using System.Text;
 using System.Data.Common;
 using System.Globalization;
@@ -35,10 +36,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// true if column of this type can be created as sparse column
         /// </summary>
-        public virtual bool CanBeSparseColumn
-        {
-            get { return true; }
-        }
+        public virtual bool CanBeSparseColumn => true;
 
         /// <summary>
         /// creates a default column instance for given type
@@ -112,7 +110,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         protected abstract double GetInRowSizeInternal(SqlRandomTableColumn columnInfo);
 
         /// <summary>
-        /// gets TSQL definition of the column
+        /// gets SQL definition of the column
         /// </summary>
         public string GetSqlTypeDefinition(SqlRandomTableColumn columnInfo)
         {
@@ -145,15 +143,15 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             if (asType == typeof(string))
             {
-                return reader.GetString(ordinal);   
+                return reader.GetString(ordinal);
             }
             else if (asType == typeof(char[]) || asType == typeof(DBNull))
             {
-                return reader.GetString(ordinal).ToCharArray();   
+                return reader.GetString(ordinal).ToCharArray();
             }
             else
             {
-                throw new NotSupportedException("Wrong type: " + asType.FullName);   
+                throw new NotSupportedException("Wrong type: " + asType.FullName);
             }
         }
 
@@ -164,16 +162,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
 
             if (asType == typeof(byte[]) || asType == typeof(DBNull))
             {
-                return (byte[])reader.GetValue(ordinal);   
+                return (byte[])reader.GetValue(ordinal);
             }
             else
             {
-                throw new NotSupportedException("Wrong type: " + asType.FullName);   
+                throw new NotSupportedException("Wrong type: " + asType.FullName);
             }
         }
 
@@ -196,7 +194,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             if (bothDbNull)
             {
-                return true;   
+                return true;
             }
 
             if (isNullActual || isNullExpected)
@@ -206,7 +204,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             if (expectedType == null)
             {
-                return true;   
+                return true;
             }
 
             // both not null
@@ -241,7 +239,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (expected[i] != actual[i])
                 {
-                    return false;   
+                    return false;
                 }
             }
 
@@ -251,6 +249,30 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 // ensure rest of array are zeros
                 if (paddingValue != actual[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CompareArrayValues<T>(T[] expected, T[] actual, bool allowIncomplete = false)
+        {
+            if (expected.Length > actual.Length)
+            {
+                return false;
+            }
+            else if (!allowIncomplete && expected.Length < actual.Length)
+            {
+                return false;
+            }
+
+            // check expected array values
+            int end = expected.Length;
+            for (int i = 0; i < end; i++)
+            {
+                if (!EqualityComparer<T>.Default.Equals(expected[i], actual[i]))
                 {
                     return false;
                 }
@@ -282,7 +304,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (expected[i] != actual[i])
                 {
-                    return false;   
+                    return false;
                 }
             }
 
@@ -324,6 +346,19 @@ namespace PostgreSql.Data.SqlClient.Tests
                 return bothDbNull;   
             }
             return CompareByteArray((byte[])expected, (byte[])actual, allowIncomplete, paddingValue);
+        }
+
+        /// <summary>
+        /// validates that the actual value is DbNull or byte array and compares it to expected
+        /// </summary>
+        protected bool CompareSmallIntArray(object expected, object actual, bool allowIncomplete)
+        {
+            bool bothDbNull;
+            if (!CompareDbNullAndType(typeof(short[]), expected, actual, out bothDbNull) || bothDbNull)
+            {
+                return bothDbNull;
+            }
+            return CompareArrayValues<short>((short[])expected, (short[])actual, allowIncomplete);
         }
 
         /// <summary>

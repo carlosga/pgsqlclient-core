@@ -18,11 +18,10 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            var box1 = new PgBox(6.18805847773352E+305, 9.48221676957806E+307
-                               , -6.4471844263193E+307, 1.17666759338731E+308);
-
-            var box2 = new PgBox(-6.4471844263193E+307, 1.17666759338731E+308
-                               , 6.18805847773352E+305, 9.48221676957806E+307);
+            PgParameter p = new PgParameter();
+            
+            p.PgDbType = PgDbType.Array;
+            p.Value    = new short[10];  
             
             Console.WriteLine("Finished !!");
         } 

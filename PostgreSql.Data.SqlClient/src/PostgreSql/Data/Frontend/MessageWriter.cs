@@ -143,7 +143,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(decimal value)     => Write(value.ToString(PgTypeInfoProvider.InvariantCulture));
+        internal void Write(decimal value)     => Write(value.ToString(TypeInfoProvider.InvariantCulture));
         internal void Write(float value)       => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(PgDate value)      => Write(value.DaysSinceEpoch);

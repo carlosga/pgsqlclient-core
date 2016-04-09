@@ -729,7 +729,7 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = PgTypeInfoProvider.Types[typeOid];
+                var typeInfo     = TypeInfoProvider.Types[typeOid];
 
                 _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }

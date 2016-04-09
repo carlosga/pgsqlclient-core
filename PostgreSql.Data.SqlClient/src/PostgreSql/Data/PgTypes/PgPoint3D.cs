@@ -115,9 +115,9 @@ namespace PostgreSql.Data.PgTypes
         {
             if (IsNull)
             {
-                return PgTypeInfoProvider.NullString;
+                return TypeInfoProvider.NullString;
             }
-            return String.Format(PgTypeInfoProvider.InvariantCulture, "{0} {1} {2}", _x, _y, _z);
+            return String.Format(TypeInfoProvider.InvariantCulture, "{0} {1} {2}", _x, _y, _z);
         }
 
         public override int GetHashCode() 
