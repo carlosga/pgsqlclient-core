@@ -234,7 +234,7 @@ namespace PostgreSql.Data.SqlClient
             {
                _innerConnection.ChangeDatabase(database);
             }
-            catch (Exception ex)
+            catch
             {
                 ChangeState(ConnectionState.Broken);
                 throw new PgException("Cannot change database.");

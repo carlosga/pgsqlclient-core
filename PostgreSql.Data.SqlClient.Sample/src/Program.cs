@@ -28,12 +28,27 @@ namespace PostgreSql.Data.SqlClient.Sample
             }
 
             using (var conn = new PgConnection(csb.ToString()))
-            {
-                var command = new PgCommand($"DROP TABLE 1; DROP TABLE 2", conn);
-                conn.Open();
-                command.ExecuteNonQuery();
-            }
+            {                                     
+                var command = conn.CreateCommand();
 
+                command.Parameters.AddWithValue("@p1", 1);
+                command.Parameters.AddWithValue("@p2", 2);
+                command.Parameters.AddWithValue("@p3", 3);
+                
+                command.CommandText = "SELECT @p1;SELECT @p2;SELECT @p3";
+               
+                conn.Open();
+                
+                try
+                {
+                   
+                    int v1 = command.ExecuteNonQuery();                    
+                }
+                catch (System.Exception)
+                {                    
+                }
+            }
+            
             Console.WriteLine("Finished !!");
         }
 

@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.Frontend;
 using System.Data.Common;
+using System.Collections.Generic;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -30,6 +31,13 @@ namespace PostgreSql.Data.SqlClient
         {
             _errors = new PgErrorCollection();
             _errors.Add(error);
+        }
+
+        internal PgException(string message, List<PgError> errors) 
+            : base(message)
+        {
+            _errors = new PgErrorCollection();
+            _errors.AddRange(errors);
         }
     }
 }

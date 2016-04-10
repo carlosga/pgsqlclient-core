@@ -14,6 +14,14 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgCommand
         : DbCommand
     {
+        private static readonly List<PgParameter> s_EmptyParameters = new List<PgParameter>();
+
+        struct Query
+        {
+            public string            CommandText;
+            public List<PgParameter> Parameters;
+        }
+
         private PgConnection          _connection;
         private PgTransaction         _transaction;
         private PgParameterCollection _parameters;
@@ -22,8 +30,7 @@ namespace PostgreSql.Data.SqlClient
         private WeakReference         _activeDataReader;
         private CommandBehavior       _commandBehavior;
         private CommandType           _commandType;
-        private List<string>          _namedParameters;
-        private List<string>          _queries;
+        private List<Query>           _queries;
         private int                   _queryIndex;
         private string                _commandText;
         private int                   _commandTimeout;
@@ -34,21 +41,31 @@ namespace PostgreSql.Data.SqlClient
             get { return _commandText; }
             set
             {
-                if (_statement != null && !String.IsNullOrEmpty(_commandText) && _commandText != value)
+                if (_commandText != value)
                 {
-                    InternalClose();
+                    if (_statement != null && !String.IsNullOrEmpty(_commandText) && _commandText != value)
+                    {
+                        InternalClose();
+                    }
+
+                    _commandText = value;
+
+                    ParseComandText();
                 }
-
-                _commandText = value;
-
-                ParseMarsCommands();
             }
         }
 
         public override CommandType CommandType
         {
             get { return _commandType; }
-            set { _commandType = value; }
+            set
+            { 
+                if (_commandType != value)
+                {
+                    _commandType = value;
+                    ParseComandText();
+                } 
+            }
         }
 
         public override int CommandTimeout
@@ -94,14 +111,10 @@ namespace PostgreSql.Data.SqlClient
 
                 if (_connection != value)
                 {
-                    if (_transaction != null)
-                    {
-                        _transaction = null;
-                    }
-
+                    _transaction = null;
                     InternalClose();
-                    ParseMarsCommands();
-                }                
+                    ParseComandText();
+                }
 
                 _connection = value as PgConnection;
             }
@@ -128,10 +141,7 @@ namespace PostgreSql.Data.SqlClient
         internal int             RecordsAffected => (_statement?.RecordsAffected ?? -1);
         internal bool            IsDisposed      => _disposed;
 
-        internal string CurrentCommandText
-        {
-            get { return ((_queries != null) ? _queries[_queryIndex] : _commandText); }
-        }
+        private Query CurrentQuery => _queries[_queryIndex];
 
         public PgCommand()
             : base()
@@ -143,7 +153,7 @@ namespace PostgreSql.Data.SqlClient
             _commandBehavior   = CommandBehavior.Default;
             _designTimeVisible = false;
             _parameters        = new PgParameterCollection();
-            _namedParameters   = new List<string>();
+            _queries           = new List<Query>();
         }
 
         public PgCommand(string cmdText)
@@ -162,8 +172,8 @@ namespace PostgreSql.Data.SqlClient
             _commandText = cmdText;
             _connection  = connection;
             _transaction = transaction;
-            
-            ParseMarsCommands();
+
+            ParseComandText();
         }
 
         #region IDisposable Support
@@ -185,11 +195,11 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _connection       = null;
-                        _transaction      = null;
-                        _parameters       = null;
-                        _namedParameters  = null;
-                        _commandText      = null;
+                        _connection  = null;
+                        _transaction = null;
+                        _parameters  = null;
+                        _commandText = null;
+                        _queries     = null;
                     }
 
                     base.Dispose(disposing);
@@ -217,7 +227,7 @@ namespace PostgreSql.Data.SqlClient
         //     // GC.SuppressFinalize(this);
         // }
         #endregion
-        
+
         public override void Cancel()
         {
             if (_statement != null && _statement.IsRunning)
@@ -232,7 +242,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            if (_queries == null)
+            if (_queries == null || _queries.Count <= 1) 
             {
                 return InternalExecuteNonQuery();
             }
@@ -278,25 +288,18 @@ namespace PostgreSql.Data.SqlClient
 
         internal void InternalPrepare()
         {
-            string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
-
-            if (_commandType == CommandType.StoredProcedure)
-            {
-                stmtText = stmtText.ToStoredProcedureCall(_parameters);
-            }
-
             if (_statement == null)
             {
-                _statement = _connection.InnerConnection.CreateStatement(stmtText);
+                _statement = _connection.InnerConnection.CreateStatement(CurrentQuery.CommandText);
             }
             else
             {
-                _statement.StatementText = stmtText;
+                _statement.StatementText = CurrentQuery.CommandText;
             }
 
             if (_statement.State == StatementState.Initial)
             {
-                _statement.Prepare(_parameters);
+                _statement.Prepare(CurrentQuery.Parameters);
             }
 
             if (_queryIndex == 0)
@@ -309,7 +312,7 @@ namespace PostgreSql.Data.SqlClient
         {
             InternalPrepare();
 
-            var recordsAffected = _statement.ExecuteNonQuery(_parameters);
+            var recordsAffected = _statement.ExecuteNonQuery(CurrentQuery.Parameters);
 
             InternalSetOutputParameters();
 
@@ -318,21 +321,35 @@ namespace PostgreSql.Data.SqlClient
         
         private int InternalExecuteNonQueryMars()
         {
-            int affected = 0;
+            int totalAffected = -1;
+            var errors        = new List<PgError>();
 
             try
             {
                 do
                 {
-                    affected += InternalExecuteNonQuery();
+                    try
+                    {
+                        var affected   = InternalExecuteNonQuery();
+                        totalAffected += ((affected != -1) ? affected : 0);
+                    }
+                    catch (PgException pgex)
+                    {
+                        errors.AddRange(pgex.Errors);
+                    }
                 } while(PrepareNextMarsCommandText());
+
+                if (errors.Count > 0)
+                {
+                    throw new PgException(errors[0].Message, errors);
+                }
             }
             finally
             {
                 _queryIndex = 0;
             }
 
-            return affected;
+            return totalAffected;
         }
 
         private void InternalExecuteReader(CommandBehavior behavior)
@@ -347,7 +364,7 @@ namespace PostgreSql.Data.SqlClient
              || behavior.HasBehavior(CommandBehavior.SingleRow)
              || behavior.HasBehavior(CommandBehavior.CloseConnection))
             {
-                _statement.ExecuteReader(behavior, _parameters);
+                _statement.ExecuteReader(behavior, CurrentQuery.Parameters);
             }
         }
 
@@ -355,7 +372,7 @@ namespace PostgreSql.Data.SqlClient
         {
             InternalPrepare();
 
-            return _statement.ExecuteScalar(_parameters);
+            return _statement.ExecuteScalar(CurrentQuery.Parameters);
         }
 
         internal bool NextResult()
@@ -393,8 +410,6 @@ namespace PostgreSql.Data.SqlClient
             }
             finally
             {
-                _namedParameters?.Clear();
-                
                 _statement        = null;
                 _activeDataReader = null;
                 _queries          = null;
@@ -465,18 +480,47 @@ namespace PostgreSql.Data.SqlClient
                 throw new InvalidOperationException("The command text for this Command has not been set.");
             }
         }
-        
-        private void ParseMarsCommands()
+
+        private void ParseComandText()
         {
             _queryIndex = 0;
+            _queries.Clear();
 
-            if (_connection != null && _connection.MultipleActiveResultSets)
+            var queries = _commandText.SplitCommandText();
+
+            if (queries != null && queries.Count > 0)
             {
-                _queries = _commandText.SplitQueries();
-            }
-            else
-            {
-                _queries = null;
+                _queries.Capacity = queries.Count;
+                
+                for (int i = 0; i < queries.Count; i++)
+                {
+                    var query = new Query();
+                    var info  = queries[i].ParseCommandText();
+
+                    if (info.Item2 != null && info.Item2.Count > 0)
+                    {
+                        query.Parameters = new List<PgParameter>(info.Item2.Count);
+                        for (int j = 0; j < info.Item2.Count; j++)
+                        {
+                            query.Parameters.Add(_parameters[info.Item2[j]]);
+                        }
+                    }
+                    else
+                    {
+                        query.Parameters = s_EmptyParameters;
+                    }
+
+                    if (_commandType == CommandType.StoredProcedure)
+                    {
+                        query.CommandText = info.Item1.ToStoredProcedureCall(_parameters);
+                    }
+                    else
+                    {
+                        query.CommandText = info.Item1;
+                    }
+
+                    _queries.Add(query);
+                }
             }
         }
     }

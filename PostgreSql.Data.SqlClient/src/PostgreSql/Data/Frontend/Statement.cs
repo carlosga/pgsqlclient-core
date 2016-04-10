@@ -84,7 +84,7 @@ namespace PostgreSql.Data.Frontend
         internal Statement(Connection connection, string stmtText)
         {
             _connection      = connection;
-            _state          = StatementState.Initial;
+            _state           = StatementState.Initial;
             _statementText   = stmtText;
             _recordsAffected = -1;
             _hasRows         = false;
@@ -139,10 +139,15 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Prepare(PgParameterCollection parameters)
+        internal void Prepare(List<PgParameter> parameters)
         {
             try
             {
+                if (_state != StatementState.Initial)
+                {
+                    Close();
+                }
+
                 _connection.Lock();
 
                 string statementName = Guid.NewGuid().ToString();
@@ -155,7 +160,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -164,7 +168,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal int ExecuteNonQuery(PgParameterCollection parameters)
+        internal int ExecuteNonQuery(List<PgParameter> parameters)
         {
             if (_state == StatementState.Initial)
             {
@@ -185,7 +189,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -194,13 +197,12 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ExecuteReader(PgParameterCollection parameters)
+        internal void ExecuteReader(List<PgParameter> parameters)
         {
             ExecuteReader(CommandBehavior.Default, parameters);
         }
 
-        internal void ExecuteReader(CommandBehavior       behavior
-                                  , PgParameterCollection parameters)
+        internal void ExecuteReader(CommandBehavior behavior, List<PgParameter> parameters)
         {
             if (_state == StatementState.Initial)
             {
@@ -226,7 +228,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -235,7 +236,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal object ExecuteScalar(PgParameterCollection parameters)
+        internal object ExecuteScalar(List<PgParameter> parameters)
         {
             if (_state == StatementState.Initial)
             {
@@ -263,7 +264,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -272,7 +272,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ExecuteFunction(int id, PgParameterCollection parameters)
+        internal void ExecuteFunction(int id, List<PgParameter> parameters)
         {
             try
             {
@@ -297,7 +297,6 @@ namespace PostgreSql.Data.Frontend
 
                 // Send parameter values
                 message.Write((short)parameters.Count);
-
                 for (int i = 0; i < parameters.Count; i++)
                 {
                     var parameter = parameters[i];
@@ -330,7 +329,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -369,7 +367,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -454,7 +451,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private void Parse(PgParameterCollection parameters)
+        private void Parse(List<PgParameter> parameters)
         {
             // Update status
             ChangeState(StatementState.Parsing);
@@ -469,8 +466,8 @@ namespace PostgreSql.Data.Frontend
 
             message.WriteNullString(_parseName);
             message.WriteNullString(_statementText);
-            message.Write((short)parameters.Count);
-            for (int i = 0; i < parameters.Count; i++)
+            message.Write((short)parameters?.Count);
+            for (int i = 0; i < parameters?.Count; i++)
             {
                 message.Write(parameters[i].TypeInfo.Oid);
             }
@@ -514,8 +511,8 @@ namespace PostgreSql.Data.Frontend
             // Update status
             ChangeState(StatementState.Described);
         }
-        
-        private void Bind(PgParameterCollection parameters)
+
+        private void Bind(List<PgParameter> parameters)
         {
             // Update status
             ChangeState(StatementState.Binding);
@@ -684,7 +681,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                ChangeState(StatementState.Broken);
                 throw;
             }
         }
@@ -820,9 +816,9 @@ namespace PostgreSql.Data.Frontend
 
         private void ChangeState(StatementState newState)
         {
-            if (!IsCancelled || newState == StatementState.Broken)
+            if (!IsCancelled)
             {
-                _state = newState;   
+                _state = newState;
             }
         }
 

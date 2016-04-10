@@ -468,8 +468,9 @@ namespace PostgreSql.Data.SqlClient
 
         private bool NextResultFromRefCursor()
         {
+#warning TODO: Rework
             _statement.StatementText = $"fetch all in \"{_refCursors.Dequeue()}\""; 
-            _statement.ExecuteReader(_behavior, _command.Parameters);
+            _statement.ExecuteReader(_behavior, null);
 
             return true;
         }

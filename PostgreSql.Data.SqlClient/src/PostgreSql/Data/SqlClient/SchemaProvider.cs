@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.Frontend;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 
@@ -45,10 +46,10 @@ namespace PostgreSql.Data.SqlClient
 
             using (var command = _connection.InnerConnection.CreateStatement(ColumnSchemaQuery))
             {
-                var parameters = new PgParameterCollection();
+                var parameters = new List<PgParameter>();
 
-                parameters.Add("@TableOid", PgDbType.Integer);
-                parameters.Add("@ColumnId", PgDbType.Integer);
+                parameters.Add(new PgParameter("@TableOid", PgDbType.Integer));
+                parameters.Add(new PgParameter("@ColumnId", PgDbType.Integer));
 
                 command.Prepare(parameters);
                 

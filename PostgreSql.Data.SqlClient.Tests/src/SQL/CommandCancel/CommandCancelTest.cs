@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Test]
-        //[Ignore("disabled")]
+        [Ignore("disabled")]
         public void CancelAndDisposePreparedCommand()
         {
             CancelAndDisposePreparedCommand(s_constr);

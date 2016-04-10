@@ -11,43 +11,7 @@ namespace System
 {
     internal static class SqlExtensions
     {
-        internal static string ToStoredProcedureCall(this string commandText, PgParameterCollection parameters)
-        {
-           if (commandText.Trim().ToLower().StartsWith("select "))
-           {
-               return commandText;
-           }
-
-           var paramsText = new StringBuilder();
-
-           // Append the stored proc parameter name
-           paramsText.Append(commandText);
-           paramsText.Append("(");
-
-           for (int i = 0; i < parameters.Count; ++i)
-           {
-               var parameter = parameters[i];
-
-               if (parameter.Direction == ParameterDirection.Input
-                || parameter.Direction == ParameterDirection.InputOutput)
-               {
-                   // Append parameter name to parameter list
-                   paramsText.Append(parameters[i].ParameterName);
-
-                   if (i != parameters.Count - 1)
-                   {
-                       paramsText.Append(",");
-                   }
-               }
-           }
-
-           paramsText.Append(")");
-           paramsText.Replace(",)", ")");
-
-           return $"SELECT * FROM {paramsText.ToString()}";
-        }
-
-        internal static List<string> SplitQueries(this string commandText, char separator = ';')
+        internal static List<string> SplitCommandText(this string commandText, char separator = ';')
         {
             if (commandText == null || commandText.Length == 0 || commandText.IndexOf(';') == -1)
             {
@@ -89,19 +53,54 @@ namespace System
             return queries;
         }
 
-        internal static string ParseNamedParameters(this string commandText, ref List<string> namedParameters)
+        internal static string ToStoredProcedureCall(this string commandText, PgParameterCollection parameters)
         {
-            var builder      = new StringBuilder();
-            var paramBuilder = new StringBuilder();
-            var inLiteral    = false;
-            var inParam      = false;
-            int paramIndex   = 0;
+           if (commandText.Trim().ToLower().StartsWith("select "))
+           {
+               return commandText;
+           }
 
-            namedParameters.Clear();
+           var paramsText = new StringBuilder();
+
+           // Append the stored proc parameter name
+           paramsText.Append(commandText);
+           paramsText.Append("(");
+
+           for (int i = 0; i < parameters.Count; ++i)
+           {
+               var parameter = parameters[i];
+
+               if (parameter.Direction == ParameterDirection.Input
+                || parameter.Direction == ParameterDirection.InputOutput)
+               {
+                   // Append parameter name to parameter list
+                   paramsText.Append(parameters[i].ParameterName);
+
+                   if (i != parameters.Count - 1)
+                   {
+                       paramsText.Append(",");
+                   }
+               }
+           }
+
+           paramsText.Append(")");
+           paramsText.Replace(",)", ")");
+
+           return $"SELECT * FROM {paramsText.ToString()}";
+        }
+
+        internal static Tuple<string, List<string>> ParseCommandText(this string commandText)
+        {
+            var builder         = new StringBuilder();
+            var paramBuilder    = new StringBuilder();
+            var inLiteral       = false;
+            var inParam         = false;
+            int paramIndex      = 0;
+            var namedParameters = new List<string>();
 
             if (commandText.IndexOf('@') == -1)
             {
-                return commandText;
+                return new Tuple<string, List<string>>(commandText, null);
             }
 
             char sym;
@@ -147,8 +146,8 @@ namespace System
                 namedParameters.Add(paramBuilder.ToString());
                 builder.AppendFormat("${0}", ++paramIndex);
             }
-            
-            return builder.ToString();
+
+            return new Tuple<string, List<string>>(builder.ToString(), namedParameters);
         }
     }
 }

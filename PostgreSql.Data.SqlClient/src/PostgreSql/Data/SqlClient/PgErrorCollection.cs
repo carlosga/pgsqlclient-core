@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace PostgreSql.Data.SqlClient
 {
     public sealed class PgErrorCollection
-        : ICollection
+        : ICollection, IEnumerable, IEnumerable<PgError>
     {
         private List<PgError> _innerList;
 
@@ -28,12 +28,20 @@ namespace PostgreSql.Data.SqlClient
             _innerList = new List<PgError>();
         }
 
-        public IEnumerator GetEnumerator()      => _innerList.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => _innerList.GetEnumerator();        
+        IEnumerator          IEnumerable.GetEnumerator()          => _innerList.GetEnumerator();
+        IEnumerator<PgError> IEnumerable<PgError>.GetEnumerator() => _innerList.GetEnumerator();
 
         internal void Add(string severity, string message, string code) => Add(new PgError(severity, code, message));
         internal void Add(PgError error)                                => _innerList.Add(error);
-        
+
+        internal void AddRange(List<PgError> errors)
+        {
+            if (errors != null && errors.Count > 0)
+            {
+                _innerList.AddRange(errors);
+            }
+        }
+
         public void CopyTo(Array array, int index) => (_innerList as ICollection).CopyTo(array, index);
     }
 }
