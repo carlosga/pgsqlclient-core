@@ -5,7 +5,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Runtime.Serialization;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
@@ -71,7 +70,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (_binState == null && _randomizerType == null)
                 {
-                    return string.Empty;   
+                    return string.Empty;
                 }
 
                 return string.Format("{0}{1}{2}", _randomizerType.FullName, Separator, Convert.ToBase64String(_binState));
@@ -84,7 +83,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 if (string.IsNullOrEmpty(strState))
                 {
-                    return State.Empty;                    
+                    return State.Empty;
                 }
 
                 string[] items = strState.Split(new char[] { Separator }, 2);
@@ -188,9 +187,9 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private void Deserialize(State state)
         {
-            if (state._randomizerType != GetType())            
+            if (state._randomizerType != GetType())
             {
-                throw new ArgumentException("Type mismatch!");   
+                throw new ArgumentException("Type mismatch!");
             }
 
             int offset;
@@ -212,11 +211,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                 
             if (binState.Length != BinaryStateSize)
             {
-                throw new ArgumentNullException("wrong size of the state binary data");                
+                throw new ArgumentNullException("wrong size of the state binary data");
             }
 
             nextOffset = 0;
-            
+
             _inext  = DeserializeInt(binState, ref nextOffset);
             _inextp = DeserializeInt(binState, ref nextOffset);
 
@@ -252,12 +251,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// deserialization constructor
         /// </summary>
-        public Randomizer(StreamingContext context)
-        {
-            string base64State = GetCurrentState().ToString();
-            int offset;
-            Deserialize(Convert.FromBase64String(base64State), out offset);
-        }
+        // public Randomizer(StreamingContext context)
+        // {
+        //     string base64State = GetCurrentState().ToString();
+        //     int offset;
+        //     Deserialize(Convert.FromBase64String(base64State), out offset);
+        // }
 
         /// <summary>
         /// use this method to create seeds for nested randomizers out of current one

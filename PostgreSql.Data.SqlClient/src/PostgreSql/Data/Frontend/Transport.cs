@@ -162,9 +162,9 @@ namespace PostgreSql.Data.Frontend
             Write(4);
         }
 
-        internal void WriteMessage(MessageWriter messsage)
+        internal void WriteMessage(MessageWriter message)
         {
-            messsage.WriteTo(_stream);
+            message.WriteTo(_stream);
         }
 
         private int ReadInt32()

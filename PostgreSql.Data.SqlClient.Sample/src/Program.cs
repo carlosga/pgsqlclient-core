@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -18,27 +19,61 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            short[] array = new short[10];
-            
-            for (int i = 0; i < 10; i++)
-            {
-                array[i] = (short)i;
-            } 
+            MultiThreadedCancel(csb.ToString(), false);
 
-            using (var connection = new PgConnection(csb.ToString()))
-            {
-                connection.Open();
-                
-                using (var command = new PgCommand("SELECT carray_6 FROM temp__8d3608a5160e8d0_87cecc", connection))
-                {
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read()) {}  
-                    }
-                }
-            }
-            
             Console.WriteLine("Finished !!");
-        } 
+        }
+
+        public static void MultiThreadedCancel(string constr, bool async)
+        {
+            using (PgConnection con = new PgConnection(constr))
+            {
+                con.Open();
+                var command = con.CreateCommand();
+                command.CommandText = "SELECT * FROM orders; SELECT pg_sleep(8); SELECT * FROM customers";
+
+                Thread rThread1 = new Thread(ExecuteCommandCancelExpected);
+                Thread rThread2 = new Thread(CancelSharedCommand);
+                Barrier threadsReady = new Barrier(2);
+                object state = new Tuple<bool, PgCommand, Barrier>(async, command, threadsReady);
+
+                rThread1.Start(state);
+                rThread2.Start(state);
+                rThread1.Join();
+                rThread2.Join();
+                
+                Console.WriteLine("Threads finished");
+
+                //CommandCancelTest.VerifyConnection(command);
+            }
+        }
+
+        public static void ExecuteCommandCancelExpected(object state)
+        {
+            var       stateTuple   = (Tuple<bool, PgCommand, Barrier>)state;
+            bool      async        = stateTuple.Item1;
+            PgCommand command      = stateTuple.Item2;
+            Barrier   threadsReady = stateTuple.Item3;
+
+            threadsReady.SignalAndWait();
+            using (PgDataReader r = command.ExecuteReader())
+            {
+                do
+                {
+                    while (r.Read())
+                    {
+                    }
+                } while (r.NextResult());
+            }
+        }
+
+        public static void CancelSharedCommand(object state)
+        {
+            var stateTuple = (Tuple<bool, PgCommand, Barrier>)state;
+
+            stateTuple.Item3.SignalAndWait();
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            stateTuple.Item2.Cancel();
+        }
     }
 }

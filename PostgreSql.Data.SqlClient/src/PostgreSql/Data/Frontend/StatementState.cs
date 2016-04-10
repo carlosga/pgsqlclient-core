@@ -3,10 +3,11 @@
 
 namespace PostgreSql.Data.Frontend
 {
-    internal enum StatementStatus
+    internal enum StatementState
     {
         Initial
       , Broken
+      , Cancelled
       , Parsing
       , Parsed
       , Describing

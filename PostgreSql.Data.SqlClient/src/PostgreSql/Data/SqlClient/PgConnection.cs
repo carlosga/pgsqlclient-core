@@ -237,7 +237,6 @@ namespace PostgreSql.Data.SqlClient
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
                 ChangeState(ConnectionState.Broken);
                 throw new PgException("Cannot change database.");
             }

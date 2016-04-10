@@ -12,7 +12,6 @@ using NUnit.Framework;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
-    [Ignore("Not supported")]
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;
@@ -45,7 +44,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Test]
-        [Ignore("Not ported yet")]    
+        [Ignore("Disabled")]
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql9_Northwind;

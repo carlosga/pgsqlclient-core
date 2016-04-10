@@ -147,6 +147,9 @@ namespace PostgreSql.Data.SqlClient
                 throw InvalidRead();
             }
 
+            // Throw exception if the statement has been cancelled
+            _statement.ThrowIfCancelled();
+
             // Reset position
             _position = STARTPOS;
 
@@ -178,9 +181,9 @@ namespace PostgreSql.Data.SqlClient
                 return false;
             }
 
-            _position++;
-
             _row = _statement.FetchRow();
+
+            _position++;
 
             return (_row != null);
         }

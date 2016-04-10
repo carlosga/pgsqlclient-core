@@ -13,7 +13,6 @@ namespace PostgreSql.Data.Frontend
     internal sealed class Statement
         : IDisposable
     {
-        // Statements and Portals
         private const char STATEMENT = 'S';
         private const char PORTAL    = 'P'; 
 
@@ -28,13 +27,13 @@ namespace PostgreSql.Data.Frontend
         private RowDescriptor     _rowDescriptor;
         private Queue<DataRecord> _rows;
         private PgParameter       _outParameter;
-        private StatementStatus   _status;
+        private StatementState    _state;
 
-        internal bool            HasRows         => _hasRows;
-        internal string          Tag             => _tag;
-        internal int             RecordsAffected => _recordsAffected;
-        internal RowDescriptor   RowDescriptor   => _rowDescriptor;
-        internal StatementStatus Status          => _status;
+        internal bool           HasRows         => _hasRows;
+        internal string         Tag             => _tag;
+        internal int            RecordsAffected => _recordsAffected;
+        internal RowDescriptor  RowDescriptor   => _rowDescriptor;
+        internal StatementState State           => _state;
 
         internal string StatementText
         {
@@ -49,15 +48,17 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal bool IsCancelled => _state == StatementState.Cancelled;
+
         internal bool IsRunning
         {
             get
             {
-                return (_status == StatementStatus.Parsing
-                     || _status == StatementStatus.Describing
-                     || _status == StatementStatus.Binding
-                     || _status == StatementStatus.Executing
-                     || _status == StatementStatus.OnQuery);
+                return (_state == StatementState.Parsing
+                     || _state == StatementState.Describing
+                     || _state == StatementState.Binding
+                     || _state == StatementState.Executing
+                     || _state == StatementState.OnQuery);
             }
         }
 
@@ -65,10 +66,10 @@ namespace PostgreSql.Data.Frontend
         {
             get
             {
-                return (_status == StatementStatus.Parsed
-                     || _status == StatementStatus.Described
-                     || _status == StatementStatus.Bound
-                     || _status == StatementStatus.Executed);
+                return (_state == StatementState.Parsed
+                     || _state == StatementState.Described
+                     || _state == StatementState.Bound
+                     || _state == StatementState.Executed);
             }
         }
 
@@ -80,7 +81,7 @@ namespace PostgreSql.Data.Frontend
         internal Statement(Connection connection, string stmtText)
         {
             _connection      = connection;
-            _status          = StatementStatus.Initial;
+            _state          = StatementState.Initial;
             _statementText   = stmtText;
             _recordsAffected = -1;
             _hasRows         = false;
@@ -131,6 +132,7 @@ namespace PostgreSql.Data.Frontend
             if (IsRunning)
             {
                 _connection.CancelRequest();
+                ChangeState(StatementState.Cancelled);
             }
         }
 
@@ -138,7 +140,7 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                if (_status != StatementStatus.Initial)
+                if (_state != StatementState.Initial)
                 {
                     Close();
                 }
@@ -155,9 +157,7 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                // Update status
-                _status = StatementStatus.Broken;
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -168,7 +168,7 @@ namespace PostgreSql.Data.Frontend
 
         internal int ExecuteNonQuery(PgParameterCollection parameters)
         {
-            if (_status == StatementStatus.Initial)
+            if (_state == StatementState.Initial)
             {
                 Prepare(parameters);
             }
@@ -176,6 +176,8 @@ namespace PostgreSql.Data.Frontend
             try
             {
                 _connection.Lock();
+
+                ThrowIfCancelled();
 
                 Bind(parameters);
                 Execute(1);
@@ -185,9 +187,7 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                // Update status
-                _status = StatementStatus.Broken;
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -198,7 +198,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void ExecuteReader(PgParameterCollection parameters)
         {
-            if (_status == StatementStatus.Initial)
+            if (_state == StatementState.Initial)
             {
                 Prepare(parameters);
             }
@@ -207,14 +207,14 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
+                ThrowIfCancelled();
+
                 Bind(parameters);
                 Execute();
             }
             catch
             {
-                // Update status
-                _status = StatementStatus.Broken;
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -225,7 +225,7 @@ namespace PostgreSql.Data.Frontend
 
         internal object ExecuteScalar(PgParameterCollection parameters)
         {
-            if (_status == StatementStatus.Initial)
+            if (_state == StatementState.Initial)
             {
                 Prepare(parameters);
             }
@@ -233,6 +233,8 @@ namespace PostgreSql.Data.Frontend
             try
             {
                 _connection.Lock();
+
+                ThrowIfCancelled();
 
                 Bind(parameters);
                 Execute(1);
@@ -249,9 +251,7 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                // Update status
-                _status = StatementStatus.Broken;
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -266,8 +266,9 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
-                // Update status
-                _status = StatementStatus.Executing;
+                ThrowIfCancelled();
+
+                ChangeState(StatementState.Executing);
 
                 var message = _connection.CreateMessage(FrontendMessages.FunctionCall);
 
@@ -313,13 +314,11 @@ namespace PostgreSql.Data.Frontend
                 ReadUntilReadyForQuery();
 
                 // Update status
-                _status = StatementStatus.Executed;
+                ChangeState(StatementState.Executed);
             }
             catch
             {
-                // Update status
-                _status = StatementStatus.Broken;
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -335,7 +334,7 @@ namespace PostgreSql.Data.Frontend
                 _connection.Lock();
 
                 // Update Status
-                _status = StatementStatus.OnQuery;
+                ChangeState(StatementState.OnQuery);
 
                 var message = _connection.CreateMessage(FrontendMessages.Query);
 
@@ -354,11 +353,11 @@ namespace PostgreSql.Data.Frontend
                 }
 
                 // Update status
-                _status = StatementStatus.Initial;
+                ChangeState(StatementState.Initial);
             }
             catch
             {
-                _status = StatementStatus.Broken;
+                ChangeState(StatementState.Broken);
                 throw;
             }
             finally
@@ -369,6 +368,8 @@ namespace PostgreSql.Data.Frontend
 
         internal DataRecord FetchRow()
         {
+            ThrowIfCancelled();
+
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
@@ -416,6 +417,8 @@ namespace PostgreSql.Data.Frontend
                 stmtText += "VERBOSE ";
             }
 
+            ThrowIfCancelled();
+
             using (var stmt = _connection.CreateStatement(stmtText))
             {
                 stmt.Query();
@@ -431,10 +434,18 @@ namespace PostgreSql.Data.Frontend
             return stmtPlan.ToString();
         }
 
+        internal void ThrowIfCancelled()
+        {
+            if (IsCancelled)
+            {
+                throw new PgException("Operation cancelled by user.");
+            }
+        }
+
         private void Parse(PgParameterCollection parameters)
         {
             // Update status
-            _status = StatementStatus.Parsing;
+            ChangeState(StatementState.Parsing);
 
             // Clear actual row list
             ClearRows();
@@ -456,7 +467,7 @@ namespace PostgreSql.Data.Frontend
             _connection.Send(message);
 
             // Update status
-            _status = StatementStatus.Parsed;
+            ChangeState(StatementState.Parsed);
         }
 
         private void DescribeStatement() => Describe(STATEMENT);
@@ -465,7 +476,7 @@ namespace PostgreSql.Data.Frontend
         private void Describe(char type)
         {
             // Update status
-            _status = StatementStatus.Describing;
+            ChangeState(StatementState.Describing);
 
             var name    = ((type == STATEMENT) ? _parseName : _portalName);
             var message = _connection.CreateMessage(FrontendMessages.Describe);
@@ -489,13 +500,13 @@ namespace PostgreSql.Data.Frontend
             } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
 
             // Update status
-            _status = StatementStatus.Described;
+            ChangeState(StatementState.Described);
         }
         
         private void Bind(PgParameterCollection parameters)
         {
             // Update status
-            _status = StatementStatus.Binding;
+            ChangeState(StatementState.Binding);
 
             // Clear row data
             ClearRows();
@@ -546,7 +557,7 @@ namespace PostgreSql.Data.Frontend
             _connection.Send(message);
 
             // Update status
-            _status = StatementStatus.Bound;
+            ChangeState(StatementState.Bound);
         }
 
         private void Execute()
@@ -557,7 +568,7 @@ namespace PostgreSql.Data.Frontend
         private void Execute(int fetchSize)
         {
             // Update status
-            _status = StatementStatus.Executing;
+            ChangeState(StatementState.Executing);
 
             var message = _connection.CreateMessage(FrontendMessages.Execute);
 
@@ -593,13 +604,13 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Update status
-            _status = StatementStatus.Executed;
+            ChangeState(StatementState.Executed);
         }
 
         private void CloseStatement()
         {
-            if (_status == StatementStatus.Parsed 
-             || _status == StatementStatus.Described)
+            if (_state == StatementState.Parsed 
+             || _state == StatementState.Described)
             {
                 Close(STATEMENT, _parseName);
 
@@ -607,7 +618,7 @@ namespace PostgreSql.Data.Frontend
                 ClearRows();
 
                 // Update Status
-                _status = StatementStatus.Initial;
+                ChangeState(StatementState.Initial);
 
                 // Reset names
                 _parseName  = null;
@@ -617,14 +628,14 @@ namespace PostgreSql.Data.Frontend
 
         private void ClosePortal()
         {
-            if (_status == StatementStatus.Bound
-             || _status == StatementStatus.Executing
-             || _status == StatementStatus.Executed)
+            if (_state == StatementState.Bound
+             || _state == StatementState.Executing
+             || _state == StatementState.Executed)
             {
                 Close(PORTAL, _portalName);
 
                 // Update Status
-                _status = StatementStatus.Described;
+                ChangeState(StatementState.Described);
             }
         }
 
@@ -661,10 +672,7 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                // Update Status
-                _status = StatementStatus.Broken;
-
-                // Throw exception
+                ChangeState(StatementState.Broken);
                 throw;
             }
         }
@@ -796,6 +804,14 @@ namespace PostgreSql.Data.Frontend
                 HandleSqlMessage(message);
             }
             while (!message.IsReadyForQuery);
+        }
+
+        private void ChangeState(StatementState newState)
+        {
+            if (!IsCancelled || newState == StatementState.Broken)
+            {
+                _state = newState;   
+            }
         }
 
         // private void ProcessParameterDescription(PgInputPacket packet)
