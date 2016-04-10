@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Text;
 using PostgreSql.Data.SqlClient;
 using PostgreSql.Data.PgTypes;
@@ -58,7 +58,8 @@ namespace PostgreSql.Data.Frontend
                      || _state == StatementState.Describing
                      || _state == StatementState.Binding
                      || _state == StatementState.Executing
-                     || _state == StatementState.OnQuery);
+                     || _state == StatementState.OnQuery
+                     || HasMoreRows);
             }
         }
 
@@ -72,6 +73,8 @@ namespace PostgreSql.Data.Frontend
                      || _state == StatementState.Executed);
             }
         }
+
+        internal bool HasMoreRows => _hasRows && !_allRowsFetched;
 
         internal Statement(Connection connection)
             : this(connection, null)
@@ -140,11 +143,6 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                if (_state != StatementState.Initial)
-                {
-                    Close();
-                }
-
                 _connection.Lock();
 
                 string statementName = Guid.NewGuid().ToString();
@@ -198,6 +196,12 @@ namespace PostgreSql.Data.Frontend
 
         internal void ExecuteReader(PgParameterCollection parameters)
         {
+            ExecuteReader(CommandBehavior.Default, parameters);
+        }
+
+        internal void ExecuteReader(CommandBehavior       behavior
+                                  , PgParameterCollection parameters)
+        {
             if (_state == StatementState.Initial)
             {
                 Prepare(parameters);
@@ -209,8 +213,16 @@ namespace PostgreSql.Data.Frontend
 
                 ThrowIfCancelled();
 
+                int fetchSize = _connection.FetchSize;
+
+                if (behavior.HasBehavior(CommandBehavior.SingleResult)
+                 || behavior.HasBehavior(CommandBehavior.SingleRow))
+                {
+                    fetchSize = 1;
+                }
+
                 Bind(parameters);
-                Execute();
+                Execute(fetchSize);
             }
             catch
             {

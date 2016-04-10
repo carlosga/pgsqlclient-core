@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Test]
-        [Ignore("disabled")]
+        //[Ignore("disabled")]
         public void CancelAndDisposePreparedCommand()
         {
             CancelAndDisposePreparedCommand(s_constr);
@@ -94,8 +94,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     // Generate a query with a large number of results.
                     // using (var command = new PgCommand("select @P from sysobjects a cross join sysobjects b cross join sysobjects c cross join sysobjects d cross join sysobjects e cross join sysobjects f"
-                    using (var command = new PgCommand("select @P from pg_type a cross join pg_type b"
-                        , connection))
+                    using (var command = new PgCommand("select @P from pg_type a cross join pg_type b", connection))
                     {
                         command.Parameters.Add(new PgParameter("@P", PgDbType.Integer) { Value = expectedValue });
                         connection.Open();

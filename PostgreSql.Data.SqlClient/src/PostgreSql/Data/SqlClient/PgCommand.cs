@@ -40,6 +40,8 @@ namespace PostgreSql.Data.SqlClient
                 }
 
                 _commandText = value;
+
+                ParseMarsCommands();
             }
         }
 
@@ -98,7 +100,8 @@ namespace PostgreSql.Data.SqlClient
                     }
 
                     InternalClose();
-                }
+                    ParseMarsCommands();
+                }                
 
                 _connection = value as PgConnection;
             }
@@ -159,6 +162,8 @@ namespace PostgreSql.Data.SqlClient
             _commandText = cmdText;
             _connection  = connection;
             _transaction = transaction;
+            
+            ParseMarsCommands();
         }
 
         #region IDisposable Support
@@ -227,7 +232,14 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            return InternalExecuteNonQuery();
+            if (_queries == null)
+            {
+                return InternalExecuteNonQuery();
+            }
+            else
+            {
+                return InternalExecuteNonQueryMars();
+            }
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
@@ -266,11 +278,6 @@ namespace PostgreSql.Data.SqlClient
 
         internal void InternalPrepare()
         {
-            if (_connection.MultipleActiveResultSets && _queries == null)
-            {
-                _queries = _commandText.SplitQueries();
-            }
-
             string stmtText = CurrentCommandText.ParseNamedParameters(ref _namedParameters);
 
             if (_commandType == CommandType.StoredProcedure)
@@ -278,7 +285,7 @@ namespace PostgreSql.Data.SqlClient
                 stmtText = stmtText.ToStoredProcedureCall(_parameters);
             }
 
-            if (_queryIndex == 0)
+            if (_statement == null)
             {
                 _statement = _connection.InnerConnection.CreateStatement(stmtText);
             }
@@ -287,12 +294,14 @@ namespace PostgreSql.Data.SqlClient
                 _statement.StatementText = stmtText;
             }
 
-            _statement.Prepare(_parameters);
+            if (_statement.State == StatementState.Initial)
+            {
+                _statement.Prepare(_parameters);
+            }
 
             if (_queryIndex == 0)
             {
-                // Add the command to the internal connection prepared statements
-                _connection.InnerConnection.AddPreparedCommand(this);
+                _connection.InnerConnection.AddCommand(this);
             }
         }
 
@@ -306,6 +315,25 @@ namespace PostgreSql.Data.SqlClient
 
             return recordsAffected;
         }
+        
+        private int InternalExecuteNonQueryMars()
+        {
+            int affected = 0;
+
+            try
+            {
+                do
+                {
+                    affected += InternalExecuteNonQuery();
+                } while(PrepareNextMarsCommandText());
+            }
+            finally
+            {
+                _queryIndex = 0;
+            }
+
+            return affected;
+        }
 
         private void InternalExecuteReader(CommandBehavior behavior)
         {
@@ -313,13 +341,13 @@ namespace PostgreSql.Data.SqlClient
 
             InternalPrepare();
 
-            if (_commandBehavior.HasBehavior(CommandBehavior.Default)
-             || _commandBehavior.HasBehavior(CommandBehavior.SequentialAccess)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleResult)
-             || _commandBehavior.HasBehavior(CommandBehavior.SingleRow)
-             || _commandBehavior.HasBehavior(CommandBehavior.CloseConnection))
+            if (behavior.HasBehavior(CommandBehavior.Default)
+             || behavior.HasBehavior(CommandBehavior.SequentialAccess)
+             || behavior.HasBehavior(CommandBehavior.SingleResult)
+             || behavior.HasBehavior(CommandBehavior.SingleRow)
+             || behavior.HasBehavior(CommandBehavior.CloseConnection))
             {
-                _statement.ExecuteReader(_parameters);
+                _statement.ExecuteReader(behavior, _parameters);
             }
         }
 
@@ -332,14 +360,7 @@ namespace PostgreSql.Data.SqlClient
 
         internal bool NextResult()
         {
-            if (!_connection.MultipleActiveResultSets || _queries.IsEmpty())
-            {
-                return false;
-            }
-
-            // Try to advance to the next query
-            ++_queryIndex;
-            if (_queryIndex >= _queries.Count)
+            if (!PrepareNextMarsCommandText())
             {
                 return false;
             }
@@ -362,7 +383,7 @@ namespace PostgreSql.Data.SqlClient
                     }
                 }
 
-                _connection.InnerConnection.RemovePreparedCommand(this);
+                _connection.InnerConnection.RemoveCommand(this);
 
                 // Closing the prepared statement closes all his portals too.
                 _statement.Close();
@@ -401,6 +422,23 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        private bool PrepareNextMarsCommandText()
+        {
+            if (!_connection.MultipleActiveResultSets || _queries.IsEmpty())
+            {
+                return false;
+            }
+
+            // Try to advance to the next query
+            ++_queryIndex;
+            if (_queryIndex >= _queries.Count)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
         {
             if (_connection == null || _connection.State != ConnectionState.Open)
@@ -425,6 +463,20 @@ namespace PostgreSql.Data.SqlClient
             if (_commandText == null || _commandText.Length == 0)
             {
                 throw new InvalidOperationException("The command text for this Command has not been set.");
+            }
+        }
+        
+        private void ParseMarsCommands()
+        {
+            _queryIndex = 0;
+
+            if (_connection != null && _connection.MultipleActiveResultSets)
+            {
+                _queries = _commandText.SplitQueries();
+            }
+            else
+            {
+                _queries = null;
             }
         }
     }

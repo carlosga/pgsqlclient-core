@@ -9,7 +9,6 @@ using NUnit.Framework;
 namespace PostgreSql.Data.SqlClient.Tests
 {
     [TestFixture]
-    // [Ignore("Not supported")]
     public static class DDMARSTest
     {
         [Test]

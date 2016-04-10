@@ -21,6 +21,7 @@ namespace PostgreSql.Data.SqlClient
         private PgConnectionInternal _innerConnection;
         private ConnectionState      _state;
         private string               _connectionString;
+        private ConnectionOptions    _connectionOptions;
 
         public override string ConnectionString
         {
@@ -29,19 +30,20 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    _connectionString = value;
+                    _connectionString  = value;
+                    _connectionOptions = new ConnectionOptions(_connectionString);
                 }
             }
         }
 
-        public override string          Database                 => _innerConnection?.Database;
-        public override string          DataSource               => _innerConnection?.DataSource;
         public override string          ServerVersion            => _innerConnection?.ServerVersion;
-        public override int             ConnectionTimeout        => (_innerConnection?.ConnectionTimeout ?? 15);
-        public          int             PacketSize               => (_innerConnection?.PacketSize ?? 8192);
-        public          bool            MultipleActiveResultSets => (_innerConnection?.MultipleActiveResultSets ?? false);
-        public          string          SearchPath               => (_innerConnection?.SearchPath);
-        public          int             FetchSize                => (_innerConnection?.FetchSize ?? 200);
+        public override string          Database                 => _connectionOptions?.Database;
+        public override string          DataSource               => _connectionOptions?.DataSource;
+        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
+        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
+        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
+        public          string          SearchPath               => (_connectionOptions?.SearchPath);
+        public          int             FetchSize                => (_connectionOptions?.FetchSize ?? 200);
         public override ConnectionState State                    => _state;
 
         internal PgConnectionInternal InnerConnection => _innerConnection;
@@ -74,14 +76,13 @@ namespace PostgreSql.Data.SqlClient
                     // TODO: dispose managed state (managed objects).
                     try
                     {
-                        // release any managed resources
                         Close();
                     }
                     finally
                     {
-                        // Cleanup
-                        _innerConnection  = null;
-                        _connectionString = null;
+                        _innerConnection   = null;
+                        _connectionString  = null;
+                        _connectionOptions = null;
                     }
 
                     base.Dispose(disposing);
@@ -125,16 +126,14 @@ namespace PostgreSql.Data.SqlClient
             {
                 ChangeState(ConnectionState.Connecting);
 
-                var connectionOptions = new ConnectionOptions(_connectionString);
-
                 // Open connection
-                if (connectionOptions.Pooling)
+                if (_connectionOptions.Pooling)
                 {
                     _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
                 }
                 else
                 {
-                    _innerConnection = new PgConnectionInternal(connectionOptions);
+                    _innerConnection = new PgConnectionInternal(_connectionOptions);
                 }
 
                 if (_innerConnection.Encrypt)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading;
 using PostgreSql.Data.PgTypes;
 
@@ -19,7 +20,19 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            MultiThreadedCancel(csb.ToString(), false);
+            // MultiThreadedCancel(csb.ToString(), false);
+            
+            using (PgConnection connection = new PgConnection(csb.ToString()))
+            {
+                // MultipleErrorHandling(connection);   
+            }
+
+            using (var conn = new PgConnection(csb.ToString()))
+            {
+                var command = new PgCommand($"DROP TABLE 1; DROP TABLE 2", conn);
+                conn.Open();
+                command.ExecuteNonQuery();
+            }
 
             Console.WriteLine("Finished !!");
         }
@@ -75,5 +88,104 @@ namespace PostgreSql.Data.SqlClient.Sample
             Thread.Sleep(TimeSpan.FromSeconds(1));
             stateTuple.Item2.Cancel();
         }
+
+        private static void MultipleErrorHandling(PgConnection connection)
+        {
+            try
+            {
+                Console.WriteLine("MultipleErrorHandling {0}", connection.GetType().Name);
+                Type expectedException = typeof(PgException);
+
+                connection.InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
+                {
+                    Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
+                };
+
+                connection.Open();
+
+                using (PgCommand command = connection.CreateCommand())
+                {
+                    command.CommandText =
+                        "SELECT raise_notice('0');"
+                      + "SELECT 1 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('1');"
+                      + "SELECT raise_error('Error 1');"
+                      + "SELECT raise_notice('3');"
+                      + "SELECT 2 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('4');"
+                      + "SELECT raise_error('Error 2');"
+                      + "SELECT raise_notice('5');"
+                      + "SELECT 3 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('6');"
+                      + "SELECT raise_error('Error 3');"
+                      + "SELECT raise_notice('7');"
+                      + "SELECT 4 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('8');"
+                      + "SELECT raise_error('Error 4');" 
+                      + "SELECT raise_notice('9');"
+                      + "SELECT 5 as num, 'ABC' as str;"
+                      + "SELECT raise_notice('10');"
+                      + "SELECT raise_error('Error 5');"
+                      + "SELECT raise_notice('11');";
+
+                    try
+                    {
+                        Console.WriteLine("**** ExecuteNonQuery *****");
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        // PrintException(expectedException, e);
+                    }
+
+                    try
+                    {
+                        Console.WriteLine("**** ExecuteScalar ****");
+                        command.ExecuteScalar();
+                    }
+                    catch (Exception e)
+                    {
+                        // PrintException(expectedException, e);
+                    }
+
+                    try
+                    {
+                        Console.WriteLine("**** ExecuteReader ****");
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            bool moreResults = true;
+                            do
+                            {
+                                try
+                                {
+                                    Console.WriteLine("NextResult");
+                                    moreResults = reader.NextResult();
+                                }
+                                catch (Exception e)
+                                {
+                                    // PrintException(expectedException, e);
+                                }
+                            } while (moreResults);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        // PrintException(null, e);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                // PrintException(null, e);
+            }
+            try
+            {
+                connection.Dispose();
+            }
+            catch (Exception e)
+            {
+                // PrintException(null, e);
+            }
+        }        
     }
 }

@@ -19,7 +19,7 @@ namespace PostgreSql.Data.SqlClient
         private long          _lifetime;
         private bool          _pooled;
 
-        private ConcurrentDictionary<int, WeakReference<PgCommand>> _preparedCommands;
+        private ConcurrentDictionary<int, WeakReference<PgCommand>> _commands;
 
         internal Connection    Connection               => _connection;
         internal PgTransaction ActiveTransaction        => _activeTransaction?.Target as PgTransaction;
@@ -64,10 +64,10 @@ namespace PostgreSql.Data.SqlClient
 
         internal PgConnectionInternal(ConnectionOptions connectionOptions)
         {
-            _connection       = new Connection(connectionOptions);
-            _preparedCommands = new ConcurrentDictionary<int, WeakReference<PgCommand>>();
-            _created          = 0;
-            _lifetime         = 0;
+            _connection = new Connection(connectionOptions);
+            _commands   = new ConcurrentDictionary<int, WeakReference<PgCommand>>();
+            _created    = 0;
+            _lifetime   = 0;
         }
 
         internal void Open(PgConnection owner)
@@ -84,7 +84,7 @@ namespace PostgreSql.Data.SqlClient
             try
             {
                 // Dispose Active commands
-                ClosePreparedCommands();
+                CloseCommands();
 
                 // Rollback active transaction
                 DisposeActiveTransaction();
@@ -109,7 +109,7 @@ namespace PostgreSql.Data.SqlClient
                 _owner             = null;
                 _activeTransaction = null;
                 _connection        = null;
-                _preparedCommands  = null;
+                _commands  = null;
                 _created           = 0;
                 _lifetime          = 0;
                 _pooled            = false;
@@ -146,9 +146,9 @@ namespace PostgreSql.Data.SqlClient
 
         internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
 
-        internal void ClosePreparedCommands()
+        internal void CloseCommands()
         {
-            foreach (var commandRef in _preparedCommands)
+            foreach (var commandRef in _commands)
             {
                 PgCommand command = null;
 
@@ -158,19 +158,19 @@ namespace PostgreSql.Data.SqlClient
                 }
             }
             
-            _preparedCommands.Clear();
+            _commands.Clear();
         }
 
-        internal void AddPreparedCommand(PgCommand command)
+        internal void AddCommand(PgCommand command)
         {
-            _preparedCommands[command.GetHashCode()] = new WeakReference<PgCommand>(command);
+            _commands[command.GetHashCode()] = new WeakReference<PgCommand>(command);
         }
 
-        internal void RemovePreparedCommand(PgCommand command)
+        internal void RemoveCommand(PgCommand command)
         {
             WeakReference<PgCommand> removed = null;
 
-            _preparedCommands.TryRemove(command.GetHashCode(), out removed);
+            _commands.TryRemove(command.GetHashCode(), out removed);
         }
 
         internal bool Verify()

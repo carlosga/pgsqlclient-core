@@ -100,6 +100,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                     executedProcessList.Add(processName);
                 }
             }
-        }        
+        }
     }
 }
