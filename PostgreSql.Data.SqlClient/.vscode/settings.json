@@ -1,7 +1,7 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "editor.fontFamily": "Fira Code",
-    "editor.fontSize": 15,
+    "editor.fontSize": 14,
     "editor.fontLigatures": true,
     "editor.glyphMargin": true,
     "editor.renderWhitespace": true,

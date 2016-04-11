@@ -3,10 +3,5 @@
         "PostgreSql.Data.SqlClient",
         "PostgreSql.Data.SqlClient.Tests",
         "PostgreSql.Data.SqlClient.Sample"
-    ],
-    "sdk": {
-        "version": "1.0.0-rc2-20221",
-        "architecture": "x64",
-        "runtime": "coreclr"
-    }
+    ]
 }

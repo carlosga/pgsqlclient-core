@@ -12,8 +12,10 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgParameterCollection
         : DbParameterCollection
     {
+        internal static readonly PgParameterCollection Empty = new PgParameterCollection();
+
         private static readonly object SyncObject = new object();
-        
+
         private readonly List<PgParameter> _parameters;
         private int                        _paramCount;
 

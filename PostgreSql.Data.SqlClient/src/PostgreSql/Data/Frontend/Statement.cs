@@ -16,24 +16,33 @@ namespace PostgreSql.Data.Frontend
         private const char STATEMENT = 'S';
         private const char PORTAL    = 'P'; 
 
-        private Connection        _connection;
-        private string            _statementText;
-        private bool              _hasRows;
-        private string            _tag;
-        private string            _parseName;
-        private string            _portalName;
-        private bool              _allRowsFetched;
-        private int               _recordsAffected;
-        private RowDescriptor     _rowDescriptor;
-        private Queue<DataRecord> _rows;
-        private PgParameter       _outParameter;
-        private StatementState    _state;
+        private Connection            _connection;
+        private string                _statementText;
+        private string                _parsedStatementText;
+        private bool                  _hasRows;
+        private string                _tag;
+        private string                _parseName;
+        private string                _portalName;
+        private bool                  _allRowsFetched;
+        private int                   _recordsAffected;
+        private RowDescriptor         _rowDescriptor;
+        private Queue<DataRecord>     _rows;
+        private StatementState        _state;
+        private PgParameterCollection _parameters;
+        private CommandType           _commandType;
+        private List<int>             _parameterIndices;
 
         internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
         internal int            RecordsAffected => _recordsAffected;
         internal RowDescriptor  RowDescriptor   => _rowDescriptor;
         internal StatementState State           => _state;
+
+        internal CommandType CommandType
+        {
+            get { return _commandType; }
+            set { _commandType = value; }
+        }
 
         internal string StatementText
         {
@@ -43,9 +52,25 @@ namespace PostgreSql.Data.Frontend
                 if (_statementText != value)
                 {
                     Close();
+
                     _statementText = value;
+
+                    if (CommandType == CommandType.StoredProcedure)
+                    {
+                        _parsedStatementText = _parsedStatementText.ToStoredProcedureCall(_parameters);
+                    }
+                    else
+                    {
+                        _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
+                    }
                 }
             }
+        }
+
+        internal PgParameterCollection Parameters
+        {
+            get { return _parameters; }
+            set { _parameters = value; }
         }
 
         internal bool IsCancelled => _state == StatementState.Cancelled;
@@ -81,17 +106,19 @@ namespace PostgreSql.Data.Frontend
         {
         }
 
-        internal Statement(Connection connection, string stmtText)
+        internal Statement(Connection connection, string statementText)
         {
-            _connection      = connection;
-            _state           = StatementState.Initial;
-            _statementText   = stmtText;
-            _recordsAffected = -1;
-            _hasRows         = false;
-            _allRowsFetched  = false;
-            _outParameter    = new PgParameter();
-            _rowDescriptor   = new RowDescriptor();
-            _rows            = new Queue<DataRecord>(_connection.FetchSize);
+            _connection       = connection;
+            _state            = StatementState.Initial;
+            _statementText    = statementText;
+            _recordsAffected  = -1;
+            _hasRows          = false;
+            _allRowsFetched   = false;
+            _rowDescriptor    = new RowDescriptor();
+            _rows             = new Queue<DataRecord>(_connection.FetchSize);
+            _parameters       = PgParameterCollection.Empty;
+            _commandType      = CommandType.Text;
+            _parameterIndices = new List<int>();
         }
 
         #region IDisposable Support
@@ -109,6 +136,18 @@ namespace PostgreSql.Data.Frontend
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
+                _connection       = null;
+                _statementText    = null; 
+                _hasRows          = false;
+                _tag              = null;
+                _parseName        = null;
+                _portalName       = null;
+                _allRowsFetched   = false;
+                _recordsAffected  = -1;
+                _rowDescriptor    = null;
+                _rows             = null;
+                _parameters       = null;
+                _parameterIndices = null;
 
                 _disposed = true;
             }
@@ -139,7 +178,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Prepare(List<PgParameter> parameters)
+        internal void Prepare()
         {
             try
             {
@@ -155,7 +194,7 @@ namespace PostgreSql.Data.Frontend
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
 
-                Parse(parameters);
+                Parse();
                 DescribeStatement();
             }
             catch
@@ -168,11 +207,11 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal int ExecuteNonQuery(List<PgParameter> parameters)
+        internal int ExecuteNonQuery()
         {
             if (_state == StatementState.Initial)
             {
-                Prepare(parameters);
+                Prepare();
             }
 
             try
@@ -181,7 +220,7 @@ namespace PostgreSql.Data.Frontend
 
                 ThrowIfCancelled();
 
-                Bind(parameters);
+                Bind();
                 Execute(1);
                 ClosePortal();
 
@@ -197,16 +236,16 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ExecuteReader(List<PgParameter> parameters)
+        internal void ExecuteReader()
         {
-            ExecuteReader(CommandBehavior.Default, parameters);
+            ExecuteReader(CommandBehavior.Default);
         }
 
-        internal void ExecuteReader(CommandBehavior behavior, List<PgParameter> parameters)
+        internal void ExecuteReader(CommandBehavior behavior)
         {
             if (_state == StatementState.Initial)
             {
-                Prepare(parameters);
+                Prepare();
             }
 
             try
@@ -223,7 +262,7 @@ namespace PostgreSql.Data.Frontend
                     fetchSize = 1;
                 }
 
-                Bind(parameters);
+                Bind();
                 Execute(fetchSize);
             }
             catch
@@ -236,11 +275,11 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal object ExecuteScalar(List<PgParameter> parameters)
+        internal object ExecuteScalar()
         {
             if (_state == StatementState.Initial)
             {
-                Prepare(parameters);
+                Prepare();
             }
 
             try
@@ -249,7 +288,7 @@ namespace PostgreSql.Data.Frontend
 
                 ThrowIfCancelled();
 
-                Bind(parameters);
+                Bind();
                 Execute(1);
                 ClosePortal();
 
@@ -288,18 +327,18 @@ namespace PostgreSql.Data.Frontend
                 message.Write(id);
 
                 // Send parameters format code.
-                message.Write((short)parameters.Count);
+                message.Write((short)_parameterIndices.Count);
 
-                for (int i = 0; i < parameters.Count; i++)
+                for (int i = 0; i < _parameterIndices.Count; i++)
                 {
-                    message.Write((short)parameters[i].TypeInfo.Format);
+                    message.Write((short)parameters[_parameterIndices[i]].TypeInfo.Format);
                 }
 
                 // Send parameter values
-                message.Write((short)parameters.Count);
-                for (int i = 0; i < parameters.Count; i++)
+                message.Write((short)_parameterIndices.Count);
+                for (int i = 0; i < _parameterIndices.Count; i++)
                 {
-                    var parameter = parameters[i];
+                    var parameter = parameters[_parameterIndices[i]];
 
                     if (parameter.Value         == System.DBNull.Value 
                      || parameter.Value         == null 
@@ -451,7 +490,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private void Parse(List<PgParameter> parameters)
+        private void Parse()
         {
             // Update status
             ChangeState(StatementState.Parsing);
@@ -465,11 +504,11 @@ namespace PostgreSql.Data.Frontend
             var message = _connection.CreateMessage(FrontendMessages.Parse);
 
             message.WriteNullString(_parseName);
-            message.WriteNullString(_statementText);
-            message.Write((short)parameters?.Count);
-            for (int i = 0; i < parameters?.Count; i++)
+            message.WriteNullString(_parsedStatementText);
+            message.Write((short)_parameterIndices.Count);
+            for (int i = 0; i < _parameterIndices.Count; i++)
             {
-                message.Write(parameters[i].TypeInfo.Oid);
+                message.Write(_parameters[_parameterIndices[i]].TypeInfo.Oid);
             }
 
             // Send the message
@@ -512,7 +551,7 @@ namespace PostgreSql.Data.Frontend
             ChangeState(StatementState.Described);
         }
 
-        private void Bind(List<PgParameter> parameters)
+        private void Bind()
         {
             // Update status
             ChangeState(StatementState.Binding);
@@ -529,17 +568,17 @@ namespace PostgreSql.Data.Frontend
             message.WriteNullString(_parseName);
 
             // Send parameters format code.
-            message.Write((short)parameters.Count);
-            for (int i = 0; i < parameters.Count; i++)
+            message.Write((short)_parameterIndices.Count);
+            for (int i = 0; i < _parameterIndices.Count; i++)
             {
-                message.Write((short)parameters[i].TypeInfo.Format);
+                message.Write((short)_parameters[_parameterIndices[i]].TypeInfo.Format);
             }
 
             // Send parameter values
-            message.Write((short)parameters.Count);
-            for (int i = 0; i < parameters.Count; i++)
+            message.Write((short)_parameterIndices.Count);
+            for (int i = 0; i < _parameterIndices.Count; i++)
             {
-                var parameter = parameters[i];
+                var parameter = _parameters[_parameterIndices[i]];
 
                 if (parameter.Value         == System.DBNull.Value 
                  || parameter.Value         == null 
@@ -747,7 +786,15 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessFunctionResult(MessageReader message)
         {
-            _outParameter.Value = message.ReadValue(_outParameter.TypeInfo, message.ReadInt32());
+            for (int i = 0; i < _parameters.Count; ++i)
+            {
+                var p = _parameters[i];
+
+                if (p.Direction == ParameterDirection.InputOutput || p.Direction == ParameterDirection.Output)
+                {
+                    p.Value = message.ReadValue(p.TypeInfo, message.ReadInt32());
+                }
+            }
         }
 
         private void ProcessRowDescription(MessageReader message)

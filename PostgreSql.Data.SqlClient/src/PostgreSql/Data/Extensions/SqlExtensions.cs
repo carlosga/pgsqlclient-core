@@ -89,18 +89,21 @@ namespace System
            return $"SELECT * FROM {paramsText.ToString()}";
         }
 
-        internal static Tuple<string, List<string>> ParseCommandText(this string commandText)
+        internal static string ParseCommandText(this string           commandText
+                                              , PgParameterCollection parameters
+                                              , ref List<int>         parameterIndices)
         {
             var builder         = new StringBuilder();
             var paramBuilder    = new StringBuilder();
             var inLiteral       = false;
             var inParam         = false;
             int paramIndex      = 0;
-            var namedParameters = new List<string>();
+
+            parameterIndices.Clear();
 
             if (commandText.IndexOf('@') == -1)
             {
-                return new Tuple<string, List<string>>(commandText, null);
+                return commandText;
             }
 
             char sym;
@@ -117,7 +120,7 @@ namespace System
                     }
                     else
                     {
-                        namedParameters.Add(paramBuilder.ToString());
+                        parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
                         paramBuilder.Length = 0;
                         builder.AppendFormat("${0}", ++paramIndex);
                         builder.Append(sym);
@@ -143,11 +146,11 @@ namespace System
 
             if (inParam)
             {
-                namedParameters.Add(paramBuilder.ToString());
+                parameters.Add(parameters.IndexOf(paramBuilder.ToString()));
                 builder.AppendFormat("${0}", ++paramIndex);
             }
 
-            return new Tuple<string, List<string>>(builder.ToString(), namedParameters);
+            return builder.ToString();
         }
     }
 }

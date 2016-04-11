@@ -2,39 +2,34 @@
     "title": "postgresql data provider for .net core",
     "version": "0.0.1",
     "compilationOptions": {
-        "emitEntryPoint": false,
-        "allowUnsafe": false,
+        "emitEntryPoint"   : false,
+        "allowUnsafe"      : false,
         "warningsAsErrors" : false,
-        "languageVersion" : "csharp6"
+        "languageVersion"  : "csharp6",
+        "platform"         : "x64"
+    },
+    "dependencies": {
+        "NETStandard.Library": "1.5.0-rc2-23928",
+        "System.Collections": "4.0.11-rc2-23928",
+        "System.Collections.Concurrent": "4.0.12-rc2-23928",
+        "System.Collections.NonGeneric": "4.0.1-rc2-23928",
+        "System.Data.Common": "4.0.1-rc2-23928",
+        "System.Diagnostics.Contracts": "4.0.1-rc2-23928",
+        "System.Globalization": "4.0.11-rc2-23928",
+        "System.IO": "4.1.0-rc2-23928",
+        "System.Linq": "4.1.0-rc2-23928",
+        "System.Net.NameResolution": "4.0.0-rc2-23928",
+        "System.Net.Security": "4.0.0-rc2-23928",
+        "System.Net.Sockets": "4.1.0-rc2-23928",
+        "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23928",
+        "System.Security.Cryptography.X509Certificates": "4.1.0-rc2-23928",
+        "System.Text.Encoding": "4.0.11-rc2-23928",
+        "System.Threading": "4.0.11-rc2-23928",
+        "System.Threading.Tasks": "4.0.11-rc2-23928",
+        "System.Threading.Thread": "4.0.0-rc2-23928"
     },
     "frameworks": {
-        "netstandard1.5":{
-            "imports" : ["netcore50"],
-            "dependencies": {
-                "NETStandard.Library": "1.5.0-rc2-23928",
-                "System.Collections": "4.0.11-rc2-23928",
-                "System.Collections.Concurrent": "4.0.12-rc2-23928",
-                "System.Collections.NonGeneric": "4.0.1-rc2-23928",
-                "System.Data.Common": "4.0.1-rc2-23928",
-                "System.Diagnostics.Contracts": "4.0.1-rc2-23928",
-                "System.Globalization": "4.0.11-rc2-23928",
-                "System.IO": "4.1.0-rc2-23928",
-                "System.Linq": "4.1.0-rc2-23928",
-                "System.Net.NameResolution": "4.0.0-rc2-23928",
-                "System.Net.Primitives": "4.0.11-rc2-23928",
-                "System.Net.Security": "4.0.0-rc2-23928",
-                "System.Net.Sockets": "4.1.0-rc2-23928",
-                "System.Reflection": "4.1.0-rc2-23928",
-                "System.Reflection.TypeExtensions": "4.1.0-rc2-23928",
-                "System.Resources.ResourceManager": "4.0.1-rc2-23928",
-                "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23928",
-                "System.Security.Cryptography.X509Certificates": "4.1.0-rc2-23928",
-                "System.Text.Encoding": "4.0.11-rc2-23928",
-                "System.Threading": "4.0.11-rc2-23928",
-                "System.Threading.Tasks": "4.0.11-rc2-23928",
-                "System.Threading.Thread": "4.0.0-rc2-23928"
-            }
-        }
+        "netstandard1.3": { }
     },
     "configurations": {
         "Debug": {

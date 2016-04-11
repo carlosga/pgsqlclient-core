@@ -470,7 +470,7 @@ namespace PostgreSql.Data.SqlClient
         {
 #warning TODO: Rework
             _statement.StatementText = $"fetch all in \"{_refCursors.Dequeue()}\""; 
-            _statement.ExecuteReader(_behavior, null);
+            _statement.ExecuteReader(_behavior);
 
             return true;
         }
