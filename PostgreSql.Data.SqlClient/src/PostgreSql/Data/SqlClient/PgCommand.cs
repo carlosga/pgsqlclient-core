@@ -153,7 +153,6 @@ namespace PostgreSql.Data.SqlClient
             _designTimeVisible = false;
             _parameters        = new PgParameterCollection();
             _commands          = new List<string>();
-            _statement         = _connection.InnerConnection.CreateStatement(); 
         }
 
         public PgCommand(string commandText)
@@ -286,6 +285,11 @@ namespace PostgreSql.Data.SqlClient
 
         internal void InternalPrepare()
         {
+            if (_statement == null)
+            {
+                _statement = _connection.InnerConnection.CreateStatement(); 
+            }
+
             _statement.CommandType   = _commandType;
             _statement.StatementText = CurrentCommand;
 
