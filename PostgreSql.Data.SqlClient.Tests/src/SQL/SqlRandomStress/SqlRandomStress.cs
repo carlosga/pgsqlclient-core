@@ -4,7 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -15,7 +15,6 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class SqlRandomStress
     {
         private static readonly TimeSpan TimeLimitDefault = new TimeSpan(0, 0, 10);
@@ -41,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         
         private static RandomizerPool _randPool;
 
-        [Test]
+        [Fact]
         public static void TestMain()
         {
             _operationCanceledErrorMessage = "Operation cancelled by user.";

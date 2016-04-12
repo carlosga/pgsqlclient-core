@@ -4,14 +4,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class DDMARSTest
     {
-        [Test]
+        [Fact]
         public static void TestMain()
         {
             string connstr  = DataTestClass.PostgreSql9_Northwind + "multipleactiveresultsets=true;";

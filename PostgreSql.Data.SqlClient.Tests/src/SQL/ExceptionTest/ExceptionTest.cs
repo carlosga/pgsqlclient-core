@@ -4,15 +4,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Xunit;
 using System.Data;
 using System.Collections;
 using System.Globalization;
 using System;
-using NUnit.Framework;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class ExceptionTest
     {
         // data value and server consts
@@ -24,7 +23,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const string warningInfoMessage      = "Test of info messages";
         private const string orderIdQuery            = "select orderid from orders where orderid < 10250";
 
-        [Test]
+        [Fact]
         public static void WarningTest()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -57,7 +56,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
         }
 
-        [Test]
+        [Fact]
         public static void ExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -88,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
         }
 
-        [Test]
+        [Fact]
         public static void VariousExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -114,7 +113,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void IndependentConnectionExceptionTest()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -179,7 +178,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        private static TException VerifyConnectionFailure<TException>(TestDelegate connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
+        private static TException VerifyConnectionFailure<TException>(Action connectAction, string expectedExceptionMessage, Func<TException, bool> exVerifier) where TException : Exception
         {
             TException ex = Assert.Throws<TException>(connectAction);
 
@@ -189,7 +188,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             return ex;
         }
 
-        private static TException VerifyConnectionFailure<TException>(TestDelegate connectAction, string expectedExceptionMessage) where TException : Exception
+        private static TException VerifyConnectionFailure<TException>(Action connectAction, string expectedExceptionMessage) where TException : Exception
         {
             return VerifyConnectionFailure<TException>(connectAction, expectedExceptionMessage, (ex) => true);
         }

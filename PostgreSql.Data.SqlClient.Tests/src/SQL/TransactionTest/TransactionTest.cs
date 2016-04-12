@@ -4,16 +4,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System.Data;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class TransactionTest
     {
-        [Test]
+        [Fact]
         public void TestPostgreSql9()
         {
             new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind).StartTest();
@@ -130,7 +129,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     int count = 0;
                     while (reader.Read()) { count++; }
                     Assert.True(count == 1, "Error: incorrect number of rows in table after update.");
-                    Assert.AreEqual(count, 1);
+                    Assert.Equal(count, 1);
                 }
             }
         }
@@ -165,7 +164,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     Assert.False(reader.HasRows, "Error Rollback Test : incorrect number of rows in table after rollback.");
                     int count = 0;
                     while (reader.Read()) count++;
-                    Assert.AreEqual(count, 0);
+                    Assert.Equal(count, 0);
                 }
 
                 connection.Close();
@@ -213,7 +212,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     Assert.True(reader.HasRows, "Error Scoped Transaction Test : incorrect number of rows in table after rollback to save state one.");
                     int count = 0;
                     while (reader.Read()) count++;
-                    Assert.AreEqual(count, 1);
+                    Assert.Equal(count, 1);
                 }
 
                 tx.Rollback();
@@ -283,10 +282,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public static void AssertException<T>(TestDelegate action, string expectedErrorMessage) where T : Exception
+        public static void AssertException<T>(Action action, string expectedErrorMessage) where T : Exception
         {
             var exception = Assert.Throws<T>(action);
-            Assert.AreEqual(exception.Message, expectedErrorMessage);
+            Assert.Equal(exception.Message, expectedErrorMessage);
         }
 
         private void ReadUncommittedIsolationLevel_ShouldReturnUncommittedData()

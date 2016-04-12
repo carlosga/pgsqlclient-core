@@ -4,17 +4,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using PostgreSql.Data.PgTypes;
 using System;
 using System.Data;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class DateTimeTest
     {
-        [Test]
+        [Fact]
         public static void SelectNullTimestampWithTZ()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -31,8 +30,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        // [Test]
-        // [Ignore("disabled")]
+        // [Fact]
         // public static void ReaderParameterTest()
         // {
         //     string tempTable  = "#t_"  + Guid.NewGuid().ToString().Replace('-', '_');

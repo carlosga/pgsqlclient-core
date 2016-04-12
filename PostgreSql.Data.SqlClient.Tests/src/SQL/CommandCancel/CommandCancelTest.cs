@@ -4,7 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System.Threading;
 using System.Data.Common;
 using System.Data;
@@ -12,35 +12,30 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class CommandCancelTest
     {
         // Shrink the packet size - this should make timeouts more likely
         private static string s_constr = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { PacketSize = 512 }).ConnectionString;
 
-        [Test]
-        [Ignore("disabled")]
+        [Fact(Skip="disabled")]
         public void MultiThreadedCancel_NonAsync()
         {
             MultiThreadedCancel(s_constr, false);
         }
 
-        [Test]
-        [Ignore("Enable when command timeouts are available")]
+        [Fact(Skip="disabled")]
         public void TimeoutCancel()
         {
             TimeoutCancel(s_constr);
         }
 
-        [Test]
-        [Ignore("disabled")]
+        [Fact(Skip="disabled")]
         public void CancelAndDisposePreparedCommand()
         {
             CancelAndDisposePreparedCommand(s_constr);
         }
 
-        [Test]
-        [Ignore("Enable when command timeouts are available")]
+        [Fact(Skip="disabled")]
         public void TimeOutDuringRead()
         {
             TimeOutDuringRead(s_constr);

@@ -4,15 +4,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using PostgreSql.Data.PgTypes;
+using Xunit;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using NUnit.Framework;
-using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    // [TestFixture]
     // public static class PgTypeTest
     // {
     //     private static string[] s_sampleString = new string[] { "In", "its", "first", "month", "on",  "the",  "market,",
@@ -77,8 +76,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
     //     private static UnicodeEncoding s_unicodeEncoding = new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true);
 
-    //     [TestMethod]
-    //     [Ignore("disabled")]
+    //     [Fact(Skip="disabled")]
     //     public static void PgStringValidComparisonTest()
     //     {
     //         for (int j = 0; j < s_cultureInfo.Length; ++j)
@@ -92,8 +90,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     //         }
     //     }
 
-    //     [TestMethod]
-    //     [Ignore("disabled")]
+    //     [Fact(Skip="disabled")]
     //     public static void PgStringNullComparisonTest()
     //     {
     //         PgString nullPgString = new PgString(null);

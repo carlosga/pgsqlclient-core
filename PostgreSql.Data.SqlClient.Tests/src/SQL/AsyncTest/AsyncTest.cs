@@ -7,16 +7,15 @@
 using System.Threading.Tasks;
 using System.Data.Common;
 using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class AsyncTest
     {
         private const int TaskTimeout = 5000;
 
-        [Test]
+        [Fact]
         public static void ExecuteTest()
         {
             var connStr = DataTestClass.PostgreSql9_Northwind;
@@ -43,8 +42,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             con.Close();
         }
 
-        [Test]
-        [Ignore("Disabled")]
+        [Fact(Skip="disabled")]
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql9_Northwind;

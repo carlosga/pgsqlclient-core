@@ -3,19 +3,19 @@
     "compilationOptions": {
         "emitEntryPoint": true
     },
-    "frameworks": {
-        "netcoreapp1.0": {
-            "dependencies": {
-                "Microsoft.NETCore.App": {
-                    "type": "platform",
-                    "version": "1.0.0-rc2-*"
-                },
-                "PostgreSql.Data.SqlClient": {
-                    "target"  : "project",
-                    "version" : "0.0.1"
-                }
-            }
+    "dependencies": {
+        "NETStandard.Library": "1.5.0-rc3-*",
+        "Microsoft.NETCore.App": {
+            "type": "platform",
+            "version": "1.0.0-rc3-*"
+        },
+        "PostgreSql.Data.SqlClient": {
+            "target"  : "project",
+            "version" : "0.0.1"
         }
+    },
+    "frameworks": {
+        "netcoreapp1.0": { }
     },
     "configurations": {
         "Debug": {

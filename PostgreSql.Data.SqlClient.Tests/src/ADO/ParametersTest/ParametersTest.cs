@@ -6,14 +6,13 @@
 
 using System.Collections;
 using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class ParametersTest
     {
-        [Test]
+        [Fact]
         public static void CodeCoveragePgSqlClient()
         {
             PgParameterCollection opc = new PgCommand().Parameters;

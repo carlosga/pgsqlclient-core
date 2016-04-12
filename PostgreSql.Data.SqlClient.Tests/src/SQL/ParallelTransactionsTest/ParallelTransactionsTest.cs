@@ -4,15 +4,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class ParallelTransactionsTest
     {
-        [Test]
+        [Fact]
         public void BasicParallelTestShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;
@@ -23,7 +22,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 exceptionMessage: expectedErrorMessage);
         }
 
-        [Test]
+        [Fact]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;

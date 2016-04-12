@@ -4,8 +4,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
 using PostgreSql.Data.PgTypes;
+using Xunit;
 using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -17,10 +17,9 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class DataStreamTest
     {
-        [Test]
+        [Fact]
         public static void MultipleResults()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -88,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void InvalidRead()
         {
             using (PgConnection c = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -104,7 +103,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void VariantRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -143,7 +142,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void TypeRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -184,8 +183,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
-        [Ignore("Not ported yet")]
+        [Fact(Skip="disabled")]
         public static void GetValueOfTRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -256,7 +254,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void OutOfOrderGetChars()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -333,7 +331,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         //     }
         // }
 
-        [Test]
+        [Fact]
         public static void RowBuffer()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -361,7 +359,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void TimestampRead()
         {
             string tempTable = DataTestClass.GetUniqueName("__", String.Empty, String.Empty);
@@ -404,8 +402,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
-        [Ignore("Not ported yet")]
+        [Fact(Skip="disabled")]
         public static void BufferSize()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -442,7 +439,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void OrphanReader()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -503,7 +500,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void NumericRead()
         {
             string tempTable = DataTestClass.GetUniqueName("TEMP_", "", "");
@@ -548,7 +545,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void HasRowsTest()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -644,7 +641,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         //     }
         // }
 
-        [Test]
+        [Fact]
         public static void CloseConnection()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -668,7 +665,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void OpenConnection()
         {
             // Isolates OpenConnection behavior for sanity testing on x-plat
@@ -679,7 +676,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void GetStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -706,7 +703,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                             Assert.False(stream.Read(buffer, 0, buffer.Length) > 0, "FAILED: Read more than 0 bytes from a null stream");
 
                             // Get column before current column
-                            TestDelegate action = (() => reader.GetStream(0));
+                            Action action = (() => reader.GetStream(0));
                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
 
                             // Two streams on same column
@@ -767,7 +764,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void GetTextReader()
         {
             string[] queryStrings =
@@ -802,7 +799,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                                 Assert.False(textReader.Read(buffer, 0, buffer.Length) > 0, "FAILED: Read more than 0 chars from a null TextReader");
 
                                 // Get column before current column
-                                TestDelegate action = (() => reader.GetTextReader(0));
+                                Action action = (() => reader.GetTextReader(0));
                                 SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
 
                                 // Two TextReaders on same column
@@ -919,7 +916,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 //             }
 //         }
 
-        [Test]
+        [Fact]
         public static void ReadStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -932,7 +929,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     byte[]       buffer       = new byte[16];
                     byte[]       largeBuffer  = new byte[9000];
                     Stream       stream       = null;
-                    TestDelegate action       = null;
+                    Action action       = null;
                     using (PgCommand cmd = new PgCommand("SELECT '\\x12341234'::bytea", connection))
                     {
                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
@@ -997,7 +994,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void ReadTextReader()
         {
             CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
@@ -1023,7 +1020,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         char[]       buffer      = new char[16];
                         char[]       largeBuffer = new char[9000];
                         TextReader   textReader  = null;
-                        TestDelegate action      = null;
+                        Action action      = null;
                         
                         using (PgCommand cmd = new PgCommand(string.Format("SELECT {0}", correctString), connection))
                         {
@@ -1086,7 +1083,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void StreamingBlobDataTypes()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -1143,8 +1140,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
-        [Ignore("Not ported yet")]
+        [Fact(Skip="disabled")]
         public static void TimeoutDuringReadAsyncWithClosedReaderTest()
         {
             // Create the proxy
@@ -1188,8 +1184,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
-        [Ignore("Not ported yet")]
+        [Fact(Skip="disabled")]
         public static void NonFatalTimeoutDuringRead()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -1234,15 +1229,15 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        private static void SeqAccessFailureWrapper<TException>(TestDelegate action, CommandBehavior behavior) where TException : Exception
+        private static void SeqAccessFailureWrapper<TException>(Action action, CommandBehavior behavior) where TException : Exception
         {
             if (behavior == CommandBehavior.SequentialAccess)
             {
-                DataTestClass.AssertThrowsWrapper<TException>(action);   
+                DataTestClass.AssertThrowsWrapper<TException>(action);
             }
             else
             {
-                action();   
+                action();
             }
         }
 

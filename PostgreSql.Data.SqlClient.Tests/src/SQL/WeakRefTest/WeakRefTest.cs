@@ -4,13 +4,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Xunit;
 using System.Runtime.CompilerServices;
 using System;
-using NUnit.Framework;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class WeakRefTest
     {
         private const string COMMAND_TEXT_1 = "SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract from authors";
@@ -44,7 +43,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TransactionGCConnectionClose,
         }
 
-        [Test]
+        [Fact]
         public static void TestReaderNonMars()
         {
             string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
@@ -68,7 +67,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestReaderNonMarsCase("Case 15: ExecuteReader, GC, Connection Close, BeginTransaction.", connString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.BeginTransaction);
         }
 
-        [Test]
+        [Fact]
         public static void TestTransactionSingle()
         {
             string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
@@ -136,14 +135,14 @@ namespace PostgreSql.Data.SqlClient.Tests
                             using (PgDataReader rdr = cmd.ExecuteReader())
                             {
                                 rdr.Read();
-                                Assert.AreEqual(rdr.FieldCount, 1);
-                                Assert.AreEqual(rdr.GetName(0), COLUMN_NAME_2);
+                                Assert.Equal(rdr.FieldCount, 1);
+                                Assert.Equal(rdr.GetName(0), COLUMN_NAME_2);
                             }
                             break;
 
                         case ReaderVerificationType.ChangeDatabase:
                             con.ChangeDatabase(DATABASE_NAME);
-                            Assert.AreEqual(con.Database, DATABASE_NAME);
+                            Assert.Equal(con.Database, DATABASE_NAME);
                             break;
 
                         case ReaderVerificationType.BeginTransaction:

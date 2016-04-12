@@ -4,13 +4,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System;
 using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class WeakRefExTest
     {
         private const string COMMAND_TEXT_1      = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax from Customers";
@@ -45,7 +44,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TransactionGCConnectionClose,
         }
 
-        [Test]
+        [Fact]
         public static void TestReaderMars()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
@@ -69,7 +68,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestReaderMarsCase("Case 14: ExecuteReader*5 GC, Connection Close, BeginTransaction.", connectionString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.BeginTransaction);
         }
 
-        [Test]
+        [Fact]
         public static void TestTransactionSingle()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";

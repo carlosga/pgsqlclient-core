@@ -8,22 +8,20 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class DDAsyncTest
     {
-        [Test]
-        [Ignore("Not supported")]
+        [Fact(Skip="disabled")]
         public void OpenConnection_WithAsyncTrue_ThrowsNotSupportedException()
         {
             var asyncConnectionString = DataTestClass.PostgreSql9_Pubs + "async=true";
             Assert.Throws<NotSupportedException>(() => { new PgConnection(asyncConnectionString); });
         }
         
-        [Test]
+        [Fact]
         public void ExecuteCommand_WithNewConnection_ShouldPerformAsyncByDefault()
         {
             var executedProcessList = new List<string>();
@@ -38,7 +36,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             Assert.True(DoesProcessExecutedAsync(executedProcessList));
         }       
         
-        [Test]
+        [Fact]
         public void ExecuteCommand_WithSharedConnection_ShouldPerformAsyncByDefault()
         {
             var executedProcessList = new List<string>();

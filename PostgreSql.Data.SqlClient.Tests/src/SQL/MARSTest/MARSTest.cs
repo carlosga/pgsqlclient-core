@@ -4,7 +4,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,14 +13,12 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public static class MARSTest
     {
         private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
-        [Test]
-        [Ignore("Enable when async support available")]
+        [Fact(Skip="disabled")]
         public static void MARSAsyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
@@ -47,8 +45,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
-        [Ignore("Enable when command timeouts are available")]
+        [Fact(Skip="Enable when command timeouts are available")]
         public static void MARSSyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
@@ -90,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 #endif
 
-        [Test]
+        [Fact]
         public static void MARSSyncBusyReaderTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -134,7 +131,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void MARSSyncExecuteNonQueryTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -156,7 +153,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void MARSSyncExecuteReaderTest1()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -208,7 +205,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
 
-        [Test]
+        [Fact]
         public static void MARSSyncExecuteReaderTest2()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -231,7 +228,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void MARSSyncExecuteReaderTest3()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -266,7 +263,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public static void MARSSyncExecuteReaderTest4()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))

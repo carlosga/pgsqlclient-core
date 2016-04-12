@@ -4,17 +4,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using System.Data.Common;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    [TestFixture]
     public class MultipleResultsTest 
         : DataTestClass
     {
-        [Test]
+        [Fact]
         public static void TestMain()
         {
             Assert.True((new MultipleResultsTest()).RunTestCoreAndCompareWithBaseline());
