@@ -227,11 +227,11 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Time:
                     return ReadTime();
 
-                case PgDbType.TimeTZ:
-                    return ReadTimeWithTZ();
-
                 case PgDbType.Timestamp:
                     return ReadTimestamp();
+
+                case PgDbType.TimeTZ:
+                    return ReadTimeWithTZ();
 
                 case PgDbType.TimestampTZ:
                     return ReadTimestampWithTZ();

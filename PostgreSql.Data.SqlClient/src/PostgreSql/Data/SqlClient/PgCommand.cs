@@ -14,8 +14,6 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgCommand
         : DbCommand
     {
-        private static readonly List<PgParameter> s_EmptyParameters = new List<PgParameter>();
-
         private PgConnection          _connection;
         private PgTransaction         _transaction;
         private PgParameterCollection _parameters;
@@ -52,7 +50,7 @@ namespace PostgreSql.Data.SqlClient
         public override CommandType CommandType
         {
             get { return _commandType; }
-            set {  _commandType = value; }
+            set { _commandType = value; }
         }
 
         public override int CommandTimeout
@@ -75,10 +73,7 @@ namespace PostgreSql.Data.SqlClient
             set { _designTimeVisible = value; }
         }
 
-        public new PgParameterCollection Parameters
-        {
-            get { return _parameters; }
-        }
+        public new PgParameterCollection Parameters => _parameters;
 
         public override UpdateRowSource UpdatedRowSource
         {
@@ -130,6 +125,10 @@ namespace PostgreSql.Data.SqlClient
                 if (_fetchSize < 0)
                 {
                     throw new ArgumentException("The property value assigned is less than 0.");
+                }
+                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
+                {
+                    throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
                 }
                 _fetchSize = value; 
             }

@@ -637,7 +637,8 @@ namespace PostgreSql.Data.Frontend
             {
                 message.Write(1);
             }
-            else{
+            else
+            {
                 message.Write(_fetchSize);
             }
 

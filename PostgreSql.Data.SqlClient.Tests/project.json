@@ -1,16 +1,15 @@
 {
     "version": "0.0.1",
     "compilationOptions": {
-        "allowUnsafe"      : false,
-        "warningsAsErrors" : false,
-        "languageVersion"  : "csharp6",
-        "platform"         : "x64"
+        "languageVersion": "csharp6",
+        "platform"       : "x64"
     },
     "dependencies": {
-        "NETStandard.Library": "1.5.0-rc3-*",
+        "NETStandard.Library": "1.5.0-*",
+        "Microsoft.Extensions.DependencyModel": "1.0.0-*",
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-*"
+            "version": "1.0.0-rc2-3002347"
         },
         "Microsoft.CSharp": "4.0.1-rc3-*",
         "System.Collections": "4.0.11-rc3-*",
@@ -46,8 +45,7 @@
         "netcoreapp1.0": {
             "imports": [
                 "dnxcore50",
-                "dotnet5.4",
-                "portable-net451+win8"
+                "portable-net45+win8"
             ]
         }
     },

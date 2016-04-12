@@ -2,9 +2,6 @@
     "title": "postgresql data provider for .net core",
     "version": "0.0.1",
     "compilationOptions": {
-        "emitEntryPoint"   : false,
-        "allowUnsafe"      : false,
-        "warningsAsErrors" : false,
         "languageVersion"  : "csharp6",
         "platform"         : "x64"
     },
