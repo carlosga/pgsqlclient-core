@@ -81,7 +81,7 @@ namespace PostgreSql.Data.Frontend
             {
                 if (_fetchSize != value)
                 {
-                    if (HasMoreRows || _rows.Count > 0)
+                    if (HasMoreRows || (_rows != null && _rows.Count > 0))
                     {
                         throw new InvalidOperationException("Fetch size cannot be changed while fetching rows.");
                     }
@@ -136,8 +136,7 @@ namespace PostgreSql.Data.Frontend
             _parameters       = PgParameterCollection.Empty;
             _commandType      = CommandType.Text;
             _parameterIndices = new List<int>();
-
-            FetchSize        = 200;
+            FetchSize         = 200;
         }
 
         #region IDisposable Support

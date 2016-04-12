@@ -395,21 +395,21 @@ namespace PostgreSql.Data.Frontend
             if (!String.IsNullOrEmpty(_connectionOptions.ApplicationName))
             {
                 message.WriteNullString("application_name");
-                message.Write(_connectionOptions.ApplicationName);
+                message.WriteNullString(_connectionOptions.ApplicationName);
             }
 
-            // statement_timeout
+            // statement_timeout (milliseconds)
             if (_connectionOptions.CommandTimeout > 0)
             {
                 message.WriteNullString("statement_timeout");
-                message.Write(_connectionOptions.CommandTimeout);
+                message.WriteNullString(_connectionOptions.CommandTimeout.ToString(TypeInfoProvider.InvariantCulture));
             }
 
-            // lock_timeout
+            // lock_timeout (milliseconds)
             if (_connectionOptions.LockTimeout > 0)
             {
                 message.WriteNullString("lock_timeout");
-                message.Write(_connectionOptions.LockTimeout);
+                message.WriteNullString(_connectionOptions.LockTimeout.ToString(TypeInfoProvider.InvariantCulture));
             }
 
             // default_transaction_read_only
@@ -417,6 +417,13 @@ namespace PostgreSql.Data.Frontend
             {
                 message.WriteNullString("default_transaction_read_only");
                 message.WriteNullString("on");
+            }
+
+            // default_tablespace
+            if (!String.IsNullOrEmpty(_connectionOptions.DefaultTablespace))
+            {
+                message.WriteNullString("default_tablespace");
+                message.WriteNullString(_connectionOptions.DefaultTablespace);
             }
 
             // Terminator

@@ -40,7 +40,8 @@ namespace PostgreSql.Data.Frontend
             synonyms.Add(ConnectionStringSynonyms.StatementTimeout          , ConnectionStringKeywords.CommandTimeout);
             synonyms.Add(ConnectionStringSynonyms.LockTimeout               , ConnectionStringKeywords.LockTimeout);
             synonyms.Add(ConnectionStringSynonyms.DefaultTransactionReadOnly, ConnectionStringKeywords.DefaultTransactionReadOnly);
-            
+            synonyms.Add(ConnectionStringSynonyms.DefaultTablespace         , ConnectionStringKeywords.DefaultTablespace);
+
             Synonyms = new ReadOnlyDictionary<string, string>(synonyms);
         }
 
@@ -69,9 +70,10 @@ namespace PostgreSql.Data.Frontend
         internal const string SearchPath                 = "search path";
         internal const string ApplicationName            = "application name";
         internal const string CommandTimeout             = "command timeout";
-        internal const string StatementTimeout           = "statement timeout"; 
+        internal const string StatementTimeout           = "statement timeout";
         internal const string LockTimeout                = "lock timeout";
-        internal const string DefaultTransactionReadOnly = "default transaction read only"; 
+        internal const string DefaultTransactionReadOnly = "default transaction read only";
+        internal const string DefaultTablespace          = "default tablespace";
 
         internal static bool IsSynonym(string key)
         {

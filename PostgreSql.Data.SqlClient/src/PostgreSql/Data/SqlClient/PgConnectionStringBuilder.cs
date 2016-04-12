@@ -118,6 +118,12 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(ConnectionStringKeywords.DefaultTransactionReadOnly, value); }
         }
 
+        public string DefaultTablespace
+        {
+            get { return GetString(ConnectionStringKeywords.DefaultTablespace); }
+            set { SetValue(ConnectionStringKeywords.DefaultTablespace, value); }
+        }
+
         public PgConnectionStringBuilder()
         {
         }

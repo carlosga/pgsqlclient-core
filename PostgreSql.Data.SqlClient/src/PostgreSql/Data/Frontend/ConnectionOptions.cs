@@ -30,6 +30,7 @@ namespace PostgreSql.Data.Frontend
         private int    _commandTimeout;
         private int    _lockTimeout;
         private bool   _defaultTransactionReadOnly;
+        private string _defaultTablespace;
 
         internal string ConnectionString           => _connectionString;
         internal string DataSource                 => _dataSource;
@@ -49,7 +50,8 @@ namespace PostgreSql.Data.Frontend
         internal string ApplicationName            => _applicationName;
         internal int    CommandTimeout             => _commandTimeout;
         internal int    LockTimeout                => _lockTimeout;
-        internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly; 
+        internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly;
+        internal string DefaultTablespace          => _defaultTablespace; 
 
         internal ConnectionOptions(string connectionString)
         {
@@ -76,6 +78,7 @@ namespace PostgreSql.Data.Frontend
             _commandTimeout             = 0;
             _lockTimeout                = 0;
             _defaultTransactionReadOnly = false;
+            _defaultTablespace          = null;
 
             ParseConnectionString(connectionString);
         }
@@ -178,6 +181,10 @@ namespace PostgreSql.Data.Frontend
 
                         case ConnectionStringSynonyms.DefaultTransactionReadOnly:
                             _defaultTransactionReadOnly = Boolean.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.DefaultTablespace:
+                            _defaultTablespace = currentValue;
                             break;
                     }
                 }

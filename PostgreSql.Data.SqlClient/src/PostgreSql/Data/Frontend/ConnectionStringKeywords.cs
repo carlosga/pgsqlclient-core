@@ -22,6 +22,7 @@ namespace PostgreSql.Data.Frontend
         internal const string ApplicationName            = "application name";
         internal const string CommandTimeout             = "command timeout";
         internal const string LockTimeout                = "lock timeout";
-        internal const string DefaultTransactionReadOnly = "default_transaction_read_only";
+        internal const string DefaultTransactionReadOnly = "default transaction read only";
+        internal const string DefaultTablespace          = "default table space";
     }
 }
