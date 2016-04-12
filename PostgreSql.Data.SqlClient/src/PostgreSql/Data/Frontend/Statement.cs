@@ -200,11 +200,6 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                if (_state != StatementState.Initial)
-                {
-                    Close();
-                }
-
                 _connection.Lock();
 
                 string statementName = Guid.NewGuid().ToString();
@@ -217,7 +212,6 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
-                Console.WriteLine(_parsedStatementText);
                 throw;
             }
             finally
@@ -228,11 +222,6 @@ namespace PostgreSql.Data.Frontend
 
         internal int ExecuteNonQuery()
         {
-            if (_state == StatementState.Initial)
-            {
-                Prepare();
-            }
-
             try
             {
                 _connection.Lock();
@@ -261,11 +250,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void ExecuteReader(CommandBehavior behavior)
         {
-            if (_state == StatementState.Initial)
-            {
-                Prepare();
-            }
-
             try
             {
                 _connection.Lock();
@@ -287,11 +271,6 @@ namespace PostgreSql.Data.Frontend
 
         internal object ExecuteScalar()
         {
-            if (_state == StatementState.Initial)
-            {
-                Prepare();
-            }
-
             try
             {
                 _connection.Lock();
@@ -301,14 +280,12 @@ namespace PostgreSql.Data.Frontend
                 Bind();
                 Execute(CommandBehavior.SingleResult);
 
-                object value = null;
-                  
                 if (!_rows.IsEmpty())
                 {
-                    value = _rows.Dequeue()[0];
+                    return _rows.Dequeue()[0];
                 }
 
-                return value;
+                return null;
             }
             catch
             {
@@ -427,8 +404,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (!_allRowsFetched && _rows.IsEmpty())
             {
-                // Retrieve next group of rows
-                Execute();
+                Execute();  // Fetch next group of rows
             }
 
             if (!_rows.IsEmpty())
@@ -445,7 +421,6 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
-                ClosePortal();
                 CloseStatement();
 
                 _connection.Sync();
@@ -675,12 +650,12 @@ namespace PostgreSql.Data.Frontend
                 // Clear remaing rows
                 ClearRows();
 
-                // Update Status
-                ChangeState(StatementState.Initial);
-
-                // Reset names
+                // Reset statment & portal names
                 _parseName  = null;
                 _portalName = null;
+
+                // Update Status
+                ChangeState(StatementState.Initial);
             }
         }
 
@@ -691,47 +666,38 @@ namespace PostgreSql.Data.Frontend
              || _state == StatementState.Executed)
             {
                 Close(PORTAL, _portalName);
-
-                // Update Status
                 ChangeState(StatementState.Described);
             }
         }
 
         private void Close(char type, string name)
         {
-            try
+            if (name != null && name.Length > 0)
             {
-                if (name != null && name.Length > 0)
+                var message = _connection.CreateMessage(FrontendMessages.Close);
+
+                message.Write(type);
+                message.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
+
+                // Send message to the server
+                _connection.Send(message);
+
+                // Flush pending messages
+                _connection.Flush();
+
+                // Read until CLOSE COMPLETE message is received
+                MessageReader rmessage = null;
+
+                do
                 {
-                    var message = _connection.CreateMessage(FrontendMessages.Close);
-
-                    message.Write(type);
-                    message.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
-
-                    // Send packet to the server
-                    _connection.Send(message);
-
-                    // Flush pending messages
-                    _connection.Flush();
-
-                    // Read until CLOSE COMPLETE message is received
-                    MessageReader rmessage = null;
-
-                    do
-                    {
-                        rmessage = _connection.Read();
-                        HandleSqlMessage(rmessage);
-                    }
-                    while (!rmessage.IsCloseComplete);
+                    rmessage = _connection.Read();
+                    HandleSqlMessage(rmessage);
                 }
+                while (!rmessage.IsCloseComplete);
+            }
 
-                _tag             = null;
-                _recordsAffected = -1;
-            }
-            catch
-            {
-                throw;
-            }
+            _tag             = null;
+            _recordsAffected = -1;
         }
         
         private void HandleSqlMessage(MessageReader message)
