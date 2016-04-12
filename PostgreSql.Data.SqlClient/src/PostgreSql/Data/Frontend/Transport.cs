@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -310,6 +311,31 @@ namespace PostgreSql.Data.Frontend
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;
+        }
+
+        private static void DumpStatistics()
+        {
+            IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
+            TcpStatistics tcpstat = properties.GetTcpIPv4Statistics();
+            Console.WriteLine("");
+            Console.WriteLine("  Connection Data:");
+            Console.WriteLine("      Current  ............................ : {0}", 
+            tcpstat.CurrentConnections);
+            Console.WriteLine("      Failed Attempts ..................... : {0}", 
+                tcpstat.FailedConnectionAttempts);
+            Console.WriteLine("      Reset ............................... : {0}", 
+                tcpstat.ResetConnections);
+            Console.WriteLine("      Errors............................... : {0}", 
+                tcpstat.ErrorsReceived);
+
+            Console.WriteLine("");
+            Console.WriteLine("  Segment Data:");
+            Console.WriteLine("      Received  ........................... : {0}", 
+                tcpstat.SegmentsReceived);
+            Console.WriteLine("      Sent ................................ : {0}", 
+                tcpstat.SegmentsSent);
+            Console.WriteLine("      Retransmitted ....................... : {0}", 
+                tcpstat.SegmentsResent);
         }
     }
 }

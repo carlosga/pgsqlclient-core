@@ -161,10 +161,7 @@ namespace PostgreSql.Data.Frontend
             {
                 return ((PgDate)_values[i]).ToDateTime();
             }
-            else if (_values[i] is PgTimestamp)
-            {
-                return ((PgTimestamp)_values[i]).Value;
-            }
+
             return (DateTime)_values[i];
         }
 

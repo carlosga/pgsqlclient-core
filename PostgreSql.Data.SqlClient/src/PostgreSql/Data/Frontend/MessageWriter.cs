@@ -143,12 +143,12 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(decimal value)     => Write(value.ToString(TypeInfoProvider.InvariantCulture));
-        internal void Write(float value)       => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-        internal void Write(double value)      => Write(BitConverter.DoubleToInt64Bits(value));
-        internal void Write(PgDate value)      => Write(value.DaysSinceEpoch);
-        internal void Write(TimeSpan value)    => Write((long)(value.TotalMilliseconds * 1000));
-        internal void Write(PgTimestamp value) => Write(value.TotalMicroseconds);
+        internal void Write(decimal value)  => Write(value.ToString(TypeInfoProvider.InvariantCulture));
+        internal void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+        internal void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
+        internal void Write(PgDate value)   => Write(value.DaysSinceEpoch);
+        internal void Write(TimeSpan value) => Write((long)(value.TotalMilliseconds * 1000));
+        internal void Write(DateTime value) => Write((long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000));
         internal void Write(PgInterval value)
         {
             EnsureCapacity(8);
@@ -309,7 +309,7 @@ namespace PostgreSql.Data.Frontend
 
                 case PgDbType.Timestamp:
                     Write(typeInfo.Size);
-                    Write((PgTimestamp)value);
+                    Write((DateTime)value);
                     break;
 
                 case PgDbType.TimeTZ:
