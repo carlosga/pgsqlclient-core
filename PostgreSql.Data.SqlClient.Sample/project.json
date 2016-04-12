@@ -1,26 +1,21 @@
 {
     "version": "0.0.1",
     "compilationOptions": {
-        "emitEntryPoint"   : true,
-        "allowUnsafe"      : false,
-        "warningsAsErrors" : false,
-        "languageVersion"  : "csharp6",
-        "platform"         : "x64"
-    },
-    "dependencies": {
-        "Microsoft.NETCore.App": {
-            "type": "platform",
-            "version": "1.0.0-rc2-23928"
-        },
-        "PostgreSql.Data.SqlClient": {
-            "target"  : "project",
-            "version" : "0.0.1"
-        }
+        "emitEntryPoint": true
     },
     "frameworks": {
         "netcoreapp1.0": {
-            "imports" : ["netcoreapp1.0"]
-         }
+            "dependencies": {
+                "Microsoft.NETCore.App": {
+                    "type": "platform",
+                    "version": "1.0.0-rc2-*"
+                },
+                "PostgreSql.Data.SqlClient": {
+                    "target"  : "project",
+                    "version" : "0.0.1"
+                }
+            }
+        }
     },
     "configurations": {
         "Debug": {

@@ -13,9 +13,9 @@ namespace System
     {
         internal static List<string> SplitCommandText(this string commandText, char separator = ';')
         {
-            var  commands  = new List<string>();
+            var commands = new List<string>();
 
-            if (commandText == null || commandText.Length == 0 || commandText.IndexOf(';') == -1)
+            if (commandText != null && commandText.Length > 0 && commandText.IndexOf(';') != -1)
             {
                 var  inLiteral = false;
                 int  from      = 0;
@@ -125,7 +125,7 @@ namespace System
                     {
                         parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
                         paramBuilder.Length = 0;
-                        builder.AppendFormat("${0}", ++paramIndex);
+                        builder.Append($"${++paramIndex}");
                         builder.Append(sym);
                         inParam = false;
                     }

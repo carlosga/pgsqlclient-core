@@ -144,13 +144,18 @@ namespace PostgreSql.Data.Frontend
                 return null;
             }
 
-            int    received = 0;
             int    length   = ReadInt32() - 4;
-            byte[] buffer   = new byte[length];
-
-            while (received < length)
+            byte[] buffer   = null;
+            
+            if (length > 0)
             {
-                received += _stream.Read(buffer, received, length - received);
+                buffer = new byte[length];
+
+                int received = 0;
+                while (received < length)
+                {
+                    received += _stream.Read(buffer, received, length - received);
+                }
             }
 
             return new MessageReader(type, buffer, sessionData);

@@ -6,35 +6,35 @@
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
 {
-	"version": "0.1.0",
-	"command": "dotnet",
-	"args": [],
-	"showOutput": "silent",
+    "version": "0.1.0",
+    "command": "dotnet",
+    "args": [],
+    "showOutput": "silent",
     "suppressTaskName": true,
-	"tasks": [
-		{
-			"taskName": "build",
-			// Show the output window only if unrecognized errors occur.
-			"showOutput": "always",
+    "tasks": [
+        {
+            "taskName": "build",
+            // Show the output window only if unrecognized errors occur.
+            "showOutput": "always",
             "isBuildCommand": true,
             "args": [
                 "build"
             ],
-			// Use the standard MS compiler pattern to detect errors, warnings
-			// and infos in the output.
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"taskName": "restore",
-			// Show the output window only if unrecognized errors occur.
-			"showOutput": "always",
+            // Use the standard MS compiler pattern to detect errors, warnings
+            // and infos in the output.
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "restore",
+            // Show the output window only if unrecognized errors occur.
+            "showOutput": "always",
             "isBuildCommand": false,
             "args": [
                 "restore"
             ],
-			// Use the standard MS compiler pattern to detect errors, warnings
-			// and infos in the output.
-			"problemMatcher": "$msCompile"
-		}        
-	]
+            // Use the standard MS compiler pattern to detect errors, warnings
+            // and infos in the output.
+            "problemMatcher": "$msCompile"
+        }
+    ]
 }

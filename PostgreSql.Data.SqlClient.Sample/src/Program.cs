@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Diagnostics;
 using System.Threading;
 using PostgreSql.Data.PgTypes;
 
@@ -19,188 +20,121 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Encrypt                  = false;
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
+            csb.PacketSize               = Int16.MaxValue;
+            csb.FetchSize                = 200;
 
-            // MultiThreadedCancel(csb.ToString(), false);
-            
-            using (PgConnection connection = new PgConnection(csb.ToString()))
+            using (PgConnection conn = new PgConnection(csb.ToString()))
             {
-                // MultipleErrorHandling(connection);   
-            }
-
-            using (var conn = new PgConnection(csb.ToString()))
-            {                                     
-                var command = conn.CreateCommand();
-
-                command.Parameters.AddWithValue("@p1", 1);
-                command.Parameters.AddWithValue("@p2", 2);
-                command.Parameters.AddWithValue("@p3", 3);
-                
-                command.CommandText = "SELECT @p1;SELECT @p2;SELECT @p3";
-               
                 conn.Open();
-                
-                try
+                string query =
+                    "select orderid from orders where orderid < @id order by orderid;" +
+                    "select * from shippers order by shipperid;" +
+                    "select * from region order by regionid;" +
+                    "select lastname from employees order by lastname";
+
+                // Each array in expectedResults is a separate query result
+                string[][] expectedResults =
                 {
-                   
-                    int v1 = command.ExecuteNonQuery();                    
-                }
-                catch (System.Exception)
-                {                    
-                }
-            }
-            
-            Console.WriteLine("Finished !!");
-        }
-
-        public static void MultiThreadedCancel(string constr, bool async)
-        {
-            using (PgConnection con = new PgConnection(constr))
-            {
-                con.Open();
-                var command = con.CreateCommand();
-                command.CommandText = "SELECT * FROM orders; SELECT pg_sleep(8); SELECT * FROM customers";
-
-                Thread rThread1 = new Thread(ExecuteCommandCancelExpected);
-                Thread rThread2 = new Thread(CancelSharedCommand);
-                Barrier threadsReady = new Barrier(2);
-                object state = new Tuple<bool, PgCommand, Barrier>(async, command, threadsReady);
-
-                rThread1.Start(state);
-                rThread2.Start(state);
-                rThread1.Join();
-                rThread2.Join();
-                
-                Console.WriteLine("Threads finished");
-
-                //CommandCancelTest.VerifyConnection(command);
-            }
-        }
-
-        public static void ExecuteCommandCancelExpected(object state)
-        {
-            var       stateTuple   = (Tuple<bool, PgCommand, Barrier>)state;
-            bool      async        = stateTuple.Item1;
-            PgCommand command      = stateTuple.Item2;
-            Barrier   threadsReady = stateTuple.Item3;
-
-            threadsReady.SignalAndWait();
-            using (PgDataReader r = command.ExecuteReader())
-            {
-                do
-                {
-                    while (r.Read())
+                    new string[] { "10248", "10249", "10250", "10251", "10252", "10253", "10254" }, // All separate rows
+                    new string[]
                     {
-                    }
-                } while (r.NextResult());
-            }
-        }
-
-        public static void CancelSharedCommand(object state)
-        {
-            var stateTuple = (Tuple<bool, PgCommand, Barrier>)state;
-
-            stateTuple.Item3.SignalAndWait();
-            Thread.Sleep(TimeSpan.FromSeconds(1));
-            stateTuple.Item2.Cancel();
-        }
-
-        private static void MultipleErrorHandling(PgConnection connection)
-        {
-            try
-            {
-                Console.WriteLine("MultipleErrorHandling {0}", connection.GetType().Name);
-                Type expectedException = typeof(PgException);
-
-                connection.InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
-                {
-                    Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
+                        "1", "Speedy Express"   , "(503) 555-9831",  // Query Row 1
+                        "2", "United Package"   , "(503) 555-3199",  // Query Row 2
+                        "3", "Federal Shipping" , "(503) 555-9931",  // Query Row 3
+                        "4", "Alliance Shippers", "1-800-222-0451",  // Query Row 4
+                        "5", "UPS"              , "1-800-782-7892",  // Query Row 5
+                        "6", "DHL"              , "1-800-225-5345",  // Query Row 6    
+                    },
+                    new string[]
+                    {
+                        "1", "Eastern" , // Query Row 1
+                        "2", "Western" , // Query Row 2
+                        "3", "Northern", // Query Row 3
+                        "4", "Southern"  // Query Row 4
+                    },
+                    new string[] { "Buchanan", "Callahan", "Davolio", "Dodsworth", "Fuller", "King", "Leverling", "Peacock", "Suyama" } // All separate rows
                 };
 
-                connection.Open();
-
-                using (PgCommand command = connection.CreateCommand())
+                using (PgCommand cmd = new PgCommand(query, conn))
                 {
-                    command.CommandText =
-                        "SELECT raise_notice('0');"
-                      + "SELECT 1 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('1');"
-                      + "SELECT raise_error('Error 1');"
-                      + "SELECT raise_notice('3');"
-                      + "SELECT 2 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('4');"
-                      + "SELECT raise_error('Error 2');"
-                      + "SELECT raise_notice('5');"
-                      + "SELECT 3 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('6');"
-                      + "SELECT raise_error('Error 3');"
-                      + "SELECT raise_notice('7');"
-                      + "SELECT 4 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('8');"
-                      + "SELECT raise_error('Error 4');" 
-                      + "SELECT raise_notice('9');"
-                      + "SELECT 5 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('10');"
-                      + "SELECT raise_error('Error 5');"
-                      + "SELECT raise_notice('11');";
-
-                    try
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Integer)).Value = 10255;
+                    using (PgDataReader r1 = cmd.ExecuteReader())
                     {
-                        Console.WriteLine("**** ExecuteNonQuery *****");
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(expectedException, e);
-                    }
-
-                    try
-                    {
-                        Console.WriteLine("**** ExecuteScalar ****");
-                        command.ExecuteScalar();
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(expectedException, e);
-                    }
-
-                    try
-                    {
-                        Console.WriteLine("**** ExecuteReader ****");
-                        using (PgDataReader reader = command.ExecuteReader())
+                        int numBatches = 0;
+                        do
                         {
-                            bool moreResults = true;
-                            do
+                            // Assert.True(numBatches < expectedResults.Length, "ERROR: Received more batches than were expected.");
+                            object[] values = new object[r1.FieldCount];
+                            // Current "column" in expected row is (valuesChecked MOD FieldCount), since 
+                            // expected rows for current batch are appended together for easy formatting
+                            int valuesChecked = 0;
+                            while (r1.Read())
                             {
-                                try
+                                r1.GetValues(values);
+
+                                for (int col = 0; col < values.Length; col++, valuesChecked++)
                                 {
-                                    Console.WriteLine("NextResult");
-                                    moreResults = reader.NextResult();
+                                    // Assert.True(valuesChecked < expectedResults[numBatches].Length, "ERROR: Received more results for this batch than was expected");
+
+                                    string expectedVal = expectedResults[numBatches][valuesChecked];
+                                    string actualVal = values[col].ToString();
+
+                                    // DataTestClass.AssertEqualsWithDescription(expectedVal, actualVal, "FAILED: Received a different value than expected.");
                                 }
-                                catch (Exception e)
-                                {
-                                    // PrintException(expectedException, e);
-                                }
-                            } while (moreResults);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(null, e);
+                            }
+                            numBatches++;
+                        } while (r1.NextResult());
                     }
                 }
             }
-            catch (Exception e)
-            {
-                // PrintException(null, e);
+        }
+        
+        static void pgsqlclient_test()
+        {
+            var csb = new PgConnectionStringBuilder();
+
+            csb.DataSource               = "localhost";
+            csb.InitialCatalog           = "northwind";
+            csb.UserID                   = "northwind";
+            csb.Password                 = "northwind";
+            csb.PortNumber               = 5432;
+            csb.Encrypt                  = false;
+            csb.Pooling                  = false;
+            csb.MultipleActiveResultSets = true;
+            csb.PacketSize               = Int16.MaxValue;
+            csb.FetchSize                = 200;
+
+            int count = 0;
+
+            using (var conn = new PgConnection(csb.ToString()))
+            {  
+                conn.Open();
+
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = "select * from pg_type a cross join pg_type b";
+                    
+                    Stopwatch stopWatch = new Stopwatch();
+                    stopWatch.Start();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read()) { ++count; }
+                    }
+
+                    stopWatch.Stop();
+
+                    // Get the elapsed time as a TimeSpan value.
+                    TimeSpan ts = stopWatch.Elapsed;
+
+                    string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                        ts.Hours, ts.Minutes, ts.Seconds,
+                        ts.Milliseconds / 10);
+                    Console.WriteLine("RunTime " + elapsedTime);
+                }
             }
-            try
-            {
-                connection.Dispose();
-            }
-            catch (Exception e)
-            {
-                // PrintException(null, e);
-            }
-        }        
+
+            Console.WriteLine($"Finished {count}");
+        }
     }
 }

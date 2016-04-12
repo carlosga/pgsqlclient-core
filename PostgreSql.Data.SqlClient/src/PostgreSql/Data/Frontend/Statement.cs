@@ -199,6 +199,7 @@ namespace PostgreSql.Data.Frontend
             }
             catch
             {
+                Console.WriteLine(_parsedStatementText);
                 throw;
             }
             finally
@@ -416,8 +417,6 @@ namespace PostgreSql.Data.Frontend
 
         internal DataRecord FetchRow()
         {
-            ThrowIfCancelled();
-
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 // Retrieve next group of rows
@@ -440,7 +439,7 @@ namespace PostgreSql.Data.Frontend
 
                 ClosePortal();
                 CloseStatement();
-                
+
                 _connection.Sync();
 
                 _rowDescriptor.Resize(0);

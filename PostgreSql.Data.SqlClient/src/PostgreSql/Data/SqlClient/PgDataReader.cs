@@ -176,7 +176,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override bool Read()
         {
-            if ((_behavior.HasBehavior(CommandBehavior.SingleRow) && _position != STARTPOS) || !_statement.HasRows)
+            if (!_statement.HasRows)
             {
                 return false;
             }

@@ -1,50 +1,48 @@
 {
     "version": "0.0.1",
     "compilationOptions": {
-        "emitEntryPoint"   : true,
-        "allowUnsafe"      : false,
-        "warningsAsErrors" : false,
-        "languageVersion"  : "csharp6",
-        "platform"         : "x64"
-    },
-    "dependencies": {
-        "Microsoft.NETCore.App": {
-            "type": "platform",
-            "version": "1.0.0-rc2-23928"
-        },
-        "Microsoft.CSharp": "4.0.1-rc2-23928",
-        "System.Collections": "4.0.11-rc2-23928",
-        "System.Collections.Concurrent": "4.0.12-rc2-23928",
-        "System.Collections.NonGeneric": "4.0.1-rc2-23928",
-        "System.Data.Common": "4.0.1-rc2-23928",
-        "System.Dynamic.Runtime": "4.0.11-rc2-23928",
-        "System.Globalization": "4.0.11-rc2-23928",
-        "System.IO": "4.1.0-rc2-23928",
-        "System.Linq": "4.1.0-rc2-23928",
-        "System.Reflection": "4.1.0-rc2-23928",
-        "System.Reflection.TypeExtensions": "4.1.0-rc2-23928",
-        "System.Resources.ResourceManager": "4.0.1-rc2-23928",
-        "System.Runtime": "4.1.0-rc2-23928",
-        "System.Runtime.Extensions": "4.1.0-rc2-23928",
-        "System.Runtime.Serialization.Primitives": "4.1.0-rc2-23928",
-        "System.Security.Cryptography.X509Certificates": "4.1.0-rc2-23928",
-        "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23928",
-        "System.Text.Encoding": "4.0.11-rc2-23928",
-        "System.Threading": "4.0.11-rc2-23928",
-        "System.Threading.Tasks": "4.0.11-rc2-23928",
-        "System.Threading.Thread": "4.0.0-rc2-23928",
-        "System.Threading.ThreadPool": "4.0.10-rc2-23928",
-        "System.Xml.XmlDocument": "4.0.1-rc2-23928",
-        "xunit": "2.1.0-*",
-        "dotnet-test-xunit": "2.1.0-*",
-        "PostgreSql.Data.SqlClient": {
-            "target"  : "project",
-            "version" : "0.0.1"
-        }
+        "emitEntryPoint": true,
+        "allowUnsafe": false,
+        "warningsAsErrors" : false
     },
     "frameworks": {
         "netcoreapp1.0": {
-            "imports" : ["netcoreapp1.0"]
+            "imports" : ["netcore50"],
+            "dependencies": {
+                "Microsoft.NETCore.App": {
+                    "type": "platform",
+                    "version": "1.0.0-rc2-*"
+                },
+                "Microsoft.CSharp": "4.0.1-rc2-*",
+                "System.Collections": "4.0.11-rc2-*",
+                "System.Collections.Concurrent": "4.0.12-rc2-*",
+                "System.Collections.NonGeneric": "4.0.1-rc2-*",
+                "System.Data.Common": "4.0.1-rc2-*",
+                "System.Dynamic.Runtime": "4.0.11-rc2-*",
+                "System.Globalization": "4.0.11-rc2-*",
+                "System.IO": "4.1.0-rc2-*",
+                "System.Linq": "4.1.0-rc2-*",
+                "System.Reflection": "4.1.0-rc2-*",
+                "System.Reflection.TypeExtensions": "4.1.0-rc2-*",
+                "System.Resources.ResourceManager": "4.0.1-rc2-*",
+                "System.Runtime": "4.1.0-rc2-*",
+                "System.Runtime.Extensions": "4.1.0-rc2-*",
+                "System.Runtime.Serialization.Primitives": "4.1.0-rc2-*",
+                "System.Security.Cryptography.X509Certificates": "4.1.0-rc2-*",
+                "System.Security.Cryptography.Algorithms": "4.1.0-rc2-*",
+                "System.Text.Encoding": "4.0.11-rc2-*",
+                "System.Threading": "4.0.11-rc2-*",
+                "System.Threading.Tasks": "4.0.11-rc2-*",
+                "System.Threading.Thread": "4.0.0-rc2-*",
+                "System.Threading.ThreadPool": "4.0.10-rc2-*",
+                "System.Xml.XmlDocument": "4.0.1-rc2-*",
+                "NUnit": "3.2.0-*",
+                "NUnitLite": "3.2.0-*",
+                "PostgreSql.Data.SqlClient": {
+                    "target"  : "project",
+                    "version" : "0.0.1"
+                }
+            }
         }
     },
     "configurations": {
@@ -67,6 +65,5 @@
         }
     },
     "compile": "src/**/*.cs",
-    "contentFiles": ["ConnectionString.xml", "MultipleResultsTest.bsl"],
-    "testRunner": "xunit"
+    "contentFiles": ["ConnectionString.xml", "MultipleResultsTest.bsl"]
 }

@@ -287,7 +287,8 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_statement == null)
             {
-                _statement = _connection.InnerConnection.CreateStatement(); 
+                _statement = _connection.InnerConnection.CreateStatement();
+                _statement.Parameters = _parameters; 
             }
 
             _statement.CommandType   = _commandType;

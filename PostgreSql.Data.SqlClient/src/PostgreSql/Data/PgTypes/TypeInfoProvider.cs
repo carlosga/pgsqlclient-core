@@ -241,6 +241,11 @@ namespace PostgreSql.Data.PgTypes
             types[ 705] = new TypeInfo( 705, "unknown", "unknown", PgDbType.Text, TypeFormat.Text  , typeof(string), typeof(string));
             types[2278] = new TypeInfo(2278, "void"   , "void"   , PgDbType.Void, TypeFormat.Binary, typeof(void), typeof(void), 0);
 
+            //
+            // INTERNAL TYPES
+            //
+            types[194] = new TypeInfo(194, "pg_node_tree", "pg_node_tree", PgDbType.Text, TypeFormat.Text, typeof(string), typeof(string));
+
             Types = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
