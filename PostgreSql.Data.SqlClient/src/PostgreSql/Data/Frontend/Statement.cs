@@ -31,6 +31,7 @@ namespace PostgreSql.Data.Frontend
         private PgParameterCollection _parameters;
         private CommandType           _commandType;
         private List<int>             _parameterIndices;
+        private int                   _fetchSize;
 
         internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
@@ -71,6 +72,23 @@ namespace PostgreSql.Data.Frontend
         {
             get { return _parameters; }
             set { _parameters = value; }
+        }
+
+        internal int FetchSize
+        {
+            get { return _fetchSize; }
+            set
+            {
+                if (_fetchSize != value)
+                {
+                    if (HasMoreRows || _rows.Count > 0)
+                    {
+                        throw new InvalidOperationException("Fetch size cannot be changed while fetching rows.");
+                    }
+                    _fetchSize = value;
+                    _rows      = new Queue<DataRecord>(_fetchSize);
+                }
+            } 
         }
 
         internal bool IsCancelled => _state == StatementState.Cancelled;
@@ -115,10 +133,11 @@ namespace PostgreSql.Data.Frontend
             _hasRows          = false;
             _allRowsFetched   = false;
             _rowDescriptor    = new RowDescriptor();
-            _rows             = new Queue<DataRecord>(_connection.FetchSize);
             _parameters       = PgParameterCollection.Empty;
             _commandType      = CommandType.Text;
             _parameterIndices = new List<int>();
+
+            FetchSize        = 200;
         }
 
         #region IDisposable Support
@@ -222,7 +241,7 @@ namespace PostgreSql.Data.Frontend
                 ThrowIfCancelled();
 
                 Bind();
-                Execute(1);
+                Execute(CommandBehavior.SingleRow);
                 ClosePortal();
 
                 return _recordsAffected;
@@ -255,16 +274,8 @@ namespace PostgreSql.Data.Frontend
 
                 ThrowIfCancelled();
 
-                int fetchSize = _connection.FetchSize;
-
-                if (behavior.HasBehavior(CommandBehavior.SingleResult)
-                 || behavior.HasBehavior(CommandBehavior.SingleRow))
-                {
-                    fetchSize = 1;
-                }
-
                 Bind();
-                Execute(fetchSize);
+                Execute(behavior);
             }
             catch
             {
@@ -290,7 +301,7 @@ namespace PostgreSql.Data.Frontend
                 ThrowIfCancelled();
 
                 Bind();
-                Execute(1);
+                Execute(CommandBehavior.SingleResult);
                 ClosePortal();
 
                 object value = null;
@@ -609,10 +620,10 @@ namespace PostgreSql.Data.Frontend
 
         private void Execute()
         {
-            Execute(_connection.FetchSize);
+            Execute(CommandBehavior.Default);
         }
 
-        private void Execute(int fetchSize)
+        private void Execute(CommandBehavior behavior)
         {
             // Update status
             ChangeState(StatementState.Executing);
@@ -620,7 +631,16 @@ namespace PostgreSql.Data.Frontend
             var message = _connection.CreateMessage(FrontendMessages.Execute);
 
             message.WriteNullString(_portalName);
-            message.Write(fetchSize);	// Rows to retrieve ( 0 = nolimit )
+
+            // Rows to retrieve ( 0 = nolimit )
+            if (behavior.HasBehavior(CommandBehavior.SingleResult)
+             || behavior.HasBehavior(CommandBehavior.SingleRow))
+            {
+                message.Write(1);
+            }
+            else{
+                message.Write(_fetchSize);
+            }
 
             // Send packet to the server
             _connection.Send(message);

@@ -94,10 +94,28 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(ConnectionStringKeywords.SearchPath, value); }
         }
 
-        public int FetchSize
+        public string ApplicationName
         {
-            get { return GetInt32(ConnectionStringKeywords.FetchSize); }
-            set { SetValue(ConnectionStringKeywords.FetchSize, value); }
+            get { return GetString(ConnectionStringKeywords.ApplicationName); }
+            set { SetValue(ConnectionStringKeywords.ApplicationName, value); }
+        }
+
+        public int CommandTimeout
+        {
+            get { return GetInt32(ConnectionStringKeywords.CommandTimeout); }
+            set { SetValue(ConnectionStringKeywords.CommandTimeout, value); }
+        }
+
+        public int LockTimeout
+        {
+            get { return GetInt32(ConnectionStringKeywords.LockTimeout); }
+            set { SetValue(ConnectionStringKeywords.LockTimeout, value); }
+        }
+
+        public bool DefaultTransactionReadOnly
+        {
+            get { return GetBoolean(ConnectionStringKeywords.DefaultTransactionReadOnly); }
+            set { SetValue(ConnectionStringKeywords.DefaultTransactionReadOnly, value); }
         }
 
         public PgConnectionStringBuilder()

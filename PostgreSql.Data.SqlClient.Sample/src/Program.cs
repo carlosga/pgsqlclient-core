@@ -26,7 +26,7 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
-            csb.FetchSize                = 1000;
+            csb.CommandTimeout           = 10;
 
             int count = 0;
 

@@ -69,7 +69,6 @@ namespace PostgreSql.Data.Frontend
         internal int               PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
         internal bool              MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
         internal string            SearchPath               => (_connectionOptions?.SearchPath);
-        internal int               FetchSize                => (_connectionOptions?.FetchSize ?? 200);
         internal bool              Pooling                  => (_connectionOptions?.Pooling ?? false);
         internal bool              Encrypt                  => (_connectionOptions?.Encrypt ?? false);
 
@@ -385,11 +384,39 @@ namespace PostgreSql.Data.Frontend
             message.WriteNullString("DateStyle");
             message.WriteNullString(PgDate.DateStyle);
 
-            // search path
+            // search_path
             if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
             {
                 message.WriteNullString("search_path");
                 message.WriteNullString(_connectionOptions.SearchPath);
+            }
+
+            // application_name
+            if (!String.IsNullOrEmpty(_connectionOptions.ApplicationName))
+            {
+                message.WriteNullString("application_name");
+                message.Write(_connectionOptions.ApplicationName);
+            }
+
+            // statement_timeout
+            if (_connectionOptions.CommandTimeout > 0)
+            {
+                message.WriteNullString("statement_timeout");
+                message.Write(_connectionOptions.CommandTimeout);
+            }
+
+            // lock_timeout
+            if (_connectionOptions.LockTimeout > 0)
+            {
+                message.WriteNullString("lock_timeout");
+                message.Write(_connectionOptions.LockTimeout);
+            }
+
+            // default_transaction_read_only
+            if (_connectionOptions.DefaultTransactionReadOnly)
+            {
+                message.WriteNullString("default_transaction_read_only");
+                message.WriteNullString("on");
             }
 
             // Terminator
@@ -476,19 +503,9 @@ namespace PostgreSql.Data.Frontend
                 default:
                     throw new NotSupportedException();
 
-#warning TODO: Review & implement if needed
-                // case AuthenticationStage.Kerberosv4:      // Kerberos V4 authentication is required
-                // case AuthenticationStage.Kerberosv4:      // Kerberos V5 authentication is required
                 // case AuthenticationStage.GSS:
                 //     // The frontend must now initiate a GSSAPI negotiation.
                 //     // The frontend will send a PasswordMessage with the first part of the GSSAPI data stream in response to this.
-                //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
-                //     throw new NotSupportedException();
-                //     break;
-
-                // case AuthenticationStage.SSPI:
-                //     // The frontend must now initiate a SSPI negotiation.
-                //     // The frontend will send a PasswordMessage with the first part of the SSPI data stream in response to this.
                 //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
                 //     throw new NotSupportedException();
                 //     break;

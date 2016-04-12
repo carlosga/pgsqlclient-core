@@ -26,24 +26,30 @@ namespace PostgreSql.Data.Frontend
         private bool   _encrypt;
         private bool   _multipleActiveResultSets;
         private string _searchPath;
-        private int    _fetchSize;
+        private string _applicationName;
+        private int    _commandTimeout;
+        private int    _lockTimeout;
+        private bool   _defaultTransactionReadOnly;
 
-        internal string ConnectionString         => _connectionString;
-        internal string DataSource               => _dataSource;
-        internal string Database                 => _database;
-        internal string UserID                   => _userId;
-        internal string Password                 => _password;
-        internal int    PacketSize               => _packetSize;
-        internal int    PortNumber               => _portNumber;
-        internal int    ConnectionTimeout        => _connectionTimeout;
-        internal long   ConnectionLifeTime       => _connectionLifetime;
-        internal int    MinPoolSize              => _minPoolSize;
-        internal int    MaxPoolSize              => _maxPoolSize;
-        internal bool   Pooling                  => _pooling;
-        internal bool   Encrypt                  => _encrypt;
-        internal bool   MultipleActiveResultSets => _multipleActiveResultSets;
-        internal string SearchPath               => _searchPath;
-        internal int    FetchSize                => _fetchSize;
+        internal string ConnectionString           => _connectionString;
+        internal string DataSource                 => _dataSource;
+        internal string Database                   => _database;
+        internal string UserID                     => _userId;
+        internal string Password                   => _password;
+        internal int    PacketSize                 => _packetSize;
+        internal int    PortNumber                 => _portNumber;
+        internal int    ConnectionTimeout          => _connectionTimeout;
+        internal long   ConnectionLifeTime         => _connectionLifetime;
+        internal int    MinPoolSize                => _minPoolSize;
+        internal int    MaxPoolSize                => _maxPoolSize;
+        internal bool   Pooling                    => _pooling;
+        internal bool   Encrypt                    => _encrypt;
+        internal bool   MultipleActiveResultSets   => _multipleActiveResultSets;
+        internal string SearchPath                 => _searchPath;
+        internal string ApplicationName            => _applicationName;
+        internal int    CommandTimeout             => _commandTimeout;
+        internal int    LockTimeout                => _lockTimeout;
+        internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly; 
 
         internal ConnectionOptions(string connectionString)
         {
@@ -52,21 +58,24 @@ namespace PostgreSql.Data.Frontend
                 throw new InvalidOperationException("connectionString cannot be null.");
             }
 
-            _connectionString         = connectionString;
-            _dataSource               = "localhost";
-            _userId                   = "postgres";
-            _password                 = null;
-            _portNumber               = 5432;
-            _packetSize               = 8192;
-            _pooling                  = true;
-            _connectionTimeout        = 15;
-            _connectionLifetime       = 0;
-            _minPoolSize              = 0;
-            _maxPoolSize              = 100;
-            _encrypt                  = false;
-            _multipleActiveResultSets = false;
-            _searchPath               = null;
-            _fetchSize                = 200;
+            _connectionString           = connectionString;
+            _dataSource                 = "localhost";
+            _userId                     = "postgres";
+            _password                   = null;
+            _portNumber                 = 5432;
+            _packetSize                 = 8192;
+            _pooling                    = true;
+            _connectionTimeout          = 15;
+            _connectionLifetime         = 0;
+            _minPoolSize                = 0;
+            _maxPoolSize                = 100;
+            _encrypt                    = false;
+            _multipleActiveResultSets   = false;
+            _searchPath                 = null;
+            _applicationName            = "pgsqlclient";
+            _commandTimeout             = 0;
+            _lockTimeout                = 0;
+            _defaultTransactionReadOnly = false;
 
             ParseConnectionString(connectionString);
         }
@@ -154,8 +163,21 @@ namespace PostgreSql.Data.Frontend
                             _searchPath = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.FetchSize:
-                            _fetchSize = Int32.Parse(currentValue);
+                        case ConnectionStringSynonyms.ApplicationName:
+                            _applicationName = currentValue;
+                            break;
+
+                        case ConnectionStringSynonyms.CommandTimeout:
+                        case ConnectionStringSynonyms.StatementTimeout:
+                            _commandTimeout = Int32.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.LockTimeout:
+                            _lockTimeout = Int32.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.DefaultTransactionReadOnly:
+                            _defaultTransactionReadOnly = Boolean.Parse(currentValue);
                             break;
                     }
                 }
@@ -174,6 +196,18 @@ namespace PostgreSql.Data.Frontend
             else if (_connectionTimeout < 0 || _connectionTimeout > 2147483647)
             {
                 string msg = $"'Connection Timeout' value of {_connectionTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
+
+                throw new ArgumentException(msg);
+            }
+            else if (_commandTimeout < 0 || _commandTimeout > 2147483647)
+            {
+                string msg = $"'Command Timeout' value of {_commandTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
+
+                throw new ArgumentException(msg);
+            }
+            else if (_lockTimeout < 0 || _lockTimeout > 2147483647)
+            {
+                string msg = $"'Lock Timeout' value of {_lockTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
 
                 throw new ArgumentException(msg);
             }

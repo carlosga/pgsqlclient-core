@@ -6,6 +6,8 @@ https://github.com/aspnet/Configuration/
 
 ## Work in progress
 
+- Connection runtime configuration. http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
+
 - postgresql, data type support.
 
 - Basic MARS support ( client side ).
@@ -47,7 +49,6 @@ https://github.com/aspnet/Configuration/
 - Async support ??.
   (https://msdn.microsoft.com/es-es/library/system.data.sqlclient.sqlconnectionstringbuilder.authentication(v=vs.110).aspx)
 - Thread safety ??.
-- Connection runtime configuration. http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
 - Geometric types operators. http://www.postgresql.org/docs/8.2/static/functions-geometry.html
 
 ## DONE

@@ -26,8 +26,9 @@ namespace PostgreSql.Data.PgTypes
             //
             // BYTE TYPE
             //
+
             types[18] = new TypeInfo(18, "byte", "char", PgDbType.Byte, TypeFormat.Binary, typeof(byte), typeof(PgByte), sizeof(byte));
-            
+
             //
             // BINARY DATA TYPES
             //
@@ -50,7 +51,7 @@ namespace PostgreSql.Data.PgTypes
 
             types[  16] = new TypeInfo(  16, "bool"  , "bool" , PgDbType.Bool , TypeFormat.Binary, typeof(bool), typeof(PgBoolean), sizeof(bool));
             types[1000] = new TypeInfo(1000, "bool[]", "_bool", PgDbType.Array, types[16], typeof(bool[]), typeof(PgBoolean[]));
-            
+
             //
             // CHARACTER TYPES
             //
@@ -62,8 +63,7 @@ namespace PostgreSql.Data.PgTypes
 
             // character(n), char(n) | fixed-length, blank padded
 
-#warning TODO: This char type isn't char(n)
-            types[1002] = new TypeInfo(1002, "char[]", "_char", PgDbType.Array, types[18], typeof(char[]), typeof(PgString));
+            types[1002] = new TypeInfo(1002, "char", "_char", PgDbType.Array, types[18], typeof(char[]), typeof(PgString));
 
             // text	variable unlimited length
 
@@ -207,9 +207,6 @@ namespace PostgreSql.Data.PgTypes
             //
             // Network Address Types
             //
-
-            // cidr	7 or 19 bytes	IPv4 and IPv6 networks
-#warning TODO: Add ??
 
             // inet	| 7 or 19 bytes	| IPv4 and IPv6 hosts and networks
 

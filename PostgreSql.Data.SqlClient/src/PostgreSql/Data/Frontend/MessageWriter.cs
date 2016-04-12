@@ -157,11 +157,18 @@ namespace PostgreSql.Data.Frontend
             Write(value.Days / 30);
         }
 
-#warning TODO: Need a custom PgTimeTZ or let PgTime handle the time zone offset
-        internal void WriteTZ(TimeSpan value) => Write((long)(value.TotalMilliseconds * 1000));
-        internal void WriteTZ(DateTimeOffset value)
+        internal void WriteTimeTZ(DateTimeOffset value)
         {
-            Write((long)((value.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch));
+            Write((long)(value.TimeOfDay.TotalMilliseconds * 1000));
+            Write((int)(value.Offset.TotalSeconds));
+        } 
+
+        internal void WriteTimestampTZ(DateTimeOffset value)
+        {
+            var timestamp = (long)((value.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch)
+                          + (int)value.Offset.TotalSeconds;
+
+            Write(timestamp);
         }
 
         internal void Write(PgPoint point)
@@ -314,12 +321,12 @@ namespace PostgreSql.Data.Frontend
 
                 case PgDbType.TimeTZ:
                     Write(typeInfo.Size);
-                    WriteTZ((TimeSpan)value);
+                    WriteTimeTZ((DateTimeOffset)value);
                     break;
 
                 case PgDbType.TimestampTZ:
                     Write(typeInfo.Size);
-                    WriteTZ((DateTimeOffset)value);
+                    WriteTimestampTZ((DateTimeOffset)value);
                     break;
 
                 case PgDbType.Point:

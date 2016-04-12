@@ -30,7 +30,6 @@ namespace PostgreSql.Data.SqlClient
         internal int           PacketSize               => (_connection?.PacketSize ?? 8192);
         internal bool          MultipleActiveResultSets => (_connection?.MultipleActiveResultSets ?? false);
         internal string        SearchPath               => (_connection?.SearchPath);
-        internal int           FetchSize                => (_connection?.FetchSize ?? 200);
         internal bool          Pooling                  => (_connection?.Pooling ?? false);
         internal bool          Encrypt                  => (_connection?.Encrypt ?? false);
 

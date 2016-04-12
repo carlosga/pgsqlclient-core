@@ -43,7 +43,6 @@ namespace PostgreSql.Data.SqlClient
         public          int             PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
         public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
         public          string          SearchPath               => (_connectionOptions?.SearchPath);
-        public          int             FetchSize                => (_connectionOptions?.FetchSize ?? 200);
         public override ConnectionState State                    => _state;
 
         internal PgConnectionInternal InnerConnection => _innerConnection;

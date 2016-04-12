@@ -124,13 +124,12 @@ namespace PostgreSql.Data.Frontend
         internal DateTime    ReadTimestamp() => PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
         internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
 
-        internal TimeSpan ReadTimeWithTZ()
+        internal DateTimeOffset ReadTimeWithTZ()
         {
-            var value = ReadInt64();
-#warning TODO: Handle the time zone offset
-            var tz    = ReadInt32(); // time zone in seconds
+            var time = ReadTime();
+            var tz   = TimeSpan.FromSeconds(ReadInt32());
 
-            return TimeSpan.FromMilliseconds(value * 0.001);
+            return new DateTimeOffset(1, 1, 1, time.Hours, time.Minutes, time.Seconds, tz); 
         }
 
         internal DateTimeOffset ReadTimestampWithTZ()

@@ -29,6 +29,7 @@ namespace PostgreSql.Data.SqlClient
         private string                _commandText;
         private int                   _commandTimeout;
         private bool                  _designTimeVisible;
+        private int                   _fetchSize;
 
         public override string CommandText
         {
@@ -121,6 +122,19 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        public int FetchSize
+        {
+            get { return _fetchSize; }
+            set
+            {
+                if (_fetchSize < 0)
+                {
+                    throw new ArgumentException("The property value assigned is less than 0.");
+                }
+                _fetchSize = value; 
+            }
+        }
+
         protected override DbConnection DbConnection
         {
             get { return Connection; }
@@ -153,6 +167,7 @@ namespace PostgreSql.Data.SqlClient
             _designTimeVisible = false;
             _parameters        = new PgParameterCollection();
             _commands          = new List<string>();
+            _fetchSize         = 200;
         }
 
         public PgCommand(string commandText)
@@ -293,6 +308,7 @@ namespace PostgreSql.Data.SqlClient
 
             _statement.CommandType   = _commandType;
             _statement.StatementText = CurrentCommand;
+            _statement.FetchSize     = _fetchSize;
 
             if (_statement.State == StatementState.Initial)
             {
