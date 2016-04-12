@@ -241,7 +241,6 @@ namespace PostgreSql.Data.Frontend
 
                 Bind();
                 Execute(CommandBehavior.SingleRow);
-                ClosePortal();
 
                 return _recordsAffected;
             }
@@ -301,7 +300,6 @@ namespace PostgreSql.Data.Frontend
 
                 Bind();
                 Execute(CommandBehavior.SingleResult);
-                ClosePortal();
 
                 object value = null;
                   
@@ -371,7 +369,7 @@ namespace PostgreSql.Data.Frontend
                 // Send packet to the server
                 _connection.Send(message);
 
-                // Process response messages
+                // Process response
                 ReadUntilReadyForQuery();
 
                 // Update status
@@ -547,7 +545,7 @@ namespace PostgreSql.Data.Frontend
             // Flush pending messages
             _connection.Flush();
 
-            // Receive Describe response
+            // Process response
             MessageReader rmessage = null;
 
             do
@@ -648,7 +646,7 @@ namespace PostgreSql.Data.Frontend
             // Flush pending messages
             _connection.Flush();
 
-            // Receive response
+            // Process response
             MessageReader rmessage = null;
 
             do
@@ -662,13 +660,6 @@ namespace PostgreSql.Data.Frontend
             // If the command is finished and has returned rows
             // set all rows are received
             _allRowsFetched = rmessage.IsCommandComplete;
-
-            // If all rows are received or the command doesn't return
-            // rows perform a Sync.
-            if (_allRowsFetched)
-            {
-                ClosePortal();
-            }
 
             // Update status
             ChangeState(StatementState.Executed);
