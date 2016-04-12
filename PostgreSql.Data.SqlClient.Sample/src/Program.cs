@@ -12,7 +12,7 @@ namespace PostgreSql.Data.SqlClient.Sample
         {
             pgsqlclient_test();
         }
-        
+
         static void pgsqlclient_test()
         {
             var csb = new PgConnectionStringBuilder();

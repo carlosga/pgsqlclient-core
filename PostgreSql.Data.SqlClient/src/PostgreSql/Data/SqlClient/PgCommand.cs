@@ -153,8 +153,6 @@ namespace PostgreSql.Data.SqlClient
         internal int             RecordsAffected => (_statement?.RecordsAffected ?? -1);
         internal bool            IsDisposed      => _disposed;
 
-        private string CurrentCommand => _commands[_commandIndex];
-
         public PgCommand()
             : base()
         {
@@ -206,11 +204,12 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _connection  = null;
-                        _transaction = null;
-                        _parameters  = null;
-                        _commandText = null;
-                        _commands    = null;
+                        _connection   = null;
+                        _transaction  = null;
+                        _parameters   = null;
+                        _commandText  = null;
+                        _commands     = null;
+                        _commandIndex = -1;
                     }
 
                     base.Dispose(disposing);
@@ -297,98 +296,9 @@ namespace PostgreSql.Data.SqlClient
             return ExecuteReader(behavior);
         }
 
-        internal void InternalPrepare()
-        {
-            if (_statement == null)
-            {
-                _statement = _connection.InnerConnection.CreateStatement();
-                _statement.Parameters = _parameters; 
-            }
-
-            _statement.CommandType   = _commandType;
-            _statement.StatementText = CurrentCommand;
-            _statement.FetchSize     = _fetchSize;
-
-            if (_statement.State == StatementState.Initial)
-            {
-                _statement.Prepare();
-            }
-
-            if (_commandIndex == 0)
-            {
-                _connection.InnerConnection.AddCommand(this);
-            }
-        }
-
-        internal int InternalExecuteNonQuery()
-        {
-            InternalPrepare();
-
-            var recordsAffected = _statement.ExecuteNonQuery();
-
-            InternalSetOutputParameters();
-
-            return recordsAffected;
-        }
-        
-        private int InternalExecuteNonQueryMars()
-        {
-            int totalAffected = -1;
-            var errors        = new List<PgError>();
-
-            try
-            {
-                do
-                {
-                    try
-                    {
-                        var affected   = InternalExecuteNonQuery();
-                        totalAffected += ((affected != -1) ? affected : 0);
-                    }
-                    catch (PgException pgex)
-                    {
-                        errors.AddRange(pgex.Errors);
-                    }
-                } while(PrepareNextMarsCommandText());
-
-                if (errors.Count > 0)
-                {
-                    throw new PgException(errors[0].Message, errors);
-                }
-            }
-            finally
-            {
-                _commandIndex = 0;
-            }
-
-            return totalAffected;
-        }
-
-        private void InternalExecuteReader(CommandBehavior behavior)
-        {
-            _commandBehavior = behavior;
-
-            InternalPrepare();
-
-            if (behavior.HasBehavior(CommandBehavior.Default)
-             || behavior.HasBehavior(CommandBehavior.SequentialAccess)
-             || behavior.HasBehavior(CommandBehavior.SingleResult)
-             || behavior.HasBehavior(CommandBehavior.SingleRow)
-             || behavior.HasBehavior(CommandBehavior.CloseConnection))
-            {
-                _statement.ExecuteReader(behavior);
-            }
-        }
-
-        internal object InternalExecuteScalar()
-        {
-            InternalPrepare();
-            return _statement.ExecuteScalar();
-        }
-
         internal bool NextResult()
         {
-            if (!PrepareNextMarsCommandText())
+            if (!NextCommandText())
             {
                 return false;
             }
@@ -445,7 +355,94 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        private bool PrepareNextMarsCommandText()
+        private void InternalPrepare()
+        {
+            if (_statement == null)
+            {
+                _statement = _connection.InnerConnection.CreateStatement();
+                _statement.Parameters = _parameters; 
+            }
+            else if (_statement.State != StatementState.Initial)
+            {
+                return;
+            }
+
+            _statement.CommandType   = _commandType;
+            _statement.StatementText = _commands[_commandIndex];
+            _statement.FetchSize     = _fetchSize;
+
+            _statement.Prepare();
+            _connection.InnerConnection.AddCommand(this);
+        }
+
+        private int InternalExecuteNonQuery()
+        {
+            InternalPrepare();
+
+            var recordsAffected = _statement.ExecuteNonQuery();
+
+            InternalSetOutputParameters();
+
+            return recordsAffected;
+        }
+
+        private void InternalExecuteReader(CommandBehavior behavior)
+        {
+            _commandBehavior = behavior;
+
+            InternalPrepare();
+
+            if (behavior.HasBehavior(CommandBehavior.Default)
+             || behavior.HasBehavior(CommandBehavior.SequentialAccess)
+             || behavior.HasBehavior(CommandBehavior.SingleResult)
+             || behavior.HasBehavior(CommandBehavior.SingleRow)
+             || behavior.HasBehavior(CommandBehavior.CloseConnection))
+            {
+                _statement.ExecuteReader(behavior);
+            }
+        }
+
+        private object InternalExecuteScalar()
+        {
+            InternalPrepare();
+            return _statement.ExecuteScalar();
+        }
+
+        private int InternalExecuteNonQueryMars()
+        {
+            int totalAffected = -1;
+            var errors        = new List<PgError>();
+
+            try
+            {
+                do
+                {
+                    try
+                    {
+                        var affected   = InternalExecuteNonQuery();
+                        totalAffected += ((affected != -1) ? affected : 0);
+                        _statement.Close();
+                    }
+                    catch (PgException pgex)
+                    {
+                        errors.AddRange(pgex.Errors);
+                    }
+                } while (NextCommandText());
+
+                if (errors.Count > 0)
+                {
+                    throw new PgException(errors[0].Message, errors);
+                }
+            }
+            finally
+            {
+                _commandIndex = 0;
+            }
+
+            return totalAffected;
+        }
+
+        private bool NextCommandText()
         {
             if (!_connection.MultipleActiveResultSets)
             {

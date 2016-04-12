@@ -149,7 +149,7 @@ namespace System
 
             if (inParam)
             {
-                parameters.Add(parameters.IndexOf(paramBuilder.ToString()));
+                parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
                 builder.AppendFormat("${0}", ++paramIndex);
             }
 
