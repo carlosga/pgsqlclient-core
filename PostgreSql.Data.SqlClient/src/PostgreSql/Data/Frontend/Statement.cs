@@ -52,7 +52,10 @@ namespace PostgreSql.Data.Frontend
             {
                 if (_statementText != value)
                 {
-                    Close();
+                    if (IsPrepared || IsRunning || IsCancelled)
+                    {
+                        Close();
+                    }
 
                     _statementText = value;
 
@@ -312,17 +315,20 @@ namespace PostgreSql.Data.Frontend
                 // Function id
                 message.Write(id);
 
-                // Send parameters format code.
-                message.Write((short)_parameterIndices.Count);
+                // Parameter count
+                var parameterCount = (short)_parameterIndices.Count; 
 
-                for (int i = 0; i < _parameterIndices.Count; i++)
+                // Send parameters format code.
+                message.Write(parameterCount);
+
+                for (int i = 0; i < parameterCount; ++i)
                 {
-                    message.Write((short)parameters[_parameterIndices[i]].TypeInfo.Format);
+                    message.Write(parameters[_parameterIndices[i]].TypeInfo.FormatCode);
                 }
 
                 // Send parameter values
-                message.Write((short)_parameterIndices.Count);
-                for (int i = 0; i < _parameterIndices.Count; i++)
+                message.Write(parameterCount);
+                for (int i = 0; i < parameterCount; ++i)
                 {
                     var parameter = parameters[_parameterIndices[i]];
 
@@ -485,10 +491,16 @@ namespace PostgreSql.Data.Frontend
 
             var message = _connection.CreateMessage(FrontendMessages.Parse);
 
+            // Write Statement name and it's query
             message.WriteNullString(_parseName);
             message.WriteNullString(_parsedStatementText);
-            message.Write((short)_parameterIndices.Count);
-            for (int i = 0; i < _parameterIndices.Count; i++)
+
+            // Parameter count
+            var parameterCount = (short)_parameterIndices.Count;
+
+            // Write parameter types
+            message.Write(parameterCount);
+            for (int i = 0; i < parameterCount; ++i)
             {
                 message.Write(_parameters[_parameterIndices[i]].TypeInfo.Oid);
             }
@@ -549,16 +561,19 @@ namespace PostgreSql.Data.Frontend
             // Prepared statement name
             message.WriteNullString(_parseName);
 
+            // Parameter count
+            var parameterCount = (short)_parameterIndices.Count;
+
             // Send parameters format code.
-            message.Write((short)_parameterIndices.Count);
-            for (int i = 0; i < _parameterIndices.Count; i++)
+            message.Write(parameterCount);
+            for (int i = 0; i < parameterCount; ++i)
             {
-                message.Write((short)_parameters[_parameterIndices[i]].TypeInfo.Format);
+                message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
             }
 
             // Send parameter values
-            message.Write((short)_parameterIndices.Count);
-            for (int i = 0; i < _parameterIndices.Count; i++)
+            message.Write(parameterCount);
+            for (int i = 0; i <parameterCount; ++i)
             {
                 var parameter = _parameters[_parameterIndices[i]];
 
@@ -577,10 +592,12 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Send column information
-            message.Write((short)_rowDescriptor.Count);
-            for (int i = 0; i < _rowDescriptor.Count; i++)
+            var fieldCount = (short)_rowDescriptor.Count;
+            
+            message.Write(fieldCount);
+            for (int i = 0; i < fieldCount; ++i)
             {
-                message.Write((short)_rowDescriptor[i].TypeInfo.Format);
+                message.Write(_rowDescriptor[i].TypeInfo.FormatCode);
             }
 
             // Send packet to the server
@@ -724,6 +741,7 @@ namespace PostgreSql.Data.Frontend
 
                 case BackendMessages.EmptyQueryResponse:
                 case BackendMessages.NoData:
+                    ClosePortal();
                     ClearRows();
                     break;
 
@@ -779,7 +797,7 @@ namespace PostgreSql.Data.Frontend
 
             _rowDescriptor.Resize(count);
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; ++i)
             {
                 var name         = message.ReadNullString();
                 var tableOid     = message.ReadInt32();
@@ -796,9 +814,10 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessDataRow(MessageReader message)
         {
-            var values = new object[message.ReadInt16()];
+            var count  = message.ReadInt16();
+            var values = new object[count];
 
-            for (int i = 0; i < values.Length; i++)
+            for (int i = 0; i < count; ++i)
             {
                 int length = message.ReadInt32();
                 var field  = _rowDescriptor[i];

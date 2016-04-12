@@ -4,10 +4,10 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace PostgreSql.Data.Frontend
@@ -15,15 +15,15 @@ namespace PostgreSql.Data.Frontend
     internal sealed class MessageReader
     {
         private readonly char        _messageType;
-        private readonly byte[]      _contents;
+        private readonly byte[]      _buffer;
         private readonly SessionData _sessionData;
 
         private int _position;
 
         internal char MessageType       => _messageType;
-        internal int  Length            => _contents.Length;
+        internal int  Length            => _buffer.Length;
         internal int  Position          => _position;
-        internal bool EOF               => (_position >= _contents.Length);
+        internal bool EOF               => (_position >= _buffer.Length);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
         internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
         internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
@@ -34,7 +34,7 @@ namespace PostgreSql.Data.Frontend
         internal MessageReader(char messageType, byte[] contents, SessionData sessionData)
         {
             _messageType = messageType;
-            _contents    = contents;
+            _buffer      = contents;
             _sessionData = sessionData;
             _position    = 0;
         }
@@ -43,37 +43,37 @@ namespace PostgreSql.Data.Frontend
         {
             byte[] buffer = new byte[count];
 
-            Buffer.BlockCopy(_contents, _position, buffer, 0, count);
+            Buffer.BlockCopy(_buffer, _position, buffer, 0, count);
 
             _position += count;
 
             return buffer;
         }
 
-        internal char ReadChar() => (char)_contents[_position++];
+        internal char ReadChar() => (char)_buffer[_position++];
 
         internal string ReadNullString()
         {
             int start = _position;
 
-            while (_position < _contents.Length && _contents[_position] != 0) 
+            while (_position < _buffer.Length && _buffer[_position] != 0) 
             { 
                 _position++;
             }
 
             int count = _position - start;
 
-            if (_position < _contents.Length)
+            if (_position < _buffer.Length)
             {
                 _position++;
             }
 
-            return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_contents, start, count);
+            return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_buffer, start, count);
         }
 
         internal string ReadString(int count)
         {
-            var data = _sessionData.ClientEncoding.GetString(_contents, _position, count);
+            var data = _sessionData.ClientEncoding.GetString(_buffer, _position, count);
 
             _position += count;
 
@@ -81,13 +81,13 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal string ReadString()  => ReadString(ReadInt32());
-        internal byte   ReadByte()    => _contents[_position++];
+        internal byte   ReadByte()    => _buffer[_position++];
         internal bool   ReadBoolean() => Convert.ToBoolean(ReadByte());
-        
+
         internal short ReadInt16()
         {
-            short value = (short)((_contents[_position + 1] & 0xFF)
-                                | (_contents[_position + 0] & 0xFF) << 8);
+            short value = (short)((_buffer[_position + 1] & 0xFF)
+                                | (_buffer[_position + 0] & 0xFF) << 8);
 
             _position += 2;
 
@@ -96,10 +96,10 @@ namespace PostgreSql.Data.Frontend
 
         internal int ReadInt32()
         {
-            int value = (_contents[_position + 3] & 0xFF)
-                      | (_contents[_position + 2] & 0xFF) <<  8
-                      | (_contents[_position + 1] & 0xFF) << 16
-                      | (_contents[_position    ] & 0xFF) << 24;
+            int value = (_buffer[_position + 3] & 0xFF)
+                      | (_buffer[_position + 2] & 0xFF) <<  8
+                      | (_buffer[_position + 1] & 0xFF) << 16
+                      | (_buffer[_position    ] & 0xFF) << 24;
 
             _position += 4;
 
@@ -167,11 +167,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             return new PgPath(points, isClosedPath);
-        }
-
-        internal object ReadValue(FieldDescriptor descriptor, int length)
-        {
-            return ReadValue(descriptor.TypeInfo, length);
         }
 
         internal object ReadValue(TypeInfo typeInfo, int length)

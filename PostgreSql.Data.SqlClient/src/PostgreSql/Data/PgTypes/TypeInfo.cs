@@ -14,6 +14,7 @@ namespace PostgreSql.Data.PgTypes
         private readonly string     _internalName;
         private readonly PgDbType   _pgDbType;
         private readonly TypeFormat _format;
+        private readonly short      _formatCode;
         private readonly Type       _systemType;
         private readonly Type       _pgType;
         private readonly TypeInfo   _elementType;
@@ -27,6 +28,7 @@ namespace PostgreSql.Data.PgTypes
         internal Type       PgType       => _pgType;
         internal TypeInfo   ElementType  => _elementType; 
         internal TypeFormat Format       => _format;
+        internal short      FormatCode   => _formatCode;
         internal int        Size         => _size;
         internal bool       IsArray      => (_pgDbType == PgDbType.Array);
         internal bool       IsBinary     => (_pgDbType == PgDbType.Bytea);
@@ -62,49 +64,49 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        internal TypeInfo(int          oid
-                          , string     name
-                          , string     internalName
-                          , PgDbType   pgDbType
-                          , TypeFormat format
-                          , Type       systemType
-                          , Type       pgType)
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
+                        , TypeFormat format
+                        , Type       systemType
+                        , Type       pgType)
             : this(oid, name, internalName, pgDbType, null, format, systemType, pgType, -1)
         {
         }
 
-        internal TypeInfo(int          oid
-                          , string     name
-                          , string     internalName
-                          , PgDbType   pgDbType
-                          , TypeFormat format
-                          , Type       systemType
-                          , Type       pgType
-                          , int        size)
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
+                        , TypeFormat format
+                        , Type       systemType
+                        , Type       pgType
+                        , int        size)
             : this(oid, name, internalName, pgDbType, null, format, systemType, pgType, size)
         {
         }
 
-        internal TypeInfo(int        oid
-                          , string   name
-                          , string   internalName
-                          , PgDbType pgDbType
-                          , TypeInfo elementType
-                          , Type     systemType
-                          , Type     pgType)
+        internal TypeInfo(int      oid
+                        , string   name
+                        , string   internalName
+                        , PgDbType pgDbType
+                        , TypeInfo elementType
+                        , Type     systemType
+                        , Type     pgType)
             : this(oid, name, internalName, pgDbType, elementType, elementType.Format, systemType, pgType, -1)
         {
         }
 
-        internal TypeInfo(int          oid
-                          , string     name
-                          , string     internalName
-                          , PgDbType   pgDbType
-                          , TypeInfo   elementType
-                          , TypeFormat format
-                          , Type       systemType
-                          , Type       pgType
-                          , int        size)
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
+                        , TypeInfo   elementType
+                        , TypeFormat format
+                        , Type       systemType
+                        , Type       pgType
+                        , int        size)
         {
             _oid          = oid;
             _name         = name;
@@ -112,6 +114,7 @@ namespace PostgreSql.Data.PgTypes
             _pgDbType     = pgDbType;
             _elementType  = elementType;
             _format       = format;
+            _formatCode   = (short)format;
             _systemType   = systemType;
             _pgType       = pgType;
             _size         = size;
