@@ -263,6 +263,9 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Vector:
                     return ReadVector(typeInfo, length);
 
+                case PgDbType.Composite:
+                    return ReadComposite(typeInfo, length);
+
                 default:
                     return ReadBytes(length);
             }
@@ -286,7 +289,7 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = TypeInfoProvider.Types[oid];
+            var elementType = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -337,6 +340,30 @@ namespace PostgreSql.Data.Frontend
             }
 
             return data;
+        }
+
+        private object ReadComposite(TypeInfo typeInfo, int length)
+        {
+            var count  = ReadInt32();
+            var values = new object[count];
+
+            for (int i = 0; i < count; ++i)
+            {
+                int oid   = ReadInt32();
+                var size  = ReadInt32();
+                var tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid); 
+
+                if (size == -1 || tinfo.PgDbType == PgDbType.Void)
+                {
+                    values[i] = DBNull.Value;
+                }
+                else
+                {
+                    values[i] = ReadValue(tinfo, size);
+                }
+            }
+
+            return values;
         }
     }
 }

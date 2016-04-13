@@ -35,6 +35,7 @@ namespace PostgreSql.Data.Frontend
         private int               _processId;
         private int               _secretKey;
         private bool              _open;
+        private TypeInfoProvider  _typeInfoProvider;
 
         internal NotificationCallback Notification
         {
@@ -71,6 +72,8 @@ namespace PostgreSql.Data.Frontend
         internal string            SearchPath               => (_connectionOptions?.SearchPath);
         internal bool              Pooling                  => (_connectionOptions?.Pooling ?? false);
         internal bool              Encrypt                  => (_connectionOptions?.Encrypt ?? false);
+        internal TypeInfoProvider  TypeInfoProvider         => _typeInfoProvider;
+        internal string            InternalUrl              => $"{DataSource}://{Database}";
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
@@ -166,6 +169,8 @@ namespace PostgreSql.Data.Frontend
                 Lock();
 
                 _transport.Close();
+
+                TypeInfoProviderCache.Release(this);
             }
             catch
             {
@@ -215,6 +220,12 @@ namespace PostgreSql.Data.Frontend
 
                 // Close current transport
                 _transport.Close();
+
+                // Release the type info provider
+                TypeInfoProviderCache.Release(this);
+
+                // Reset the current session data
+                _sessionData = null;
 
                 // Reopen against the new database
                 OpenInternal();
@@ -359,6 +370,12 @@ namespace PostgreSql.Data.Frontend
 
             // Send startup message
             SendStartupMessage();
+
+            // Get the type info provider
+            _typeInfoProvider = TypeInfoProviderCache.GetOrAdd(this);
+
+            // Set the type info provider for the current session
+            _sessionData.TypeInfoProvider = _typeInfoProvider;
         }
 
         private void SendStartupMessage()

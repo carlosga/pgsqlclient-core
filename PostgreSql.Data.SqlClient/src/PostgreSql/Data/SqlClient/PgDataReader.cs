@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.Frontend;
+using PostgreSql.Data.Schema;
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -133,7 +134,8 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_metadata == null)
             {
-                var provider = new SchemaProvider(_connection, _statement.RowDescriptor);
+                var provider = new DbColumnSchemaGenerator(_connection.InnerConnection.Connection
+                                                         , _statement.RowDescriptor);
                 _metadata = provider.GetColumnSchema();
             }
 

@@ -16,6 +16,7 @@ namespace PostgreSql.Data.SqlClient
       , Bytea
       , Char
       , Circle
+      , Composite
       , Date
       , Double
       , Integer

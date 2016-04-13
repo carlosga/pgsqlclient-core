@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Globalization;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
@@ -30,8 +30,8 @@ namespace PostgreSql.Data.PgTypes
                 throw new ArgumentException("s is not a valid point.");
             }
 
-            double x = Double.Parse(pointCoords[0], CultureInfo.InvariantCulture);
-            double y = Double.Parse(pointCoords[1], CultureInfo.InvariantCulture);
+            double x = Double.Parse(pointCoords[0], TypeInfoProvider.InvariantCulture);
+            double y = Double.Parse(pointCoords[1], TypeInfoProvider.InvariantCulture);
 
             return new PgPoint2D(x, y);
         }

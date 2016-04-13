@@ -4,6 +4,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using PostgreSql.Data.Frontend;
 using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient
@@ -23,7 +24,7 @@ namespace PostgreSql.Data.SqlClient
         private object                _value;
         private object                _pgvalue;
         private PgDbType              _pgDbType;
-        private TypeInfo            _typeInfo;
+        private TypeInfo              _typeInfo;
         private PgParameterCollection _parent;
 
         public override string ParameterName
@@ -63,7 +64,8 @@ namespace PostgreSql.Data.SqlClient
             {
                 _pgDbType  = value;
                 _isTypeSet = true;
-                _typeInfo  = TypeInfoProvider.GetTypeInfo(value);
+#warning TODO: Delay until the command is prepared ??
+                // _typeInfo  = TypeInfoProvider.GetTypeInfo(value);
             }
         }
 
@@ -192,23 +194,24 @@ namespace PostgreSql.Data.SqlClient
 
         private void UpdateTypeInfo(object value)
         {
-            if (_pgDbType == PgDbType.Array)
-            {
-                _typeInfo = TypeInfoProvider.GetArrayTypeInfo(value);
-            }
-            else if (_pgDbType == PgDbType.Vector)
-            {
-                _typeInfo = TypeInfoProvider.GetVectorTypeInfo(value);
-            }
-            else
-            {
-                _typeInfo = TypeInfoProvider.GetTypeInfo(value);
-            }
+#warning TODO: Delay until the command is prepared ??
+            // if (_pgDbType == PgDbType.Array)
+            // {
+            //     _typeInfo = TypeInfoProvider.GetArrayTypeInfo(value);
+            // }
+            // else if (_pgDbType == PgDbType.Vector)
+            // {
+            //     _typeInfo = TypeInfoProvider.GetVectorTypeInfo(value);
+            // }
+            // else
+            // {
+            //     _typeInfo = TypeInfoProvider.GetTypeInfo(value);
+            // }
 
-            if (!_isTypeSet)
-            {
-                _pgDbType = TypeInfo.PgDbType;
-            }
+            // if (!_isTypeSet)
+            // {
+            //     _pgDbType = TypeInfo.PgDbType;
+            // }
         }
     }
 }

@@ -1,23 +1,25 @@
 ﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.PgTypes;
+using PostgreSql.Data.Schema;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Threading;
 
-namespace PostgreSql.Data.PgTypes
+namespace PostgreSql.Data.Frontend
 {
-    internal static class TypeInfoProvider
+    internal sealed class TypeInfoProvider
     {
-        internal static readonly ReadOnlyDictionary<int, TypeInfo> Types;
-
         internal static readonly string          NullString       = "Null";
         internal static readonly IFormatProvider InvariantCulture = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
-        
         internal static bool     IsNullString(string s) => (s == null || s == NullString);
+
+        private static readonly ReadOnlyDictionary<int, TypeInfo> s_types;
 
         static TypeInfoProvider()
         {
@@ -243,7 +245,7 @@ namespace PostgreSql.Data.PgTypes
             //
             types[194] = new TypeInfo(194, "pg_node_tree", "pg_node_tree", PgDbType.Text, TypeFormat.Text, typeof(string), typeof(string));
 
-            Types = new ReadOnlyDictionary<int, TypeInfo>(types);
+            s_types = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
         internal static DbType GetDbType(PgDbType providerType)
@@ -369,25 +371,85 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        internal static TypeInfo GetTypeInfo(PgDbType pgDbType)
+        private readonly string                    _address;
+        private readonly Dictionary<int, TypeInfo> _types;
+        
+        private int _count;
+
+        internal string Address => _address;
+        internal int    Count   => _count;
+
+        internal TypeInfoProvider(string address)
         {
-            return Types.Values.First(x => x.PgDbType == pgDbType);
+            _address = address;
+            _types   = new Dictionary<int, TypeInfo>();
         }
 
-        internal static TypeInfo GetTypeInfo(object value)
+        internal void AddRef()
+        {
+            Interlocked.Increment(ref _count);
+        }
+
+        internal void Release()
+        {
+            Interlocked.Decrement(ref _count);
+        }
+
+        internal void DiscoverTypes(Connection connection)
+        {
+            var typeProvider = new CompositeTypeInfoProvider(connection);
+            var types        = typeProvider.GetTypeInfo();
+
+            if (!types.IsEmpty())
+            {
+                for (int i = 0; i < types.Count; i++)
+                {
+                    _types.Add(types[i].Oid, types[i]);
+                }
+            } 
+        }
+
+        internal TypeInfo GetTypeInfo(int oid)
+        {
+            if (s_types.ContainsKey(oid))
+            {
+                return s_types[oid];
+            }
+            else if (_types.ContainsKey(oid))
+            {
+                return _types[oid];
+            }
+            throw new NotSupportedException();
+        }
+
+        internal TypeInfo GetCompositeTypeInfo(int oid)
+        {
+            if (_types.ContainsKey(oid))
+            {
+                return _types[oid];
+            }
+            throw new NotSupportedException();
+        }
+
+        internal TypeInfo GetTypeInfo(PgDbType pgDbType)
+        {
+            return _types.Values.First(x => x.PgDbType == pgDbType);
+        }
+
+        internal TypeInfo GetTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
-                return Types[1043];   // Varchar by default
+                return s_types[1043];   // Varchar by default
             }
             if (value is INullable)
             {
-                return Types.Values.First(x => x.PgType == value.GetType());
+                return s_types.Values.First(x => x.PgType == value.GetType());
             }
-            return Types.Values.First(x => x.SystemType == value.GetType());
+            return s_types.Values.First(x => x.SystemType == value.GetType());
         }
 
-        internal static TypeInfo GetArrayTypeInfo(object value)
+        internal TypeInfo GetArrayTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
@@ -395,12 +457,12 @@ namespace PostgreSql.Data.PgTypes
             }
             if (value is INullable)
             {
-                return Types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
+                return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
             }
-            return Types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+            return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
         }
 
-        internal static TypeInfo GetVectorTypeInfo(object value)
+        internal TypeInfo GetVectorTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
@@ -408,9 +470,9 @@ namespace PostgreSql.Data.PgTypes
             }
             if (value is INullable)
             {
-                return Types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
+                return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
             }
-            return Types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+            return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
     }
 }

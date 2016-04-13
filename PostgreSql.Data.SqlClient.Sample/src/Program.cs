@@ -10,49 +10,7 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            var csb = new PgConnectionStringBuilder();
-
-            csb.DataSource               = "localhost";
-            csb.InitialCatalog           = "northwind";
-            csb.UserID                   = "northwind";
-            csb.Password                 = "northwind";
-            csb.PortNumber               = 5432;
-            csb.Encrypt                  = false;
-            csb.Pooling                  = false;
-            csb.MultipleActiveResultSets = true;
-            csb.PacketSize               = Int16.MaxValue;
-
-            string sql    = "SELECT @1; SELECT @2; SELECT @3;";
-            int[]  values = new int[] { 1, 2, 3 };
-            int    index  = 0;
-            
-            using (PgConnection connection = new PgConnection(csb.ToString()))
-            {
-                connection.Open();
-
-                using (PgCommand command = new PgCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@1", values[0]);
-                    command.Parameters.AddWithValue("@2", values[1]);
-                    command.Parameters.AddWithValue("@3", values[2]);
-
-                    using (PgDataReader reader = command.ExecuteReader())
-                    {
-                        do 
-                        {
-                            var readed = reader.Read();
-                            var value  = reader.GetInt32(0);
-
-                            Console.WriteLine($"expected: {values[index]} actual: {value}");
-
-                            ++index;
-
-                        } while (reader.NextResult());
-                    }
-                }
-            }
-
-            // composite_type_test();
+            composite_type_test();
             // pgsqlclient_test();
         }
 
@@ -72,6 +30,22 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             try
             {
+                // try
+                // {
+                //     var dropSql = "DROP TABLE address; DROP TYPE address_type";
+                //     using (PgConnection connection = new PgConnection(csb.ToString()))
+                //     {
+                //         connection.Open();
+                //         using (PgCommand command = new PgCommand(dropSql, connection))
+                //         {
+                //             command.ExecuteNonQuery();
+                //         }
+                //     }
+                // }
+                // catch
+                // {
+                // }
+
                 var createSql = @"CREATE TYPE address_type AS
                                   ( street_address  VARCHAR
                                   , city            VARCHAR
@@ -82,9 +56,9 @@ namespace PostgreSql.Data.SqlClient.Sample
                                   , address_struct  ADDRESS_TYPE );";
 
                 var insertSql = @"-- Insert the first row.
-                                  INSERT INTO address ( address_struct ) VALUES (('52 Hubble Street','Lexington','KY','40511-1225'));
+                                  INSERT INTO address ( address_struct ) VALUES (('#1 52 Hubble Street','Lexington','KY','40511-1225'));
                                   -- Insert the second row.
-                                  INSERT INTO address ( address_struct ) VALUES (('54 Hubble Street','Lexington','KY','40511-1225'));";
+                                  INSERT INTO address ( address_struct ) VALUES (('#2 54 Hubble Street','Lexington','KY','40511-1225'));";
 
                 var selectAll = "SELECT * FROM address;";
                 var selectRaw = @"SELECT address_id
@@ -96,18 +70,31 @@ namespace PostgreSql.Data.SqlClient.Sample
 
                 using (PgConnection connection = new PgConnection(csb.ToString()))
                 {
-                    Console.WriteLine("Creating composite type and table");
                     connection.Open();
-                    using (PgCommand createCommand = new PgCommand(createSql, connection))
-                    {
-                        createCommand.ExecuteNonQuery();
-                    }
 
-                    Console.WriteLine("Inserting data");
-                    using (PgCommand insertCommand = new PgCommand(insertSql, connection))
-                    {
-                        insertCommand.ExecuteNonQuery();
-                    }
+                    // Console.WriteLine("Creating composite type and table");
+                    // using (PgCommand createCommand = new PgCommand(createSql, connection))
+                    // {
+                    //     createCommand.ExecuteNonQuery();
+                    // }
+
+                    // Console.WriteLine("Inserting data");
+                    // using (PgCommand insertCommand = new PgCommand(insertSql, connection))
+                    // {
+                    //     insertCommand.ExecuteNonQuery();
+                    // }
+
+                    // var pinsertSql = "INSERT INTO address ( address_struct ) VALUES ((@p1,@p2,@p3,@p4))";
+                    // using (PgCommand pinsertCommand = new PgCommand(pinsertSql, connection))
+                    // {
+                    //     pinsertCommand.Parameters.AddWithValue("@p1", "#3 52 Hubble Street");
+                    //     pinsertCommand.Parameters.AddWithValue("@p2", "#3 Lexington");
+                    //     pinsertCommand.Parameters.AddWithValue("@p3", "#3 KY");
+                    //     pinsertCommand.Parameters.AddWithValue("@p4", "#3 40511-1225");
+
+                    //     pinsertCommand.ExecuteNonQuery();
+                    // }
+
                     Console.WriteLine("Issuing raw select");
                     using (PgCommand selectRawCommand = new PgCommand(selectRaw, connection))
                     {
@@ -132,15 +119,15 @@ namespace PostgreSql.Data.SqlClient.Sample
             }
             finally
             {
-                var dropSql = "DROP TABLE address; DROP TYPE address_type";
-                using (PgConnection connection = new PgConnection(csb.ToString()))
-                {
-                    connection.Open();
-                    using (PgCommand command = new PgCommand(dropSql, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-                }
+                // var dropSql = "DROP TABLE address; DROP TYPE address_type";
+                // using (PgConnection connection = new PgConnection(csb.ToString()))
+                // {
+                //     connection.Open();
+                //     using (PgCommand command = new PgCommand(dropSql, connection))
+                //     {
+                //         command.ExecuteNonQuery();
+                //     }
+                // }
             }
         }
 

@@ -408,6 +408,11 @@ namespace PostgreSql.Data.Frontend
 
         internal DataRecord FetchRow()
         {
+            if (IsCancelled && _rows.IsEmpty())
+            {
+                return null;
+            }
+
             if (!_allRowsFetched && _rows.IsEmpty())
             {
                 Execute();  // Fetch next group of rows
@@ -805,7 +810,7 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = TypeInfoProvider.Types[typeOid];
+                var typeInfo     = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
 
                 _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }

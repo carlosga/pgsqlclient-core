@@ -2,15 +2,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.Frontend;
+using PostgreSql.Data.SqlClient;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 
-namespace PostgreSql.Data.SqlClient
+namespace PostgreSql.Data.Schema
 {
-    internal sealed class SchemaProvider
+    internal sealed class DbColumnSchemaGenerator
         : IDbColumnSchemaGenerator
     {
-        private static readonly string ColumnSchemaQuery = 
+        private static readonly string SchemaQuery = 
                 "SELECT" 
                  + "  pg_namespace.nspname        AS TABLE_SCHEMA"
                  + ", pg_class.relname            AS TABLE_NAME"
@@ -30,10 +31,10 @@ namespace PostgreSql.Data.SqlClient
                  + "AND pg_attribute.attnum       = $2 "
                  + "AND pg_attribute.attisdropped = false";
 
-        private readonly PgConnection  _connection;
+        private readonly Connection    _connection;
         private readonly RowDescriptor _descriptor;
 
-        internal SchemaProvider(PgConnection connection, RowDescriptor descriptor)
+        internal DbColumnSchemaGenerator(Connection connection, RowDescriptor descriptor)
         {
             _connection = connection;
             _descriptor = descriptor;
@@ -43,7 +44,7 @@ namespace PostgreSql.Data.SqlClient
         {
             var columns = new DbColumn[_descriptor.Count];
 
-            using (var command = _connection.InnerConnection.CreateStatement(ColumnSchemaQuery))
+            using (var command = _connection.CreateStatement(SchemaQuery))
             {
                 command.Parameters = new PgParameterCollection();
 

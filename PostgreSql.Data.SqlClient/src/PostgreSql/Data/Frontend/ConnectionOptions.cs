@@ -51,7 +51,7 @@ namespace PostgreSql.Data.Frontend
         internal int    CommandTimeout             => _commandTimeout;
         internal int    LockTimeout                => _lockTimeout;
         internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly;
-        internal string DefaultTablespace          => _defaultTablespace; 
+        internal string DefaultTablespace          => _defaultTablespace;
 
         internal ConnectionOptions(string connectionString)
         {

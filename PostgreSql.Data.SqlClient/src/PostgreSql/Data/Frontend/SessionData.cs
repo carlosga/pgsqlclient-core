@@ -38,33 +38,40 @@ namespace PostgreSql.Data.Frontend
             Encodings = new ReadOnlyDictionary<string, Encoding>(encodings);
         }
 
-        private string        _serverVersion;
-        private Encoding      _serverEncoding;
-        private Encoding      _clientEncoding;
-        private string        _applicationName;
-        private bool          _isSuperUser;
-        private string        _sessionAuthorization;
-        private string        _dateStyle;
-        private string        _intervalStyle;
-        private TimeZoneInfo  _timeZoneInfo;
-        private bool          _integerDateTimes;
-        private string        _standardConformingStrings;
+        private string           _serverVersion;
+        private Encoding         _serverEncoding;
+        private Encoding         _clientEncoding;
+        private string           _applicationName;
+        private bool             _isSuperUser;
+        private string           _sessionAuthorization;
+        private string           _dateStyle;
+        private string           _intervalStyle;
+        private TimeZoneInfo     _timeZoneInfo;
+        private bool             _integerDateTimes;
+        private string           _standardConformingStrings;
+        private TypeInfoProvider _typeInfoProvider;
 
-        internal string       ServerVersion             => _serverVersion;
-        internal Encoding     ServerEncoding            => _serverEncoding;
-        internal Encoding     ClientEncoding            => _clientEncoding;
-        internal string       ApplicationName           => _applicationName;
-        internal bool         IsSuperUser               => _isSuperUser;
-        internal string       SessionAuthorization      => _sessionAuthorization;
-        internal string       DateStyle                 => _dateStyle;
-        internal string       IntervalStyle             => _intervalStyle;
-        internal TimeZoneInfo TimeZoneInfo              => _timeZoneInfo;
-        internal bool         IntegerDateTimes          => _integerDateTimes;
-        internal string       StandardConformingStrings => _standardConformingStrings;
+        internal string           ServerVersion             => _serverVersion;
+        internal Encoding         ServerEncoding            => _serverEncoding;
+        internal Encoding         ClientEncoding            => _clientEncoding;
+        internal string           ApplicationName           => _applicationName;
+        internal bool             IsSuperUser               => _isSuperUser;
+        internal string           SessionAuthorization      => _sessionAuthorization;
+        internal string           DateStyle                 => _dateStyle;
+        internal string           IntervalStyle             => _intervalStyle;
+        internal TimeZoneInfo     TimeZoneInfo              => _timeZoneInfo;
+        internal bool             IntegerDateTimes          => _integerDateTimes;
+        internal string           StandardConformingStrings => _standardConformingStrings;
+        
+        internal TypeInfoProvider TypeInfoProvider
+        {
+            get { return _typeInfoProvider; }
+            set { _typeInfoProvider = value; }
+        }
 
         internal SessionData()
         {
-            _clientEncoding = Encoding.UTF8;
+            _clientEncoding   = Encoding.UTF8;
         }
 
         internal void SetValue(string name, string value)
