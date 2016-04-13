@@ -619,5 +619,37 @@ namespace PostgreSql.Data.Frontend
 
         private void HandleParameterStatus(MessageReader message)
             => _sessionData.SetValue(message.ReadNullString(), message.ReadNullString());
+
+        // internal void GetDatabaseTypeInfo()
+        // {
+        //     // if (!_database.ConnectionOptions.UseDatabaseOids)
+        //     // {
+        //     //     return;
+        //     // }
+
+        //     string sql = "SELECT oid FROM pg_type WHERE typname=$1";
+
+        //     using (var statement = CreateStatement(sql))
+        //     {
+        //         // Set parameter type info
+        //         s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
+
+        //         // Prepare statement execution
+        //         statement.Prepare(s_typeInfoParams);
+
+        //         // Grab real oids
+        //         foreach (var type in _sessionData.DataTypes)
+        //         {
+        //             s_typeInfoParams[0].Value = type.Name;
+
+        //             int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
+
+        //             if (realOid != null && realOid.Value != type.Oid)
+        //             {
+        //                 type.Oid = realOid.Value;
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
