@@ -10,7 +10,49 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            composite_type_test();
+            var csb = new PgConnectionStringBuilder();
+
+            csb.DataSource               = "localhost";
+            csb.InitialCatalog           = "northwind";
+            csb.UserID                   = "northwind";
+            csb.Password                 = "northwind";
+            csb.PortNumber               = 5432;
+            csb.Encrypt                  = false;
+            csb.Pooling                  = false;
+            csb.MultipleActiveResultSets = true;
+            csb.PacketSize               = Int16.MaxValue;
+
+            string sql    = "SELECT @1; SELECT @2; SELECT @3;";
+            int[]  values = new int[] { 1, 2, 3 };
+            int    index  = 0;
+            
+            using (PgConnection connection = new PgConnection(csb.ToString()))
+            {
+                connection.Open();
+
+                using (PgCommand command = new PgCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@1", values[0]);
+                    command.Parameters.AddWithValue("@2", values[1]);
+                    command.Parameters.AddWithValue("@3", values[2]);
+
+                    using (PgDataReader reader = command.ExecuteReader())
+                    {
+                        do 
+                        {
+                            var readed = reader.Read();
+                            var value  = reader.GetInt32(0);
+
+                            Console.WriteLine($"expected: {values[index]} actual: {value}");
+
+                            ++index;
+
+                        } while (reader.NextResult());
+                    }
+                }
+            }
+
+            // composite_type_test();
             // pgsqlclient_test();
         }
 

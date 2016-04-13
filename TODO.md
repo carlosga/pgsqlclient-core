@@ -10,10 +10,6 @@ https://github.com/aspnet/Configuration/
 
 - postgresql, data type support.
 
-- Basic MARS support ( client side ).
-
-    - Check how it works when using several parametrized queries.
-
 ## TO BE DONE
 
 - State pattern for commands and connections ??
@@ -65,3 +61,5 @@ https://github.com/aspnet/Configuration/
 - Merge PgStatement Bind & Execute in one single step, sending both packets in a single roundtrip.
 - Implement IDbColumnSchemaGenerator on PgDataReader.
 - Query cancellation.
+- Basic MARS support ( client side ).
+    - Check how it works when using several parametrized queries.
