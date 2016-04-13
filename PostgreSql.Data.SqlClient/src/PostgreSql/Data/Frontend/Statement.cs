@@ -659,8 +659,7 @@ namespace PostgreSql.Data.Frontend
 
         private void CloseStatement()
         {
-            if (_state == StatementState.Parsed 
-             || _state == StatementState.Described)
+            if (_state != StatementState.Initial)
             {
                 Close(STATEMENT, _parseName);
 

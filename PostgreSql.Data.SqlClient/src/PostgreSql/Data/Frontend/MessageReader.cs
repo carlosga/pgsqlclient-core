@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,6 @@ namespace PostgreSql.Data.Frontend
         internal char MessageType       => _messageType;
         internal int  Length            => _buffer.Length;
         internal int  Position          => _position;
-        internal bool EOF               => (_position >= _buffer.Length);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
         internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
         internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
@@ -171,6 +171,9 @@ namespace PostgreSql.Data.Frontend
 
         internal object ReadValue(TypeInfo typeInfo, int length)
         {
+            Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
+            Contract.Requires<ArgumentNullException>(length > 0, nameof(length));
+
             switch (typeInfo.PgDbType)
             {
                 case PgDbType.Void:
