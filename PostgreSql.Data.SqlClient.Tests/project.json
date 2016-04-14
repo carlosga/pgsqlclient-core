@@ -9,7 +9,7 @@
         "Microsoft.Extensions.DependencyModel": "1.0.0-*",
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002363"
+            "version": "1.0.0-rc2-3002392"
         },
         "Microsoft.CSharp": "4.0.1-rc3-*",
         "System.Collections": "4.0.11-rc3-*",

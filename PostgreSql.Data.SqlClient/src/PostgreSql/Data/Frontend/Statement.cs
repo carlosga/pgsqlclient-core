@@ -130,15 +130,16 @@ namespace PostgreSql.Data.Frontend
         internal Statement(Connection connection, string statementText)
         {
             _connection       = connection;
+            _commandType      = CommandType.Text;
             _state            = StatementState.Initial;
-            _statementText    = statementText;
             _recordsAffected  = -1;
             _hasRows          = false;
             _allRowsFetched   = false;
-            _rowDescriptor    = new RowDescriptor();
             _parameters       = PgParameterCollection.Empty;
-            _commandType      = CommandType.Text;
             _parameterIndices = new List<int>();
+            _rowDescriptor    = new RowDescriptor();
+
+            StatementText     = statementText;
             FetchSize         = 200;
         }
 
@@ -413,17 +414,21 @@ namespace PostgreSql.Data.Frontend
                 return null;
             }
 
-            if (!_allRowsFetched && _rows.IsEmpty())
+            if (!IsCancelled && !_allRowsFetched && _rows.IsEmpty())
             {
                 Execute();  // Fetch next group of rows
             }
 
+            DataRecord row = null;
+
             if (!_rows.IsEmpty())
             {
-                return _rows.Dequeue();
+                row = _rows.Dequeue();
             }
 
-            return null;
+            _hasRows = (!_allRowsFetched || !_rows.IsEmpty());
+
+            return row;
         }
 
         internal void Close()
@@ -810,7 +815,12 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
+                var typeInfo     = TypeInfoProvider.GetBaseTypeInfo(typeOid);
+                
+                if (typeInfo == null)
+                {
+                    typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
+                }
 
                 _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
             }

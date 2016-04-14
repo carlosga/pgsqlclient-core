@@ -95,22 +95,22 @@ namespace PostgreSql.Data.SqlClient.Sample
                     //     pinsertCommand.ExecuteNonQuery();
                     // }
 
-                    Console.WriteLine("Issuing raw select");
-                    using (PgCommand selectRawCommand = new PgCommand(selectRaw, connection))
-                    {
-                        using (PgDataReader readerRaw = selectRawCommand.ExecuteReader())
-                        {
-                            while (readerRaw.Read()) { }
-                        }
-                    }
-                    Console.WriteLine("Issuing select *");
-                    using (PgCommand selectAllCommand = new PgCommand(selectAll, connection))
-                    {
-                        using (PgDataReader readerAll = selectAllCommand.ExecuteReader())
-                        {
-                            while (readerAll.Read()) { }
-                        }
-                    }
+                    // Console.WriteLine("Issuing raw select");
+                    // using (PgCommand selectRawCommand = new PgCommand(selectRaw, connection))
+                    // {
+                    //     using (PgDataReader readerRaw = selectRawCommand.ExecuteReader())
+                    //     {
+                    //         while (readerRaw.Read()) { }
+                    //     }
+                    // }
+                    // Console.WriteLine("Issuing select *");
+                    // using (PgCommand selectAllCommand = new PgCommand(selectAll, connection))
+                    // {
+                    //     using (PgDataReader readerAll = selectAllCommand.ExecuteReader())
+                    //     {
+                    //         while (readerAll.Read()) { }
+                    //     }
+                    // }
                 }
             }
             catch (System.Exception)

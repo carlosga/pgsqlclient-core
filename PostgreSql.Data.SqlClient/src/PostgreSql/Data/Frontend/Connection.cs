@@ -152,13 +152,21 @@ namespace PostgreSql.Data.Frontend
 
                 ReleaseLock();
             }
-            catch (Exception)
+            catch
             {
                 ReleaseLock();
 
                 Close();
 
                 throw;
+            }
+            finally
+            {
+                if (_open)
+                {
+                    _typeInfoProvider             = TypeInfoProviderCache.GetOrAdd(this);
+                    _sessionData.TypeInfoProvider = _typeInfoProvider;
+                }
             }
         }
 
@@ -370,12 +378,6 @@ namespace PostgreSql.Data.Frontend
 
             // Send startup message
             SendStartupMessage();
-
-            // Get the type info provider
-            _typeInfoProvider = TypeInfoProviderCache.GetOrAdd(this);
-
-            // Set the type info provider for the current session
-            _sessionData.TypeInfoProvider = _typeInfoProvider;
         }
 
         private void SendStartupMessage()
@@ -636,37 +638,5 @@ namespace PostgreSql.Data.Frontend
 
         private void HandleParameterStatus(MessageReader message)
             => _sessionData.SetValue(message.ReadNullString(), message.ReadNullString());
-
-        // internal void GetDatabaseTypeInfo()
-        // {
-        //     // if (!_database.ConnectionOptions.UseDatabaseOids)
-        //     // {
-        //     //     return;
-        //     // }
-
-        //     string sql = "SELECT oid FROM pg_type WHERE typname=$1";
-
-        //     using (var statement = CreateStatement(sql))
-        //     {
-        //         // Set parameter type info
-        //         s_typeInfoParams[0].TypeInfo = _sessionData.DataTypes.Single(x => x.Name == "varchar");
-
-        //         // Prepare statement execution
-        //         statement.Prepare(s_typeInfoParams);
-
-        //         // Grab real oids
-        //         foreach (var type in _sessionData.DataTypes)
-        //         {
-        //             s_typeInfoParams[0].Value = type.Name;
-
-        //             int? realOid = (int?)statement.ExecuteScalar(s_typeInfoParams);
-
-        //             if (realOid != null && realOid.Value != type.Oid)
-        //             {
-        //                 type.Oid = realOid.Value;
-        //             }
-        //         }
-        //     }
-        // }
     }
 }

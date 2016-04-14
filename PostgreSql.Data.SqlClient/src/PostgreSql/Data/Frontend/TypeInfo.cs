@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using PostgreSql.Data.SqlClient;
 
@@ -9,30 +10,34 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class TypeInfo
     {
-        private readonly int        _oid;
-        private readonly string     _name;
-        private readonly string     _internalName;
-        private readonly PgDbType   _pgDbType;
-        private readonly TypeFormat _format;
-        private readonly short      _formatCode;
-        private readonly Type       _systemType;
-        private readonly Type       _pgType;
-        private readonly TypeInfo   _elementType;
-        private readonly int        _size;
+        private readonly string          _schema;
+        private readonly int             _oid;
+        private readonly string          _name;
+        private readonly string          _internalName;
+        private readonly PgDbType        _pgDbType;
+        private readonly TypeFormat      _format;
+        private readonly short           _formatCode;
+        private readonly Type            _systemType;
+        private readonly Type            _pgType;
+        private readonly TypeInfo        _elementType;
+        private readonly int             _size;
+        private readonly TypeAttribute[] _attributes;
 
-        internal int        Oid          => _oid;
-        internal string     Name         => _name;
-        internal string     InternalName => _internalName;
-        internal PgDbType   PgDbType     => _pgDbType;
-        internal Type       SystemType   => _systemType;
-        internal Type       PgType       => _pgType;
-        internal TypeInfo   ElementType  => _elementType; 
-        internal TypeFormat Format       => _format;
-        internal short      FormatCode   => _formatCode;
-        internal int        Size         => _size;
-        internal bool       IsArray      => (_pgDbType == PgDbType.Array);
-        internal bool       IsBinary     => (_pgDbType == PgDbType.Bytea);
-        internal bool       IsRefCursor  => (_oid      == (int)PgTypes.Oid.RefCursor);
+        internal string          Schema       => _schema; 
+        internal int             Oid          => _oid;
+        internal string          Name         => _name;
+        internal string          InternalName => _internalName;
+        internal PgDbType        PgDbType     => _pgDbType;
+        internal Type            SystemType   => _systemType;
+        internal Type            PgType       => _pgType;
+        internal TypeInfo        ElementType  => _elementType; 
+        internal TypeFormat      Format       => _format;
+        internal short           FormatCode   => _formatCode;
+        internal int             Size         => _size;
+        internal TypeAttribute[] Attributes   => _attributes;
+        internal bool            IsArray      => (_pgDbType == PgDbType.Array);
+        internal bool            IsBinary     => (_pgDbType == PgDbType.Bytea);
+        internal bool            IsRefCursor  => (_oid      == (int)PgTypes.Oid.RefCursor);        
 
         internal bool IsNumeric
         {
@@ -108,6 +113,7 @@ namespace PostgreSql.Data.Frontend
                         , Type       pgType
                         , int        size)
         {
+            _schema       = null;
             _oid          = oid;
             _name         = name;
             _internalName = internalName;
@@ -118,6 +124,25 @@ namespace PostgreSql.Data.Frontend
             _systemType   = systemType;
             _pgType       = pgType;
             _size         = size;
+            _attributes   = null;
+        }
+
+        internal TypeInfo(string          schema
+                        , int             oid
+                        , string          name
+                        , TypeAttribute[] attributes)
+        {
+            _schema       = schema;
+            _oid          = oid;
+            _name         = name;
+            _internalName = name;
+            _pgDbType     = PgDbType.Composite;
+            _format       = TypeFormat.Binary;
+            _formatCode   = (short)_format;
+            _systemType   = typeof(object);
+            _pgType       = typeof(object);
+            _size         = -1;
+            _attributes   = attributes;
         }
 
         public override string ToString()

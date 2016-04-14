@@ -4,6 +4,7 @@
 using PostgreSql.Data.Frontend;
 using PostgreSql.Data.SqlClient;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Data.Common;
 
 namespace PostgreSql.Data.Schema
@@ -62,7 +63,7 @@ namespace PostgreSql.Data.Schema
                         command.Parameters[0].Value = _descriptor[i].TableOid;
                         command.Parameters[1].Value = _descriptor[i].ColumnId;
 
-                        command.ExecuteReader();
+                        command.ExecuteReader(CommandBehavior.SingleRow);
 
                         schema.Populate(command.FetchRow());
                     }

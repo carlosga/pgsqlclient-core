@@ -248,6 +248,15 @@ namespace PostgreSql.Data.Frontend
             s_types = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
+        internal static TypeInfo GetBaseTypeInfo(int oid)
+        {
+            if (s_types.ContainsKey(oid))
+            {
+                return s_types[oid];
+            }
+            return null;
+        }
+
         internal static DbType GetDbType(PgDbType providerType)
         {
             switch (providerType)
