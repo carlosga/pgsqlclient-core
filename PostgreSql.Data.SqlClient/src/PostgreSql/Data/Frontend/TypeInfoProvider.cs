@@ -320,7 +320,6 @@ namespace PostgreSql.Data.Frontend
             {
                 case DbType.AnsiString:
                 case DbType.String:
-                case DbType.Object:
                     return PgDbType.VarChar;
 
                 case DbType.AnsiStringFixedLength:
@@ -369,6 +368,9 @@ namespace PostgreSql.Data.Frontend
                 case DbType.DateTimeOffset:
                     return PgDbType.TimestampTZ;
 
+                case DbType.Object:
+                    return PgDbType.Composite;
+
                 // case DbType.Guid:
                 // case DbType.VarNumeric:
                 // case DbType.SByte:
@@ -378,6 +380,24 @@ namespace PostgreSql.Data.Frontend
                 default:
                     throw new InvalidOperationException("Invalid data type specified.");
             }
+        }
+
+        internal static PgDbType GetProviderType(object value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                return PgDbType.VarChar;
+            }
+            if (value is INullable)
+            {
+                return s_types.Values.First(x => x.PgType == value.GetType()).PgDbType;
+            }
+            var typeInfo = s_types.Values.First(x => x.SystemType == value.GetType());
+            if (typeInfo != null)
+            {
+                return typeInfo.PgDbType;
+            }
+            return PgDbType.Composite;  // Identify any other thing as a Composite type
         }
 
         private readonly ReadOnlyDictionary<int, TypeInfo> _types;
@@ -416,15 +436,6 @@ namespace PostgreSql.Data.Frontend
             throw new NotSupportedException();
         }
 
-        internal TypeInfo GetCompositeTypeInfo(int oid)
-        {
-            if (_types.ContainsKey(oid))
-            {
-                return _types[oid];
-            }
-            throw new NotSupportedException();
-        }
-
         internal TypeInfo GetTypeInfo(PgDbType pgDbType)
         {
             return _types.Values.First(x => x.PgDbType == pgDbType);
@@ -441,6 +452,15 @@ namespace PostgreSql.Data.Frontend
                 return s_types.Values.First(x => x.PgType == value.GetType());
             }
             return s_types.Values.First(x => x.SystemType == value.GetType());
+        }
+
+        internal TypeInfo GetCompositeTypeInfo(int oid)
+        {
+            if (_types.ContainsKey(oid))
+            {
+                return _types[oid];
+            }
+            throw new NotSupportedException();
         }
 
         internal TypeInfo GetArrayTypeInfo(object value)

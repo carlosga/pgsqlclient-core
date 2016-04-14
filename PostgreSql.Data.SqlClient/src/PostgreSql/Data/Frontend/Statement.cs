@@ -57,16 +57,8 @@ namespace PostgreSql.Data.Frontend
                         Close();
                     }
 
-                    _statementText = value;
-
-                    if (CommandType == CommandType.StoredProcedure)
-                    {
-                        _parsedStatementText = _parsedStatementText.ToStoredProcedureCall(_parameters);
-                    }
-                    else
-                    {
-                        _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
-                    }
+                    _statementText       = value;
+                    _parsedStatementText = null;
                 }
             }
         }
@@ -481,6 +473,19 @@ namespace PostgreSql.Data.Frontend
             // Update status
             ChangeState(StatementState.Parsing);
 
+            // Prepare parameters
+            PrepareParameters();
+
+            // Parse statement text
+            if (_commandType == CommandType.StoredProcedure)
+            {
+                _parsedStatementText = _parsedStatementText.ToStoredProcedureCall(_parameters);
+            }
+            else
+            {
+                _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
+            }
+
             // Clear actual row list
             ClearRows();
 
@@ -841,6 +846,31 @@ namespace PostgreSql.Data.Frontend
             if (!IsCancelled)
             {
                 _state = newState;
+            }
+        }
+
+        private void PrepareParameters()
+        {
+            for (int i = 0; i < _parameters.Count; ++i)
+            {
+                var parameter = _parameters[i];
+
+                if (parameter.PgDbType == PgDbType.Array)
+                {
+                    parameter.TypeInfo = _connection.TypeInfoProvider.GetArrayTypeInfo(parameter.Value);
+                }
+                else if (parameter.PgDbType == PgDbType.Vector)
+                {
+                    parameter.TypeInfo = _connection.TypeInfoProvider.GetVectorTypeInfo(parameter.Value);
+                }
+                else if (parameter.PgDbType == PgDbType.Composite)
+                {
+                    // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
+                }
+                else
+                {
+                    parameter.TypeInfo = _connection.TypeInfoProvider.GetTypeInfo(parameter.Value);
+                }
             }
         }
 

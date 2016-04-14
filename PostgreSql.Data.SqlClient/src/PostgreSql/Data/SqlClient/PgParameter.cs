@@ -64,8 +64,6 @@ namespace PostgreSql.Data.SqlClient
             {
                 _pgDbType  = value;
                 _isTypeSet = true;
-#warning TODO: Delay until the command is prepared ??
-                // _typeInfo  = TypeInfoProvider.GetTypeInfo(value);
             }
         }
 
@@ -103,7 +101,7 @@ namespace PostgreSql.Data.SqlClient
 
                 if (!_isTypeSet || _pgDbType == PgDbType.Array)
                 {
-                    UpdateTypeInfo(value);
+                    _pgDbType = TypeInfoProvider.GetProviderType(value);
                 }
             }
         }
@@ -120,7 +118,11 @@ namespace PostgreSql.Data.SqlClient
             set { _parent = value; }
         }
 
-        internal TypeInfo TypeInfo => _typeInfo;
+        internal TypeInfo TypeInfo
+        {
+            get { return _typeInfo; }
+            set { _typeInfo = value; }
+        }
 
         public PgParameter()
         {
@@ -190,28 +192,6 @@ namespace PostgreSql.Data.SqlClient
         public override void ResetDbType()
         {
             throw new Exception("The method or operation is not implemented.");
-        }
-
-        private void UpdateTypeInfo(object value)
-        {
-#warning TODO: Delay until the command is prepared ??
-            // if (_pgDbType == PgDbType.Array)
-            // {
-            //     _typeInfo = TypeInfoProvider.GetArrayTypeInfo(value);
-            // }
-            // else if (_pgDbType == PgDbType.Vector)
-            // {
-            //     _typeInfo = TypeInfoProvider.GetVectorTypeInfo(value);
-            // }
-            // else
-            // {
-            //     _typeInfo = TypeInfoProvider.GetTypeInfo(value);
-            // }
-
-            // if (!_isTypeSet)
-            // {
-            //     _pgDbType = TypeInfo.PgDbType;
-            // }
         }
     }
 }
