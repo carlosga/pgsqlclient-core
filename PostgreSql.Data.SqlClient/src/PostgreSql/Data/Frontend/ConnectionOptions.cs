@@ -61,24 +61,25 @@ namespace PostgreSql.Data.Frontend
             }
 
             _connectionString           = connectionString;
-            _dataSource                 = "localhost";
-            _userId                     = "postgres";
-            _password                   = null;
-            _portNumber                 = 5432;
-            _packetSize                 = 8192;
-            _pooling                    = true;
-            _connectionTimeout          = 15;
-            _connectionLifetime         = 0;
-            _minPoolSize                = 0;
-            _maxPoolSize                = 100;
-            _encrypt                    = false;
-            _multipleActiveResultSets   = false;
-            _searchPath                 = null;
+
             _applicationName            = "pgsqlclient";
             _commandTimeout             = 0;
-            _lockTimeout                = 0;
-            _defaultTransactionReadOnly = false;
+            _connectionLifetime         = 0;
+            _connectionTimeout          = 15;
+            _dataSource                 = "localhost";
             _defaultTablespace          = null;
+            _defaultTransactionReadOnly = false;
+            _lockTimeout                = 0;
+            _encrypt                    = false;
+            _maxPoolSize                = 100;
+            _minPoolSize                = 0;
+            _multipleActiveResultSets   = false;
+            _packetSize                 = 8192;
+            _password                   = null;
+            _pooling                    = true;
+            _portNumber                 = 5432;
+            _searchPath                 = null;
+            _userId                     = "postgres";
 
             ParseConnectionString(connectionString);
         }

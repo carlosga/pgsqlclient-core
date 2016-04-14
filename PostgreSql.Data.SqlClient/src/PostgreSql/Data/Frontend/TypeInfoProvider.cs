@@ -380,18 +380,14 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private readonly string                    _address;
-        private readonly Dictionary<int, TypeInfo> _types;
-        
+        private readonly ReadOnlyDictionary<int, TypeInfo> _types;
         private int _count;
 
-        internal string Address => _address;
-        internal int    Count   => _count;
+        internal int Count => _count;
 
-        internal TypeInfoProvider(string address)
+        internal TypeInfoProvider(Connection connection)
         {
-            _address = address;
-            _types   = new Dictionary<int, TypeInfo>();
+            _types = DiscoverTypes(connection);
         }
 
         internal void AddRef()
@@ -401,21 +397,10 @@ namespace PostgreSql.Data.Frontend
 
         internal void Release()
         {
-            Interlocked.Decrement(ref _count);
-        }
-
-        internal void DiscoverTypes(Connection connection)
-        {
-            var typeProvider = new CompositeTypeInfoProvider(connection);
-            var types        = typeProvider.GetTypeInfo();
-
-            if (!types.IsEmpty())
+            if (_count > 0)
             {
-                for (int i = 0; i < types.Count; i++)
-                {
-                    _types.Add(types[i].Oid, types[i]);
-                }
-            } 
+                Interlocked.Decrement(ref _count);
+            }
         }
 
         internal TypeInfo GetTypeInfo(int oid)
@@ -482,6 +467,12 @@ namespace PostgreSql.Data.Frontend
                 return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
             }
             return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+        }
+
+        private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(Connection connection)
+        {
+            var typeProvider = new CompositeTypeInfoProvider(connection);
+            return typeProvider.GetTypeInfo();
         }
     }
 }

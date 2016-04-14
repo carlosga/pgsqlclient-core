@@ -37,9 +37,9 @@ namespace PostgreSql.Data.Schema
             _connection = connection;
         }
 
-        public ReadOnlyCollection<TypeInfo> GetTypeInfo()
+        internal ReadOnlyDictionary<int, TypeInfo> GetTypeInfo()
         {
-            var types = new List<TypeInfo>();
+            var types = new Dictionary<int, TypeInfo>();
 
             using (var command = _connection.CreateStatement(SchemaQuery))
             {
@@ -65,11 +65,11 @@ namespace PostgreSql.Data.Schema
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
                    }
 
-                    types.Add(new TypeInfo(schema, typoid, typname, attributes));
+                    types.Add(typoid, new TypeInfo(schema, typoid, typname, attributes));
                 }
             }
 
-            return new ReadOnlyCollection<TypeInfo>(types);
+            return new ReadOnlyDictionary<int, TypeInfo>(types);
         }
     }
 }

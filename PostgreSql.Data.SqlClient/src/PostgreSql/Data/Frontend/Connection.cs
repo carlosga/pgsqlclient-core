@@ -178,14 +178,13 @@ namespace PostgreSql.Data.Frontend
 
                 _transport.Close();
 
-                TypeInfoProviderCache.Release(this);
+                TypeInfoProviderCache.Release(InternalUrl);
             }
             catch
             {
             }
             finally
             {
-
                 ReleaseLock();
 
                 if (_activeSemaphore != null)
@@ -230,7 +229,7 @@ namespace PostgreSql.Data.Frontend
                 _transport.Close();
 
                 // Release the type info provider
-                TypeInfoProviderCache.Release(this);
+                TypeInfoProviderCache.Release(InternalUrl);
 
                 // Reset the current session data
                 _sessionData = null;

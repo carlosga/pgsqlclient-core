@@ -3,7 +3,7 @@
 
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 
@@ -11,43 +11,39 @@ namespace PostgreSql.Data.Frontend
 {
     internal static class TypeInfoProviderCache
     {
-        private static readonly List<TypeInfoProvider> s_providers = new List<TypeInfoProvider>();
-        private static readonly object                 s_sync      = new object();
+        private static ConcurrentDictionary<string, Lazy<TypeInfoProvider>> s_providers = new ConcurrentDictionary<string, Lazy<TypeInfoProvider>>();
 
         internal static TypeInfoProvider GetOrAdd(Connection connection)
         {
-            TypeInfoProvider provider = null;
-
-            lock (s_sync)
+            string key = connection.InternalUrl;
+            Lazy<TypeInfoProvider> cacheItem;
+            if (!s_providers.TryGetValue(key, out cacheItem))
             {
-                provider = s_providers.SingleOrDefault(p => p.Address == connection.InternalUrl);
-                if (provider == null)
-                {
-                    provider = new TypeInfoProvider(connection.InternalUrl);
-                    provider.DiscoverTypes(connection);
+                cacheItem = new Lazy<TypeInfoProvider>(() => new TypeInfoProvider(connection));
 
-                    s_providers.Add(provider);
+                if (!s_providers.TryAdd(key, cacheItem))
+                {   
+                    cacheItem = s_providers[key];
                 }
             }
+
+            var provider = cacheItem.Value;
 
             provider.AddRef();
 
             return provider;
         }
 
-        internal static void Release(Connection connection)
+        internal static void Release(string key)
         {
-            lock (s_sync)
+            Lazy<TypeInfoProvider> cacheItem;
+            if (s_providers.TryGetValue(key, out cacheItem))
             {
-                var provider = s_providers.SingleOrDefault(p => p.Address == connection.InternalUrl);
-                if (provider != null)
-                {
-                    provider.Release();
+                cacheItem.Value.Release();
 
-                    if (provider.Count == 0)
-                    {
-                        s_providers.Remove(provider);
-                    }
+                if (cacheItem.Value.Count == 0)
+                {
+                   s_providers.TryRemove(key, out cacheItem);
                 }
             }
         }
