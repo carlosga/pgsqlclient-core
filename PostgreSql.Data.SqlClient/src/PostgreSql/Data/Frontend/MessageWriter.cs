@@ -4,7 +4,6 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Diagnostics.Contracts;
 using System.IO;
 
 namespace PostgreSql.Data.Frontend
@@ -44,10 +43,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(byte[] buffer, int offset, int count)
         {
-            Contract.Requires<ArgumentNullException>(buffer != null, nameof(buffer));
-            Contract.Requires(offset >= 0);
-            Contract.Requires(count >= 0);
-
             if (count > 0)
             {
                 EnsureCapacity(count);
@@ -93,8 +88,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void WriteNullString(string value)
         {
-            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-
             EnsureCapacity(value.Length + 1);
 
             if (value != null && value.Length > 0)
@@ -107,8 +100,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(string value)
         {
-            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-
             if (value.Length == 0)
             {
                 Write(0);
@@ -126,8 +117,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(char[] value)
         {
-            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
-
             if (value.Length == 0)
             {
                 Write(0);
@@ -234,8 +223,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(TypeInfo typeInfo, object value)
         {
-            Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
-
             if (value == System.DBNull.Value || value == null)
             {
                 // -1 indicates a NULL argument value
@@ -482,7 +469,7 @@ namespace PostgreSql.Data.Frontend
         /// FoundationDB client (BSD License)
         private void EnsureCapacity(int count)
         {
-            Contract.Requires(count >= 0);
+            // Contract.Requires(count >= 0);
 
             if (_buffer == null || (_position + count) > _buffer.Length)
             {
@@ -501,7 +488,7 @@ namespace PostgreSql.Data.Frontend
                 Array.Resize(ref _buffer, size);
             }
 
-            Contract.Ensures(_buffer != null && _buffer.Length >= _position + count);
+            // Contract.Ensures(_buffer != null && _buffer.Length >= _position + count);
         }
 
         /// FoundationDB client (BSD License)

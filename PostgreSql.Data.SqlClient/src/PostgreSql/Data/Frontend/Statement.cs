@@ -394,19 +394,19 @@ namespace PostgreSql.Data.Frontend
                 return null;
             }
 
-            if (!IsCancelled && !_allRowsFetched && _rows.IsEmpty())
+            if (!IsCancelled && !_allRowsFetched && _rows.Count == 0)
             {
                 Execute();  // Fetch next group of rows
             }
 
             DataRecord row = null;
 
-            if (!_rows.IsEmpty())
+            if (_rows.Count != 0)
             {
                 row = _rows.Dequeue();
             }
 
-            _hasRows = (!_allRowsFetched || !_rows.IsEmpty());
+            _hasRows = (!_allRowsFetched || _rows.Count > 0);
 
             return row;
         }
@@ -635,7 +635,6 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-
                 HandleSqlMessage(rmessage);
             }
             while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended);
@@ -647,6 +646,8 @@ namespace PostgreSql.Data.Frontend
             // Update status
             ChangeState(StatementState.Executed);
         }
+        
+        private int _counter;
 
         private void CloseStatement()
         {

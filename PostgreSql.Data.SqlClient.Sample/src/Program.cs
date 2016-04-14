@@ -10,8 +10,8 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            composite_type_test();
-            // pgsqlclient_test();
+            // composite_type_test();
+            pgsqlclient_test();
         }
 
         static void composite_type_test()
@@ -155,7 +155,7 @@ namespace PostgreSql.Data.SqlClient.Sample
                 using (var command = conn.CreateCommand())
                 {
                     command.FetchSize   = 2000;
-                    command.CommandText = "select * from pg_attribute a cross join pg_attribute b";
+                    command.CommandText = "select * from pg_type a cross join pg_type b limit 2000";
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();

@@ -4,7 +4,6 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -171,8 +170,6 @@ namespace PostgreSql.Data.Frontend
 
         internal object ReadValue(TypeInfo typeInfo, int length)
         {
-            Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
-
             if (length == -1)
             {
                 return DBNull.Value;
