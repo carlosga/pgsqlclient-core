@@ -37,7 +37,7 @@ namespace PostgreSql.Data.Frontend
         internal TypeAttribute[] Attributes   => _attributes;
         internal bool            IsArray      => (_pgDbType == PgDbType.Array);
         internal bool            IsBinary     => (_pgDbType == PgDbType.Bytea);
-        internal bool            IsRefCursor  => (_oid      == (int)PgTypes.Oid.RefCursor);        
+        internal bool            IsRefCursor  => (_oid      == (int)PgTypes.Oid.RefCursor);
 
         internal bool IsNumeric
         {

@@ -251,12 +251,11 @@ namespace PostgreSql.Data.Frontend
             Notification              = null;
         }
 
-        internal TransactionInternal CreateTransaction(IsolationLevel isolationLevel)
-            => new TransactionInternal(this, isolationLevel);
+        internal Transaction CreateTransaction(IsolationLevel isolationLevel) => new Transaction(this, isolationLevel);
 
         internal Statement CreateStatement()                => new Statement(this);
         internal Statement CreateStatement(string stmtText) => new Statement(this, stmtText);
-        
+
         internal void Flush() => _transport.WriteMessage(FrontendMessages.Flush);
 
         internal void Sync()

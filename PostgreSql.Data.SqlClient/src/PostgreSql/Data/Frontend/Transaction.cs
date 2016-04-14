@@ -7,12 +7,12 @@ using PostgreSql.Data.SqlClient;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class TransactionInternal
+    internal sealed class Transaction
     {
         private readonly Connection     _connection;
         private readonly IsolationLevel _isolationLevel;
 
-        internal TransactionInternal(Connection connection, IsolationLevel isolationLevel)
+        internal Transaction(Connection connection, IsolationLevel isolationLevel)
         {
             _connection     = connection;
             _isolationLevel = isolationLevel;

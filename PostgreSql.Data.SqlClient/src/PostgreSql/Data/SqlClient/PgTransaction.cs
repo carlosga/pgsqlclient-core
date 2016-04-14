@@ -11,9 +11,9 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgTransaction
         : DbTransaction
     {
-        private PgConnection        _connection;
-        private IsolationLevel      _isolationLevel;
-        private TransactionInternal _innerTransaction;
+        private PgConnection   _connection;
+        private IsolationLevel _isolationLevel;
+        private Transaction    _innerTransaction;
 
         public override IsolationLevel IsolationLevel => _isolationLevel;
         public new      PgConnection   Connection     => _connection;
@@ -127,7 +127,7 @@ namespace PostgreSql.Data.SqlClient
             _innerTransaction.Begin();
             if (transactionName != null && transactionName.Length > 0)
             {
-                _innerTransaction.Save(transactionName);   
+                _innerTransaction.Save(transactionName);
             }
         }
 

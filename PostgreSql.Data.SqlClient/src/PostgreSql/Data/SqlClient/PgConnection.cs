@@ -47,9 +47,9 @@ namespace PostgreSql.Data.SqlClient
 
         internal PgConnectionInternal InnerConnection => _innerConnection;
 
-        internal bool IsClosed      => (_state == ConnectionState.Closed);
-        internal bool IsOpen        => (_state == ConnectionState.Open);
-        internal bool IsConnecting  => (_state == ConnectionState.Connecting);
+        internal bool IsClosed     => (_state == ConnectionState.Closed);
+        internal bool IsOpen       => (_state == ConnectionState.Open);
+        internal bool IsConnecting => (_state == ConnectionState.Connecting);
 
         public PgConnection()
             : this(null)

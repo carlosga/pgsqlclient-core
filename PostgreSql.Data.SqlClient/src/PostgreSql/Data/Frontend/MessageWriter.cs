@@ -236,7 +236,7 @@ namespace PostgreSql.Data.Frontend
         {
             Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
 
-            if (value == System.DBNull.Value || value == null )
+            if (value == System.DBNull.Value || value == null)
             {
                 // -1 indicates a NULL argument value
                 Write(-1);
