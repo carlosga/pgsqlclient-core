@@ -16,7 +16,8 @@ namespace PostgreSql.Data.SqlClient
         private TransactionInternal _innerTransaction;
 
         public override IsolationLevel IsolationLevel => _isolationLevel;
-       
+        public new      PgConnection   Connection     => _connection;
+
         protected override DbConnection DbConnection => _connection;
 
         private PgTransaction()

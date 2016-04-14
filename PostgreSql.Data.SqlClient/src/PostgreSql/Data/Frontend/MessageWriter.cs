@@ -235,10 +235,20 @@ namespace PostgreSql.Data.Frontend
         internal void Write(TypeInfo typeInfo, object value)
         {
             Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
-            Contract.Requires<ArgumentNullException>(value != null, nameof(value));
+
+            if (value == System.DBNull.Value || value == null )
+            {
+                // -1 indicates a NULL argument value
+                Write(-1);
+                return;
+            }
 
             switch (typeInfo.PgDbType)
             {
+                case PgDbType.Void:
+                    Write(-1);
+                    break;
+
                 case PgDbType.Array:
                 case PgDbType.Vector:
                     WriteArray(typeInfo, value);

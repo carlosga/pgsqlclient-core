@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -45,7 +44,7 @@ namespace PostgreSql.Data.Frontend
 
         internal Transport()
         {
-            _buffer = new byte[8];
+            _buffer = new byte[4];
         }
 
         #region IDisposable Support
@@ -91,8 +90,7 @@ namespace PostgreSql.Data.Frontend
 
                 if (secureChannel)
                 {
-                    bool secured = OpenSecureChannel(host);
-                    if (!secured)
+                    if (!OpenSecureChannel(host))
                     {
                         throw new PgException("Cannot open a secure connection against PostgreSQL server.");
                     }
@@ -145,8 +143,8 @@ namespace PostgreSql.Data.Frontend
                 return null;
             }
 
-            int    length   = ReadInt32() - 4;
-            byte[] buffer   = null;
+            int    length = ReadInt32() - 4;
+            byte[] buffer = null;
             
             if (length > 0)
             {
@@ -304,10 +302,10 @@ namespace PostgreSql.Data.Frontend
                 _socket.Dispose();
             }
 
-            _stream         = null;
-            _secureStream   = null;
-            _networkStream  = null;
-            _socket         = null;
+            _stream        = null;
+            _secureStream  = null;
+            _networkStream = null;
+            _socket        = null;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

@@ -17,6 +17,7 @@ namespace PostgreSql.Data.Frontend
         {
             string key = connection.InternalUrl;
             Lazy<TypeInfoProvider> cacheItem;
+
             if (!s_providers.TryGetValue(key, out cacheItem))
             {
                 cacheItem = new Lazy<TypeInfoProvider>(() => new TypeInfoProvider(connection));

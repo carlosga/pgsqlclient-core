@@ -172,7 +172,11 @@ namespace PostgreSql.Data.Frontend
         internal object ReadValue(TypeInfo typeInfo, int length)
         {
             Contract.Requires<ArgumentNullException>(typeInfo != null, nameof(typeInfo));
-            Contract.Requires<ArgumentNullException>(length > 0, nameof(length));
+
+            if (length == -1)
+            {
+                return DBNull.Value;
+            }
 
             switch (typeInfo.PgDbType)
             {

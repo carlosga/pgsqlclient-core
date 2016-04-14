@@ -12,46 +12,46 @@ namespace PostgreSql.Data.Frontend
         private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);
 
         private string _connectionString;
-        private string _dataSource;
-        private string _database;
-        private string _userId;
-        private string _password;
-        private int    _portNumber;
-        private int    _packetSize;
-        private int    _connectionTimeout;
-        private long   _connectionLifetime;
-        private int    _minPoolSize;
-        private int    _maxPoolSize;
-        private bool   _pooling;
-        private bool   _encrypt;
-        private bool   _multipleActiveResultSets;
-        private string _searchPath;
         private string _applicationName;
         private int    _commandTimeout;
-        private int    _lockTimeout;
+        private long   _connectionLifetime;
+        private int    _connectionTimeout;
+        private string _database;
+        private string _dataSource;
         private bool   _defaultTransactionReadOnly;
         private string _defaultTablespace;
+        private bool   _encrypt;
+        private int    _packetSize;
+        private string _password;
+        private int    _portNumber;
+        private int    _maxPoolSize;
+        private int    _minPoolSize;
+        private bool   _multipleActiveResultSets;
+        private bool   _pooling;
+        private string _searchPath;
+        private int    _lockTimeout;
+        private string _userId;
 
         internal string ConnectionString           => _connectionString;
-        internal string DataSource                 => _dataSource;
-        internal string Database                   => _database;
-        internal string UserID                     => _userId;
-        internal string Password                   => _password;
-        internal int    PacketSize                 => _packetSize;
-        internal int    PortNumber                 => _portNumber;
-        internal int    ConnectionTimeout          => _connectionTimeout;
-        internal long   ConnectionLifeTime         => _connectionLifetime;
-        internal int    MinPoolSize                => _minPoolSize;
-        internal int    MaxPoolSize                => _maxPoolSize;
-        internal bool   Pooling                    => _pooling;
-        internal bool   Encrypt                    => _encrypt;
-        internal bool   MultipleActiveResultSets   => _multipleActiveResultSets;
-        internal string SearchPath                 => _searchPath;
         internal string ApplicationName            => _applicationName;
         internal int    CommandTimeout             => _commandTimeout;
-        internal int    LockTimeout                => _lockTimeout;
+        internal long   ConnectionLifeTime         => _connectionLifetime;
+        internal int    ConnectionTimeout          => _connectionTimeout;
+        internal string Database                   => _database;
+        internal string DataSource                 => _dataSource;
         internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly;
         internal string DefaultTablespace          => _defaultTablespace;
+        internal bool   Encrypt                    => _encrypt;
+        internal int    LockTimeout                => _lockTimeout;
+        internal int    PacketSize                 => _packetSize;
+        internal int    MaxPoolSize                => _maxPoolSize;
+        internal int    MinPoolSize                => _minPoolSize;
+        internal bool   MultipleActiveResultSets   => _multipleActiveResultSets;
+        internal string Password                   => _password;
+        internal int    PortNumber                 => _portNumber;
+        internal bool   Pooling                    => _pooling;
+        internal string SearchPath                 => _searchPath;
+        internal string UserID                     => _userId;
 
         internal ConnectionOptions(string connectionString)
         {
@@ -61,7 +61,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             _connectionString           = connectionString;
-
             _applicationName            = "pgsqlclient";
             _commandTimeout             = 0;
             _connectionLifetime         = 0;
@@ -102,31 +101,18 @@ namespace PostgreSql.Data.Frontend
                 {
                     switch (token.Groups[1].Value.Trim().ToLower())
                     {
-                        case ConnectionStringSynonyms.DataSource:
-                        case ConnectionStringSynonyms.Server:
-                        case ConnectionStringSynonyms.Host:
-                            _dataSource = currentValue;
+                        case ConnectionStringSynonyms.App:
+                        case ConnectionStringSynonyms.ApplicationName:
+                            _applicationName = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.Database:
-                        case ConnectionStringSynonyms.InitialCatalog:
-                            _database = currentValue;
+                        case ConnectionStringSynonyms.CommandTimeout:
+                        case ConnectionStringSynonyms.StatementTimeout:
+                            _commandTimeout = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.UserName:
-                        case ConnectionStringSynonyms.UserId:
-                        case ConnectionStringSynonyms.User:
-                            _userId = currentValue;
-                            break;
-
-                        case ConnectionStringSynonyms.UserPassword:
-                        case ConnectionStringSynonyms.Password:
-                            _password = currentValue;
-                            break;
-
-                        case ConnectionStringSynonyms.PortNumber:
-                        case ConnectionStringSynonyms.Port:
-                            _portNumber = Int32.Parse(currentValue);
+                        case ConnectionStringSynonyms.ConnectionLifetime:
+                            _connectionLifetime = Int64.Parse(currentValue);
                             break;
 
                         case ConnectionStringSynonyms.ConnectionTimeout:
@@ -135,28 +121,57 @@ namespace PostgreSql.Data.Frontend
                             _connectionTimeout = Int32.Parse(currentValue);
                             break;
 
+                        case ConnectionStringSynonyms.DataSource:
+                        case ConnectionStringSynonyms.Server:
+                        case ConnectionStringSynonyms.Host:
+                            _dataSource = currentValue;
+                            break;
+
+                        case ConnectionStringSynonyms.DefaultTablespace:
+                            _defaultTablespace = currentValue;
+                            break;
+
+                        case ConnectionStringSynonyms.DefaultTransactionReadOnly:
+                            _defaultTransactionReadOnly = Boolean.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.Encrypt:
+                            _encrypt = Boolean.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.InitialCatalog:
+                        case ConnectionStringSynonyms.Database:
+                            _database = currentValue;
+                            break;
+
+                        case ConnectionStringSynonyms.LockTimeout:
+                            _lockTimeout = Int32.Parse(currentValue);
+                            break;
+
                         case ConnectionStringSynonyms.PacketSize:
                             _packetSize = Int32.Parse(currentValue);
+                            break;
+
+                        case ConnectionStringSynonyms.Password:
+                        case ConnectionStringSynonyms.UserPassword:
+                            _password = currentValue;
                             break;
 
                         case ConnectionStringSynonyms.Pooling:
                             _pooling = Boolean.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.ConnectionLifetime:
-                            _connectionLifetime = Int64.Parse(currentValue);
-                            break;
-
-                        case ConnectionStringSynonyms.MinPoolSize:
-                            _minPoolSize = Int32.Parse(currentValue);
+                        case ConnectionStringSynonyms.PortNumber:
+                        case ConnectionStringSynonyms.Port:
+                            _portNumber = Int32.Parse(currentValue);
                             break;
 
                         case ConnectionStringSynonyms.MaxPoolSize:
                             _maxPoolSize = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.Encrypt:
-                            _encrypt = Boolean.Parse(currentValue);
+                        case ConnectionStringSynonyms.MinPoolSize:
+                            _minPoolSize = Int32.Parse(currentValue);
                             break;
 
                         case ConnectionStringSynonyms.MultipleActiveResultSets:
@@ -167,25 +182,10 @@ namespace PostgreSql.Data.Frontend
                             _searchPath = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.ApplicationName:
-                            _applicationName = currentValue;
-                            break;
-
-                        case ConnectionStringSynonyms.CommandTimeout:
-                        case ConnectionStringSynonyms.StatementTimeout:
-                            _commandTimeout = Int32.Parse(currentValue);
-                            break;
-
-                        case ConnectionStringSynonyms.LockTimeout:
-                            _lockTimeout = Int32.Parse(currentValue);
-                            break;
-
-                        case ConnectionStringSynonyms.DefaultTransactionReadOnly:
-                            _defaultTransactionReadOnly = Boolean.Parse(currentValue);
-                            break;
-
-                        case ConnectionStringSynonyms.DefaultTablespace:
-                            _defaultTablespace = currentValue;
+                        case ConnectionStringSynonyms.UserId:
+                        case ConnectionStringSynonyms.UserName:
+                        case ConnectionStringSynonyms.User:
+                            _userId = currentValue;
                             break;
                     }
                 }

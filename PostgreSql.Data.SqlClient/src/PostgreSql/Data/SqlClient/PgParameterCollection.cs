@@ -5,7 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
+// using System.Linq;
+using System.Threading;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -19,16 +20,16 @@ namespace PostgreSql.Data.SqlClient
         private readonly List<PgParameter> _parameters;
         private int                        _paramCount;
 
-        public new PgParameter this[string parameterName]
-        {
-            get { return GetParameter(parameterName) as PgParameter; }
-            set { SetParameter(parameterName, value); }
-        }
-
         public new PgParameter this[int index]
         {
             get { return GetParameter(index) as PgParameter; }
             set { SetParameter(index, value); }
+        }
+
+        public new PgParameter this[string parameterName]
+        {
+            get { return GetParameter(parameterName) as PgParameter; }
+            set { SetParameter(parameterName, value); }
         }
 
         public override int    Count    => _parameters.Count;
@@ -79,7 +80,8 @@ namespace PostgreSql.Data.SqlClient
             }
             if (value.ParameterName == null || value.ParameterName.Length == 0)
             {
-                value.ParameterName = $"Parameter{++_paramCount}";
+                Interlocked.Increment(ref _paramCount);
+                value.ParameterName = $"Parameter{_paramCount}";
             }
             else if (IndexOf(value) != -1)
             {
@@ -110,11 +112,41 @@ namespace PostgreSql.Data.SqlClient
             return IndexOf(Add(parameter));
         }
 
-        public override bool Contains(object value) => _parameters.Contains(value);
+        public override bool Contains(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException("The PgParameterCollection only accepts non-null PgParameter type objects.");
+            }
 
-        public override bool Contains(string parameterName) => (-1 != IndexOf(parameterName));
+            var parameter = value as PgParameter;
 
-        public override int IndexOf(object value) => _parameters.IndexOf(value as PgParameter);
+            if (parameter == null)
+            {
+                throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+            }
+
+            return _parameters.Contains(parameter);
+        } 
+
+        public override bool Contains(string parameterName) => (IndexOf(parameterName) != -1);
+
+        public override int IndexOf(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException("The PgParameterCollection only accepts non-null PgParameter type objects.");
+            }
+
+            var parameter = value as PgParameter;
+
+            if (parameter == null)
+            {
+                throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+            }
+
+            return _parameters.IndexOf(parameter);
+        }
 
         public override int IndexOf(string parameterName)
         {
@@ -137,13 +169,14 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw new InvalidCastException($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
             }
-            if (parameter != null)
+            if (parameter.Parent != null)
             {
                 throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
             }
             if (parameter.ParameterName == null || parameter.ParameterName.Length == 0)
             {
-                parameter.ParameterName = $"Parameter{++_paramCount}";
+                Interlocked.Increment(ref _paramCount);
+                parameter.ParameterName = $"Parameter{_paramCount}";
             }
             else if (IndexOf(parameter) != -1)
             {

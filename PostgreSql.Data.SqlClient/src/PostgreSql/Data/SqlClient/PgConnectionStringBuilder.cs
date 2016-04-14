@@ -10,40 +10,16 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgConnectionStringBuilder
         : DbConnectionStringBuilder
     {
-        public string DataSource
+        public string ApplicationName
         {
-            get { return GetString(ConnectionStringKeywords.DataSource); }
-            set { SetValue(ConnectionStringKeywords.DataSource, value); }
+            get { return GetString(ConnectionStringKeywords.ApplicationName); }
+            set { SetValue(ConnectionStringKeywords.ApplicationName, value); }
         }
 
-        public string InitialCatalog
+        public int CommandTimeout
         {
-            get { return GetString(ConnectionStringKeywords.InitialCatalog); }
-            set { SetValue(ConnectionStringKeywords.InitialCatalog, value); }
-        }
-
-        public string UserID
-        {
-            get { return GetString(ConnectionStringKeywords.UserId); }
-            set { SetValue(ConnectionStringKeywords.UserId, value); }
-        }
-
-        public string Password
-        {
-            get { return GetString(ConnectionStringKeywords.Password); }
-            set { SetValue(ConnectionStringKeywords.Password, value); }
-        }
-
-        public int PortNumber
-        {
-            get { return GetInt32(ConnectionStringKeywords.PortNumber); }
-            set { SetValue(ConnectionStringKeywords.PortNumber, value); }
-        }
-
-        public int PacketSize
-        {
-            get { return GetInt32(ConnectionStringKeywords.PacketSize); }
-            set { SetValue(ConnectionStringKeywords.PacketSize, value); }
+            get { return GetInt32(ConnectionStringKeywords.CommandTimeout); }
+            set { SetValue(ConnectionStringKeywords.CommandTimeout, value); }
         }
 
         public int ConnectTimeout
@@ -52,22 +28,70 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(ConnectionStringKeywords.ConnectionTimeout, value); }
         }
 
-        public bool Pooling
-        {
-            get { return GetBoolean(ConnectionStringKeywords.Pooling); }
-            set { SetValue(ConnectionStringKeywords.Pooling, value); }
-        }
-
         public int ConnectionLifeTime
         {
             get { return GetInt32(ConnectionStringKeywords.ConnectionLifetime); }
             set { SetValue(ConnectionStringKeywords.ConnectionLifetime, value); }
         }
 
-        public int MinPoolSize
+        public string DataSource
         {
-            get { return GetInt32(ConnectionStringKeywords.MinPoolSize); }
-            set { SetValue(ConnectionStringKeywords.MinPoolSize, value); }
+            get { return GetString(ConnectionStringKeywords.DataSource); }
+            set { SetValue(ConnectionStringKeywords.DataSource, value); }
+        }
+
+        public bool DefaultTransactionReadOnly
+        {
+            get { return GetBoolean(ConnectionStringKeywords.DefaultTransactionReadOnly); }
+            set { SetValue(ConnectionStringKeywords.DefaultTransactionReadOnly, value); }
+        }
+
+        public string DefaultTablespace
+        {
+            get { return GetString(ConnectionStringKeywords.DefaultTablespace); }
+            set { SetValue(ConnectionStringKeywords.DefaultTablespace, value); }
+        }
+
+        public bool Encrypt
+        {
+            get { return GetBoolean(ConnectionStringKeywords.Encrypt); }
+            set { SetValue(ConnectionStringKeywords.Encrypt, value); }
+        }
+
+        public string InitialCatalog
+        {
+            get { return GetString(ConnectionStringKeywords.InitialCatalog); }
+            set { SetValue(ConnectionStringKeywords.InitialCatalog, value); }
+        }
+
+        public int LockTimeout
+        {
+            get { return GetInt32(ConnectionStringKeywords.LockTimeout); }
+            set { SetValue(ConnectionStringKeywords.LockTimeout, value); }
+        }
+
+        public int PacketSize
+        {
+            get { return GetInt32(ConnectionStringKeywords.PacketSize); }
+            set { SetValue(ConnectionStringKeywords.PacketSize, value); }
+        }
+
+        public string Password
+        {
+            get { return GetString(ConnectionStringKeywords.Password); }
+            set { SetValue(ConnectionStringKeywords.Password, value); }
+        }
+
+        public bool Pooling
+        {
+            get { return GetBoolean(ConnectionStringKeywords.Pooling); }
+            set { SetValue(ConnectionStringKeywords.Pooling, value); }
+        }
+
+        public int PortNumber
+        {
+            get { return GetInt32(ConnectionStringKeywords.PortNumber); }
+            set { SetValue(ConnectionStringKeywords.PortNumber, value); }
         }
 
         public int MaxPoolSize
@@ -76,10 +100,10 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(ConnectionStringKeywords.MaxPoolSize, value); }
         }
 
-        public bool Encrypt
+        public int MinPoolSize
         {
-            get { return GetBoolean(ConnectionStringKeywords.Encrypt); }
-            set { SetValue(ConnectionStringKeywords.Encrypt, value); }
+            get { return GetInt32(ConnectionStringKeywords.MinPoolSize); }
+            set { SetValue(ConnectionStringKeywords.MinPoolSize, value); }
         }
 
         public bool MultipleActiveResultSets
@@ -94,34 +118,10 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(ConnectionStringKeywords.SearchPath, value); }
         }
 
-        public string ApplicationName
+        public string UserID
         {
-            get { return GetString(ConnectionStringKeywords.ApplicationName); }
-            set { SetValue(ConnectionStringKeywords.ApplicationName, value); }
-        }
-
-        public int CommandTimeout
-        {
-            get { return GetInt32(ConnectionStringKeywords.CommandTimeout); }
-            set { SetValue(ConnectionStringKeywords.CommandTimeout, value); }
-        }
-
-        public int LockTimeout
-        {
-            get { return GetInt32(ConnectionStringKeywords.LockTimeout); }
-            set { SetValue(ConnectionStringKeywords.LockTimeout, value); }
-        }
-
-        public bool DefaultTransactionReadOnly
-        {
-            get { return GetBoolean(ConnectionStringKeywords.DefaultTransactionReadOnly); }
-            set { SetValue(ConnectionStringKeywords.DefaultTransactionReadOnly, value); }
-        }
-
-        public string DefaultTablespace
-        {
-            get { return GetString(ConnectionStringKeywords.DefaultTablespace); }
-            set { SetValue(ConnectionStringKeywords.DefaultTablespace, value); }
+            get { return GetString(ConnectionStringKeywords.UserId); }
+            set { SetValue(ConnectionStringKeywords.UserId, value); }
         }
 
         public PgConnectionStringBuilder()

@@ -301,7 +301,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ExecuteFunction(int id, List<PgParameter> parameters)
+        internal void ExecuteFunction(int id)
         {
             try
             {
@@ -321,30 +321,18 @@ namespace PostgreSql.Data.Frontend
 
                 // Send parameters format code.
                 message.Write(parameterCount);
-
                 for (int i = 0; i < parameterCount; ++i)
                 {
-                    message.Write(parameters[_parameterIndices[i]].TypeInfo.FormatCode);
+                    message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
                 }
 
                 // Send parameter values
                 message.Write(parameterCount);
                 for (int i = 0; i < parameterCount; ++i)
                 {
-                    var parameter = parameters[_parameterIndices[i]];
+                    var param = _parameters[_parameterIndices[i]];
 
-                    if (parameter.Value         == System.DBNull.Value 
-                     || parameter.Value         == null 
-                     || parameter.TypeInfo.Size == 0 /* Void */)
-                    {
-                        // -1 indicates a NULL argument value
-                        message.Write(-1);
-                    }
-                    else
-                    {
-                        message.Write(parameter.TypeInfo
-                                    , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
-                    }
+                    message.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
                 }
 
                 // Send the format code for the function result
@@ -585,25 +573,13 @@ namespace PostgreSql.Data.Frontend
             message.Write(parameterCount);
             for (int i = 0; i <parameterCount; ++i)
             {
-                var parameter = _parameters[_parameterIndices[i]];
+                var param = _parameters[_parameterIndices[i]];
 
-                if (parameter.Value         == System.DBNull.Value 
-                 || parameter.Value         == null 
-                 || parameter.TypeInfo.Size == 0 /* Void */)
-                {
-                    // -1 indicates a NULL argument value
-                    message.Write(-1);
-                }
-                else
-                {
-                    message.Write(parameter.TypeInfo
-                                , ((parameter.PgValue != null) ? parameter.PgValue : parameter.Value));
-                }
+                message.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
             }
 
             // Send column information
             var fieldCount = (short)_rowDescriptor.Count;
-            
             message.Write(fieldCount);
             for (int i = 0; i < fieldCount; ++i)
             {
@@ -816,7 +792,7 @@ namespace PostgreSql.Data.Frontend
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
                 var typeInfo     = TypeInfoProvider.GetBaseTypeInfo(typeOid);
-                
+
                 if (typeInfo == null)
                 {
                     typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
@@ -833,17 +809,7 @@ namespace PostgreSql.Data.Frontend
 
             for (int i = 0; i < count; ++i)
             {
-                int length = message.ReadInt32();
-                var field  = _rowDescriptor[i];
-
-                if (length == -1 || field.TypeInfo.PgDbType == PgDbType.Void)
-                {
-                    values[i] = DBNull.Value;
-                }
-                else
-                {
-                    values[i] = message.ReadValue(field.TypeInfo, length);
-                }
+                values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
             }
 
             _rows.Enqueue(new DataRecord(_rowDescriptor, values));

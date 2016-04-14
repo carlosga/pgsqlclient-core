@@ -6,9 +6,9 @@ namespace PostgreSql.Data.Frontend
     internal static class ConnectionStringKeywords
     {
         internal const string ApplicationName            = "application name";
+        internal const string CommandTimeout             = "command timeout";
         internal const string ConnectionLifetime         = "connection lifetime";
         internal const string ConnectionTimeout          = "connection timeout";
-        internal const string CommandTimeout             = "command timeout";
         internal const string DataSource                 = "data source";
         internal const string DefaultTransactionReadOnly = "default transaction read only";
         internal const string DefaultTablespace          = "default table space";
@@ -19,8 +19,8 @@ namespace PostgreSql.Data.Frontend
         internal const string MinPoolSize                = "min pool size";
         internal const string MultipleActiveResultSets   = "multipleactiveresultsets";
         internal const string PacketSize                 = "packet size";
-        internal const string Password                   = "password";
         internal const string PortNumber                 = "port number";
+        internal const string Password                   = "password";
         internal const string Pooling                    = "pooling";
         internal const string SearchPath                 = "search path";
         internal const string UserId                     = "user id";
