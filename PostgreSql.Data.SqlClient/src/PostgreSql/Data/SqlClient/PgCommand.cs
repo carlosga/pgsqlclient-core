@@ -369,7 +369,7 @@ namespace PostgreSql.Data.SqlClient
                 _statement = _connection.InnerConnection.CreateStatement();
                 _statement.Parameters = _parameters; 
             }
-            else if (_statement.State != StatementState.Initial)
+            else if (_statement.IsPrepared)
             {
                 return;
             }

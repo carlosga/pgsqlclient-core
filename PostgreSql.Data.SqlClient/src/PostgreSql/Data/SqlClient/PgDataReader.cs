@@ -185,7 +185,7 @@ namespace PostgreSql.Data.SqlClient
 
             _row = _statement.FetchRow();
 
-            _position++;
+            ++_position;
 
             return (_row != null);
         }

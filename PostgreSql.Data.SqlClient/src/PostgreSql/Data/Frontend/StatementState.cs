@@ -5,14 +5,9 @@ namespace PostgreSql.Data.Frontend
 {
     internal enum StatementState
     {
-        Initial
-      , Cancelled
-      , Parsing
-      , Parsed
-      , Describing
-      , Described
-      , Binding
-      , Bound
+        Default
+      , Prepared
       , Executing
+      , Cancelled
     }
 }

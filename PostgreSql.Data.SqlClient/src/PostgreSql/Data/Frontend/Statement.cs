@@ -19,7 +19,6 @@ namespace PostgreSql.Data.Frontend
         private Connection            _connection;
         private string                _statementText;
         private string                _parsedStatementText;
-        private bool                  _hasRows;
         private string                _tag;
         private string                _parseName;
         private string                _portalName;
@@ -32,11 +31,15 @@ namespace PostgreSql.Data.Frontend
         private List<int>             _parameterIndices;
         private int                   _fetchSize;
 
-        internal bool           HasRows         => _hasRows;
+        internal bool           HasRows         => (!_rows.IsEmpty() || IsExecuting);
         internal string         Tag             => _tag;
         internal int            RecordsAffected => _recordsAffected;
         internal RowDescriptor  RowDescriptor   => _rowDescriptor;
         internal StatementState State           => _state;
+
+        internal bool IsPrepared  => _state == StatementState.Prepared || IsExecuting;
+        internal bool IsExecuting => _state == StatementState.Executing;
+        internal bool IsCancelled => _state == StatementState.Cancelled;
 
         internal CommandType CommandType
         {
@@ -51,11 +54,6 @@ namespace PostgreSql.Data.Frontend
             {
                 if (_statementText != value)
                 {
-                    if (IsPrepared || IsExecuting || IsCancelled)
-                    {
-                        Close();
-                    }
-
                     _statementText       = value;
                     _parsedStatementText = null;
                 }
@@ -85,21 +83,6 @@ namespace PostgreSql.Data.Frontend
             } 
         }
 
-        internal bool IsCancelled => _state == StatementState.Cancelled;
-
-        internal bool IsPrepared
-        {
-            get
-            {
-                return (_state == StatementState.Parsed
-                     || _state == StatementState.Described
-                     || _state == StatementState.Bound
-                     || _state == StatementState.Executing);
-            }
-        }
-
-        internal bool IsExecuting => _state == StatementState.Executing;
-
         internal Statement(Connection connection)
             : this(connection, null)
         {
@@ -109,9 +92,8 @@ namespace PostgreSql.Data.Frontend
         {
             _connection       = connection;
             _commandType      = CommandType.Text;
-            _state            = StatementState.Initial;
+            _state            = StatementState.Default;
             _recordsAffected  = -1;
-            _hasRows          = false;
             _parameters       = PgParameterCollection.Empty;
             _parameterIndices = new List<int>();
             _rowDescriptor    = new RowDescriptor();
@@ -137,7 +119,6 @@ namespace PostgreSql.Data.Frontend
                 // TODO: set large fields to null.
                 _connection       = null;
                 _statementText    = null; 
-                _hasRows          = false;
                 _tag              = null;
                 _parseName        = null;
                 _portalName       = null;
@@ -180,15 +161,19 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
+                Close();
+
                 _connection.Lock();
 
                 string statementName = Guid.NewGuid().ToString();
-                
+
                 _parseName  = $"PS{statementName}";
                 _portalName = $"PR{statementName}";
 
                 Parse();
                 DescribeStatement();
+
+                ChangeState(StatementState.Prepared);
             }
             catch
             {
@@ -207,6 +192,8 @@ namespace PostgreSql.Data.Frontend
                 _connection.Lock();
 
                 ThrowIfCancelled();
+
+                ChangeState(StatementState.Executing);
 
                 Bind();
                 Execute(CommandBehavior.SingleRow);
@@ -236,6 +223,8 @@ namespace PostgreSql.Data.Frontend
 
                 ThrowIfCancelled();
 
+                ChangeState(StatementState.Executing);
+
                 Bind();
                 Execute(behavior);
             }
@@ -256,6 +245,8 @@ namespace PostgreSql.Data.Frontend
                 _connection.Lock();
 
                 ThrowIfCancelled();
+
+                ChangeState(StatementState.Executing);
 
                 Bind();
                 Execute(CommandBehavior.SingleResult);
@@ -321,7 +312,7 @@ namespace PostgreSql.Data.Frontend
                 ReadUntilReadyForQuery();
 
                 // Update status
-                ChangeState(StatementState.Initial);
+                ChangeState(StatementState.Prepared);
             }
             catch
             {
@@ -353,7 +344,7 @@ namespace PostgreSql.Data.Frontend
                 ReadUntilReadyForQuery();
 
                 // Update status
-                ChangeState(StatementState.Initial);
+                ChangeState(StatementState.Default);
             }
             catch
             {
@@ -377,21 +368,17 @@ namespace PostgreSql.Data.Frontend
                 Execute();  // Fetch next group of rows
             }
 
-            DataRecord row = null;
-
             if (_rows.Count != 0)
             {
-                row = _rows.Dequeue();
+                return _rows.Dequeue();
             }
 
-            _hasRows = (IsExecuting || _rows.Count > 0);
-
-            return row;
+            return null;
         }
 
         internal void Close()
         {
-            if (_state == StatementState.Initial)
+            if (_state == StatementState.Default)
             {
                 return;
             }
@@ -400,24 +387,25 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
-                // Close current statement
-                Close(STATEMENT, _parseName);
-
                 // Sync
                 _connection.Sync();
                 ReadUntilReadyForQuery();
 
-                // Clear remaing rows
-                ClearRows();
+                // Close current statement
+                Close(STATEMENT, _parseName);
 
-                // Reset statment & portal names
+                // Clear remaing rows
+                _rows.Clear();
+
+                // Reset statement and portal names
                 _parseName  = null;
                 _portalName = null;
 
-                // Update Status
-                ChangeState(StatementState.Initial);
-
+                // Reset the row descriptor
                 _rowDescriptor.Resize(0);
+
+                // Update Status
+                ChangeState(StatementState.Default);
             }
             catch
             {
@@ -445,7 +433,7 @@ namespace PostgreSql.Data.Frontend
             {
                 stmt.Query();
 
-                while (stmt._hasRows)
+                while (stmt.HasRows)
                 {
                     var row = stmt.FetchRow();
 
@@ -466,8 +454,11 @@ namespace PostgreSql.Data.Frontend
 
         private void Parse()
         {
-            // Update status
-            ChangeState(StatementState.Parsing);
+            // Clear row data
+            _rows.Clear();
+
+            // Reset row descriptor information
+            _rowDescriptor.Clear();
 
             // Prepare parameters
             PrepareParameters();
@@ -482,12 +473,7 @@ namespace PostgreSql.Data.Frontend
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
             }
 
-            // Clear actual row list
-            ClearRows();
-
-            // Initialize RowDescriptor and Parameters
-            _rowDescriptor.Clear();
-
+            // Parse the statement query
             var message = _connection.CreateMessage(FrontendMessages.Parse);
 
             // Write Statement name and it's query
@@ -506,9 +492,6 @@ namespace PostgreSql.Data.Frontend
 
             // Send the message
             _connection.Send(message);
-
-            // Update status
-            ChangeState(StatementState.Parsed);
         }
 
         private void DescribeStatement() => Describe(STATEMENT);
@@ -516,9 +499,6 @@ namespace PostgreSql.Data.Frontend
 
         private void Describe(char type)
         {
-            // Update status
-            ChangeState(StatementState.Describing);
-
             var name    = ((type == STATEMENT) ? _parseName : _portalName);
             var message = _connection.CreateMessage(FrontendMessages.Describe);
 
@@ -537,21 +517,12 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-                HandleSqlMessage(rmessage);
-            } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
-
-            // Update status
-            ChangeState(StatementState.Described);
+                HandleMessage(rmessage);
+            } while (!rmessage.IsRowDescription);
         }
 
         private void Bind()
         {
-            // Update status
-            ChangeState(StatementState.Binding);
-
-            // Clear row data
-            ClearRows();
-
             var message = _connection.CreateMessage(FrontendMessages.Bind);
 
             // Destination portal name
@@ -589,9 +560,6 @@ namespace PostgreSql.Data.Frontend
 
             // Send packet to the server
             _connection.Send(message);
-
-            // Update status
-            ChangeState(StatementState.Bound);
         }
 
         private void Execute()
@@ -601,9 +569,6 @@ namespace PostgreSql.Data.Frontend
 
         private void Execute(CommandBehavior behavior)
         {
-            // Update status
-            ChangeState(StatementState.Executing);
-
             var message = _connection.CreateMessage(FrontendMessages.Execute);
 
             message.WriteNullString(_portalName);
@@ -631,24 +596,15 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-                HandleSqlMessage(rmessage);
+                HandleMessage(rmessage);
             }
-            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
-
-            // Check if the command is completed
-            if (!rmessage.IsPortalSuspended)
-            {
-                ClosePortal();
-            }
+            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended);
         }
 
         private void ClosePortal()
         {
-            if (_state == StatementState.Bound || _state == StatementState.Executing)
-            {
-                Close(PORTAL, _portalName);
-                ChangeState(StatementState.Described);
-            }
+            Close(PORTAL, _portalName);
+            ChangeState(StatementState.Prepared);
         }
 
         private void Close(char type, string name)
@@ -675,20 +631,19 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-                HandleSqlMessage(rmessage);
+                HandleMessage(rmessage);
             }
             while (!rmessage.IsCloseComplete);
 
             _tag             = null;
             _recordsAffected = -1;
         }
-        
-        private void HandleSqlMessage(MessageReader message)
+
+        private void HandleMessage(MessageReader message)
         {
             switch (message.MessageType)
             {
             case BackendMessages.DataRow:
-                _hasRows = true;
                 ProcessDataRow(message);
                 break;
 
@@ -702,6 +657,12 @@ namespace PostgreSql.Data.Frontend
 
             case BackendMessages.CommandComplete:
                 ProcessTag(message);
+                ClosePortal();
+                break;
+
+            case BackendMessages.EmptyQueryResponse:
+            case BackendMessages.NoData:
+                _rows.Clear();
                 break;
             }
         }
@@ -782,12 +743,6 @@ namespace PostgreSql.Data.Frontend
             _rows.Enqueue(new DataRecord(_rowDescriptor, values));
         }
 
-        private void ClearRows()
-        {
-            _rows.Clear();
-            _hasRows = false;
-        }
-
         private void ReadUntilReadyForQuery()
         {
             MessageReader message = null;
@@ -796,7 +751,7 @@ namespace PostgreSql.Data.Frontend
             {
                 message = _connection.Read();
 
-                HandleSqlMessage(message);
+                HandleMessage(message);
             }
             while (!message.IsReadyForQuery);
         }

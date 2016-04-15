@@ -10,123 +10,8 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            var csb = new PgConnectionStringBuilder();
-
-            csb.DataSource               = "localhost";
-            csb.InitialCatalog           = "northwind";
-            csb.UserID                   = "northwind";
-            csb.Password                 = "northwind";
-            csb.PortNumber               = 5432;
-            csb.Encrypt                  = false;
-            csb.Pooling                  = false;
-            csb.MultipleActiveResultSets = true;
-
-            using (var connection = new PgConnection(csb.ToString()))
-            {
-                MultipleErrorHandling(connection);
-            }
-
             // composite_type_test();
-            // pgsqlclient_test();
-        }
-
-        private static void MultipleErrorHandling(PgConnection connection)
-        {
-            try
-            {
-                Console.WriteLine("MultipleErrorHandling {0}", connection.GetType().Name);
-                Type expectedException = typeof(PgException);
-
-                connection.InfoMessage += delegate (object sender, PgInfoMessageEventArgs args)
-                {
-                    Console.WriteLine($"*** SQL CONNECTION INFO MESSAGE : {args.Message} ****");
-                };
-
-                connection.Open();
-
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText =
-                        "SELECT raise_notice('0');"
-                      + "SELECT 1 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('1');"
-                      + "SELECT raise_error('Error 1');"
-                      + "SELECT raise_notice('3');"
-                      + "SELECT 2 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('4');"
-                      + "SELECT raise_error('Error 2');"
-                      + "SELECT raise_notice('5');"
-                      + "SELECT 3 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('6');"
-                      + "SELECT raise_error('Error 3');"
-                      + "SELECT raise_notice('7');"
-                      + "SELECT 4 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('8');"
-                      + "SELECT raise_error('Error 4');" 
-                      + "SELECT raise_notice('9');"
-                      + "SELECT 5 as num, 'ABC' as str;"
-                      + "SELECT raise_notice('10');"
-                      + "SELECT raise_error('Error 5');"
-                      + "SELECT raise_notice('11');";
-
-                    try
-                    {
-                        Console.WriteLine("**** ExecuteNonQuery *****");
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(expectedException, e);
-                    }
-
-                    try
-                    {
-                        Console.WriteLine("**** ExecuteScalar ****");
-                        command.ExecuteScalar();
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(expectedException, e);
-                    }
-
-                    try
-                    {
-                        Console.WriteLine("**** ExecuteReader ****");
-                        using (var reader = command.ExecuteReader())
-                        {
-                            bool moreResults = true;
-                            do
-                            {
-                                try
-                                {
-                                    Console.WriteLine("NextResult");
-                                    moreResults = reader.NextResult();
-                                }
-                                catch (Exception e)
-                                {
-                                    // PrintException(expectedException, e);
-                                }
-                            } while (moreResults);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        // PrintException(null, e);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                // PrintException(null, e);
-            }
-            try
-            {
-                connection.Dispose();
-            }
-            catch (Exception e)
-            {
-                // PrintException(null, e);
-            }
+            pgsqlclient_test();
         }
 
         static void composite_type_test()
@@ -270,12 +155,11 @@ namespace PostgreSql.Data.SqlClient.Sample
                 using (var command = conn.CreateCommand())
                 {
                     command.FetchSize   = 2000;
-                    command.CommandText = "select * from pg_attribute a cross join pg_attribute b limit 2000";
+                    // command.CommandText = "select * from pg_attribute a cross join pg_attribute b limit 2000";
+                    command.CommandText = "select * from pg_type";
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();
-
-                    Console.WriteLine("-->");
 
                     using (var reader = command.ExecuteReader())
                     {
