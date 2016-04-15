@@ -252,7 +252,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            if (_commands.Count == 1) 
+            if (_commands.Count == 1 || !_connection.MultipleActiveResultSets)
             {
                 return InternalExecuteNonQuery();
             }
@@ -279,7 +279,14 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            return InternalExecuteScalar();
+            if (_commands.Count == 1 || !_connection.MultipleActiveResultSets)
+            {
+                return InternalExecuteScalar();
+            }
+            else
+            {
+                return InternalExecuteScalarMars();
+            }
         }
 
         public override void Prepare() 
@@ -443,6 +450,45 @@ namespace PostgreSql.Data.SqlClient
             }
 
             return totalAffected;
+        }
+
+        private object InternalExecuteScalarMars()
+        {
+            var errors = new List<PgError>();
+
+            try
+            {
+                do
+                {
+                    try
+                    {
+                        var result = InternalExecuteScalar();
+                        if (result != null)
+                        {
+                            return result;
+                        }
+                    }
+                    catch (PgException pgex)
+                    {
+                        errors.AddRange(pgex.Errors);
+                    }
+                    finally
+                    {
+                        _statement.Close();
+                    }
+                } while (NextCommandText());
+
+                if (errors.Count > 0)
+                {
+                    throw new PgException(errors[0].Message, errors);
+                }
+            }
+            finally
+            {
+                _commandIndex = 0;
+            }
+
+            return null;
         }
 
         private bool NextCommandText()
