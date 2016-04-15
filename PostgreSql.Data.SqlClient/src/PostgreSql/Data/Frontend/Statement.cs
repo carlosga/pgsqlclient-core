@@ -410,7 +410,7 @@ namespace PostgreSql.Data.Frontend
 
                 _rowDescriptor.Resize(0);
             }
-            catch (System.Exception)
+            catch
             {
                 throw;
             }

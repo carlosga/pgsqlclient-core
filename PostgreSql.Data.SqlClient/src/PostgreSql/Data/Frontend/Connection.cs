@@ -608,7 +608,7 @@ namespace PostgreSql.Data.Frontend
 
             var error     = new PgError(severity, emessage, code, detail, hint, where, position, file, line, routine);
             var exception = new PgException(error.Message, error);
-            
+
             InfoMessage?.Invoke(exception);
 
             if (error.Severity == ErrorSeverity.Error

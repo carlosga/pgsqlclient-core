@@ -421,11 +421,14 @@ namespace PostgreSql.Data.SqlClient
                     {
                         var affected   = InternalExecuteNonQuery();
                         totalAffected += ((affected != -1) ? affected : 0);
-                        _statement.Close();
                     }
                     catch (PgException pgex)
                     {
                         errors.AddRange(pgex.Errors);
+                    }
+                    finally
+                    {
+                        _statement.Close();
                     }
                 } while (NextCommandText());
 
