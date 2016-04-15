@@ -398,9 +398,6 @@ namespace PostgreSql.Data.Frontend
                 // Close current statement
                 Close(STATEMENT, _parseName);
 
-                // Sync
-                _connection.Sync();
-
                 // Clear remaing rows
                 ClearRows();
 
@@ -664,6 +661,12 @@ namespace PostgreSql.Data.Frontend
             // Flush pending messages
             _connection.Flush();
 
+            // Sync
+            if (type == STATEMENT)
+            {
+                _connection.Sync();
+            }
+
             // Read until CLOSE COMPLETE message is received
             MessageReader rmessage = null;
 
@@ -672,7 +675,7 @@ namespace PostgreSql.Data.Frontend
                 rmessage = _connection.Read();
                 HandleSqlMessage(rmessage);
             }
-            while (!rmessage.IsCloseComplete);
+            while (!rmessage.IsCloseComplete && !rmessage.IsReadyForQuery);
 
             _tag             = null;
             _recordsAffected = -1;

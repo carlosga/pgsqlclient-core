@@ -78,8 +78,6 @@ namespace PostgreSql.Data.Frontend
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
         {
-            // Lazily-initialize _asyncActiveSemaphore.  As we're never accessing the SemaphoreSlim's
-            // WaitHandle, we don't need to worry about Disposing it.
             return LazyInitializer.EnsureInitialized(ref _activeSemaphore, () => new SemaphoreSlim(1, 1));
         }
         private SemaphoreSlim _cancelRequestSemaphore;
@@ -266,8 +264,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             _transport.WriteMessage(FrontendMessages.Sync);
-
-            ReadUntilReadyForQuery();
         }
 
         internal void CancelRequest()
@@ -620,6 +616,7 @@ namespace PostgreSql.Data.Frontend
              || error.Severity == ErrorSeverity.Panic)
             {
                 Sync();
+                ReadUntilReadyForQuery();
 
                 throw exception;
             }
