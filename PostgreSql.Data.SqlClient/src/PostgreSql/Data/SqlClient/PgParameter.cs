@@ -1,11 +1,11 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Frontend;
+using PostgreSql.Data.PgTypes;
 using System;
 using System.Data;
 using System.Data.Common;
-using PostgreSql.Data.Frontend;
-using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -64,6 +64,11 @@ namespace PostgreSql.Data.SqlClient
             {
                 _pgDbType  = value;
                 _isTypeSet = true;
+                if (_pgDbType != PgDbType.Composite)
+                {
+                    // Composite type info will be determined before parsing the query
+                    _typeInfo  = TypeInfoProvider.GetTypeInfo(value);
+                }
             }
         }
 
@@ -101,7 +106,7 @@ namespace PostgreSql.Data.SqlClient
 
                 if (!_isTypeSet || _pgDbType == PgDbType.Array)
                 {
-                    _pgDbType = TypeInfoProvider.GetProviderType(value);
+                    UpdateTypeInfo(value);
                 }
             }
         }
@@ -192,6 +197,30 @@ namespace PostgreSql.Data.SqlClient
         public override void ResetDbType()
         {
             throw new Exception("The method or operation is not implemented.");
+        }
+
+        private void UpdateTypeInfo(object value)
+        {
+            if (_pgDbType == PgDbType.Array)
+            {
+                _typeInfo = TypeInfoProvider.GetArrayTypeInfo(value);
+            }
+            else if (_pgDbType == PgDbType.Vector)
+            {
+                _typeInfo = TypeInfoProvider.GetVectorTypeInfo(value);
+            }
+            else
+            {
+                _typeInfo = TypeInfoProvider.GetTypeInfo(value);
+            }
+            if (_typeInfo == null && _pgDbType != PgDbType.Composite)
+            {
+                throw new InvalidOperationException("Unknown value type, set the parameter provider type before assigning its value.");
+            }
+            if (!_isTypeSet)
+            {
+                _pgDbType = TypeInfo.PgDbType;
+            }
         }
     }
 }

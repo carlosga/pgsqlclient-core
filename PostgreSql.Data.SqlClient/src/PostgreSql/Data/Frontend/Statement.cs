@@ -391,12 +391,21 @@ namespace PostgreSql.Data.Frontend
 
         internal void Close()
         {
+            if (_state == StatementState.Initial)
+            {
+                return;
+            }
+
             try
             {
                 _connection.Lock();
 
                 // Close current statement
                 Close(STATEMENT, _parseName);
+
+                // Sync
+                _connection.Sync();
+                ReadUntilReadyForQuery();
 
                 // Clear remaing rows
                 ClearRows();
@@ -529,7 +538,7 @@ namespace PostgreSql.Data.Frontend
             {
                 rmessage = _connection.Read();
                 HandleSqlMessage(rmessage);
-            } while (!rmessage.IsRowDescription);
+            } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
 
             // Update status
             ChangeState(StatementState.Described);
@@ -635,8 +644,7 @@ namespace PostgreSql.Data.Frontend
 
         private void ClosePortal()
         {
-            if (_state == StatementState.Bound
-             || _state == StatementState.Executing)
+            if (_state == StatementState.Bound || _state == StatementState.Executing)
             {
                 Close(PORTAL, _portalName);
                 ChangeState(StatementState.Described);
@@ -653,19 +661,13 @@ namespace PostgreSql.Data.Frontend
             var message = _connection.CreateMessage(FrontendMessages.Close);
 
             message.Write(type);
-            message.WriteNullString(String.IsNullOrEmpty(name) ? String.Empty : name);
+            message.WriteNullString(name);
 
             // Send message to the server
             _connection.Send(message);
 
             // Flush pending messages
             _connection.Flush();
-
-            // Sync
-            if (type == STATEMENT)
-            {
-                _connection.Sync();
-            }
 
             // Read until CLOSE COMPLETE message is received
             MessageReader rmessage = null;
@@ -675,7 +677,7 @@ namespace PostgreSql.Data.Frontend
                 rmessage = _connection.Read();
                 HandleSqlMessage(rmessage);
             }
-            while (!rmessage.IsCloseComplete && !rmessage.IsReadyForQuery);
+            while (!rmessage.IsCloseComplete);
 
             _tag             = null;
             _recordsAffected = -1;
@@ -758,11 +760,11 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = TypeInfoProvider.GetBaseTypeInfo(typeOid);
+                var typeInfo     = TypeInfoProvider.GetType(typeOid);
 
                 if (typeInfo == null)
                 {
-                    typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
+                    // typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
                 }
 
                 _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
@@ -812,22 +814,9 @@ namespace PostgreSql.Data.Frontend
             for (int i = 0; i < _parameters.Count; ++i)
             {
                 var parameter = _parameters[i];
-
-                if (parameter.PgDbType == PgDbType.Array)
-                {
-                    parameter.TypeInfo = _connection.TypeInfoProvider.GetArrayTypeInfo(parameter.Value);
-                }
-                else if (parameter.PgDbType == PgDbType.Vector)
-                {
-                    parameter.TypeInfo = _connection.TypeInfoProvider.GetVectorTypeInfo(parameter.Value);
-                }
-                else if (parameter.PgDbType == PgDbType.Composite)
+                if (parameter.PgDbType == PgDbType.Composite)
                 {
                     // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
-                }
-                else
-                {
-                    parameter.TypeInfo = _connection.TypeInfoProvider.GetTypeInfo(parameter.Value);
                 }
             }
         }

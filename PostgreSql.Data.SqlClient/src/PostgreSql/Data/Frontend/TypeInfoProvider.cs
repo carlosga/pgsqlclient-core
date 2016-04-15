@@ -88,8 +88,8 @@ namespace PostgreSql.Data.Frontend
 
             // date	| 4 bytes | date (no time of day) | 4713 BC | 5874897 AD | 1 day
 
-            types[1082] = new TypeInfo(1082, "date"  , "date" , PgDbType.Date , TypeFormat.Binary, typeof(DateTime), typeof(PgDate), 4);
-            types[1182] = new TypeInfo(1182, "date[]", "_date", PgDbType.Array, types[1082], typeof(DateTime[]), typeof(PgDate[]));
+            types[1082] = new TypeInfo(1082, "date"  , "date" , PgDbType.Date , TypeFormat.Binary, typeof(PgDate), typeof(PgDate), 4);
+            types[1182] = new TypeInfo(1182, "date[]", "_date", PgDbType.Array, types[1082], typeof(PgDate[]), typeof(PgDate[]));
 
             // time [ (p) ] [ without time zone ] | 8 bytes | time of day (no date) | 00:00:00 | 24:00:00 | 1 microsecond / 14 digits
 
@@ -180,7 +180,7 @@ namespace PostgreSql.Data.Frontend
 
             // box | 32 bytes | Rectangular box | ((x1,y1),(x2,y2))
 
-            types[ 603] = new TypeInfo( 603, "box"  , "box" , PgDbType.Box  , types[600], TypeFormat.Binary, typeof(PgBox), typeof(PgBox[]), 32);
+            types[ 603] = new TypeInfo( 603, "box"  , "box" , PgDbType.Box  , types[600], TypeFormat.Binary, typeof(PgBox), typeof(PgBox), 32);
             types[1020] = new TypeInfo(1020, "box[]", "_box", PgDbType.Array, types[603], typeof(PgBox[]), typeof(PgBox[]));
 
             // path | 16+16n bytes | Closed path (similar to polygon) |	((x1,y1),...)
@@ -248,7 +248,130 @@ namespace PostgreSql.Data.Frontend
             s_types = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
-        internal static TypeInfo GetBaseTypeInfo(int oid)
+        internal static DbType GetDbType(PgDbType providerType)
+        {
+            switch (providerType)
+            {
+                case PgDbType.Bool:
+                    return DbType.Boolean;
+
+                case PgDbType.Byte:
+                    return DbType.Byte;
+
+                case PgDbType.Bytea:
+                    return DbType.Binary;
+
+                case PgDbType.Char:
+                case PgDbType.Text:
+                case PgDbType.VarChar:
+                    return DbType.String;
+
+                case PgDbType.SmallInt:
+                    return DbType.Int16;
+
+                case PgDbType.Integer:
+                    return DbType.Int32;
+
+                case PgDbType.BigInt:
+                    return DbType.Int64;
+
+                case PgDbType.Date:
+                    return DbType.Date;
+
+                case PgDbType.Time:
+                    return DbType.Time;
+
+                case PgDbType.Timestamp:
+                    return DbType.DateTime;
+
+                case PgDbType.TimeTZ:
+                case PgDbType.TimestampTZ:
+                    return DbType.DateTimeOffset;
+
+                case PgDbType.Numeric:
+                    return DbType.Decimal;
+
+                case PgDbType.Real:
+                    return DbType.Single;
+
+                case PgDbType.Double:
+                    return DbType.Double;
+
+                case PgDbType.Money:
+                    return DbType.Currency;
+
+                default:
+                    throw new InvalidOperationException("Invalid data type specified.");
+            }
+        }
+
+        internal static PgDbType GetProviderType(DbType dbType)
+        {
+            switch (dbType)
+            {
+                case DbType.AnsiString:
+                case DbType.String:
+                case DbType.Object:
+                    return PgDbType.VarChar;
+
+                case DbType.AnsiStringFixedLength:
+                case DbType.StringFixedLength:
+                    return PgDbType.Char;
+
+                case DbType.Int16:
+                    return PgDbType.SmallInt;
+
+                case DbType.Int32:
+                    return PgDbType.Integer;
+
+                case DbType.Int64:
+                    return PgDbType.BigInt;
+
+                case DbType.Decimal:
+                    return PgDbType.Numeric;
+
+                case DbType.Single:
+                    return PgDbType.Real;
+
+                case DbType.Double:
+                    return PgDbType.Double;
+
+                case DbType.Binary:
+                    return PgDbType.Bytea;
+
+                case DbType.Boolean:
+                    return PgDbType.Bool;
+
+                case DbType.Byte:
+                    return PgDbType.Byte;
+
+                case DbType.Currency:
+                    return PgDbType.Money;
+
+                case DbType.Date:
+                    return PgDbType.Date;
+
+                case DbType.Time:
+                    return PgDbType.Time;
+
+                case DbType.DateTime:
+                    return PgDbType.Timestamp;
+
+                case DbType.DateTimeOffset:
+                    return PgDbType.TimestampTZ;
+
+                // case DbType.Guid:
+                // case DbType.VarNumeric:
+                // case DbType.SByte:
+                // case DbType.UInt16:
+                // case DbType.UInt32:
+                // case DbType.UInt64:
+                default:
+                    throw new InvalidOperationException("Invalid data type specified.");
+            }
+        }
+
+        internal static TypeInfo GetType(int oid)
         {
             if (s_types.ContainsKey(oid))
             {
@@ -257,147 +380,48 @@ namespace PostgreSql.Data.Frontend
             return null;
         }
 
-        internal static DbType GetDbType(PgDbType providerType)
+        internal static TypeInfo GetTypeInfo(PgDbType pgDbType)
         {
-            switch (providerType)
-            {
-            case PgDbType.Bool:
-                return DbType.Boolean;
-
-            case PgDbType.Byte:
-                return DbType.Byte;
-
-            case PgDbType.Bytea:
-                return DbType.Binary;
-
-            case PgDbType.Char:
-            case PgDbType.Text:
-            case PgDbType.VarChar:
-                return DbType.String;
-
-            case PgDbType.SmallInt:
-                return DbType.Int16;
-
-            case PgDbType.Integer:
-                return DbType.Int32;
-
-            case PgDbType.BigInt:
-                return DbType.Int64;
-
-            case PgDbType.Date:
-                return DbType.Date;
-
-            case PgDbType.Time:
-                return DbType.Time;
-
-            case PgDbType.Timestamp:
-                return DbType.DateTime;
-
-            case PgDbType.TimeTZ:
-            case PgDbType.TimestampTZ:
-                return DbType.DateTimeOffset;
-
-            case PgDbType.Numeric:
-                return DbType.Decimal;
-
-            case PgDbType.Real:
-                return DbType.Single;
-
-            case PgDbType.Double:
-                return DbType.Double;
-
-            case PgDbType.Money:
-                return DbType.Currency;
-
-            default:
-                throw new InvalidOperationException("Invalid data type specified.");
-            }
+            return s_types.Values.First(x => x.PgDbType == pgDbType);
         }
 
-        internal static PgDbType GetProviderType(DbType dbType)
-        {
-            switch (dbType)
-            {
-            case DbType.AnsiString:
-            case DbType.String:
-                return PgDbType.VarChar;
-
-            case DbType.AnsiStringFixedLength:
-            case DbType.StringFixedLength:
-                return PgDbType.Char;
-
-            case DbType.Int16:
-                return PgDbType.SmallInt;
-
-            case DbType.Int32:
-                return PgDbType.Integer;
-
-            case DbType.Int64:
-                return PgDbType.BigInt;
-
-            case DbType.Decimal:
-                return PgDbType.Numeric;
-
-            case DbType.Single:
-                return PgDbType.Real;
-
-            case DbType.Double:
-                return PgDbType.Double;
-
-            case DbType.Binary:
-                return PgDbType.Bytea;
-
-            case DbType.Boolean:
-                return PgDbType.Bool;
-
-            case DbType.Byte:
-                return PgDbType.Byte;
-
-            case DbType.Currency:
-                return PgDbType.Money;
-
-            case DbType.Date:
-                return PgDbType.Date;
-
-            case DbType.Time:
-                return PgDbType.Time;
-
-            case DbType.DateTime:
-                return PgDbType.Timestamp;
-
-            case DbType.DateTimeOffset:
-                return PgDbType.TimestampTZ;
-
-            case DbType.Object:
-                return PgDbType.Composite;
-
-            // case DbType.Guid:
-            // case DbType.VarNumeric:
-            // case DbType.SByte:
-            // case DbType.UInt16:
-            // case DbType.UInt32:
-            // case DbType.UInt64:
-            default:
-                throw new InvalidOperationException("Invalid data type specified.");
-            }
-        }
-
-        internal static PgDbType GetProviderType(object value)
+        internal static TypeInfo GetTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
-                return PgDbType.VarChar;
+                return s_types[1043];   // Varchar by default
             }
             if (value is INullable)
             {
-                return s_types.Values.First(x => x.PgType == value.GetType()).PgDbType;
+                return s_types.Values.First(x => x.PgType == value.GetType());
             }
-            var typeInfo = s_types.Values.First(x => x.SystemType == value.GetType());
-            if (typeInfo != null)
+            return s_types.Values.FirstOrDefault(x => x.SystemType == value.GetType());
+        }
+
+        internal static TypeInfo GetArrayTypeInfo(object value)
+        {
+            if (value == null || value == DBNull.Value)
             {
-                return typeInfo.PgDbType;
+                throw new PgNullValueException();
             }
-            return PgDbType.Composite;  // Identify any other thing as a Composite type
+            if (value is INullable)
+            {
+                return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
+            }
+            return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+        }
+
+        internal static TypeInfo GetVectorTypeInfo(object value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                throw new PgNullValueException();
+            }
+            if (value is INullable)
+            {
+                return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
+            }
+            return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
         private readonly ReadOnlyDictionary<int, TypeInfo> _types;
@@ -423,37 +447,6 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal TypeInfo GetTypeInfo(int oid)
-        {
-            if (s_types.ContainsKey(oid))
-            {
-                return s_types[oid];
-            }
-            else if (_types.ContainsKey(oid))
-            {
-                return _types[oid];
-            }
-            throw new NotSupportedException();
-        }
-
-        internal TypeInfo GetTypeInfo(PgDbType pgDbType)
-        {
-            return _types.Values.First(x => x.PgDbType == pgDbType);
-        }
-
-        internal TypeInfo GetTypeInfo(object value)
-        {
-            if (value == null || value == DBNull.Value)
-            {
-                return s_types[1043];   // Varchar by default
-            }
-            if (value is INullable)
-            {
-                return s_types.Values.First(x => x.PgType == value.GetType());
-            }
-            return s_types.Values.First(x => x.SystemType == value.GetType());
-        }
-
         internal TypeInfo GetCompositeTypeInfo(int oid)
         {
             if (_types.ContainsKey(oid))
@@ -461,32 +454,6 @@ namespace PostgreSql.Data.Frontend
                 return _types[oid];
             }
             throw new NotSupportedException();
-        }
-
-        internal TypeInfo GetArrayTypeInfo(object value)
-        {
-            if (value == null || value == DBNull.Value)
-            {
-                throw new PgNullValueException();
-            }
-            if (value is INullable)
-            {
-                return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
-            }
-            return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
-        }
-
-        internal TypeInfo GetVectorTypeInfo(object value)
-        {
-            if (value == null || value == DBNull.Value)
-            {
-                throw new PgNullValueException();
-            }
-            if (value is INullable)
-            {
-                return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
-            }
-            return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
         private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(Connection connection)

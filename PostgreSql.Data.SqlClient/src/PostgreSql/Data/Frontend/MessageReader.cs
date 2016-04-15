@@ -18,13 +18,13 @@ namespace PostgreSql.Data.Frontend
         internal char MessageType       => _messageType;
         internal int  Length            => _buffer.Length;
         internal int  Position          => _position;
-        internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
-        internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
-        internal bool IsEmptyQuery      => (_messageType == BackendMessages.EmptyQueryResponse);
-        internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
-        internal bool IsNoData          => (_messageType == BackendMessages.NoData);
-        internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsRowDescription  => (_messageType == BackendMessages.RowDescription);
+        internal bool IsEmptyQuery      => (_messageType == BackendMessages.EmptyQueryResponse);
+        internal bool IsNoData          => (_messageType == BackendMessages.NoData);
+        internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
+        internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
+        internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
+        internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
         internal MessageReader(char messageType, byte[] contents, SessionData sessionData)
         {
@@ -286,7 +286,7 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
+            var elementType = TypeInfoProvider.GetTypeInfo(oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
