@@ -14,7 +14,5 @@ namespace PostgreSql.Data.Frontend
       , Binding
       , Bound
       , Executing
-      , Executed
-      , OnQuery
     }
 }

@@ -155,7 +155,7 @@ namespace PostgreSql.Data.SqlClient.Sample
                 using (var command = conn.CreateCommand())
                 {
                     command.FetchSize   = 2000;
-                    command.CommandText = "select * from pg_type a cross join pg_type b limit 2000";
+                    command.CommandText = "select * from pg_type a cross join pg_type b";
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();

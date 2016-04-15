@@ -261,56 +261,56 @@ namespace PostgreSql.Data.Frontend
         {
             switch (providerType)
             {
-                case PgDbType.Bool:
-                    return DbType.Boolean;
+            case PgDbType.Bool:
+                return DbType.Boolean;
 
-                case PgDbType.Byte:
-                    return DbType.Byte;
+            case PgDbType.Byte:
+                return DbType.Byte;
 
-                case PgDbType.Bytea:
-                    return DbType.Binary;
+            case PgDbType.Bytea:
+                return DbType.Binary;
 
-                case PgDbType.Char:
-                case PgDbType.Text:
-                case PgDbType.VarChar:
-                    return DbType.String;
+            case PgDbType.Char:
+            case PgDbType.Text:
+            case PgDbType.VarChar:
+                return DbType.String;
 
-                case PgDbType.SmallInt:
-                    return DbType.Int16;
+            case PgDbType.SmallInt:
+                return DbType.Int16;
 
-                case PgDbType.Integer:
-                    return DbType.Int32;
+            case PgDbType.Integer:
+                return DbType.Int32;
 
-                case PgDbType.BigInt:
-                    return DbType.Int64;
+            case PgDbType.BigInt:
+                return DbType.Int64;
 
-                case PgDbType.Date:
-                    return DbType.Date;
+            case PgDbType.Date:
+                return DbType.Date;
 
-                case PgDbType.Time:
-                    return DbType.Time;
+            case PgDbType.Time:
+                return DbType.Time;
 
-                case PgDbType.Timestamp:
-                    return DbType.DateTime;
+            case PgDbType.Timestamp:
+                return DbType.DateTime;
 
-                case PgDbType.TimeTZ:
-                case PgDbType.TimestampTZ:
-                    return DbType.DateTimeOffset;
+            case PgDbType.TimeTZ:
+            case PgDbType.TimestampTZ:
+                return DbType.DateTimeOffset;
 
-                case PgDbType.Numeric:
-                    return DbType.Decimal;
+            case PgDbType.Numeric:
+                return DbType.Decimal;
 
-                case PgDbType.Real:
-                    return DbType.Single;
+            case PgDbType.Real:
+                return DbType.Single;
 
-                case PgDbType.Double:
-                    return DbType.Double;
+            case PgDbType.Double:
+                return DbType.Double;
 
-                case PgDbType.Money:
-                    return DbType.Currency;
+            case PgDbType.Money:
+                return DbType.Currency;
 
-                default:
-                    throw new InvalidOperationException("Invalid data type specified.");
+            default:
+                throw new InvalidOperationException("Invalid data type specified.");
             }
         }
 
@@ -318,67 +318,67 @@ namespace PostgreSql.Data.Frontend
         {
             switch (dbType)
             {
-                case DbType.AnsiString:
-                case DbType.String:
-                    return PgDbType.VarChar;
+            case DbType.AnsiString:
+            case DbType.String:
+                return PgDbType.VarChar;
 
-                case DbType.AnsiStringFixedLength:
-                case DbType.StringFixedLength:
-                    return PgDbType.Char;
+            case DbType.AnsiStringFixedLength:
+            case DbType.StringFixedLength:
+                return PgDbType.Char;
 
-                case DbType.Int16:
-                    return PgDbType.SmallInt;
+            case DbType.Int16:
+                return PgDbType.SmallInt;
 
-                case DbType.Int32:
-                    return PgDbType.Integer;
+            case DbType.Int32:
+                return PgDbType.Integer;
 
-                case DbType.Int64:
-                    return PgDbType.BigInt;
+            case DbType.Int64:
+                return PgDbType.BigInt;
 
-                case DbType.Decimal:
-                    return PgDbType.Numeric;
+            case DbType.Decimal:
+                return PgDbType.Numeric;
 
-                case DbType.Single:
-                    return PgDbType.Real;
+            case DbType.Single:
+                return PgDbType.Real;
 
-                case DbType.Double:
-                    return PgDbType.Double;
+            case DbType.Double:
+                return PgDbType.Double;
 
-                case DbType.Binary:
-                    return PgDbType.Bytea;
+            case DbType.Binary:
+                return PgDbType.Bytea;
 
-                case DbType.Boolean:
-                    return PgDbType.Bool;
+            case DbType.Boolean:
+                return PgDbType.Bool;
 
-                case DbType.Byte:
-                    return PgDbType.Byte;
+            case DbType.Byte:
+                return PgDbType.Byte;
 
-                case DbType.Currency:
-                    return PgDbType.Money;
+            case DbType.Currency:
+                return PgDbType.Money;
 
-                case DbType.Date:
-                    return PgDbType.Date;
+            case DbType.Date:
+                return PgDbType.Date;
 
-                case DbType.Time:
-                    return PgDbType.Time;
+            case DbType.Time:
+                return PgDbType.Time;
 
-                case DbType.DateTime:
-                    return PgDbType.Timestamp;
+            case DbType.DateTime:
+                return PgDbType.Timestamp;
 
-                case DbType.DateTimeOffset:
-                    return PgDbType.TimestampTZ;
+            case DbType.DateTimeOffset:
+                return PgDbType.TimestampTZ;
 
-                case DbType.Object:
-                    return PgDbType.Composite;
+            case DbType.Object:
+                return PgDbType.Composite;
 
-                // case DbType.Guid:
-                // case DbType.VarNumeric:
-                // case DbType.SByte:
-                // case DbType.UInt16:
-                // case DbType.UInt32:
-                // case DbType.UInt64:
-                default:
-                    throw new InvalidOperationException("Invalid data type specified.");
+            // case DbType.Guid:
+            // case DbType.VarNumeric:
+            // case DbType.SByte:
+            // case DbType.UInt16:
+            // case DbType.UInt32:
+            // case DbType.UInt64:
+            default:
+                throw new InvalidOperationException("Invalid data type specified.");
             }
         }
 

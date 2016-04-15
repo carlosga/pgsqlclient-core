@@ -240,7 +240,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override void Cancel()
         {
-            if (_statement != null && _statement.IsRunning)
+            if (_statement != null && _statement.IsExecuting)
             {
                 _statement.Cancel();
             }

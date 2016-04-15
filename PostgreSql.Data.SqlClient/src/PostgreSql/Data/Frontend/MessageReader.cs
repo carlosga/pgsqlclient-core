@@ -173,98 +173,98 @@ namespace PostgreSql.Data.Frontend
 
             switch (typeInfo.PgDbType)
             {
-                case PgDbType.Void:
-                    return DBNull.Value;
+            case PgDbType.Void:
+                return DBNull.Value;
 
-                case PgDbType.Bytea:
-                    return ReadBytes(length);
+            case PgDbType.Bytea:
+                return ReadBytes(length);
 
-                case PgDbType.Char:
-                    return ReadString(length).TrimEnd();
+            case PgDbType.Char:
+                return ReadString(length).TrimEnd();
 
-                case PgDbType.VarChar:
-                case PgDbType.Text:
-                    return ReadString(length);
+            case PgDbType.VarChar:
+            case PgDbType.Text:
+                return ReadString(length);
 
-                case PgDbType.Bool:
-                    return ReadBoolean();
+            case PgDbType.Bool:
+                return ReadBoolean();
 
-                case PgDbType.Byte:
-                    return ReadByte();
+            case PgDbType.Byte:
+                return ReadByte();
 
-                case PgDbType.Numeric:
-                    return ReadNumeric(length);
+            case PgDbType.Numeric:
+                return ReadNumeric(length);
 
-                case PgDbType.Money:
-                    return ReadMoney();
+            case PgDbType.Money:
+                return ReadMoney();
 
-                case PgDbType.Real:
-                    return ReadSingle();
+            case PgDbType.Real:
+                return ReadSingle();
 
-                case PgDbType.Double:
-                    return ReadDouble();
+            case PgDbType.Double:
+                return ReadDouble();
 
-                case PgDbType.SmallInt:
-                    return ReadInt16();
+            case PgDbType.SmallInt:
+                return ReadInt16();
 
-                case PgDbType.Integer:
-                    return ReadInt32();
+            case PgDbType.Integer:
+                return ReadInt32();
 
-                case PgDbType.BigInt:
-                    return ReadInt64();
+            case PgDbType.BigInt:
+                return ReadInt64();
 
-                case PgDbType.Interval:
-                    return ReadInterval();
+            case PgDbType.Interval:
+                return ReadInterval();
 
-                case PgDbType.Date:
-                    return ReadDate();
+            case PgDbType.Date:
+                return ReadDate();
 
-                case PgDbType.Time:
-                    return ReadTime();
+            case PgDbType.Time:
+                return ReadTime();
 
-                case PgDbType.Timestamp:
-                    return ReadTimestamp();
+            case PgDbType.Timestamp:
+                return ReadTimestamp();
 
-                case PgDbType.TimeTZ:
-                    return ReadTimeWithTZ();
+            case PgDbType.TimeTZ:
+                return ReadTimeWithTZ();
 
-                case PgDbType.TimestampTZ:
-                    return ReadTimestampWithTZ();
+            case PgDbType.TimestampTZ:
+                return ReadTimestampWithTZ();
 
-                case PgDbType.Point:
-                   return ReadPoint();
+            case PgDbType.Point:
+                return ReadPoint();
 
-                case PgDbType.Circle:
-                   return ReadCircle();
+            case PgDbType.Circle:
+                return ReadCircle();
 
-                case PgDbType.Line:
-                   return ReadLine();
+            case PgDbType.Line:
+                return ReadLine();
 
-                case PgDbType.LSeg:
-                   return ReadLSeg();
+            case PgDbType.LSeg:
+                return ReadLSeg();
 
-                case PgDbType.Polygon:
-                   return ReadPolygon();
+            case PgDbType.Polygon:
+                return ReadPolygon();
 
-                case PgDbType.Path:
-                   return ReadPath();
+            case PgDbType.Path:
+                return ReadPath();
 
-                case PgDbType.Box:
-                case PgDbType.Box2D:
-                case PgDbType.Box3D:
-                   return ReadBox();
+            case PgDbType.Box:
+            case PgDbType.Box2D:
+            case PgDbType.Box3D:
+                return ReadBox();
 
-                case PgDbType.Array:
-                    return ReadArray(typeInfo, length);
+            case PgDbType.Array:
+                return ReadArray(typeInfo, length);
 
-                case PgDbType.Vector:
-                    return ReadVector(typeInfo, length);
+            case PgDbType.Vector:
+                return ReadVector(typeInfo, length);
 
-                case PgDbType.Composite:
-                    return ReadComposite(typeInfo, length);
+            case PgDbType.Composite:
+                return ReadComposite(typeInfo, length);
 
-                default:
-                    return ReadBytes(length);
+            default:
+                return ReadBytes(length);
             }
         }
 

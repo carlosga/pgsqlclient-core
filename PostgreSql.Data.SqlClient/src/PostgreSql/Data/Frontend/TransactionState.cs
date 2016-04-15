@@ -3,7 +3,7 @@
 
 namespace PostgreSql.Data.Frontend
 {
-    internal enum TransactionStatus
+    internal enum TransactionState
     {
         // 'I' if idle (not in a transaction block)
         Default

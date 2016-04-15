@@ -30,7 +30,7 @@ namespace PostgreSql.Data.Frontend
 
         private Transport         _transport;
         private ConnectionOptions _connectionOptions;
-        private TransactionStatus _transactionStatus;
+        private TransactionState  _transactionState;
         private SessionData       _sessionData;
         private int               _processId;
         private int               _secretKey;
@@ -61,19 +61,19 @@ namespace PostgreSql.Data.Frontend
             set;
         }
 
-        internal SessionData       SessionData              => _sessionData;
-        internal TransactionStatus TransactionStatus        => _transactionStatus;
-        internal string            ConnectionString         => _connectionOptions?.ConnectionString;
-        internal string            Database                 => _connectionOptions?.Database;
-        internal string            DataSource               => _connectionOptions?.DataSource;
-        internal int               ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
-        internal int               PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
-        internal bool              MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
-        internal string            SearchPath               => (_connectionOptions?.SearchPath);
-        internal bool              Pooling                  => (_connectionOptions?.Pooling ?? false);
-        internal bool              Encrypt                  => (_connectionOptions?.Encrypt ?? false);
-        internal TypeInfoProvider  TypeInfoProvider         => _typeInfoProvider;
-        internal string            InternalUrl              => $"{DataSource}://{Database}";
+        internal SessionData      SessionData              => _sessionData;
+        internal TransactionState TransactionState         => _transactionState;
+        internal string           ConnectionString         => _connectionOptions?.ConnectionString;
+        internal string           Database                 => _connectionOptions?.Database;
+        internal string           DataSource               => _connectionOptions?.DataSource;
+        internal int              ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
+        internal int              PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
+        internal bool             MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
+        internal string           SearchPath               => (_connectionOptions?.SearchPath);
+        internal bool             Pooling                  => (_connectionOptions?.Pooling ?? false);
+        internal bool             Encrypt                  => (_connectionOptions?.Encrypt ?? false);
+        internal TypeInfoProvider TypeInfoProvider         => _typeInfoProvider;
+        internal string           InternalUrl              => $"{DataSource}://{Database}";
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
@@ -200,7 +200,7 @@ namespace PostgreSql.Data.Frontend
 
                 _connectionOptions      = null;
                 _sessionData            = null;
-                _transactionStatus      = TransactionStatus.Default;
+                _transactionState       = TransactionState.Default;
                 _processId              = -1;
                 _secretKey              = -1;
                 _transport              = null;
@@ -321,32 +321,32 @@ namespace PostgreSql.Data.Frontend
 
             switch (message.MessageType)
             {
-                case BackendMessages.ReadyForQuery:
-                    switch (message.ReadChar())
-                    {
-                        case 'T':
-                            _transactionStatus = TransactionStatus.Active;
-                            break;
-
-                        case 'E':
-                            _transactionStatus = TransactionStatus.Broken;
-                            break;
-
-                        case 'I':
-                        default:
-                            _transactionStatus = TransactionStatus.Default;
-                            break;
-                    }
+            case BackendMessages.ReadyForQuery:
+                switch (message.ReadChar())
+                {
+                case 'T':
+                    _transactionState = TransactionState.Active;
                     break;
 
-                case BackendMessages.NotificationResponse:
-                    HandleNotificationMessage(message);
+                case 'E':
+                    _transactionState = TransactionState.Broken;
                     break;
 
-                case BackendMessages.NoticeResponse:
-                case BackendMessages.ErrorResponse:
-                    HandleErrorMessage(message);
+                case 'I':
+                default:
+                    _transactionState = TransactionState.Default;
                     break;
+                }
+                break;
+
+            case BackendMessages.NotificationResponse:
+                HandleNotificationMessage(message);
+                break;
+
+            case BackendMessages.NoticeResponse:
+            case BackendMessages.ErrorResponse:
+                HandleErrorMessage(message);
+                break;
             }
 
             return message;
@@ -489,18 +489,18 @@ namespace PostgreSql.Data.Frontend
         {
             switch (message.MessageType)
             {
-                case BackendMessages.Authentication:
-                    HandleAuthMessage(message);
-                    break;
+            case BackendMessages.Authentication:
+                HandleAuthMessage(message);
+                break;
 
-                case BackendMessages.BackendKeyData:
-                    _processId = message.ReadInt32();
-                    _secretKey = message.ReadInt32();
-                    break;
+            case BackendMessages.BackendKeyData:
+                _processId = message.ReadInt32();
+                _secretKey = message.ReadInt32();
+                break;
 
-                case BackendMessages.ParameterStatus:
-                    HandleParameterStatus(message);
-                    break;
+            case BackendMessages.ParameterStatus:
+                HandleParameterStatus(message);
+                break;
             }
         }
 
@@ -511,38 +511,38 @@ namespace PostgreSql.Data.Frontend
 
             switch (authType)
             {
-                case AuthenticationStage.Done:
-                    // Authentication successful
-                    return;
+            case AuthenticationStage.Done:
+                // Authentication successful
+                return;
 
-                case AuthenticationStage.ClearText:
-                    SendClearTextPasswordAuthentication();
-                    break;
+            case AuthenticationStage.ClearText:
+                SendClearTextPasswordAuthentication();
+                break;
 
-                case AuthenticationStage.MD5:
-                    // Read salt used when encrypting the password
-                    SendPasswordAuthentication(message.ReadBytes(4));
-                   break;
+            case AuthenticationStage.MD5:
+                // Read salt used when encrypting the password
+                SendPasswordAuthentication(message.ReadBytes(4));
+                break;
 
-                default:
-                    throw new NotSupportedException();
+            default:
+                throw new NotSupportedException();
 
-                // case AuthenticationStage.GSS:
-                //     // The frontend must now initiate a GSSAPI negotiation.
-                //     // The frontend will send a PasswordMessage with the first part of the GSSAPI data stream in response to this.
-                //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
-                //     throw new NotSupportedException();
-                //     break;
+            // case AuthenticationStage.GSS:
+            //     // The frontend must now initiate a GSSAPI negotiation.
+            //     // The frontend will send a PasswordMessage with the first part of the GSSAPI data stream in response to this.
+            //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
+            //     throw new NotSupportedException();
+            //     break;
 
-                // case AuthenticationStage.GSSContinue:
-                //     // This message contains the response data from the previous step of GSSAPI or SSPI negotiation
-                //     // (AuthenticationGSS, AuthenticationSSPI or a previous AuthenticationGSSContinue).
-                //     // If the GSSAPI or SSPI data in this message indicates more data is needed to complete the authentication,
-                //     // the frontend must send that data as another PasswordMessage.
-                //     // If GSSAPI or SSPI authentication is completed by this message, the server will next send AuthenticationOk
-                //     // to indicate successful authentication or ErrorResponse to indicate failure.
-                //     throw new NotSupportedException();
-                //     break;
+            // case AuthenticationStage.GSSContinue:
+            //     // This message contains the response data from the previous step of GSSAPI or SSPI negotiation
+            //     // (AuthenticationGSS, AuthenticationSSPI or a previous AuthenticationGSSContinue).
+            //     // If the GSSAPI or SSPI data in this message indicates more data is needed to complete the authentication,
+            //     // the frontend must send that data as another PasswordMessage.
+            //     // If GSSAPI or SSPI authentication is completed by this message, the server will next send AuthenticationOk
+            //     // to indicate successful authentication or ErrorResponse to indicate failure.
+            //     throw new NotSupportedException();
+            //     break;
             }
         }
 
@@ -568,45 +568,45 @@ namespace PostgreSql.Data.Frontend
 
                 switch (type)
                 {
-                    case ErrorMessageParts.Severity:
-                        severity = value;
-                        break;
+                case ErrorMessageParts.Severity:
+                    severity = value;
+                    break;
 
-                    case ErrorMessageParts.Code:
-                        code = value;
-                        break;
+                case ErrorMessageParts.Code:
+                    code = value;
+                    break;
 
-                    case ErrorMessageParts.Message:
-                        emessage = value;
-                        break;
+                case ErrorMessageParts.Message:
+                    emessage = value;
+                    break;
 
-                    case ErrorMessageParts.Detail:
-                        detail = value;
-                        break;
+                case ErrorMessageParts.Detail:
+                    detail = value;
+                    break;
 
-                    case ErrorMessageParts.Hint:
-                        hint = value;
-                        break;
+                case ErrorMessageParts.Hint:
+                    hint = value;
+                    break;
 
-                    case ErrorMessageParts.Position:
-                        position = value;
-                        break;
+                case ErrorMessageParts.Position:
+                    position = value;
+                    break;
 
-                    case ErrorMessageParts.Where:
-                        where = value;
-                        break;
+                case ErrorMessageParts.Where:
+                    where = value;
+                    break;
 
-                    case ErrorMessageParts.File:
-                        file = value;
-                        break;
+                case ErrorMessageParts.File:
+                    file = value;
+                    break;
 
-                    case ErrorMessageParts.Line:
-                        line = Convert.ToInt32(value);
-                        break;
+                case ErrorMessageParts.Line:
+                    line = Convert.ToInt32(value);
+                    break;
 
-                    case ErrorMessageParts.Routine:
-                        routine = value;
-                        break;
+                case ErrorMessageParts.Routine:
+                    routine = value;
+                    break;
                 }
             }
 

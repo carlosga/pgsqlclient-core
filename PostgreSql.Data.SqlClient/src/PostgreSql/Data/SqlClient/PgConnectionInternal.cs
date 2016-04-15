@@ -39,7 +39,7 @@ namespace PostgreSql.Data.SqlClient
             {
                  return (_activeTransaction != null 
                       && _activeTransaction.IsAlive
-                      && _connection.TransactionStatus != TransactionStatus.Default); 
+                      && _connection.TransactionState != TransactionState.Default); 
             }
         }
 
