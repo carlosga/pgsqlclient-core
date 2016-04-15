@@ -637,17 +637,15 @@ namespace PostgreSql.Data.Frontend
                 rmessage = _connection.Read();
                 HandleSqlMessage(rmessage);
             }
-            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended);
+            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
 
             // If the command is finished and has returned rows
             // set all rows are received
-            _allRowsFetched = rmessage.IsCommandComplete;
+            _allRowsFetched = rmessage.IsCommandComplete || rmessage.IsEmptyQuery;
 
             // Update status
             ChangeState(StatementState.Executed);
         }
-        
-        private int _counter;
 
         private void CloseStatement()
         {
@@ -726,14 +724,13 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case BackendMessages.CommandComplete:
-                    ClosePortal();
                     ProcessTag(message);
+                    ClosePortal();
                     break;
 
                 case BackendMessages.EmptyQueryResponse:
                 case BackendMessages.NoData:
                     ClosePortal();
-                    ClearRows();
                     break;
 
                 // case BackendCodes.PARAMETER_DESCRIPTION:
@@ -764,6 +761,7 @@ namespace PostgreSql.Data.Frontend
                 case "UPDATE":
                 case "DELETE":
                 case "MOVE":
+                case "COPY":
                     _recordsAffected = Int32.Parse(elements[1]);
                     break;
             }
@@ -812,12 +810,10 @@ namespace PostgreSql.Data.Frontend
         {
             var count  = message.ReadInt16();
             var values = new object[count];
-
             for (int i = 0; i < count; ++i)
             {
                 values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
             }
-
             _rows.Enqueue(new DataRecord(_rowDescriptor, values));
         }
 

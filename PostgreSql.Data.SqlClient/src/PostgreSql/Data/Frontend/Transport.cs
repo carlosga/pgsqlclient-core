@@ -136,16 +136,10 @@ namespace PostgreSql.Data.Frontend
 
         internal MessageReader ReadMessage(SessionData sessionData)
         {
-            char type = (char)_stream.ReadByte();
-
-            if (type == BackendMessages.EmptyQueryResponse)
-            {
-                return null;
-            }
-
+            char   type   = (char)_stream.ReadByte();
             int    length = ReadInt32() - 4;
             byte[] buffer = null;
-            
+
             if (length > 0)
             {
                 buffer = new byte[length];
@@ -175,18 +169,18 @@ namespace PostgreSql.Data.Frontend
         {
             _stream.Read(_buffer, 0, 4);
 
-            return (_buffer[3])
-                 | (_buffer[2] <<  8)
-                 | (_buffer[1] << 16)
-                 | (_buffer[0] << 24);
+            return (_buffer[3] & 0xFF)
+                 | (_buffer[2] & 0xFF) <<  8
+                 | (_buffer[1] & 0xFF) << 16
+                 | (_buffer[0] & 0xFF) << 24;
         }
 
         private void Write(int value)
         {
-            _buffer[0] = (byte)(value >> 24);
-            _buffer[1] = (byte)(value >> 16);
-            _buffer[2] = (byte)(value >> 8);
-            _buffer[3] = (byte)(value);
+            _buffer[0] = (byte)((value >> 24) & 0xFF);
+            _buffer[1] = (byte)((value >> 16) & 0xFF);
+            _buffer[2] = (byte)((value >>  8) & 0xFF);
+            _buffer[3] = (byte)((value      ) & 0xFF);
 
             _stream.Write(_buffer, 0, 4);
         }

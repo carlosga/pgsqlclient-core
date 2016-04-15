@@ -20,6 +20,7 @@ namespace PostgreSql.Data.Frontend
         internal int  Position          => _position;
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
         internal bool IsCommandComplete => (_messageType == BackendMessages.CommandComplete);
+        internal bool IsEmptyQuery      => (_messageType == BackendMessages.EmptyQueryResponse);
         internal bool IsPortalSuspended => (_messageType == BackendMessages.PortalSuspended);
         internal bool IsNoData          => (_messageType == BackendMessages.NoData);
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
