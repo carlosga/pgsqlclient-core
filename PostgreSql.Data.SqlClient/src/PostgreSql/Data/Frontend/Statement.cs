@@ -388,12 +388,12 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
-                // Sync
-                _connection.Sync();
-                ReadUntilReadyForQuery();
-
                 // Close current statement
                 Close(STATEMENT, _parseName);
+
+                // Sync state
+                _connection.Sync();
+                ReadUntilReadyForQuery();
 
                 // Reset has rows flag
                 _hasRows = false;
@@ -605,7 +605,7 @@ namespace PostgreSql.Data.Frontend
                 rmessage = _connection.Read();
                 HandleMessage(rmessage);
             }
-            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended);
+            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
         }
 
         private void ClosePortal()
@@ -626,13 +626,10 @@ namespace PostgreSql.Data.Frontend
             message.Write(type);
             message.WriteNullString(name);
 
-            // Send message to the server
             _connection.Send(message);
-
-            // Flush pending messages
             _connection.Flush();
 
-            // Read until CLOSE COMPLETE message is received
+            // Read until IS READY FOR QUERY message is received
             MessageReader rmessage = null;
 
             do
@@ -663,13 +660,15 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case BackendMessages.CommandComplete:
-                ProcessTag(message);
                 ClosePortal();
+                ProcessTag(message);
+                ChangeState(StatementState.Prepared);
                 break;
 
             case BackendMessages.EmptyQueryResponse:
             case BackendMessages.NoData:
                 _rows.Clear();
+                _hasRows = false;
                 break;
             }
         }
@@ -677,7 +676,7 @@ namespace PostgreSql.Data.Frontend
         private void ProcessTag(MessageReader message)
         {
             _tag = message.ReadNullString();
-            
+
             string[] elements = _tag.Split(' ');
 
             switch (elements[0])
@@ -758,7 +757,6 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 message = _connection.Read();
-
                 HandleMessage(message);
             }
             while (!message.IsReadyForQuery);

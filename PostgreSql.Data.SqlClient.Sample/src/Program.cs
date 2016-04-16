@@ -30,6 +30,15 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
             //csb.CommandTimeout           = 10000;
+
+            using (PgConnection connection = new PgConnection(csb.ToString()))
+            {
+                connection.Open();
+                using (PgTransaction transaction = connection.BeginTransaction())
+                {
+                    
+                }
+            }
         }
 
         static void composite_type_test()
