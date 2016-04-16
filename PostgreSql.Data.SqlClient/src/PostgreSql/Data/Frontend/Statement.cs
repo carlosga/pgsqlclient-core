@@ -480,8 +480,6 @@ namespace PostgreSql.Data.Frontend
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
             }
 
-            Console.WriteLine(_parsedStatementText);
-
             // Parse the statement query
             var message = _connection.CreateMessage(FrontendMessages.Parse);
 
