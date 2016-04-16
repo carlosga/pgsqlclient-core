@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Threading;
+using System.Text;
 using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -28,58 +30,6 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
             //csb.CommandTimeout           = 10000;
-
-        [Fact]
-        public static void HasRowsTest()
-        {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-            {
-                conn.Open();
-                string sqlBatch =
-                    "select * from orders limit 10;" +
-                    "select * from orders limit  5;" +
-                    "select * from orders limit  0;";
-
-                using (PgCommand cmd = new PgCommand(sqlBatch, conn))
-                {
-                    PgDataReader reader;
-                    using (reader = cmd.ExecuteReader())
-                    {
-                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");
-                        while (reader.Read())
-                        {
-                            Assert.True(reader.HasRows, "FAILED: Failure #2: HasRows");
-                        }
-                        Assert.True(reader.HasRows, "FAILED: Failure #3: HasRows");
-
-                        Assert.True(reader.NextResult(), "FAILED: Failure #3.5: NextResult");
-
-                        Assert.True(reader.HasRows, "FAILED: Failure #4: HasRows");
-                        while (reader.Read())
-                        {
-                            Assert.True(reader.HasRows, "FAILED: Failure #5: HasRows");
-                        }
-                        Assert.True(reader.HasRows, "FAILED: Failure #6: HasRows");
-
-                        Assert.True(reader.NextResult(), "FAILED: Failure #6.5: NextResult");
-
-                        Assert.False(reader.HasRows, "FAILED: Failure #7: HasRows");
-                        while (reader.Read())
-                        {
-                            Assert.False(reader.HasRows, "FAILED: Failure #8: HasRows");
-                        }
-                        Assert.False(reader.HasRows, "FAILED: Failure #9: HasRows");
-
-                        Assert.False(reader.NextResult(), "FAILED: Failure #9.5: NextResult");
-
-                        Assert.False(reader.HasRows, "FAILED: Failure #10: HasRows");
-                    }
-
-                    bool result;
-                    string errorMessage = "Invalid attempt to read when no data is present.";
-                    DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => result = reader.HasRows, errorMessage);
-                }
-            }
         }
 
         static void composite_type_test()

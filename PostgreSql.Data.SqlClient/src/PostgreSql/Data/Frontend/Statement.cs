@@ -480,6 +480,8 @@ namespace PostgreSql.Data.Frontend
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
             }
 
+            Console.WriteLine(_parsedStatementText);
+
             // Parse the statement query
             var message = _connection.CreateMessage(FrontendMessages.Parse);
 
@@ -618,7 +620,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (name == null || name.Length == 0)
             {
-                throw new ArgumentException("The name of the statement or portal to be closed is not valid");
+                return;
             }
 
             var message = _connection.CreateMessage(FrontendMessages.Close);
