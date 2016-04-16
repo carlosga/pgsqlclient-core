@@ -95,7 +95,7 @@ namespace PostgreSql.Data.Frontend
             else
             {
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                EnsureCapacity(buffer.Length);
+                EnsureCapacity(buffer.Length + 1);
                 Write(buffer);
                 WriteByte(0);
             }
@@ -147,6 +147,8 @@ namespace PostgreSql.Data.Frontend
 
         internal void WriteTimeTZ(DateTimeOffset value)
         {
+            EnsureCapacity(12);
+
             Write((long)(value.TimeOfDay.TotalMilliseconds * 1000));
             Write((int)(value.Offset.TotalSeconds));
         } 
@@ -224,8 +226,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == System.DBNull.Value || value == null)
             {
-                // -1 indicates a NULL argument value
-                Write(-1);
+                Write(-1);  // -1 indicates a NULL value
                 return;
             }
 
@@ -362,7 +363,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void WriteTo(Stream stream)
         {
-            // Save the current position
             int length = _position;
 
             Seek(_offset);

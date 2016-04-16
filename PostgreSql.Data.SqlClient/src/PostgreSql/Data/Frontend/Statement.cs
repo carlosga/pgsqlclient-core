@@ -13,8 +13,8 @@ namespace PostgreSql.Data.Frontend
     internal sealed class Statement
         : IDisposable
     {
-        private const char STATEMENT = 'S';
-        private const char PORTAL    = 'P'; 
+        private const byte STATEMENT = (byte)'S';
+        private const byte PORTAL    = (byte)'P'; 
 
         private Connection            _connection;
         private string                _statementText;
@@ -98,6 +98,7 @@ namespace PostgreSql.Data.Frontend
             _parameters       = PgParameterCollection.Empty;
             _parameterIndices = new List<int>();
             _rowDescriptor    = new RowDescriptor();
+            _hasRows          = false;
 
             StatementText     = statementText;
             FetchSize         = 200;
@@ -123,11 +124,12 @@ namespace PostgreSql.Data.Frontend
                 _tag              = null;
                 _parseName        = null;
                 _portalName       = null;
-                _recordsAffected  = -1;
                 _rowDescriptor    = null;
                 _rows             = null;
                 _parameters       = null;
                 _parameterIndices = null;
+                _hasRows          = false;
+                _recordsAffected  = -1;
 
                 _disposed = true;
             }
@@ -389,7 +391,7 @@ namespace PostgreSql.Data.Frontend
                 _connection.Lock();
 
                 // Close current statement
-                Close(STATEMENT, _parseName);
+                Close(STATEMENT);
 
                 // Sync state
                 _connection.Sync();
@@ -504,18 +506,14 @@ namespace PostgreSql.Data.Frontend
         private void DescribeStatement() => Describe(STATEMENT);
         private void DescribePortal()    => Describe(PORTAL);
 
-        private void Describe(char type)
+        private void Describe(byte type)
         {
-            var name    = ((type == STATEMENT) ? _parseName : _portalName);
             var message = _connection.CreateMessage(FrontendMessages.Describe);
 
-            message.Write(type);
-            message.WriteNullString(name);
+            message.WriteByte(type);
+            message.WriteNullString(((type == STATEMENT) ? _parseName : _portalName));
 
-            // Send packet to the server
             _connection.Send(message);
-
-            // Flush pending messages
             _connection.Flush();
 
             // Process response
@@ -590,10 +588,7 @@ namespace PostgreSql.Data.Frontend
                 message.Write(_fetchSize);
             }
 
-            // Send message
             _connection.Send(message);
-
-            // Flush pending messages
             _connection.Flush();
 
             // Process response
@@ -609,12 +604,14 @@ namespace PostgreSql.Data.Frontend
 
         private void ClosePortal()
         {
-            Close(PORTAL, _portalName);
+            Close(PORTAL);
             ChangeState(StatementState.Prepared);
         }
 
-        private void Close(char type, string name)
+        private void Close(byte type)
         {
+            var name = ((type == STATEMENT) ? _parseName : _portalName);
+
             if (name == null || name.Length == 0)
             {
                 return;
@@ -622,13 +619,13 @@ namespace PostgreSql.Data.Frontend
 
             var message = _connection.CreateMessage(FrontendMessages.Close);
 
-            message.Write(type);
+            message.WriteByte(type);
             message.WriteNullString(name);
 
             _connection.Send(message);
             _connection.Flush();
 
-            // Read until IS READY FOR QUERY message is received
+            // Read until CLOSE COMPLETE message is received
             MessageReader rmessage = null;
 
             do

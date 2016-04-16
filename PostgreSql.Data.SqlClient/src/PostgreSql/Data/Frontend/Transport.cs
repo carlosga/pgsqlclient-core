@@ -158,7 +158,6 @@ namespace PostgreSql.Data.Frontend
         {
             _stream.WriteByte(type);
             Write(4);
-            _stream.Flush();
         }
 
         internal void WriteMessage(MessageWriter message)
