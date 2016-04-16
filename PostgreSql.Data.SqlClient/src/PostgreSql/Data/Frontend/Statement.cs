@@ -308,7 +308,7 @@ namespace PostgreSql.Data.Frontend
                 // Send the format code for the function result
                 message.Write((short)TypeFormat.Binary);
 
-                // Send packet to the server
+                // Send message
                 _connection.Send(message);
 
                 // Process response
@@ -340,10 +340,10 @@ namespace PostgreSql.Data.Frontend
 
                 message.WriteNullString(_statementText);
 
-                // Send packet to the server
+                // Send message
                 _connection.Send(message);
 
-                // Process response messages
+                // Process response
                 ReadUntilReadyForQuery();
 
                 // Update status
@@ -516,7 +516,6 @@ namespace PostgreSql.Data.Frontend
             _connection.Send(message);
             _connection.Flush();
 
-            // Process response
             MessageReader rmessage = null;
 
             do
@@ -539,14 +538,14 @@ namespace PostgreSql.Data.Frontend
             // Parameter count
             var parameterCount = (short)_parameterIndices.Count;
 
-            // Send parameters format code.
+            // Parameter format code.
             message.Write(parameterCount);
             for (int i = 0; i < parameterCount; ++i)
             {
                 message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
             }
 
-            // Send parameter values
+            // Parameter value
             message.Write(parameterCount);
             for (int i = 0; i <parameterCount; ++i)
             {
@@ -554,7 +553,7 @@ namespace PostgreSql.Data.Frontend
                 message.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
             }
 
-            // Send column information
+            // Column information
             var fieldCount = (short)_rowDescriptor.Count;
             message.Write(fieldCount);
             for (int i = 0; i < fieldCount; ++i)
@@ -562,7 +561,7 @@ namespace PostgreSql.Data.Frontend
                 message.Write(_rowDescriptor[i].TypeInfo.FormatCode);
             }
 
-            // Send packet to the server
+            // Send message
             _connection.Send(message);
         }
 
