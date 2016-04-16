@@ -105,7 +105,6 @@ namespace PostgreSql.Data.Frontend
         {
             if (value.Length == 0)
             {
-                EnsureCapacity(4);
                 Write(0);
             }
             else
@@ -126,9 +125,7 @@ namespace PostgreSql.Data.Frontend
             else
             {
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                
                 EnsureCapacity(buffer.Length + 4);
-
                 Write(buffer.Length);
                 Write(buffer);
             }

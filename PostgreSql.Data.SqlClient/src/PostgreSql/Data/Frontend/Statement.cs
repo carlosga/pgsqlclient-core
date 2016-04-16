@@ -553,7 +553,6 @@ namespace PostgreSql.Data.Frontend
             for (int i = 0; i <parameterCount; ++i)
             {
                 var param = _parameters[_parameterIndices[i]];
-
                 message.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
             }
 

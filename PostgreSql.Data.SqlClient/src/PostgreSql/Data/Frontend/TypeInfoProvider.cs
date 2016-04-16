@@ -98,8 +98,8 @@ namespace PostgreSql.Data.Frontend
             
             // time [ (p) ] with time zone | 12 bytes | times of day only, with time zone | 00:00:00+1459 | 24:00:00-1459 | 1 microsecond / 14 digits
 
-            types[1266] = new TypeInfo(1266, "timetz"  , "timetz" , PgDbType.TimeTZ, TypeFormat.Binary, typeof(DateTimeOffset), typeof(TimeSpan), 12);
-            types[1270] = new TypeInfo(1270, "timetz[]", "_timetz", PgDbType.Array , types[1266], typeof(DateTimeOffset[]), typeof(TimeSpan));
+            types[1266] = new TypeInfo(1266, "timetz"  , "timetz" , PgDbType.TimeTZ, TypeFormat.Binary, typeof(DateTimeOffset), typeof(PgTime), 12);
+            types[1270] = new TypeInfo(1270, "timetz[]", "_timetz", PgDbType.Array , types[1266], typeof(DateTimeOffset[]), typeof(PgTime));
 
             // interval [ fields ] [ (p) ] | 16 bytes | time interval | -178000000 years | 178000000 years | 1 microsecond / 14 digits
 
