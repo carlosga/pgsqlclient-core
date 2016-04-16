@@ -31,12 +31,16 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.PacketSize               = Int16.MaxValue;
             //csb.CommandTimeout           = 10000;
 
+            string tempTable = "T" + Math.Abs(Guid.NewGuid().GetHashCode()).ToString();
+
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
-                using (PgTransaction transaction = connection.BeginTransaction())
+
+                using (PgCommand cmd = connection.CreateCommand())
                 {
-                    
+                    cmd.CommandText = $"SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {tempTable} from authors where au_id='UNKNOWN-ID'";
+                    cmd.ExecuteNonQuery();
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageWriter
     {
-        private readonly char        _messageType;
+        private readonly byte        _messageType;
         private readonly SessionData _sessionData;
         private readonly int         _initialCapacity;
         private readonly int         _offset;
@@ -18,11 +18,11 @@ namespace PostgreSql.Data.Frontend
         private byte[] _buffer;
         private int    _position;
 
-        internal char MessageType => _messageType;
+        internal byte MessageType => _messageType;
         internal int  Position    => _position;
         internal int  Length      => _buffer.Length;
 
-        internal MessageWriter(char messageType, SessionData sessionData)
+        internal MessageWriter(byte messageType, SessionData sessionData)
         {
             _messageType     = messageType;
             _sessionData     = sessionData;
@@ -33,7 +33,7 @@ namespace PostgreSql.Data.Frontend
 
             if (_messageType != FrontendMessages.Untyped)
             {
-                _buffer[0] = (byte)_messageType;
+                _buffer[0] = _messageType;
             }
         }
 
@@ -88,28 +88,30 @@ namespace PostgreSql.Data.Frontend
 
         internal void WriteNullString(string value)
         {
-            EnsureCapacity(value.Length + 1);
-
-            if (value != null && value.Length > 0)
+            if (value == null || value.Length == 0)
             {
-                Write(_sessionData.ClientEncoding.GetBytes(value));
+                WriteByte(0);
             }
-
-            WriteByte(0);
+            else
+            {
+                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
+                EnsureCapacity(buffer.Length);
+                Write(buffer);
+                WriteByte(0);
+            }
         }
 
         internal void Write(string value)
         {
             if (value.Length == 0)
             {
+                EnsureCapacity(4);
                 Write(0);
             }
             else
             {
                 byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                
                 EnsureCapacity(buffer.Length + 4);
-
                 Write(buffer.Length);
                 Write(buffer);
             }

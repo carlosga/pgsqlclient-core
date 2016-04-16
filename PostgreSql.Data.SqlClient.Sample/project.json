@@ -6,7 +6,6 @@
         "platform"        : "x64"
     },
     "dependencies": {
-        "NETStandard.Library": "1.5.0-rc2-*",
         "Microsoft.NETCore.App": {
             "type": "platform",
             "version": "1.0.0-rc2-3002392"

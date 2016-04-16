@@ -662,7 +662,6 @@ namespace PostgreSql.Data.Frontend
             case BackendMessages.CommandComplete:
                 ClosePortal();
                 ProcessTag(message);
-                ChangeState(StatementState.Prepared);
                 break;
 
             case BackendMessages.EmptyQueryResponse:

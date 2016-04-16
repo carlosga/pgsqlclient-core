@@ -136,9 +136,9 @@ namespace PostgreSql.Data.Frontend
 
         internal MessageReader ReadMessage(SessionData sessionData)
         {
-            char   type   = (char)_stream.ReadByte();
-            int    length = ReadInt32() - 4;
             byte[] buffer = null;
+            byte   type   = (byte)_stream.ReadByte();
+            int    length = ReadInt32() - 4;
 
             if (length > 0)
             {
@@ -154,10 +154,11 @@ namespace PostgreSql.Data.Frontend
             return new MessageReader(type, buffer, sessionData);
         }
 
-        internal void WriteMessage(char type)
+        internal void WriteMessage(byte type)
         {
-            _stream.WriteByte((byte)type);
+            _stream.WriteByte(type);
             Write(4);
+            _stream.Flush();
         }
 
         internal void WriteMessage(MessageWriter message)

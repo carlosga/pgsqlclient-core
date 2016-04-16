@@ -9,13 +9,13 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageReader
     {
-        private readonly char        _messageType;
+        private readonly byte        _messageType;
         private readonly byte[]      _buffer;
         private readonly SessionData _sessionData;
 
         private int _position;
 
-        internal char MessageType       => _messageType;
+        internal byte MessageType       => _messageType;
         internal int  Length            => _buffer.Length;
         internal int  Position          => _position;
         internal bool IsRowDescription  => (_messageType == BackendMessages.RowDescription);
@@ -26,7 +26,7 @@ namespace PostgreSql.Data.Frontend
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
-        internal MessageReader(char messageType, byte[] contents, SessionData sessionData)
+        internal MessageReader(byte messageType, byte[] contents, SessionData sessionData)
         {
             _messageType = messageType;
             _buffer      = contents;

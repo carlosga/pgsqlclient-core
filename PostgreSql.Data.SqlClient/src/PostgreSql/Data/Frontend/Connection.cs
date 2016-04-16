@@ -309,7 +309,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal MessageWriter CreateMessage(char type) => new MessageWriter(type, _sessionData);
+        internal MessageWriter CreateMessage(byte type) => new MessageWriter(type, _sessionData);
 
         internal MessageReader Read()
         {
@@ -318,21 +318,7 @@ namespace PostgreSql.Data.Frontend
             switch (message.MessageType)
             {
             case BackendMessages.ReadyForQuery:
-                switch (message.ReadChar())
-                {
-                case 'T':
-                    _transactionState = TransactionState.Active;
-                    break;
-
-                case 'E':
-                    _transactionState = TransactionState.Broken;
-                    break;
-
-                case 'I':
-                default:
-                    _transactionState = TransactionState.Default;
-                    break;
-                }
+                UpdateTransactionState(message.ReadChar());
                 break;
 
             case BackendMessages.NotificationResponse:
@@ -629,6 +615,25 @@ namespace PostgreSql.Data.Frontend
             var additional = message.ReadNullString();
 
             Notification?.Invoke(processId, condition, additional);
+        }
+
+        private void UpdateTransactionState(char state)
+        {
+            switch (state)
+            {
+            case 'T':
+                _transactionState = TransactionState.Active;
+                break;
+
+            case 'E':
+                _transactionState = TransactionState.Broken;
+                break;
+
+            case 'I':
+            default:
+                _transactionState = TransactionState.Default;
+                break;
+            }
         }
 
         private void HandleParameterStatus(MessageReader message)

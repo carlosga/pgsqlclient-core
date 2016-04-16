@@ -5,26 +5,26 @@ namespace PostgreSql.Data.Frontend
 {
     internal static class BackendMessages
     {
-        internal const char Authentication       = 'R';
-        internal const char BackendKeyData       = 'K';
-        internal const char BindComplete         = '2';
-        internal const char CloseComplete        = '3';
-        internal const char CommandComplete      = 'C';
-        internal const char CopyDone             = 'c';
-        internal const char CopyInResponse       = 'G';
-        internal const char CopyOutResponse      = 'H';
-        internal const char DataRow              = 'D';
-        internal const char EmptyQueryResponse   = 'I';
-        internal const char ErrorResponse        = 'E';
-        internal const char FunctionCallResponse = 'V';
-        internal const char NoData               = 'n';
-        internal const char NoticeResponse       = 'N';
-        internal const char NotificationResponse = 'A';
-        internal const char ParameterDescription = 't';
-        internal const char ParameterStatus      = 'S';
-        internal const char ParseComplete        = '1';
-        internal const char PortalSuspended      = 's';
-        internal const char ReadyForQuery        = 'Z';
-        internal const char RowDescription       = 'T';
+        internal const byte Authentication       = (byte)'R';
+        internal const byte BackendKeyData       = (byte)'K';
+        internal const byte BindComplete         = (byte)'2';
+        internal const byte CloseComplete        = (byte)'3';
+        internal const byte CommandComplete      = (byte)'C';
+        internal const byte CopyDone             = (byte)'c';
+        internal const byte CopyInResponse       = (byte)'G';
+        internal const byte CopyOutResponse      = (byte)'H';
+        internal const byte DataRow              = (byte)'D';
+        internal const byte EmptyQueryResponse   = (byte)'I';
+        internal const byte ErrorResponse        = (byte)'E';
+        internal const byte FunctionCallResponse = (byte)'V';
+        internal const byte NoData               = (byte)'n';
+        internal const byte NoticeResponse       = (byte)'N';
+        internal const byte NotificationResponse = (byte)'A';
+        internal const byte ParameterDescription = (byte)'t';
+        internal const byte ParameterStatus      = (byte)'S';
+        internal const byte ParseComplete        = (byte)'1';
+        internal const byte PortalSuspended      = (byte)'s';
+        internal const byte ReadyForQuery        = (byte)'Z';
+        internal const byte RowDescription       = (byte)'T';
     }
 }

@@ -5,19 +5,19 @@ namespace PostgreSql.Data.Frontend
 {
     internal static class FrontendMessages
     {
-        internal const char Bind            = 'B';
-        internal const char Close           = 'C';
-        internal const char CopyData        = 'd';
-        internal const char CopyFail        = 'f';
-        internal const char Describe        = 'D';
-        internal const char Execute         = 'E';
-        internal const char Flush           = 'H';
-        internal const char FunctionCall    = 'F';
-        internal const char Parse           = 'P';
-        internal const char PasswordMessage = 'p';
-        internal const char Query           = 'Q';
-        internal const char Sync            = 'S';
-        internal const char Terminate       = 'X';
-        internal const char Untyped         = ' ';
+        internal const byte Bind            = (byte)'B';
+        internal const byte Close           = (byte)'C';
+        internal const byte CopyData        = (byte)'d';
+        internal const byte CopyFail        = (byte)'f';
+        internal const byte Describe        = (byte)'D';
+        internal const byte Execute         = (byte)'E';
+        internal const byte Flush           = (byte)'H';
+        internal const byte FunctionCall    = (byte)'F';
+        internal const byte Parse           = (byte)'P';
+        internal const byte PasswordMessage = (byte)'p';
+        internal const byte Query           = (byte)'Q';
+        internal const byte Sync            = (byte)'S';
+        internal const byte Terminate       = (byte)'X';
+        internal const byte Untyped         = (byte)' ';
     }
 }
