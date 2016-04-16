@@ -22,16 +22,17 @@ namespace PostgreSql.Data.Frontend
         private string                _tag;
         private string                _parseName;
         private string                _portalName;
+        private int                   _fetchSize;
         private int                   _recordsAffected;
+        private bool                  _hasRows;
         private RowDescriptor         _rowDescriptor;
         private Queue<DataRecord>     _rows;
         private StatementState        _state;
         private PgParameterCollection _parameters;
         private CommandType           _commandType;
         private List<int>             _parameterIndices;
-        private int                   _fetchSize;
 
-        internal bool           HasRows         => (!_rows.IsEmpty() || IsExecuting);
+        internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
         internal int            RecordsAffected => _recordsAffected;
         internal RowDescriptor  RowDescriptor   => _rowDescriptor;
@@ -394,6 +395,9 @@ namespace PostgreSql.Data.Frontend
                 // Close current statement
                 Close(STATEMENT, _parseName);
 
+                // Reset has rows flag
+                _hasRows = false;
+
                 // Clear remaing rows
                 _rows.Clear();
 
@@ -433,7 +437,7 @@ namespace PostgreSql.Data.Frontend
             {
                 stmt.Query();
 
-                while (stmt.HasRows)
+                while (_rows.Count > 0)
                 {
                     var row = stmt.FetchRow();
 
@@ -454,6 +458,9 @@ namespace PostgreSql.Data.Frontend
 
         private void Parse()
         {
+            // Reset has rows flag
+            _hasRows = false;
+
             // Clear row data
             _rows.Clear();
 
@@ -518,7 +525,7 @@ namespace PostgreSql.Data.Frontend
             {
                 rmessage = _connection.Read();
                 HandleMessage(rmessage);
-            } while (!rmessage.IsRowDescription);
+            } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
         }
 
         private void Bind()
@@ -741,6 +748,7 @@ namespace PostgreSql.Data.Frontend
                 values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
             }
             _rows.Enqueue(new DataRecord(_rowDescriptor, values));
+            _hasRows = true;
         }
 
         private void ReadUntilReadyForQuery()

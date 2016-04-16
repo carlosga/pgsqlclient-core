@@ -6,12 +6,12 @@
         "platform"        : "x64"
     },
     "dependencies": {
-        "NETStandard.Library": "1.5.0-rc3-*",
+        "NETStandard.Library": "1.5.0-rc2-*",
         "Microsoft.NETCore.App": {
             "type": "platform",
             "version": "1.0.0-rc2-3002392"
         },
-        "System.Net.NetworkInformation": "4.1.0-rc3-*",
+        "System.Net.NetworkInformation": "4.1.0-rc2-*",
         "PostgreSql.Data.SqlClient": {
             "target"  : "project",
             "version" : "0.0.1"

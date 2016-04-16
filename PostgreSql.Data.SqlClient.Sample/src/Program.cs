@@ -14,6 +14,74 @@ namespace PostgreSql.Data.SqlClient.Sample
             pgsqlclient_test();
         }
 
+        static void pgsqlclient_test()
+        {
+            var csb = new PgConnectionStringBuilder();
+
+            csb.DataSource               = "localhost";
+            csb.InitialCatalog           = "pubs";
+            csb.UserID                   = "pubs";
+            csb.Password                 = "pubs";
+            csb.PortNumber               = 5432;
+            csb.Encrypt                  = false;
+            csb.Pooling                  = false;
+            csb.MultipleActiveResultSets = true;
+            csb.PacketSize               = Int16.MaxValue;
+            //csb.CommandTimeout           = 10000;
+
+        [Fact]
+        public static void HasRowsTest()
+        {
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            {
+                conn.Open();
+                string sqlBatch =
+                    "select * from orders limit 10;" +
+                    "select * from orders limit  5;" +
+                    "select * from orders limit  0;";
+
+                using (PgCommand cmd = new PgCommand(sqlBatch, conn))
+                {
+                    PgDataReader reader;
+                    using (reader = cmd.ExecuteReader())
+                    {
+                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");
+                        while (reader.Read())
+                        {
+                            Assert.True(reader.HasRows, "FAILED: Failure #2: HasRows");
+                        }
+                        Assert.True(reader.HasRows, "FAILED: Failure #3: HasRows");
+
+                        Assert.True(reader.NextResult(), "FAILED: Failure #3.5: NextResult");
+
+                        Assert.True(reader.HasRows, "FAILED: Failure #4: HasRows");
+                        while (reader.Read())
+                        {
+                            Assert.True(reader.HasRows, "FAILED: Failure #5: HasRows");
+                        }
+                        Assert.True(reader.HasRows, "FAILED: Failure #6: HasRows");
+
+                        Assert.True(reader.NextResult(), "FAILED: Failure #6.5: NextResult");
+
+                        Assert.False(reader.HasRows, "FAILED: Failure #7: HasRows");
+                        while (reader.Read())
+                        {
+                            Assert.False(reader.HasRows, "FAILED: Failure #8: HasRows");
+                        }
+                        Assert.False(reader.HasRows, "FAILED: Failure #9: HasRows");
+
+                        Assert.False(reader.NextResult(), "FAILED: Failure #9.5: NextResult");
+
+                        Assert.False(reader.HasRows, "FAILED: Failure #10: HasRows");
+                    }
+
+                    bool result;
+                    string errorMessage = "Invalid attempt to read when no data is present.";
+                    DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => result = reader.HasRows, errorMessage);
+                }
+            }
+        }
+
         static void composite_type_test()
         {
             var csb = new PgConnectionStringBuilder();
@@ -129,55 +197,6 @@ namespace PostgreSql.Data.SqlClient.Sample
                 //     }
                 // }
             }
-        }
-
-        static void pgsqlclient_test()
-        {
-            var csb = new PgConnectionStringBuilder();
-
-            csb.DataSource               = "localhost";
-            csb.InitialCatalog           = "northwind";
-            csb.UserID                   = "northwind";
-            csb.Password                 = "northwind";
-            csb.PortNumber               = 5432;
-            csb.Encrypt                  = false;
-            csb.Pooling                  = false;
-            csb.MultipleActiveResultSets = true;
-            csb.PacketSize               = Int16.MaxValue;
-            //csb.CommandTimeout           = 10000;
-
-            int count = 0;
-
-            using (var conn = new PgConnection(csb.ToString()))
-            {  
-                conn.Open();
-
-                using (var command = conn.CreateCommand())
-                {
-                    command.FetchSize   = 2000;
-                    // command.CommandText = "select * from pg_attribute a cross join pg_attribute b limit 2000";
-                    command.CommandText = "select * from pg_type";
-
-                    Stopwatch stopWatch = new Stopwatch();
-                    stopWatch.Start();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read()) { ++count; }
-                    }
-
-                    stopWatch.Stop();
-
-                    TimeSpan ts = stopWatch.Elapsed;
-
-                    string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                        ts.Hours, ts.Minutes, ts.Seconds,
-                        ts.Milliseconds / 10);
-                    Console.WriteLine("RunTime " + elapsedTime);
-                }
-            }
-
-            Console.WriteLine($"Finished {count}");
         }
     }
 }

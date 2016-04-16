@@ -561,7 +561,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     PgDataReader reader;
                     using (reader = cmd.ExecuteReader())
                     {
-                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");                        
+                        Assert.True(reader.HasRows, "FAILED: Failure #1: HasRows");
                         while (reader.Read())
                         {
                             Assert.True(reader.HasRows, "FAILED: Failure #2: HasRows");

@@ -47,9 +47,10 @@ namespace PostgreSql.Data.Schema
                 command.Prepare();
                 command.ExecuteReader();
 
-                while (command.HasRows)
+                DataRecord row = null;
+
+                while ((row = command.FetchRow()) != null)
                 {
-                    var row        = command.FetchRow();
                     var schema     = row.GetString(0);
                     var typoid     = row.GetInt32(1);
                     var arroid     = row.GetInt32(2);
