@@ -19,6 +19,9 @@ namespace PostgreSql.Data.PgTypes
     }
 
     /// Immutable struct representing a PostgreSQL date value.
+    /// References:
+    /// http://www.stiltner.org/book/bookcalc.htm
+    /// http://www.cs.otago.ac.nz/cosc345/resources/Fliegel.pdf
     [StructLayout(LayoutKind.Sequential)]
     public struct PgDate
         : IComparable<PgDate>, IComparable, IEquatable<PgDate>, IFormattable
