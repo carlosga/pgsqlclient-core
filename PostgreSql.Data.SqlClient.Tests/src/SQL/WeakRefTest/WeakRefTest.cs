@@ -43,7 +43,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TransactionGCConnectionClose,
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void TestReaderNonMars()
         {
             string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
@@ -67,7 +67,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestReaderNonMarsCase("Case 15: ExecuteReader, GC, Connection Close, BeginTransaction.", connString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.BeginTransaction);
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void TestTransactionSingle()
         {
             string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";

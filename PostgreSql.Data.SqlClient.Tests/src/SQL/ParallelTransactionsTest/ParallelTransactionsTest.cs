@@ -22,7 +22,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 exceptionMessage: expectedErrorMessage);
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;

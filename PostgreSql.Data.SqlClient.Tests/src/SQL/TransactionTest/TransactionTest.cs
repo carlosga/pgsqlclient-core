@@ -12,7 +12,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public class TransactionTest
     {
-        [Fact(Skip="disabled")]
+        [Fact]
         public void TestPostgreSql9()
         {
             new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind).StartTest();
