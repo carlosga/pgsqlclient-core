@@ -18,7 +18,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
-        [Fact(Skip="disabled")]
+        [Fact(Skip = "disabled")]
         public static void MARSAsyncTimeoutTest()
         {
             using (PgConnection connection = new PgConnection(s_ConnectionString))
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 #endif
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncBusyReaderTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -131,7 +131,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncExecuteNonQueryTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -153,7 +153,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncExecuteReaderTest1()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -204,8 +204,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncExecuteReaderTest2()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -228,7 +227,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncExecuteReaderTest3()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -263,7 +262,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MARSSyncExecuteReaderTest4()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))

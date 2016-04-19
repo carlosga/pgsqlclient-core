@@ -11,7 +11,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public class ParallelTransactionsTest
     {
-        [Fact(Skip="disabled")]
+        [Fact]
         public void BasicParallelTestShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;

@@ -19,7 +19,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public static class DataStreamTest
     {
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void MultipleResults()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void InvalidRead()
         {
             using (PgConnection c = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -103,7 +103,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void VariantRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -142,7 +142,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void TypeRead()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -252,7 +252,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void OutOfOrderGetChars()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -329,7 +329,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         //     }
         // }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void RowBuffer()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -357,7 +357,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void TimestampRead()
         {
             string tempTable = DataTestClass.GetUniqueName("__", String.Empty, String.Empty);
@@ -400,7 +400,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void BufferSize()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -437,7 +437,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void OrphanReader()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -498,7 +498,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void NumericRead()
         {
             string tempTable = DataTestClass.GetUniqueName("TEMP_", "", "");
@@ -543,7 +543,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void HasRowsTest()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -639,7 +639,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         //     }
         // }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void CloseConnection()
         {
             using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -663,7 +663,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void OpenConnection()
         {
             // Isolates OpenConnection behavior for sanity testing on x-plat
@@ -674,7 +674,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void GetStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -762,7 +762,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void GetTextReader()
         {
             string[] queryStrings =
@@ -914,7 +914,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 //             }
 //         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void ReadStream()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
@@ -992,7 +992,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void ReadTextReader()
         {
             CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
@@ -1081,7 +1081,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void StreamingBlobDataTypes()
         {
             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
