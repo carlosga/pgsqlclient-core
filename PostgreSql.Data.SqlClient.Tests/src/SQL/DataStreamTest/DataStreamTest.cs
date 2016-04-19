@@ -724,20 +724,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                             reader.GetBytes(6, 0, buffer, 0, buffer.Length);
                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-// #if DEBUG
-//                             // GetStream while async is pending
-//                             Task t = null;
-//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-//                             {
-//                                 t = reader.ReadAsync();
-//                                 Assert.False(t.Wait(1), "FAILED: Read completed immediately");
-//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(8));
-//                             }
-//                             t.Wait();
-
-//                             // GetStream after Read 
-//                             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetStream(0));
-// #endif
                         }
 
                         // IsDBNull + GetStream
@@ -820,21 +806,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                                 reader.GetChars(6, 0, buffer, 0, buffer.Length);
                                 SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-                                
-// #if DEBUG
-//                                 // GetTextReader while async is pending
-//                                 Task t = null;
-//                                 using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-//                                 {
-//                                     t = reader.ReadAsync();
-//                                     Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
-//                                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(8));
-//                                 }
-//                                 t.Wait();
-
-//                                 // GetTextReader after Read 
-//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetTextReader(0));
-// #endif
                             }
                             
                             // IsDBNull + GetTextReader
@@ -1149,7 +1120,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             proxy.SimulatedOutDelay = true;
             try
             {
-                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind + ";Command Timeout=1"))
                 {
                     // Start the command
                     conn.Open();
@@ -1162,6 +1133,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                             // Start reading, and then force a timeout
                             Task<bool> task = reader.ReadAsync();
                             proxy.PauseCopying();
+
                             // Before the timeout occurs, but after ReadAsync has started waiting for a packet, close the reader
                             Thread.Sleep(200);
                             Task closeTask = Task.Run(() => reader.Dispose());
@@ -1190,10 +1162,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             // Create the proxy
             ProxyServer proxy = ProxyServer.CreateAndStartProxy(connectionString, out connectionString);
             proxy.SimulatedPacketDelay = 100;
-            proxy.SimulatedOutDelay = true;
+            proxy.SimulatedOutDelay    = true;
             try
             {
-                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind + ";Command Timeout=1"))
                 {
                     // Start the command
                     conn.Open();

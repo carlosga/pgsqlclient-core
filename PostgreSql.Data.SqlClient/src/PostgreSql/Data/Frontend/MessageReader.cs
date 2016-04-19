@@ -268,7 +268,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private Array ReadArray(TypeInfo type, int length)
+        private Array ReadArray(TypeInfo typeInfo, int length)
         {
             // Read number of dimensions
             int dimensions = ReadInt32();
@@ -286,7 +286,7 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = TypeInfoProvider.GetTypeInfo(oid);
+            var elementType = TypeInfoProvider.GetType(oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)

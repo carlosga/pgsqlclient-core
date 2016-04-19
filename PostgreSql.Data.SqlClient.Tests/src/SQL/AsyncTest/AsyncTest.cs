@@ -19,7 +19,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         public static void ExecuteTest()
         {
             var connStr = DataTestClass.PostgreSql9_Northwind;
-            var com     = new PgCommand("select * from Orders");
+            var com     = new PgCommand("select * from orders");
             var con     = new PgConnection(connStr);
 
             com.Connection = con;

@@ -40,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         
         private static RandomizerPool _randPool;
 
-        [Fact(Skip = "disabled")]
+        [Fact]
         public static void TestMain()
         {
             _operationCanceledErrorMessage = "Operation cancelled by user.";
