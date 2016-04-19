@@ -101,9 +101,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                         case ReaderTestType.ReaderClose:
                             gch.Dispose();
                             break;
+
                         case ReaderTestType.ReaderDispose:
                             gch.Dispose();
                             break;
+
                         case ReaderTestType.ReaderGC:
                             weak = OpenNullifyReader(cmd);
                             GC.Collect();
@@ -121,7 +123,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                             weak = OpenNullifyReader(cmd);
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
-
                             Assert.False(weak.IsAlive, "Reader is still alive!");
                             con.Close();
                             con.Open();
@@ -168,8 +169,9 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 PgTransaction gch = null;
                 if ((testType != TransactionTestType.TransactionGC) && (testType != TransactionTestType.TransactionGCConnectionClose))
+                {
                     gch = con.BeginTransaction();
-
+                }
                 switch (testType)
                 {
                     case TransactionTestType.TransactionRollback:
@@ -184,9 +186,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                         weak = OpenNullifyTransaction(con);
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
-
                         Assert.False(weak.IsAlive, "Transaction is still alive!");
                         break;
+
                     case TransactionTestType.ConnectionClose:
                         GC.SuppressFinalize(gch);
                         con.Close();
@@ -197,7 +199,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                         weak = OpenNullifyTransaction(con);
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
-
                         Assert.False(weak.IsAlive, "Transaction is still alive!");
                         con.Close();
                         con.Open();
