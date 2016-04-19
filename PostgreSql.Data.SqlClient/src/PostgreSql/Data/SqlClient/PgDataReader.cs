@@ -237,7 +237,7 @@ namespace PostgreSql.Data.SqlClient
         public DateTimeOffset GetDateTimeOffset(int i)
         {
             CheckPosition();
-            return _row.GetDateTime(i);
+            return _row.GetDateTimeOffset(i);
         }
 
         public override Decimal GetDecimal(int i)

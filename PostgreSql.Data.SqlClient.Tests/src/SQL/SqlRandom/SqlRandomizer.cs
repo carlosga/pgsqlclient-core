@@ -424,11 +424,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// generates random, but valid datetimeoffset value for SQL Server
+        /// generates random, but valid datetimeoffset value for PostgreSQL
         /// </summary>
         public DateTimeOffset NextDateTimeOffset()
         {
             return NextDateTime(DateTime.MinValue, DateTime.MaxValue);
+        }
+
+        /// <summary>
+        /// generates random, but valid time with time zone value for PostgreSQL
+        /// </summary>
+        public DateTimeOffset NextTimeTZ()
+        {
+            return NextDateTime(new DateTime(1, 1, 2, 0, 0, 0, 0), new DateTime(1, 1, 2, 23, 59, 59, 999));
         }
 
         /// <summary>

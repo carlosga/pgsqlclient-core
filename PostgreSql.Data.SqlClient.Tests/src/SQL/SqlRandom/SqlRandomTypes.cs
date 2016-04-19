@@ -654,22 +654,22 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
-            return rand.NextTime();
+            return rand.NextTimeTZ();
         }
 
         protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
-            ValidateReadType(typeof(TimeSpan), asType);
+            ValidateReadType(typeof(DateTimeOffset), asType);
             if (reader.IsDBNull(ordinal))
             {
                 return DBNull.Value;
             }
-            return reader.GetTimeSpan(ordinal);
+            return reader.GetDateTimeOffset(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
         {
-            return CompareValues<TimeSpan>(expected, actual);
+            return CompareValues<DateTimeOffset>(expected, actual);
         }
     }
 

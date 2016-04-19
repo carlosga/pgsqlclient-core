@@ -70,12 +70,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (columnInfo == null)
             {
-                throw new ArgumentNullException("columnInfo");   
+                throw new ArgumentNullException("columnInfo");
             }
-
             if (Type != columnInfo.Type)
             {
-                throw new ArgumentException("Type mismatch");   
+                throw new ArgumentException("Type mismatch");
             }
         }
 
@@ -199,7 +198,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             if (isNullActual || isNullExpected)
             {
-                return false; // only one is null, but not both   
+                return false; // only one is null, but not both
             }
 
             if (expectedType == null)
@@ -210,7 +209,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             // both not null
             if (expectedType != expected.GetType())
             {
-                throw new ArgumentException("Wrong type!");   
+                throw new ArgumentException("Wrong type!");
             }
 
             return (expectedType == actual.GetType());
@@ -330,7 +329,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             bool bothDbNull;
             if (!CompareDbNullAndType(typeof(T), expected, actual, out bothDbNull) || bothDbNull)
             {
-                return bothDbNull;   
+                return bothDbNull;
             }
             return expected.Equals(actual);
         }
@@ -343,9 +342,22 @@ namespace PostgreSql.Data.SqlClient.Tests
             bool bothDbNull;
             if (!CompareDbNullAndType(typeof(byte[]), expected, actual, out bothDbNull) || bothDbNull)
             {
-                return bothDbNull;   
+                return bothDbNull;
             }
             return CompareByteArray((byte[])expected, (byte[])actual, allowIncomplete, paddingValue);
+        }
+
+        /// <summary>
+        /// validates that the actual value is DbNull or char array and compares it to expected
+        /// </summary>
+        protected bool CompareCharArray(object expected, object actual, bool allowIncomplete, char paddingValue = ' ')
+        {
+            bool bothDbNull;
+            if (!CompareDbNullAndType(typeof(char[]), expected, actual, out bothDbNull) || bothDbNull)
+            {
+                return bothDbNull;
+            }
+            return CompareCharArray((char[])expected, (char[])actual, allowIncomplete, paddingValue);
         }
 
         /// <summary>
@@ -362,19 +374,6 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         /// <summary>
-        /// validates that the actual value is DbNull or char array and compares it to expected
-        /// </summary>
-        protected bool CompareCharArray(object expected, object actual, bool allowIncomplete, char paddingValue = ' ')
-        {
-            bool bothDbNull;
-            if (!CompareDbNullAndType(typeof(char[]), expected, actual, out bothDbNull) || bothDbNull)
-            {
-                return bothDbNull;   
-            }
-            return CompareCharArray((char[])expected, (char[])actual, allowIncomplete, paddingValue);
-        }
-
-        /// <summary>
         /// helper method to reads date from the reader
         /// </summary>
         protected object ReadDate(PgDataReader reader, int ordinal, Type asType)
@@ -382,7 +381,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(PgDate), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetPgDate(ordinal);
         }
@@ -395,17 +394,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             ValidateReadType(typeof(DateTime), asType);
             if (reader.IsDBNull(ordinal))
             {
-                return DBNull.Value;   
+                return DBNull.Value;
             }
             return reader.GetDateTime(ordinal);
-        }
-
-        protected void ValidateReadType(Type expectedType, Type readAsType)
-        {
-            if (readAsType != expectedType && readAsType != typeof(DBNull))
-            {
-                throw new ArgumentException("Wrong type: " + readAsType.FullName);   
-            }
         }
 
         /// <summary>
@@ -422,6 +413,14 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         protected abstract object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType);
+
+        protected void ValidateReadType(Type expectedType, Type readAsType)
+        {
+            if (readAsType != expectedType && readAsType != typeof(DBNull))
+            {
+                throw new ArgumentException("Wrong type: " + readAsType.FullName);   
+            }
+        }
 
         /// <summary>
         /// used to check if this column can be compared; returns true by default (timestamp and column set columns return false)
@@ -449,7 +448,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             string expectedAsString = IsNullOrDbNull(expected) ? "null" : "\"" + ValueAsString(columnInfo, expected) + "\"";
             string actualAsString = IsNullOrDbNull(actual) ? "null" : "\"" + ValueAsString(columnInfo, actual) + "\"";
-            
+
             return string.Format(CultureInfo.InvariantCulture,
                 "  Column type: {0}\n" +
                 "  Expected value: {1}\n" +

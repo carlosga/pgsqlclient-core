@@ -131,11 +131,13 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        const int TicksPerMicrosecond = 10;
+
         internal void Write(decimal value)  => Write(value.ToString(TypeInfoProvider.InvariantCulture));
         internal void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(PgDate value)   => Write(value.DaysSinceEpoch);
-        internal void Write(TimeSpan value) => Write((long)(value.TotalMilliseconds * 1000));
+        internal void Write(TimeSpan value) => Write((long)(value.Ticks / TicksPerMicrosecond));
         internal void Write(DateTime value) => Write((long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000));
         internal void Write(PgInterval value)
         {
@@ -149,7 +151,7 @@ namespace PostgreSql.Data.Frontend
         {
             EnsureCapacity(12);
 
-            Write((long)(value.TimeOfDay.TotalMilliseconds * 1000));
+            Write(value.TimeOfDay);
             Write((int)(value.Offset.TotalSeconds));
         } 
 

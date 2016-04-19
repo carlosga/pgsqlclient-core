@@ -115,16 +115,13 @@ namespace PostgreSql.Data.Frontend
         internal decimal     ReadMoney()     => ((decimal)ReadInt64() / 100);
         internal double      ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
         internal PgDate      ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
-        internal TimeSpan    ReadTime()      => TimeSpan.FromMilliseconds(ReadInt64() * 0.001);
+        internal TimeSpan    ReadTime()      => new TimeSpan(ReadInt64() * 10);
         internal DateTime    ReadTimestamp() => PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
         internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
 
         internal DateTimeOffset ReadTimeWithTZ()
         {
-            var time = ReadTime();
-            var tz   = TimeSpan.FromSeconds(ReadInt32());
-
-            return new DateTimeOffset(1, 1, 1, time.Hours, time.Minutes, time.Seconds, tz); 
+            return new DateTimeOffset(ReadInt64() * 10, TimeSpan.FromSeconds(ReadInt32()));
         }
 
         internal DateTimeOffset ReadTimestampWithTZ()
