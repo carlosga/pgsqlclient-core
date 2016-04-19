@@ -44,7 +44,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TransactionGCConnectionClose,
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void TestReaderMars()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
@@ -68,7 +68,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestReaderMarsCase("Case 14: ExecuteReader*5 GC, Connection Close, BeginTransaction.", connectionString, ReaderTestType.ReaderGCConnectionClose, ReaderVerificationType.BeginTransaction);
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void TestTransactionSingle()
         {
             string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";

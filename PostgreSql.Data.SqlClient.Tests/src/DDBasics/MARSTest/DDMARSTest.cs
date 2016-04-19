@@ -13,10 +13,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void ParametrizedMarsTest()
         {
-            string connstr = DataTestClass.PostgreSql9_Northwind + "multipleactiveresultsets=true;";
-            string sql     = "SELECT @1; SELECT @2; SELECT @3;";
-            int[]  values  = new int[] { 1, 2, 3 };
-            int    index   = 0;
+            string connstr  = DataTestClass.PostgreSql9_Northwind + "multipleactiveresultsets=true;";
+            string sql      = "SELECT @1; SELECT @2; SELECT @3;";
+            int[]  expected = new int[] { 1, 2, 3 };
+            int    index    = 0;
             
             using (PgConnection connection = new PgConnection(connstr))
             {
@@ -24,16 +24,16 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 using (PgCommand command = new PgCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@1", values[0]);
-                    command.Parameters.AddWithValue("@2", values[1]);
-                    command.Parameters.AddWithValue("@3", values[2]);
+                    command.Parameters.AddWithValue("@1", expected[0]);
+                    command.Parameters.AddWithValue("@2", expected[1]);
+                    command.Parameters.AddWithValue("@3", expected[2]);
 
                     using (PgDataReader reader = command.ExecuteReader())
                     {
                         do 
                         {
                             Assert.True(reader.Read());
-                            Assert.Equal(values[index++], reader.GetInt32(0));
+                            Assert.Equal(expected[index++], reader.GetInt32(0));
                         } while (reader.NextResult());
                     }
                 }

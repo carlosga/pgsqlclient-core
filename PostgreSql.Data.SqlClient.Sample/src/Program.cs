@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
-using System.Threading;
-using System.Text;
+using System.Threading.Tasks;
 using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -14,6 +11,8 @@ namespace PostgreSql.Data.SqlClient.Sample
         {
             // composite_type_test();
             pgsqlclient_test();
+
+            Console.WriteLine("Finished");
         }
 
         static void pgsqlclient_test()
@@ -21,9 +20,9 @@ namespace PostgreSql.Data.SqlClient.Sample
             var csb = new PgConnectionStringBuilder();
 
             csb.DataSource               = "localhost";
-            csb.InitialCatalog           = "pubs";
-            csb.UserID                   = "pubs";
-            csb.Password                 = "pubs";
+            csb.InitialCatalog           = "northwind";
+            csb.UserID                   = "northwind";
+            csb.Password                 = "northwind";
             csb.PortNumber               = 5432;
             csb.Encrypt                  = false;
             csb.Pooling                  = false;
@@ -31,17 +30,14 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.PacketSize               = Int16.MaxValue;
             //csb.CommandTimeout           = 10000;
 
-            string tempTable = "T" + Math.Abs(Guid.NewGuid().GetHashCode()).ToString();
-
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
 
-                using (PgCommand cmd = connection.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {tempTable} from authors where au_id='UNKNOWN-ID'";
-                    cmd.ExecuteNonQuery();
-                }
+                PgCommand cmd = new PgCommand("SELECT RAISE_NOTICE('1')", connection);
+                cmd.ExecuteNonQuery();
+
+                cmd.ExecuteNonQuery();
             }
         }
 

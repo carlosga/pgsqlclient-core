@@ -20,7 +20,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             var asyncConnectionString = DataTestClass.PostgreSql9_Pubs + "async=true";
             Assert.Throws<NotSupportedException>(() => { new PgConnection(asyncConnectionString); });
         }
-        
+
         [Fact]
         public void ExecuteCommand_WithNewConnection_ShouldPerformAsyncByDefault()
         {
@@ -34,8 +34,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             //verify whether it executed async
             Assert.True(DoesProcessExecutedAsync(executedProcessList));
-        }       
-        
+        }
+
         [Fact]
         public void ExecuteCommand_WithSharedConnection_ShouldPerformAsyncByDefault()
         {

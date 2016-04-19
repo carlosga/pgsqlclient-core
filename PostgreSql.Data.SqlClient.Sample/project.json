@@ -8,9 +8,8 @@
     "dependencies": {
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002392"
+            "version": "1.0.0-rc2-3002416"
         },
-        "System.Net.NetworkInformation": "4.1.0-rc2-*",
         "PostgreSql.Data.SqlClient": {
             "target"  : "project",
             "version" : "0.0.1"

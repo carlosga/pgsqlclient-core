@@ -38,8 +38,9 @@ namespace PostgreSql.Data.Frontend
         internal RowDescriptor  RowDescriptor   => _rowDescriptor;
         internal StatementState State           => _state;
 
-        internal bool IsPrepared  => _state == StatementState.Prepared || IsExecuting;
+        internal bool IsPrepared  => _state == StatementState.Prepared || IsExecuting || IsSuspended;
         internal bool IsExecuting => _state == StatementState.Executing;
+        internal bool IsSuspended => _state == StatementState.Suspended;
         internal bool IsCancelled => _state == StatementState.Cancelled;
 
         internal CommandType CommandType
@@ -366,7 +367,7 @@ namespace PostgreSql.Data.Frontend
                 return null;
             }
 
-            if (!IsCancelled && IsExecuting && _rows.Count == 0)
+            if (!IsCancelled && IsSuspended && _rows.Count == 0)
             {
                 Execute();  // Fetch next group of rows
             }
@@ -527,6 +528,11 @@ namespace PostgreSql.Data.Frontend
 
         private void Bind()
         {
+            if (IsSuspended)
+            {
+                ClosePortal();
+            }
+
             var message = _connection.CreateMessage(FrontendMessages.Bind);
 
             // Destination portal name
@@ -599,6 +605,12 @@ namespace PostgreSql.Data.Frontend
                 HandleMessage(rmessage);
             }
             while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
+
+            if (behavior.HasBehavior(CommandBehavior.SingleResult)
+             || behavior.HasBehavior(CommandBehavior.SingleRow))
+            {
+                ClosePortal();
+            }
         }
 
         private void ClosePortal()
@@ -652,6 +664,10 @@ namespace PostgreSql.Data.Frontend
 
             case BackendMessages.FunctionCallResponse:
                 ProcessFunctionResult(message);
+                break;
+
+            case BackendMessages.PortalSuspended:
+                ChangeState(StatementState.Suspended);
                 break;
 
             case BackendMessages.CommandComplete:

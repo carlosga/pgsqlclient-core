@@ -30,7 +30,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        // [Fact]
+        // [Fact(Skip="disabled")]
         // public static void ReaderParameterTest()
         // {
         //     string tempTable  = "#t_"  + Guid.NewGuid().ToString().Replace('-', '_');

@@ -52,11 +52,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                 connection.InfoMessage -= handler;
                 cmd.ExecuteNonQuery();
             }
-            
+
             Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void ExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void VariousExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -113,7 +113,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void IndependentConnectionExceptionTest()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;

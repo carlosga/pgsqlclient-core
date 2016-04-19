@@ -42,14 +42,14 @@ namespace PostgreSql.Data.SqlClient.Tests
             con.Close();
         }
 
-        [Fact(Skip="disabled")]
+        [Fact(Skip = "disabled")]
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql9_Northwind;
             bool failure       = false;
             bool taskCompleted = false;
 
-            var com = new PgCommand("select * from Orders");
+            var com = new PgCommand("select * from orders");
             var con = new PgConnection(connStr + "pooling=false");
             
             com.Connection = con;
@@ -66,7 +66,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 agrEx.Handle(
                     (ex) =>
                     {
-                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteNonQueryAsync was not an InvalidOperationException" + ex.Message);
+                        Assert.True(ex is InvalidOperationException, "FAILED: Thrown exception for ExecuteNonQueryAsync was not an InvalidOperationException: " + ex.Message);
                         failure = true;
                         return true;
                     });

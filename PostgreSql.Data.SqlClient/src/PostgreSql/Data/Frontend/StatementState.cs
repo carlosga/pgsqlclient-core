@@ -8,6 +8,7 @@ namespace PostgreSql.Data.Frontend
         Default
       , Prepared
       , Executing
+      , Suspended
       , Cancelled
     }
 }

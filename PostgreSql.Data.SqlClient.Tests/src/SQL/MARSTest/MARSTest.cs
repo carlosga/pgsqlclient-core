@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 #endif
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncBusyReaderTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -131,7 +131,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncExecuteNonQueryTest()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -153,7 +153,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncExecuteReaderTest1()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -205,7 +205,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncExecuteReaderTest2()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -228,7 +228,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncExecuteReaderTest3()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))
@@ -263,7 +263,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public static void MARSSyncExecuteReaderTest4()
         {
             using (PgConnection conn = new PgConnection(s_ConnectionString))

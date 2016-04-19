@@ -11,7 +11,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public class ParallelTransactionsTest
     {
-        [Fact]
+        [Fact(Skip="disabled")]
         public void BasicParallelTestShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;
@@ -22,7 +22,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 exceptionMessage: expectedErrorMessage);
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported()
         {
             string connectionString     = DataTestClass.PostgreSql9_Pubs;

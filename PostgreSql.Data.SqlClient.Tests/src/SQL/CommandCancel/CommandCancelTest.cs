@@ -17,7 +17,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         // Shrink the packet size - this should make timeouts more likely
         private static string s_constr = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { PacketSize = 512 }).ConnectionString;
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public void MultiThreadedCancel_NonAsync()
         {
             MultiThreadedCancel(s_constr, false);
@@ -29,7 +29,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             TimeoutCancel(s_constr);
         }
 
-        [Fact]
+        [Fact(Skip="disabled")]
         public void CancelAndDisposePreparedCommand()
         {
             CancelAndDisposePreparedCommand(s_constr);

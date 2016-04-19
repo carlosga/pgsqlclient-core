@@ -185,17 +185,6 @@ namespace PostgreSql.Data.Frontend
             {
                 ReleaseLock();
 
-                if (_activeSemaphore != null)
-                {
-                    _activeSemaphore.Dispose();
-                    _activeSemaphore = null;
-                }
-                if (_cancelRequestSemaphore != null)
-                {
-                    _cancelRequestSemaphore.Dispose();
-                    _cancelRequestSemaphore = null;
-                }
-
                 _connectionOptions      = null;
                 _sessionData            = null;
                 _transactionState       = TransactionState.Default;

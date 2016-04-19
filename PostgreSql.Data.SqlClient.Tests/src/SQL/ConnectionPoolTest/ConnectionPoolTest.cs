@@ -28,25 +28,25 @@ namespace PostgreSql.Data.SqlClient.Tests
 //             PrepareConnectionStrings(DataTestClass.SQL2008_Northwind, out _nwnd10Tcp, out _nwnd10TcpMars, out _nwnd10Np, out _nwnd10NpMars);
 //         }
 
-//         [Fact]
+//         [Fact(Skip="disabled")]
 //         public void ConnectionPool_Nwnd9()
 //         {
 //             RunDataTestForSingleConnString(_nwnd9Tcp, _nwnd9Np, false);
 //         }
 
-//         [Fact]
+//         [Fact(Skip="disabled")]
 //         public void ConnectionPool_Nwnd9Mars()
 //         {
 //             RunDataTestForSingleConnString(_nwnd9TcpMars, _nwnd9NpMars, false);
 //         }
 
-//         [Fact]
+//         [Fact(Skip="disabled")]
 //         public void ConnectionPool_Nwnd10()
 //         {
 //             RunDataTestForSingleConnString(_nwnd10Tcp, _nwnd10Np, true);
 //         }
 
-//         [Fact]
+//         [Fact(Skip="disabled")]
 //         public void ConnectionPool_Nwnd10Mars()
 //         {
 //             RunDataTestForSingleConnString(_nwnd10TcpMars, _nwnd10NpMars, true);
