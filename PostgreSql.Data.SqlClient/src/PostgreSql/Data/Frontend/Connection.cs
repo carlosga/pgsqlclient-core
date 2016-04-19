@@ -590,8 +590,11 @@ namespace PostgreSql.Data.Frontend
              || error.Severity == ErrorSeverity.Fatal
              || error.Severity == ErrorSeverity.Panic)
             {
-                Sync();
-                ReadUntilReadyForQuery();
+                if (_open)
+                {
+                    Sync();
+                    ReadUntilReadyForQuery();
+                }
 
                 throw exception;
             }

@@ -56,7 +56,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             Assert.True(hitWarnings, "FAILED: Should have received warnings from this query");
         }
 
-        [Fact(Skip="disabled. hanging")]
+        [Fact]
         public static void ExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
         }
 
-        [Fact(Skip="disabled. hanging")]
+        [Fact]
         public static void VariousExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql9_Northwind;
