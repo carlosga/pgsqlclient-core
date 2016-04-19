@@ -23,7 +23,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             MultiThreadedCancel(s_constr, false);
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public void TimeoutCancel()
         {
             TimeoutCancel(s_constr);
@@ -65,7 +65,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private void TimeoutCancel(string constr)
         {
-            using (PgConnection con = new PgConnection(constr))
+            using (PgConnection con = new PgConnection(constr + ";Command Timeout=1"))
             {
                 con.Open();
                 PgCommand cmd = con.CreateCommand();
@@ -73,7 +73,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                 cmd.CommandTimeout = 1;
                 cmd.CommandText    = "SELECT pg_sleep(30);SELECT * FROM customers";
 
-                string errorMessage = "Timeout expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.";
+                // string errorMessage = "Timeout expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.";
+                string errorMessage = "canceling statement due to statement timeout";
                 DataTestClass.ExpectFailure<PgException>(() => cmd.ExecuteReader(), errorMessage);
 
                 VerifyConnection(cmd);

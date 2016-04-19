@@ -390,7 +390,7 @@ namespace PostgreSql.Data.Frontend
             if (_connectionOptions.CommandTimeout > 0)
             {
                 message.WriteNullString("statement_timeout");
-                message.WriteNullString(_connectionOptions.CommandTimeout.ToString(TypeInfoProvider.InvariantCulture));
+                message.WriteNullString($"{_connectionOptions.CommandTimeout}s");
             }
 
             // lock_timeout (milliseconds)

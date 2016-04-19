@@ -463,7 +463,7 @@ namespace PostgreSql.Data.SqlClient
                     try
                     {
                         var result = InternalExecuteScalar();
-                        if (result != null)
+                        if (result != null && errors.Count == 0)
                         {
                             return result;
                         }

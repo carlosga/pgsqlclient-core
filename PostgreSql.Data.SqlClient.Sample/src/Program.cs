@@ -28,16 +28,44 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
-            //csb.CommandTimeout           = 10000;
+            csb.CommandTimeout           = 1;
 
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
+                PgCommand command = new PgCommand("SELECT pg_sleep(2);SELECT 1", connection);
+                command.CommandTimeout = 2;
+                bool hitException = false;
+                try
+                {
+                    object result = command.ExecuteScalar();
+                }
+                catch (Exception e)
+                {
+                    //Assert.True(e is PgException, "Expected PgException but found " + e);
+                    hitException = true;
+                    Console.WriteLine(e.Message);
+                }
+                //Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
 
-                PgCommand cmd = new PgCommand("SELECT RAISE_NOTICE('1')", connection);
-                cmd.ExecuteNonQuery();
+                //Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
 
-                cmd.ExecuteNonQuery();
+                hitException = false;
+
+                PgCommand command2 = new PgCommand("SELECT pg_sleep(2);SELECT 1", connection);
+                command2.CommandTimeout = 2;
+                try
+                {
+                    object result = command2.ExecuteScalar();
+                }
+                catch (Exception e)
+                {
+                    //Assert.True(e is PgException, "Expected PgException but found " + e);
+                    hitException = true;
+                }
+                //Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
+
+                //Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
         }
 

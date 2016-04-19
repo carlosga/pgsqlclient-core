@@ -18,10 +18,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
-        [Fact(Skip = "disabled")]
+        [Fact]
         public static void MARSAsyncTimeoutTest()
         {
-            using (PgConnection connection = new PgConnection(s_ConnectionString))
+            using (PgConnection connection = new PgConnection(s_ConnectionString + ";command timeout=1"))
             {
                 connection.Open();
                 PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
@@ -41,14 +41,15 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 // Pause here to ensure that the async closing is completed
                 Thread.Sleep(200);
-                Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
+#warning Original test expects the connection to be closed
+                Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after hard timeout, but it was {0}", connection.State));
             }
         }
 
-        [Fact(Skip="Enable when command timeouts are available")]
+        [Fact]
         public static void MARSSyncTimeoutTest()
         {
-            using (PgConnection connection = new PgConnection(s_ConnectionString))
+            using (PgConnection connection = new PgConnection(s_ConnectionString + ";command timeout=1"))
             {
                 connection.Open();
                 PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
@@ -82,7 +83,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                 }
                 Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
 
-                Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
+#warning Original test expects the connection to be closed
+                Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after hard timeout, but it was {0}", connection.State));
             }
         }
 #endif
