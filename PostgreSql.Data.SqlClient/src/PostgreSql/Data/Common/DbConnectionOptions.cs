@@ -55,6 +55,8 @@ namespace System.Data.Common
         internal string UserID                     => _userId;
         internal int    LoadBalanceTimeout         => _loadBalanceTimeout;
 
+        internal bool   IsEmpty => String.IsNullOrEmpty(_connectionString);  
+
         internal DbConnectionOptions(string connectionString)
         {
             if (connectionString == null)

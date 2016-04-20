@@ -30,7 +30,7 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
 
-            int count = 0;
+            // int count = 0;
 
             using (var connection = new PgConnection(csb.ToString()))
             {
@@ -38,26 +38,26 @@ namespace PostgreSql.Data.SqlClient.Sample
                 {
                     connection.Open();
 
-                    command.FetchSize = 10000;   // Fetch size
+                    // command.FetchSize = 10000;   // Fetch size
 
-                    Stopwatch stopWatch = new Stopwatch();
-                    stopWatch.Start();
+                    // Stopwatch stopWatch = new Stopwatch();
+                    // stopWatch.Start();
 
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read()) { ++count; if (count % 10000 == 0) { Console.WriteLine(count); } }
-                    }
+                    // using (var reader = command.ExecuteReader())
+                    // {
+                    //     while (reader.Read()) { ++count; if (count % 10000 == 0) { Console.WriteLine(count); } }
+                    // }
 
-                    stopWatch.Stop();
-                    // Get the elapsed time as a TimeSpan value.
-                    TimeSpan ts = stopWatch.Elapsed;
+                    // stopWatch.Stop();
+                    // // Get the elapsed time as a TimeSpan value.
+                    // TimeSpan ts = stopWatch.Elapsed;
 
-                    // Format and display the TimeSpan value.
-                    string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                        ts.Hours, ts.Minutes, ts.Seconds,
-                        ts.Milliseconds / 10);
-                    Console.WriteLine("RunTime " + elapsedTime);
-                    Console.WriteLine("Row count " + count);
+                    // // Format and display the TimeSpan value.
+                    // string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    //     ts.Hours, ts.Minutes, ts.Seconds,
+                    //     ts.Milliseconds / 10);
+                    // Console.WriteLine("RunTime " + elapsedTime);
+                    // Console.WriteLine("Row count " + count);
                 }
             }
         }

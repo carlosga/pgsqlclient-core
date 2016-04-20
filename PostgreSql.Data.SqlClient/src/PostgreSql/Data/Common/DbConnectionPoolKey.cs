@@ -12,6 +12,12 @@ namespace System.Data.Common
     {
         private string _connectionString;
 
+        internal virtual string ConnectionString
+        {
+            get { return _connectionString; }
+            set { _connectionString = value; }
+        }
+
         internal DbConnectionPoolKey(string connectionString)
         {
             _connectionString = connectionString;
@@ -25,12 +31,6 @@ namespace System.Data.Common
         internal virtual DbConnectionPoolKey Clone()
         {
             return new DbConnectionPoolKey(this);
-        }
-
-        internal virtual string ConnectionString
-        {
-            get { return _connectionString; }
-            set { _connectionString = value; }
         }
 
         public override bool Equals(object obj)

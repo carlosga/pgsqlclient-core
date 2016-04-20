@@ -6,8 +6,11 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Data.ProviderBase;
+using System.Diagnostics;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -19,42 +22,61 @@ namespace PostgreSql.Data.SqlClient
         public event RemoteCertificateValidationCallback UserCertificateValidation;
         public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
-        private PgConnectionInternal _innerConnection;
-        private ConnectionState      _state;
-        private string               _connectionString;
-        private DbConnectionOptions  _connectionOptions;
+        private DbConnectionInternal  _innerConnection;
+        private DbConnectionOptions   _connectionOptions;
+        private DbConnectionPoolGroup _poolGroup;
+        private string                _connectionString;
+        private int                   _closeCount;
+        private bool                  _applyTransientFaultHandling;
 
+        internal DbConnectionFactory ConnectionFactory => PgConnectionFactory.SingletonInstance;
+
+        public static void ClearAllPools()
+        {
+            PgConnectionFactory.SingletonInstance.ClearAllPools();
+        }
+
+        public static void ClearPool(PgConnection connection)
+        {
+            ADP.CheckArgumentNull(connection, nameof(connection));
+
+            var connectionOptions = connection.ConnectionOptions;
+            if (connectionOptions != null)
+            {
+                PgConnectionFactory.SingletonInstance.ClearPool(connection);
+            }
+        }
+        
         public override string ConnectionString
         {
-            get { return _connectionString; }
+            get { return InternalGetConnectionString(); }
             set
             {
-                if (IsClosed)
-                {
-                    _connectionString  = value;
-                    _connectionOptions = new DbConnectionOptions(_connectionString);
-                }
+                InternalSetConnectionString(value);
+                _connectionString = value;
             }
         }
 
-        public override string          ServerVersion            => _innerConnection?.ServerVersion;
-        public override string          Database                 => _connectionOptions?.Database;
-        public override string          DataSource               => _connectionOptions?.DataSource;
-        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
-        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
-        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
-        public          string          SearchPath               => (_connectionOptions?.SearchPath);
-        public override ConnectionState State                    => _state;
+        public override string ServerVersion            => _innerConnection?.ServerVersion;
+        public override string Database                 => _connectionOptions?.Database;
+        public override string DataSource               => _connectionOptions?.DataSource;
+        public override int    ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
+        public          int    PacketSize               => (_connectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
+        public          bool   MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
+        public          string SearchPath               => (_connectionOptions?.SearchPath);
+        
+        public override ConnectionState State => _innerConnection.State;
 
-        internal PgConnectionInternal  InnerConnection => _innerConnection;
-        internal bool                  ForceNewConnection { get; set; }
-        internal DbConnectionPoolGroup PoolGroup { get; set; }
+        internal DbConnectionInternal InnerConnection   => _innerConnection;
+        internal DbConnectionOptions  ConnectionOptions => ((_poolGroup != null) ? _poolGroup.ConnectionOptions : null);
 
-        internal bool IsClosed     => (_state == ConnectionState.Closed);
-        internal bool IsOpen       => (_state == ConnectionState.Open);
-        internal bool IsConnecting => (_state == ConnectionState.Connecting);
+        internal bool ForceNewConnection { get; set; }
 
-        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
+        internal DbConnectionPoolGroup PoolGroup
+        { 
+            get { return _poolGroup; }
+            set { _poolGroup = value; }
+        }
 
         public PgConnection()
             : this(null)
@@ -64,7 +86,7 @@ namespace PostgreSql.Data.SqlClient
         public PgConnection(string connectionString)
             : base()
         {
-            _state           = ConnectionState.Closed;
+            _innerConnection = DbConnectionClosedNeverOpened.SingletonInstance;
             ConnectionString = connectionString ?? String.Empty;
         }
 
@@ -121,96 +143,31 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw new InvalidOperationException("Connection String is not initialized.");
             }
-            if (!IsClosed)
+
+            if (!TryOpen(null))
             {
-                throw new InvalidOperationException("Connection already open, or is broken.");
-            }
-
-            try
-            {
-                ChangeState(ConnectionState.Connecting);
-
-                // Open connection
-                if (_connectionOptions.Pooling)
-                {
-                    _innerConnection = PgPoolManager.Instance.GetPool(_connectionString).CheckOut();
-                }
-                else
-                {
-                    _innerConnection = new PgConnectionInternal(_connectionOptions);
-                }
-
-                if (_innerConnection.Encrypt)
-                {
-                    // Add SSL callback handlers
-                    _innerConnection.Connection.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
-                    _innerConnection.Connection.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
-                }
-
-                // Add Info message event handler
-                _innerConnection.Connection.InfoMessage = new InfoMessageCallback(OnInfoMessage);
-
-                // Add notification event handler
-                _innerConnection.Connection.Notification = new NotificationCallback(OnNotification);
-
-                // Connect
-                _innerConnection.Open(this);
-
-                // Set connection state to Open
-                ChangeState(ConnectionState.Open);
-            }
-            catch (Exception)
-            {
-                ChangeState(ConnectionState.Broken);
-                throw;
+#warning TODO: Throw exception
             }
         }
 
         public override void Close()
         {
-            if (!IsOpen)
-            {
-                return;
-            }
-
-            try
-            {
-                _innerConnection.Close();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                ChangeState(ConnectionState.Closed);
-            }
+            _innerConnection.CloseConnection(this, ConnectionFactory);
         }
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
 
         public new PgTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
-            if (IsClosed)
-            {
-                throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
-            }
-            if (_innerConnection.HasActiveTransaction)
-            {
-                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
-            }
-
-            return _innerConnection.BeginTransaction(isolationLevel, null);
+            return _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
         }
 
         public PgTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            if (IsClosed)
-            {
-                throw new InvalidOperationException("BeginTransaction requires an open and available Connection.");
-            }
-            if (_innerConnection.HasActiveTransaction)
+            var internalConnection = _innerConnection as PgConnectionInternal;
+            if (internalConnection.HasActiveTransaction)
             {
                 throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
             }
@@ -219,33 +176,33 @@ namespace PostgreSql.Data.SqlClient
                 throw new InvalidOperationException("Invalid transaction or invalid name for a point at which to save within the transaction.");
             }
 
-            return _innerConnection.BeginTransaction(isolationLevel, transactionName);
+            PgTransaction transaction = _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
+            if (transaction != null)
+            {
+                transaction.Save(transactionName);
+            }
+            return transaction;
         }
 
         public override void ChangeDatabase(string database)
         {
-            if (_state == ConnectionState.Closed)
-            {
-                throw new InvalidOperationException("ChangeDatabase requires an open and available Connection.");
-            }
-
             if (database == null || database.Trim().Length == 0)
             {
                 throw new InvalidOperationException("Database name is not valid.");
             }
+            // if (_state == ConnectionState.Closed)
+            // {
+            //     throw new InvalidOperationException("ChangeDatabase requires an open and available Connection.");
+            // }
 
-            try
-            {
-               _innerConnection.ChangeDatabase(database);
-            }
-            catch
-            {
-                ChangeState(ConnectionState.Broken);
-                throw new PgException("Cannot change database.");
-            }
+            _innerConnection.ChangeDatabase(database);
         }
 
-        public new PgCommand CreateCommand() => new PgCommand(String.Empty, this, _innerConnection?.ActiveTransaction);
+        public new PgCommand CreateCommand()
+        {
+            var internalConnection = _innerConnection as PgConnectionInternal;
+            return new PgCommand(String.Empty, this, internalConnection?.ActiveTransaction);
+        }
 
         protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
         {
@@ -278,15 +235,127 @@ namespace PostgreSql.Data.SqlClient
             return UserCertificateSelection?.Invoke(this, targetHost, localCertificates, remoteCertificate, acceptableIssuers);
         }
 
-        private void ChangeState(ConnectionState newState)
+        internal void PermissionDemand()
         {
-            var oldState = _state;
+            Debug.Assert(DbConnectionClosedConnecting.SingletonInstance == _innerConnection, "not connecting");
 
-            // Set the new state
-            _state = newState;
+            DbConnectionPoolGroup poolGroup         = PoolGroup;
+            DbConnectionOptions   connectionOptions = ((poolGroup != null) ? poolGroup.ConnectionOptions : null);
+            if ((connectionOptions == null) || connectionOptions.IsEmpty)
+            {
+                throw ADP.NoConnectionString();
+            }
+            DbConnectionOptions userConnectionOptions = ConnectionOptions;
+            Debug.Assert(userConnectionOptions != null, "null UserConnectionOptions");
+        }
 
-            // Emit the StateChange event
-            OnStateChange(new StateChangeEventArgs(oldState, _state));
+        internal void SetInnerConnectionEvent(DbConnectionInternal to)
+        {
+            ConnectionState originalState = _innerConnection.State & ConnectionState.Open;
+            ConnectionState currentState  = to.State & ConnectionState.Open;
+            if ((originalState != currentState) && (ConnectionState.Closed == currentState))
+            {
+                unchecked { _closeCount++; }
+            }
+            _innerConnection = to;
+            if (ConnectionState.Closed == originalState && ConnectionState.Open == currentState)
+            {
+                OnStateChange(DbConnectionInternal.StateChangeOpen);
+            }
+            else if (ConnectionState.Open == originalState && ConnectionState.Closed == currentState)
+            {
+                OnStateChange(DbConnectionInternal.StateChangeClosed);
+            }
+            else
+            {
+                Debug.Assert(false, "unexpected state switch");
+                if (originalState != currentState)
+                {
+                    OnStateChange(new StateChangeEventArgs(originalState, currentState));
+                }
+            }
+        }
+
+        internal bool SetInnerConnectionFrom(DbConnectionInternal to, DbConnectionInternal from)
+        {
+            return (from == Interlocked.CompareExchange<DbConnectionInternal>(ref _innerConnection, to, from));
+        }
+
+        internal void SetInnerConnectionTo(DbConnectionInternal to)
+        {
+            _innerConnection = to;
+        }
+
+        private bool TryOpen(TaskCompletionSource<DbConnectionInternal> retry)
+        {
+            // _applyTransientFaultHandling = (retry == null && _connectionOptions != null && _connectionOptions.ConnectRetryCount > 0);
+
+#warning TODO: Callbacks should be passed as parameters to TryReplaceConnection & TryOpenConnection methods
+            // if (_innerConnection.Encrypt)
+            // {
+            //     // Add SSL callback handlers
+            //     _innerConnection.Connection.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
+            //     _innerConnection.Connection.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
+            // }
+
+            // if (ForceNewConnection)
+            // {
+            //     if (!InnerConnection.TryReplaceConnection(this, ConnectionFactory, retry, _connectionOptions))
+            //     {
+            //         return false;
+            //     }
+            // }
+            // else
+            // {
+            if (!InnerConnection.TryOpenConnection(this, ConnectionFactory, retry, _connectionOptions))
+            {
+                return false;
+            }
+            // }
+            // does not require GC.KeepAlive(this) because of OnStateChange
+
+            var innerConnection = (PgConnectionInternal)InnerConnection;
+            Debug.Assert(innerConnection.Connection != null, "Frontend connection cannot be null.");
+
+            if (!innerConnection.ConnectionOptions.Pooling)
+            {
+                // For non-pooled connections, we need to make sure that the finalizer does actually run to avoid leaking SNI handles
+                // GC.ReRegisterForFinalize(this);
+            }
+
+            return true;
+        }
+
+        private string InternalGetConnectionString()
+        {
+            bool hidePassword = InnerConnection.ShouldHidePassword;
+            DbConnectionOptions connectionOptions = _connectionOptions;
+#warning TODO: Hide Password
+            return ((connectionOptions != null) ? connectionOptions.ConnectionString : String.Empty);
+            // return ((connectionOptions != null) ? _connectionOptions.UsersConnectionString(hidePassword) : String.Empty);
+        }
+
+        private void InternalSetConnectionString(string connectionString)
+        {
+            DbConnectionPoolKey   key                = new PgConnectionPoolKey(connectionString);
+            DbConnectionOptions   connectionOptions  = null;
+            DbConnectionPoolGroup poolGroup          = ConnectionFactory.GetConnectionPoolGroup(key, null, ref connectionOptions);
+            DbConnectionInternal  connectionInternal = InnerConnection;
+            bool flag = connectionInternal.AllowSetConnectionString;
+            if (flag)
+            {
+                flag = SetInnerConnectionFrom(DbConnectionClosedBusy.SingletonInstance, connectionInternal);
+                if (flag)
+                {
+                    _connectionOptions = connectionOptions;
+                    _poolGroup         = poolGroup;
+                    _innerConnection   = DbConnectionClosedNeverOpened.SingletonInstance;
+                }
+            }
+            if (!flag)
+            {
+                throw ADP.OpenConnectionPropertySet(nameof(ConnectionString), connectionInternal.State);
+            }
         }
     }
 }

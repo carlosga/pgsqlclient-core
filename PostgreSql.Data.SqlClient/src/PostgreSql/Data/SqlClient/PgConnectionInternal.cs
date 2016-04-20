@@ -7,32 +7,29 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.ProviderBase;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.SqlClient
 {
     internal sealed class PgConnectionInternal
+        : DbConnectionInternal, IDisposable
     {
-        private Connection    _connection;
-        private PgConnection  _owner;
-        private WeakReference _activeTransaction;
-        private long          _created;
-        private long          _lifetime;
-        private bool          _pooled;
+        private DbConnectionOptions               _connectionOptions;
+        private Connection                        _connection;
+        private WeakReference                     _activeTransaction;
+        private DbConnectionPoolIdentity          _identity;
+        private DbConnectionPoolGroupProviderInfo _providerInfo;
 
-        private ConcurrentDictionary<int, WeakReference<PgCommand>> _commands;
+        internal PgConnection        OwningConnection  => (PgConnection)Owner;
+        internal Connection          Connection        => _connection;
+        internal PgTransaction       ActiveTransaction => _activeTransaction?.Target as PgTransaction;
+        internal string              Database          => _connection?.Database;
+        internal string              DataSource        => _connection?.DataSource;
+        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
 
-        internal Connection    Connection               => _connection;
-        internal PgTransaction ActiveTransaction        => _activeTransaction?.Target as PgTransaction;
-        internal string        ServerVersion            => _connection.SessionData.ServerVersion;
-        internal string        Database                 => _connection?.Database;
-        internal string        DataSource               => _connection?.DataSource;
-        internal int           ConnectionTimeout        => (_connection?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
-        internal int           PacketSize               => (_connection?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
-        internal bool          MultipleActiveResultSets => (_connection?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
-        internal string        SearchPath               => (_connection?.SearchPath);
-        internal bool          Pooling                  => (_connection?.Pooling ?? DbConnectionStringDefaults.Pooling);
-        internal bool          Encrypt                  => (_connection?.Encrypt ?? DbConnectionStringDefaults.Encrypt);
+        internal override string ServerVersion => _connection.SessionData.ServerVersion;
 
         internal bool HasActiveTransaction
         {
@@ -44,94 +41,96 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        internal long Lifetime
-        {
-            get { return _lifetime; }
-            set { _lifetime = value; }
-        }
-
-        internal long Created
-        {
-            get { return _created; }
-            set { _created = value; }
-        }
-
-        internal bool Pooled
-        {
-            get { return _pooled; }
-            set { _pooled = value; }
-        }
-
         internal PgConnectionInternal(DbConnectionOptions connectionOptions)
+            : this(DbConnectionPoolIdentity.NoIdentity, null, connectionOptions)
         {
-            _connection = new Connection(connectionOptions);
-            _commands   = new ConcurrentDictionary<int, WeakReference<PgCommand>>();
-            _created    = 0;
-            _lifetime   = 0;
+        }
+
+        internal PgConnectionInternal(DbConnectionPoolIdentity          identity
+                                    , DbConnectionPoolGroupProviderInfo providerInfo
+                                    , DbConnectionOptions               connectionOptions)
+            : base()
+        {
+            _connectionOptions = connectionOptions;
+            _connection        = new Connection(_connectionOptions);
+            _identity          = identity;
+            _providerInfo      = providerInfo;
+        }
+
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    // Close();
+
+                    base.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                _disposed = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~PgConnection() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        // public void Dispose()
+        // {
+        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //     Dispose(true);
+        //     // TODO: uncomment the following line if the finalizer is overridden above.
+        //     // GC.SuppressFinalize(this);
+        // }
+        #endregion
+
+        protected override void Activate()
+        {
+        }
+        protected override void Deactivate()
+        {
         }
 
         internal void Open(PgConnection owner)
         {
             // Connect
             _connection.Open();
-
-            // Update owner
-            _owner = owner;
         }
 
-        internal void Close()
+        protected override void PrepareForCloseConnection()
         {
-            try
-            {
-                // Dispose Active commands
-                CloseCommands();
+            // Dispose Active commands
+            CloseCommands();
 
-                // Rollback active transaction
-                DisposeActiveTransaction();
-
-                // Close connection permanently or send it back to the pool
-                if (_pooled)
-                {
-                    _connection.ReleaseCallbacks();
-
-                    PgPoolManager.Instance.GetPool(_connection.ConnectionString).CheckIn(this);
-                }
-                else
-                {
-                    _connection.Dispose();
-                }
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                _owner             = null;
-                _activeTransaction = null;
-                _connection        = null;
-                _commands  = null;
-                _created           = 0;
-                _lifetime          = 0;
-                _pooled            = false;
-            }
+            // Rollback active transaction
+            DisposeActiveTransaction();
         }
-        
-        internal void ChangeDatabase(string database)
+
+        internal override void ChangeDatabase(string database)
         {
             _connection.ChangeDatabase(database);
         }
 
-        internal PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
+        internal override DbTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
-            var transaction = new PgTransaction(_owner, isolationLevel);
-            transaction.Begin(transactionName);
+            var transaction = new PgTransaction(OwningConnection, isolationLevel);
+            transaction.Begin();
 
             _activeTransaction = new WeakReference(transaction);
 
             return transaction;
         }
-
-        internal PgCommand CreateCommand() => new PgCommand(String.Empty, _owner, ActiveTransaction);
 
         internal void DisposeActiveTransaction()
         {
@@ -148,29 +147,31 @@ namespace PostgreSql.Data.SqlClient
 
         internal void CloseCommands()
         {
-            foreach (var commandRef in _commands)
-            {
-                PgCommand command = null;
+#warning TODO: Use PgReferenceCollection
+            // foreach (var commandRef in _commands)
+            // {
+            //     PgCommand command = null;
 
-                if (commandRef.Value != null && commandRef.Value.TryGetTarget(out command))
-                {
-                    command.InternalClose();
-                }
-            }
+            //     if (commandRef.Value != null && commandRef.Value.TryGetTarget(out command))
+            //     {
+            //         command.InternalClose();
+            //     }
+            // }
             
-            _commands.Clear();
+            // _commands.Clear();
         }
 
         internal void AddCommand(PgCommand command)
         {
-            _commands[command.GetHashCode()] = new WeakReference<PgCommand>(command);
+#warning TODO: Use PgReferenceCollection
+            // _commands[command.GetHashCode()] = new WeakReference<PgCommand>(command);
         }
 
         internal void RemoveCommand(PgCommand command)
         {
-            WeakReference<PgCommand> removed = null;
-
-            _commands.TryRemove(command.GetHashCode(), out removed);
+#warning TODO: Use PgReferenceCollection
+            // WeakReference<PgCommand> removed = null;
+            // _commands.TryRemove(command.GetHashCode(), out removed);
         }
 
         internal bool Verify()
@@ -188,6 +189,19 @@ namespace PostgreSql.Data.SqlClient
             }
 
             return isValid;
+        }
+
+        protected override DbReferenceCollection CreateReferenceCollection()
+        {
+            return new PgReferenceCollection();
+        }
+
+        internal override bool TryReplaceConnection(DbConnection                               outerConnection
+                                                  , DbConnectionFactory                        connectionFactory
+                                                  , TaskCompletionSource<DbConnectionInternal> retry
+                                                  , DbConnectionOptions                        userOptions)
+        {
+            return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
         }
     }
 }

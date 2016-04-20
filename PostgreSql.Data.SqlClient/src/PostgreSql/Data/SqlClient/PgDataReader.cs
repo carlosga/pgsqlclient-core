@@ -78,6 +78,8 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        internal PgCommand Command => _command;
+
         internal PgDataReader(PgConnection connection, PgCommand command)
         {
             _open            = true;
@@ -134,8 +136,9 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_metadata == null)
             {
-                var provider = new DbColumnSchemaGenerator(_connection.InnerConnection.Connection
-                                                         , _statement.RowDescriptor);
+                var internalConnection = _connection.InnerConnection as PgConnectionInternal;
+                var provider           = new DbColumnSchemaGenerator(internalConnection.Connection, _statement.RowDescriptor);
+
                 _metadata = provider.GetColumnSchema();
             }
 
@@ -380,6 +383,11 @@ namespace PostgreSql.Data.SqlClient
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
         internal PgDataRecord GetDataRecord() => new PgDataRecord(_row);
+
+        internal void CloseReaderFromConnection()
+        {
+            Close();
+        }
 
         internal void Close()
         {

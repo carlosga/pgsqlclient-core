@@ -395,25 +395,36 @@ namespace System.Data.Common
             // NotImplemented.ByDesignWithMessage(methodName);
         }
 
-//         static private string ConnectionStateMsg(ConnectionState state)
-//         {
-//             switch (state)
-//             {
-//                 case (ConnectionState.Closed):
-//                 case (ConnectionState.Connecting | ConnectionState.Broken):
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg_Closed);
-//                 case (ConnectionState.Connecting):
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg_Connecting);
-//                 case (ConnectionState.Open):
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg_Open);
-//                 case (ConnectionState.Open | ConnectionState.Executing):
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg_OpenExecuting);
-//                 case (ConnectionState.Open | ConnectionState.Fetching):
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg_OpenFetching);
-//                 default:
-//                     return Res.GetString(Res.ADP_ConnectionStateMsg, state.ToString());
-//             }
-//         }
+        static private string ConnectionStateMsg(ConnectionState state)
+        {
+            switch (state)
+            {
+            case ConnectionState.Closed:
+            case ConnectionState.Connecting | ConnectionState.Broken:
+                return "The connection's current state is closed."; 
+                // return Res.GetString(Res.ADP_ConnectionStateMsg_Closed);
+
+            case ConnectionState.Connecting:
+                return "The connection's current state is connecting.";
+                // return Res.GetString(Res.ADP_ConnectionStateMsg_Connecting);
+                
+            case ConnectionState.Open:
+                return "The connection's current state is open.";
+                // return Res.GetString(Res.ADP_ConnectionStateMsg_Open);
+
+            case ConnectionState.Open | ConnectionState.Executing:
+                return "The connection's current state is executing."; 
+                // return Res.GetString(Res.ADP_ConnectionStateMsg_OpenExecuting);
+
+            case ConnectionState.Open | ConnectionState.Fetching:
+                return "The connection's current state is fetching.";
+                // return Res.GetString(Res.ADP_ConnectionStateMsg_OpenFetching);
+
+            default:
+                return String.Format("The connection's current state: {0}.", state.ToString());
+                // return Res.GetString(Res.ADP_ConnectionStateMsg, state.ToString());
+            }
+        }
 
 
 //         //
@@ -601,19 +612,23 @@ namespace System.Data.Common
             return InvalidOperation("Invalid operation. The connection is closed.");
             // return InvalidOperation(Res.GetString(Res.ADP_ClosedConnectionError));
         }
+
         internal static Exception ConnectionAlreadyOpen(ConnectionState state)
         {
             return InvalidOperation("Connection already open, or is broken.");
             //return InvalidOperation(Res.GetString(Res.ADP_ConnectionAlreadyOpen, ADP.ConnectionStateMsg(state)));
         }
-//         internal static Exception OpenConnectionPropertySet(string property, ConnectionState state)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionPropertySet, property, ADP.ConnectionStateMsg(state)));
-//         }
-//         internal static Exception EmptyDatabaseName()
-//         {
-//             return Argument(Res.GetString(Res.ADP_EmptyDatabaseName));
-//         }
+
+        internal static Exception OpenConnectionPropertySet(string property, ConnectionState state)
+        {
+            return InvalidOperation(String.Format("Not allowed to change the '{0}' property. {1}", property, ConnectionStateMsg(state)));
+            // return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionPropertySet, property, ADP.ConnectionStateMsg(state)));
+        }
+
+        // internal static Exception EmptyDatabaseName()
+        // {
+        //     return Argument(Res.GetString(Res.ADP_EmptyDatabaseName));
+        // }
 
         internal enum ConnectionError
         {

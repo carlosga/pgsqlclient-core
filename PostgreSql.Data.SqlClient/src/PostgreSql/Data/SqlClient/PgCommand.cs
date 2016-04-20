@@ -315,6 +315,11 @@ namespace PostgreSql.Data.SqlClient
             return true;
         }
 
+        internal void CloseCommandFromConnection()
+        {
+            InternalClose();
+        }
+
         internal void InternalClose()
         {
             try
@@ -328,7 +333,9 @@ namespace PostgreSql.Data.SqlClient
                     }
                 }
 
-                _connection.InnerConnection.RemoveCommand(this);
+                var internalConnection = _connection.InnerConnection as PgConnectionInternal;
+
+                internalConnection.RemoveCommand(this);
                 _statement.Dispose();
             }
             catch
@@ -364,9 +371,11 @@ namespace PostgreSql.Data.SqlClient
 
         private void InternalPrepare()
         {
+            var internalConnection = _connection.InnerConnection as PgConnectionInternal; 
+
             if (_statement == null)
             {
-                _statement = _connection.InnerConnection.CreateStatement();
+                _statement = internalConnection.CreateStatement();
                 _statement.Parameters = _parameters; 
             }
             else if (_statement.IsPrepared)
@@ -379,7 +388,7 @@ namespace PostgreSql.Data.SqlClient
             _statement.FetchSize     = _fetchSize;
 
             _statement.Prepare();
-            _connection.InnerConnection.AddCommand(this);
+            internalConnection.AddCommand(this);
         }
 
         private int InternalExecuteNonQuery()
@@ -520,7 +529,7 @@ namespace PostgreSql.Data.SqlClient
                 throw new InvalidOperationException("There is already an open DataReader associated with this Command which must be closed first.");
             }
 
-            if (_transaction == null && _connection.InnerConnection.HasActiveTransaction)
+            if (_transaction == null && ((PgConnectionInternal)_connection.InnerConnection).HasActiveTransaction)
             {
                 throw new InvalidOperationException($"{memberName} requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.");
             }

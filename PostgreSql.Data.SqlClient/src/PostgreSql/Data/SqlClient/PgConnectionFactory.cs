@@ -12,30 +12,49 @@ namespace PostgreSql.Data.SqlClient
     internal sealed class PgConnectionFactory 
         : DbConnectionFactory
     {
-        public static readonly PgConnectionFactory SingletonInstance = new PgConnectionFactory();
+        internal static readonly PgConnectionFactory SingletonInstance = new PgConnectionFactory();
+
+        internal static DbConnectionOptions FindDbConnectionOptions(PgConnectionPoolKey key)
+        {
+            var connectionOptions = SingletonInstance.FindConnectionOptions(key);
+            if (connectionOptions == null)
+            {
+                connectionOptions = new DbConnectionOptions(key.ConnectionString);
+            }
+            if (connectionOptions.IsEmpty)
+            {
+                throw ADP.NoConnectionString();
+            }
+            return connectionOptions;
+        }
 
         private PgConnectionFactory() 
             : base() 
         {
         }
 
-        public override DbProviderFactory ProviderFactory => PostgreSqlClientFactory.Instance;
+        internal override DbProviderFactory ProviderFactory => PostgreSqlClientFactory.Instance;
 
-        protected override DbConnectionInternal CreateConnection(DbConnectionOptions options
-                                                               , DbConnectionPoolKey poolKey
-                                                               , object              poolGroupProviderInfo
-                                                               , DbConnectionPool    pool
-                                                               , DbConnection        owningConnection)
+        internal override DbConnectionPoolProviderInfo CreateConnectionPoolProviderInfo(DbConnectionOptions connectionOptions)
+        {
+            return null;
+        }
+
+        protected override DbConnectionInternal CreateConnection(DbConnectionOptions               options
+                                                               , DbConnectionPoolKey               poolKey
+                                                               , DbConnectionPoolGroupProviderInfo poolGroupProviderInfo
+                                                               , DbConnectionPool                  pool
+                                                               , DbConnection                      owningConnection)
         {
             return CreateConnection(options, poolKey, poolGroupProviderInfo, pool, owningConnection, userOptions: null);
         }
 
-        protected override DbConnectionInternal CreateConnection(DbConnectionOptions options
-                                                               , DbConnectionPoolKey poolKey
-                                                               , object              poolGroupProviderInfo
-                                                               , DbConnectionPool    pool
-                                                               , DbConnection        owningDbConnection
-                                                               , DbConnectionOptions userOptions)
+        protected override DbConnectionInternal CreateConnection(DbConnectionOptions               options
+                                                               , DbConnectionPoolKey               poolKey
+                                                               , DbConnectionPoolGroupProviderInfo poolGroupProviderInfo
+                                                               , DbConnectionPool                  pool
+                                                               , DbConnection                      owningDbConnection
+                                                               , DbConnectionOptions               userOptions)
         {
             var key              = (PgConnectionPoolKey)poolKey;
             var owningConnection = (PgConnection)owningDbConnection;
@@ -50,18 +69,13 @@ namespace PostgreSql.Data.SqlClient
                 userOpt = owningConnection.ConnectionOptions;
             }
 
-            return new PgConnectionInternal(poolGroupProviderInfo, userOpt);
+            return new PgConnectionInternal(DbConnectionPoolIdentity.NoIdentity, poolGroupProviderInfo, userOpt);
         }
 
         protected override DbConnectionOptions CreateConnectionOptions(string connectionString, DbConnectionOptions previous)
         {
             Debug.Assert(!string.IsNullOrEmpty(connectionString), "empty connectionString");
             return new DbConnectionOptions(connectionString);
-        }
-
-        internal override DbConnectionPoolProviderInfo CreateConnectionPoolProviderInfo(DbConnectionOptions connectionOptions)
-        {
-            return null;
         }
 
         protected override DbConnectionPoolGroupOptions CreateConnectionPoolGroupOptions(DbConnectionOptions connectionOptions)
@@ -93,21 +107,7 @@ namespace PostgreSql.Data.SqlClient
 
         internal override DbConnectionPoolGroupProviderInfo CreateConnectionPoolGroupProviderInfo(DbConnectionOptions connectionOptions)
         {
-            return new DbConnectionPoolGroupProviderInfo(connectionOptions);
-        }
-
-        internal static DbConnectionOptions FindConnectionOptions(PgConnectionPoolKey key)
-        {
-            var connectionOptions = SingletonInstance.FindConnectionOptions(key);
-            if (connectionOptions == null)
-            {
-                connectionOptions = new DbConnectionOptions(key.ConnectionString);
-            }
-            if (connectionOptions.IsEmpty)
-            {
-                throw ADP.NoConnectionString();
-            }
-            return connectionOptions;
+            return new DbConnectionPoolGroupProviderInfo();
         }
 
         internal override DbConnectionPoolGroup GetConnectionPoolGroup(DbConnection connection)

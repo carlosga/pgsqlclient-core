@@ -34,7 +34,7 @@ namespace PostgreSql.Data.SqlClient
         {
             _connection       = connection;
             _isolationLevel   = isolationLevel;
-            _innerTransaction = connection.InnerConnection.Connection.CreateTransaction(IsolationLevel);
+            _innerTransaction = ((PgConnectionInternal)connection.InnerConnection).Connection.CreateTransaction(IsolationLevel);
         }
 
         #region IDisposable Support
@@ -47,10 +47,10 @@ namespace PostgreSql.Data.SqlClient
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    try  
+                    try
                     {
-                        if (_connection?.InnerConnection != null
-                         && _connection.InnerConnection.HasActiveTransaction)
+                        var internalConnection = _connection?.InnerConnection as PgConnectionInternal; 
+                        if (internalConnection != null && internalConnection.HasActiveTransaction)
                         {
                             // Implicitly roll back if the transaction still valid.
                             Rollback();
@@ -122,19 +122,15 @@ namespace PostgreSql.Data.SqlClient
             _innerTransaction.Rollback(savePointName);
         }
 
-        internal void Begin(string transactionName)
+        internal void Begin()
         {
             _innerTransaction.Begin();
-            if (transactionName != null && transactionName.Length > 0)
-            {
-                _innerTransaction.Save(transactionName);
-            }
         }
 
         private void CheckTransaction()
         {
-            if (_connection?.InnerConnection != null
-             && !_connection.InnerConnection.HasActiveTransaction)
+            var internalConnection = _connection?.InnerConnection as PgConnectionInternal; 
+            if (internalConnection != null && !internalConnection.HasActiveTransaction)
             {
                 throw new InvalidOperationException("This Transaction has completed; it is no longer usable.");
             }

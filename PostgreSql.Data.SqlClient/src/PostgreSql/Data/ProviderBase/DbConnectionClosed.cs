@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace System.Data.ProviderBase
 {
     internal abstract class DbConnectionClosed 
-            : DbConnectionInternal
+        : DbConnectionInternal
     {
         // Construct an "empty" connection
         protected DbConnectionClosed(ConnectionState state, bool hidePassword, bool allowSetConnectionString) 
@@ -17,7 +17,7 @@ namespace System.Data.ProviderBase
         {
         }
 
-        public override string ServerVersion
+        internal override string ServerVersion
         {
             get { throw ADP.ClosedConnectionError(); }
         }
@@ -27,12 +27,12 @@ namespace System.Data.ProviderBase
             throw ADP.ClosedConnectionError();
         }
 
-        public override DbTransaction BeginTransaction(IsolationLevel il)
+        internal override DbTransaction BeginTransaction(IsolationLevel il)
         {
             throw ADP.ClosedConnectionError();
         }
 
-        public override void ChangeDatabase(string database)
+        internal override void ChangeDatabase(string database)
         {
             throw ADP.ClosedConnectionError();
         }
@@ -144,7 +144,7 @@ namespace System.Data.ProviderBase
             // we are completing an asynchronous open
             Debug.Assert(retry.Task.Status == TaskStatus.RanToCompletion, "retry task must be completed successfully");
             DbConnectionInternal openConnection = retry.Task.Result;
-            if (null == openConnection)
+            if (openConnection == null)
             {
                 connectionFactory.SetInnerConnectionTo(outerConnection, this);
                 throw ADP.InternalConnectionError(ADP.ConnectionError.GetConnectionReturnsNull);

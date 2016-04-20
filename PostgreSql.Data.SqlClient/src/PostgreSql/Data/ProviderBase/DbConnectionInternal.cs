@@ -44,6 +44,63 @@ namespace System.Data.ProviderBase
         private int _activateCount;
 #endif
 
+        internal bool AllowSetConnectionString => _allowSetConnectionString;
+        internal bool CanBePooled              => (!_connectionIsDoomed && !_cannotBePooled && !_owningObject.IsAlive);
+
+        // NOTE: There are race conditions between PrePush, PostPop and this
+        //       property getter -- only use this while this object is locked;
+        //       (DbConnectionPool.Clear and ReclaimEmancipatedObjects
+        //       do this for us)
+        // The functionality is as follows:
+        //
+        //    _pooledCount is incremented when the connection is pushed into the pool
+        //    _pooledCount is decremented when the connection is popped from the pool
+        //    _pooledCount is set to -1 when the connection is not pooled (just in case...)
+        //
+        // That means that:
+        //
+        //    _pooledCount > 1    connection is in the pool multiple times (This should not happen)
+        //    _pooledCount == 1   connection is in the pool
+        //    _pooledCount == 0   connection is out of the pool
+        //    _pooledCount == -1  connection is not a pooled connection; we shouldn't be here for non-pooled connections.
+        //    _pooledCount < -1   connection out of the pool multiple times
+        //
+        // Now, our job is to return TRUE when the connection is out
+        // of the pool and it's owning object is no longer around to
+        // return it.
+        internal bool IsEmancipated => (_pooledCount < 1) && !_owningObject.IsAlive;
+
+        internal DbConnectionPool Pool => _connectionPool;
+
+        internal bool IsInPool
+        {
+            get
+            {
+                Debug.Assert(_pooledCount <= 1 && _pooledCount >= -1, "Pooled count for object is invalid");
+                return (_pooledCount == 1);
+            }
+        }
+
+        internal abstract string ServerVersion
+        {
+            get;
+        }
+
+        // this should be abstract but until it is added to all the providers virtual will have to do
+        internal virtual string ServerVersionNormalized
+        {
+            get { throw ADP.NotSupported(); }
+        }
+
+        internal bool ShouldHidePassword => _hidePassword;
+
+        internal ConnectionState State => _state;
+
+        protected internal bool   IsConnectionDoomed => _connectionIsDoomed;
+        protected internal object Owner              => _owningObject.Target; 
+
+        protected internal DbReferenceCollection ReferenceCollection => _referenceCollection;
+
         protected DbConnectionInternal() 
             : this(ConnectionState.Open, true, false)
         {
@@ -57,79 +114,11 @@ namespace System.Data.ProviderBase
             _state                    = state;
         }
 
-        internal bool AllowSetConnectionString => _allowSetConnectionString;
-        internal bool CanBePooled              => (!_connectionIsDoomed && !_cannotBePooled && !_owningObject.IsAlive);
-
-        protected internal bool IsConnectionDoomed => _connectionIsDoomed;
-
-        internal bool IsEmancipated
+        public virtual void Dispose()
         {
-            get
-            {
-                // NOTE: There are race conditions between PrePush, PostPop and this
-                //       property getter -- only use this while this object is locked;
-                //       (DbConnectionPool.Clear and ReclaimEmancipatedObjects
-                //       do this for us)
-
-                // The functionality is as follows:
-                //
-                //    _pooledCount is incremented when the connection is pushed into the pool
-                //    _pooledCount is decremented when the connection is popped from the pool
-                //    _pooledCount is set to -1 when the connection is not pooled (just in case...)
-                //
-                // That means that:
-                //
-                //    _pooledCount > 1    connection is in the pool multiple times (This should not happen)
-                //    _pooledCount == 1   connection is in the pool
-                //    _pooledCount == 0   connection is out of the pool
-                //    _pooledCount == -1  connection is not a pooled connection; we shouldn't be here for non-pooled connections.
-                //    _pooledCount < -1   connection out of the pool multiple times
-                //
-                // Now, our job is to return TRUE when the connection is out
-                // of the pool and it's owning object is no longer around to
-                // return it.
-
-                bool value = (_pooledCount < 1) && !_owningObject.IsAlive;
-                return value;
-            }
+            _connectionPool     = null;
+            _connectionIsDoomed = true;
         }
-
-        internal bool IsInPool
-        {
-            get
-            {
-                Debug.Assert(_pooledCount <= 1 && _pooledCount >= -1, "Pooled count for object is invalid");
-                return (_pooledCount == 1);
-            }
-        }
-
-        protected internal object Owner
-        {
-            // We use a weak reference to the owning object so we can identify when
-            // it has been garbage collected without thowing exceptions.
-            get { return _owningObject.Target; }
-        }
-
-        internal DbConnectionPool Pool => _connectionPool;
-
-        protected internal DbReferenceCollection ReferenceCollection => _referenceCollection;
-
-        public abstract string ServerVersion
-        {
-            get;
-        }
-
-        // this should be abstract but until it is added to all the providers virtual will have to do
-        public virtual string ServerVersionNormalized
-        {
-            get { throw ADP.NotSupported(); }
-        }
-
-        public bool ShouldHidePassword => _hidePassword;
-
-        public ConnectionState State => _state;
-
-        protected abstract void Activate();
 
         internal void ActivateConnection()
         {
@@ -142,6 +131,29 @@ namespace System.Data.ProviderBase
 #endif // DEBUG
 
             Activate();
+        }
+
+        internal void DeactivateConnection()
+        {
+            // Internal method called from the connection pooler so we don't expose
+            // the Deactivate method publicly.
+#if DEBUG
+            int activateCount = Interlocked.Decrement(ref _activateCount);
+            Debug.Assert(0 == activateCount, "activated multiple times?");
+#endif
+
+            if (!_connectionIsDoomed && Pool.UseLoadBalancing)
+            {
+                // If we're not already doomed, check the connection's lifetime and
+                // doom it if it's lifetime has elapsed.
+
+                DateTime now = DateTime.UtcNow;
+                if ((now.Ticks - _createTime.Ticks) > Pool.LoadBalanceTimeout.Ticks)
+                {
+                    DoNotPoolThisConnection();
+                }
+            }
+            Deactivate();
         }
 
         internal void AddWeakReference(object value, int tag)
@@ -157,9 +169,9 @@ namespace System.Data.ProviderBase
             _referenceCollection.Add(value, tag);
         }
 
-        public abstract DbTransaction BeginTransaction(IsolationLevel il);
+        internal abstract DbTransaction BeginTransaction(IsolationLevel il);
 
-        public virtual void ChangeDatabase(string value)
+        internal virtual void ChangeDatabase(string database)
         {
             throw ADP.MethodNotImplemented();
         }
@@ -264,69 +276,6 @@ namespace System.Data.ProviderBase
             // By default, there is no preparation required
         }
 
-        protected virtual void PrepareForCloseConnection()
-        {
-            // By default, there is no preparation required
-        }
-
-        protected virtual object ObtainAdditionalLocksForClose()
-        {
-            return null; // no additional locks in default implementation
-        }
-
-        protected virtual void ReleaseAdditionalLocksForClose(object lockToken)
-        {
-            // no additional locks in default implementation
-        }
-
-        protected virtual DbReferenceCollection CreateReferenceCollection()
-        {
-            throw ADP.InternalError(ADP.InternalErrorCode.AttemptingToConstructReferenceCollectionOnStaticObject);
-        }
-
-        protected abstract void Deactivate();
-
-        internal void DeactivateConnection()
-        {
-            // Internal method called from the connection pooler so we don't expose
-            // the Deactivate method publicly.
-
-#if DEBUG
-            int activateCount = Interlocked.Decrement(ref _activateCount);
-            Debug.Assert(0 == activateCount, "activated multiple times?");
-#endif
-
-            if (!_connectionIsDoomed && Pool.UseLoadBalancing)
-            {
-                // If we're not already doomed, check the connection's lifetime and
-                // doom it if it's lifetime has elapsed.
-
-                DateTime now = DateTime.UtcNow;
-                if ((now.Ticks - _createTime.Ticks) > Pool.LoadBalanceTimeout.Ticks)
-                {
-                    DoNotPoolThisConnection();
-                }
-            }
-            Deactivate();
-        }
-
-        public virtual void Dispose()
-        {
-            _connectionPool     = null;
-            _connectionIsDoomed = true;
-        }
-
-        protected internal void DoNotPoolThisConnection()
-        {
-            _cannotBePooled = true;
-        }
-
-        /// <devdoc>Ensure that this connection cannot be put back into the pool.</devdoc>
-        protected internal void DoomThisConnection()
-        {
-            _connectionIsDoomed = true;
-        }
-
         internal void MakeNonPooledObject(object owningObject)
         {
             // Used by DbConnectionFactory to indicate that this object IS NOT part of
@@ -381,40 +330,6 @@ namespace System.Data.ProviderBase
                                                  , DbConnectionOptions                        userOptions)
         {
             throw ADP.MethodNotImplemented();
-        }
-
-        protected bool TryOpenConnectionInternal(DbConnection                               outerConnection
-                                               , DbConnectionFactory                        connectionFactory
-                                               , TaskCompletionSource<DbConnectionInternal> retry
-                                               , DbConnectionOptions                        userOptions)
-        {
-            // ?->Connecting: prevent set_ConnectionString during Open
-            if (connectionFactory.SetInnerConnectionFrom(outerConnection, DbConnectionClosedConnecting.SingletonInstance, this))
-            {
-                DbConnectionInternal openConnection = null;
-                try
-                {
-                    connectionFactory.PermissionDemand(outerConnection);
-                    if (!connectionFactory.TryGetConnection(outerConnection, retry, userOptions, this, out openConnection))
-                    {
-                        return false;
-                    }
-                }
-                catch
-                {
-                    // This should occur for all exceptions, even ADP.UnCatchableExceptions.
-                    connectionFactory.SetInnerConnectionTo(outerConnection, this);
-                    throw;
-                }
-                if (openConnection == null)
-                {
-                    connectionFactory.SetInnerConnectionTo(outerConnection, this);
-                    throw ADP.InternalConnectionError(ADP.ConnectionError.GetConnectionReturnsNull);
-                }
-                connectionFactory.SetInnerConnectionEvent(outerConnection, openConnection);
-            }
-
-            return true;
         }
 
         internal void PrePush(object expectedOwner)
@@ -501,6 +416,74 @@ namespace System.Data.ProviderBase
         /// <returns>True if the connection is still alive, otherwise false (If not overridden, then always true)</returns>
         internal virtual bool IsConnectionAlive(bool throwOnException = false)
         {
+            return true;
+        }
+
+        protected virtual void PrepareForCloseConnection()
+        {
+            // By default, there is no preparation required
+        }
+
+        protected virtual object ObtainAdditionalLocksForClose()
+        {
+            return null; // no additional locks in default implementation
+        }
+
+        protected virtual void ReleaseAdditionalLocksForClose(object lockToken)
+        {
+            // no additional locks in default implementation
+        }
+
+        protected virtual DbReferenceCollection CreateReferenceCollection()
+        {
+            throw ADP.InternalError(ADP.InternalErrorCode.AttemptingToConstructReferenceCollectionOnStaticObject);
+        }
+
+        protected abstract void Activate();
+        protected abstract void Deactivate();
+
+        protected internal void DoNotPoolThisConnection()
+        {
+            _cannotBePooled = true;
+        }
+
+        /// <devdoc>Ensure that this connection cannot be put back into the pool.</devdoc>
+        protected internal void DoomThisConnection()
+        {
+            _connectionIsDoomed = true;
+        }
+
+        protected bool TryOpenConnectionInternal(DbConnection                               outerConnection
+                                               , DbConnectionFactory                        connectionFactory
+                                               , TaskCompletionSource<DbConnectionInternal> retry
+                                               , DbConnectionOptions                        userOptions)
+        {
+            // ?->Connecting: prevent set_ConnectionString during Open
+            if (connectionFactory.SetInnerConnectionFrom(outerConnection, DbConnectionClosedConnecting.SingletonInstance, this))
+            {
+                DbConnectionInternal openConnection = null;
+                try
+                {
+                    connectionFactory.PermissionDemand(outerConnection);
+                    if (!connectionFactory.TryGetConnection(outerConnection, retry, userOptions, this, out openConnection))
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    // This should occur for all exceptions, even ADP.UnCatchableExceptions.
+                    connectionFactory.SetInnerConnectionTo(outerConnection, this);
+                    throw;
+                }
+                if (openConnection == null)
+                {
+                    connectionFactory.SetInnerConnectionTo(outerConnection, this);
+                    throw ADP.InternalConnectionError(ADP.ConnectionError.GetConnectionReturnsNull);
+                }
+                connectionFactory.SetInnerConnectionEvent(outerConnection, openConnection);
+            }
+
             return true;
         }
     }

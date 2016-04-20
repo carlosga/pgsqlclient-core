@@ -18,15 +18,32 @@ namespace System.Data.ProviderBase
         private static uint                         s_pendingOpenNonPooledNext = 0;
         private static Task<DbConnectionInternal>[] s_pendingOpenNonPooled     = new Task<DbConnectionInternal>[Environment.ProcessorCount];
         private static Task<DbConnectionInternal>   s_completedTask;
-        
+
+        private const int PruningDueTime = 4 * 60 * 1000;   // 4 minutes
+        private const int PruningPeriod  = 30 * 1000;       // thirty seconds
+
+        // GetCompletedTask must be called from within s_pendingOpenPooled lock
+        private static Task<DbConnectionInternal> GetCompletedTask()
+        {
+            if (s_completedTask == null)
+            {
+                var source = new TaskCompletionSource<DbConnectionInternal>();
+                source.SetResult(null);
+                s_completedTask = source.Task;
+            }
+            return s_completedTask;
+        }
+
         private Dictionary<DbConnectionPoolKey, DbConnectionPoolGroup> _connectionPoolGroups;
 
         private readonly List<DbConnectionPool>      _poolsToRelease;
         private readonly List<DbConnectionPoolGroup> _poolGroupsToRelease;
         private readonly Timer                       _pruningTimer;
 
-        private const int PruningDueTime = 4 * 60 * 1000;   // 4 minutes
-        private const int PruningPeriod  = 30 * 1000;       // thirty seconds
+        internal abstract DbProviderFactory ProviderFactory
+        {
+            get;
+        }
 
         protected DbConnectionFactory()
         {
@@ -36,12 +53,7 @@ namespace System.Data.ProviderBase
             _pruningTimer         = CreatePruningTimer();
         }
 
-        public abstract DbProviderFactory ProviderFactory
-        {
-            get;
-        }
-
-        public void ClearAllPools()
+        internal void ClearAllPools()
         {
             Dictionary<DbConnectionPoolKey, DbConnectionPoolGroup> connectionPoolGroups = _connectionPoolGroups;
 
@@ -55,7 +67,7 @@ namespace System.Data.ProviderBase
             }
         }
 
-        public void ClearPool(DbConnection connection)
+        internal void ClearPool(DbConnection connection)
         {
             ADP.CheckArgumentNull(connection, nameof(connection));
 
@@ -66,7 +78,7 @@ namespace System.Data.ProviderBase
             }
         }
 
-        public void ClearPool(DbConnectionPoolKey key)
+        internal void ClearPool(DbConnectionPoolKey key)
         {
             Debug.Assert(key != null, "key cannot be null");
             
@@ -97,7 +109,7 @@ namespace System.Data.ProviderBase
             var poolKey               = poolGroup.PoolKey;
 
             var newConnection = CreateConnection(connectionOptions, poolKey, poolGroupProviderInfo, null, owningConnection, userOptions);
-            if (null != newConnection)
+            if (newConnection != null)
             {
                 newConnection.MakeNonPooledObject(owningConnection);
             }
@@ -126,12 +138,6 @@ namespace System.Data.ProviderBase
             return null;
         }
 
-        private Timer CreatePruningTimer()
-        {
-            var callback = new TimerCallback(PruneConnectionPoolGroups);
-            return new Timer(callback, null, PruningDueTime, PruningPeriod);
-        }
-
         protected DbConnectionOptions FindConnectionOptions(DbConnectionPoolKey key)
         {
             Debug.Assert(key != null, "key cannot be null");
@@ -145,18 +151,6 @@ namespace System.Data.ProviderBase
                 }
             }
             return null;
-        }
-
-        // GetCompletedTask must be called from within s_pendingOpenPooled lock
-        private static Task<DbConnectionInternal> GetCompletedTask()
-        {
-            if (s_completedTask == null)
-            {
-                var source = new TaskCompletionSource<DbConnectionInternal>();
-                source.SetResult(null);
-                s_completedTask = source.Task;
-            }
-            return s_completedTask;
         }
 
         internal bool TryGetConnection(DbConnection                               owningConnection
@@ -326,6 +320,12 @@ namespace System.Data.ProviderBase
             return true;
         }
 
+        private Timer CreatePruningTimer()
+        {
+            var callback = new TimerCallback(PruneConnectionPoolGroups);
+            return new Timer(callback, null, PruningDueTime, PruningPeriod);
+        }
+
         private DbConnectionPool GetConnectionPool(DbConnection owningObject, DbConnectionPoolGroup connectionPoolGroup)
         {
             // if poolgroup is disabled, it will be replaced with a new entry
@@ -342,7 +342,7 @@ namespace System.Data.ProviderBase
             // re-create the pool entry whenever it's disabled.
 
             // however, don't rebuild connectionOptions if no pooling is involved - let new connections do that work
-            if (connectionPoolGroup.IsDisabled && (null != connectionPoolGroup.PoolGroupOptions))
+            if (connectionPoolGroup.IsDisabled && (connectionPoolGroup.PoolGroupOptions != null))
             {
                 // reusing existing pool option in case user originally used SetConnectionPoolOptions
                 var poolOptions = connectionPoolGroup.PoolGroupOptions;
@@ -355,22 +355,22 @@ namespace System.Data.ProviderBase
                 Debug.Assert(connectionPoolGroup != null, "null connectionPoolGroup?");
                 SetConnectionPoolGroup(owningObject, connectionPoolGroup);
             }
-            DbConnectionPool connectionPool = connectionPoolGroup.GetConnectionPool(this);
-            return connectionPool;
+            return connectionPoolGroup.GetConnectionPool(this);
         }
 
         internal DbConnectionPoolGroup GetConnectionPoolGroup(DbConnectionPoolKey          key
                                                             , DbConnectionPoolGroupOptions poolOptions
                                                             , ref DbConnectionOptions      userConnectionOptions)
         {
-            if (string.IsNullOrEmpty(key.ConnectionString))
+            if (String.IsNullOrEmpty(key.ConnectionString))
             {
                 return null;
             }
 
             DbConnectionPoolGroup connectionPoolGroup;
             var connectionPoolGroups = _connectionPoolGroups;
-            if (!connectionPoolGroups.TryGetValue(key, out connectionPoolGroup) || (connectionPoolGroup.IsDisabled && (null != connectionPoolGroup.PoolGroupOptions)))
+            if (!connectionPoolGroups.TryGetValue(key, out connectionPoolGroup) 
+             || (connectionPoolGroup.IsDisabled && connectionPoolGroup.PoolGroupOptions != null))
             {
                 // If we can't find an entry for the connection string in
                 // our collection of pool entries, then we need to create a
@@ -551,26 +551,6 @@ namespace System.Data.ProviderBase
             }
         }
 
-        protected virtual DbConnectionInternal CreateConnection(DbConnectionOptions options
-                                                              , DbConnectionPoolKey poolKey
-                                                              , object              poolGroupProviderInfo
-                                                              , DbConnectionPool    pool
-                                                              , DbConnection        owningConnection
-                                                              , DbConnectionOptions userOptions)
-        {
-            return CreateConnection(options, poolKey, poolGroupProviderInfo, pool, owningConnection);
-        }
-
-        protected abstract DbConnectionInternal CreateConnection(DbConnectionOptions options
-                                                               , DbConnectionPoolKey poolKey
-                                                               , object              poolGroupProviderInfo
-                                                               , DbConnectionPool    pool
-                                                               , DbConnection        owningConnection);
-
-        protected abstract DbConnectionOptions CreateConnectionOptions(string connectionString, DbConnectionOptions previous);
-
-        protected abstract DbConnectionPoolGroupOptions CreateConnectionPoolGroupOptions(DbConnectionOptions options);
-
         internal abstract DbConnectionPoolGroup GetConnectionPoolGroup(DbConnection connection);
 
         internal abstract DbConnectionInternal GetInnerConnection(DbConnection connection);
@@ -584,5 +564,25 @@ namespace System.Data.ProviderBase
         internal abstract bool SetInnerConnectionFrom(DbConnection owningObject, DbConnectionInternal to, DbConnectionInternal from);
 
         internal abstract void SetInnerConnectionTo(DbConnection owningObject, DbConnectionInternal to);
+
+        protected virtual DbConnectionInternal CreateConnection(DbConnectionOptions               options
+                                                              , DbConnectionPoolKey               poolKey
+                                                              , DbConnectionPoolGroupProviderInfo poolGroupProviderInfo
+                                                              , DbConnectionPool                  pool
+                                                              , DbConnection                      owningConnection
+                                                              , DbConnectionOptions               userOptions)
+        {
+            return CreateConnection(options, poolKey, poolGroupProviderInfo, pool, owningConnection);
+        }
+
+        protected abstract DbConnectionInternal CreateConnection(DbConnectionOptions               options
+                                                               , DbConnectionPoolKey               poolKey
+                                                               , DbConnectionPoolGroupProviderInfo poolGroupProviderInfo
+                                                               , DbConnectionPool                  pool
+                                                               , DbConnection                      owningConnection);
+
+        protected abstract DbConnectionOptions CreateConnectionOptions(string connectionString, DbConnectionOptions previous);
+
+        protected abstract DbConnectionPoolGroupOptions CreateConnectionPoolGroupOptions(DbConnectionOptions options);
     }
 }
