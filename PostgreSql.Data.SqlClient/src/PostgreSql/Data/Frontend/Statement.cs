@@ -680,6 +680,26 @@ namespace PostgreSql.Data.Frontend
                 _rows.Clear();
                 _hasRows = false;
                 break;
+
+            // case BackendMessages.CopyData:
+            //     Console.WriteLine("CopyData");
+            //     break;
+
+            // case BackendMessages.CopyDone:
+            //     Console.WriteLine("CopyDone");
+            //     break;
+
+            // case BackendMessages.CopyBothResponse:
+            //     Console.WriteLine("CopyBothResponse");
+            //     break;
+
+            // case BackendMessages.CopyInResponse:
+            //     Console.WriteLine("CopyInResponse");
+            //     break;
+
+            // case BackendMessages.CopyOutResponse:
+            //     Console.WriteLine("CopyOutResponse");
+            //     break;
             }
         }
 

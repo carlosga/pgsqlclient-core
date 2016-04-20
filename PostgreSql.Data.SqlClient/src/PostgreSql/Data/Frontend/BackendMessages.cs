@@ -10,7 +10,9 @@ namespace PostgreSql.Data.Frontend
         internal const byte BindComplete         = (byte)'2';
         internal const byte CloseComplete        = (byte)'3';
         internal const byte CommandComplete      = (byte)'C';
+        internal const byte CopyData             = (byte)'d';
         internal const byte CopyDone             = (byte)'c';
+        internal const byte CopyBothResponse     = (byte)'W';
         internal const byte CopyInResponse       = (byte)'G';
         internal const byte CopyOutResponse      = (byte)'H';
         internal const byte DataRow              = (byte)'D';

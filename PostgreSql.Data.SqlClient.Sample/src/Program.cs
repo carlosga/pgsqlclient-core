@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using PostgreSql.Data.PgTypes;
 
@@ -28,44 +29,36 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
             csb.PacketSize               = Int16.MaxValue;
-            csb.CommandTimeout           = 1;
 
-            using (PgConnection connection = new PgConnection(csb.ToString()))
+            int count = 0;
+
+            using (var connection = new PgConnection(csb.ToString()))
             {
-                connection.Open();
-                PgCommand command = new PgCommand("SELECT pg_sleep(2);SELECT 1", connection);
-                command.CommandTimeout = 2;
-                bool hitException = false;
-                try
+                using (var command = new PgCommand("select * from pg_attribute a cross join pg_attribute b", connection))
                 {
-                    object result = command.ExecuteScalar();
-                }
-                catch (Exception e)
-                {
-                    //Assert.True(e is PgException, "Expected PgException but found " + e);
-                    hitException = true;
-                    Console.WriteLine(e.Message);
-                }
-                //Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
+                    connection.Open();
 
-                //Assert.True(connection.State == ConnectionState.Open, string.Format("Expected connection to be open after soft timeout, but it was {0}", connection.State));
+                    command.FetchSize = 10000;   // Fetch size
 
-                hitException = false;
+                    Stopwatch stopWatch = new Stopwatch();
+                    stopWatch.Start();
 
-                PgCommand command2 = new PgCommand("SELECT pg_sleep(2);SELECT 1", connection);
-                command2.CommandTimeout = 2;
-                try
-                {
-                    object result = command2.ExecuteScalar();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read()) { ++count; if (count % 10000 == 0) { Console.WriteLine(count); } }
+                    }
+
+                    stopWatch.Stop();
+                    // Get the elapsed time as a TimeSpan value.
+                    TimeSpan ts = stopWatch.Elapsed;
+
+                    // Format and display the TimeSpan value.
+                    string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                        ts.Hours, ts.Minutes, ts.Seconds,
+                        ts.Milliseconds / 10);
+                    Console.WriteLine("RunTime " + elapsedTime);
+                    Console.WriteLine("Row count " + count);
                 }
-                catch (Exception e)
-                {
-                    //Assert.True(e is PgException, "Expected PgException but found " + e);
-                    hitException = true;
-                }
-                //Assert.True(hitException, "Expected a timeout exception but ExecutScalar succeeded");
-
-                //Assert.True(connection.State == ConnectionState.Closed, string.Format("Expected connection to be closed after hard timeout, but it was {0}", connection.State));
             }
         }
 
