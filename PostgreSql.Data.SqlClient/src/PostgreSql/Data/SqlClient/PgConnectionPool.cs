@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.Frontend;
 using System;
+using System.Data.Common;
 using System.Collections;
 using System.Threading;
 
@@ -18,14 +19,14 @@ namespace PostgreSql.Data.SqlClient
 
         public event EmptyPoolEventHandler EmptyPool;
 
-        private ConnectionOptions _options;
-        private ArrayList         _locked;
-        private ArrayList         _unlocked;
-        private Thread            _cleanUpThread;
-        private string            _connectionString;
-        private bool              _isRunning;
-        private long              _lifeTime;
-        private object            _syncObject;
+        private DbConnectionOptions _options;
+        private ArrayList           _locked;
+        private ArrayList           _unlocked;
+        private Thread              _cleanUpThread;
+        private string              _connectionString;
+        private bool                _isRunning;
+        private long                _lifeTime;
+        private object              _syncObject;
 
         public object SyncObject
         {
@@ -59,7 +60,7 @@ namespace PostgreSql.Data.SqlClient
         public PgConnectionPool(string connectionString)
         {
             _connectionString = connectionString;
-            _options          = new ConnectionOptions(connectionString);
+            _options          = new DbConnectionOptions(connectionString);
             _lifeTime         = _options.ConnectionLifeTime * TimeSpan.TicksPerSecond;
 
             if (_options.MaxPoolSize == 0)
@@ -192,7 +193,7 @@ namespace PostgreSql.Data.SqlClient
 
         private PgConnectionInternal Create()
         {
-            var connection = new PgConnectionInternal(new ConnectionOptions(_connectionString));
+            var connection = new PgConnectionInternal(new DbConnectionOptions(_connectionString));
 
             connection.Pooled  = true;
             connection.Created = DateTime.Now.Ticks;

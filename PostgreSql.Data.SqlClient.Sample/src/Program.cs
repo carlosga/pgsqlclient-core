@@ -34,7 +34,7 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             using (var connection = new PgConnection(csb.ToString()))
             {
-                using (var command = new PgCommand("select * from pg_attribute a cross join pg_attribute b", connection))
+                using (var command = new PgCommand("select * from pg_type a cross join pg_type b", connection))
                 {
                     connection.Open();
 

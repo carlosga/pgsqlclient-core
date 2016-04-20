@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace PostgreSql.Data.Frontend
+namespace System.Data.Common
 {
-    internal sealed class ConnectionOptions
+    internal sealed class DbConnectionOptions
     {
         private static readonly Regex s_tokenizer = new Regex(@"([\w\s\d]*)\s*=\s*([^;]*)", RegexOptions.Compiled);
 
@@ -31,6 +31,7 @@ namespace PostgreSql.Data.Frontend
         private string _searchPath;
         private int    _lockTimeout;
         private string _userId;
+        private int    _loadBalanceTimeout;
 
         internal string ConnectionString           => _connectionString;
         internal string ApplicationName            => _applicationName;
@@ -52,8 +53,9 @@ namespace PostgreSql.Data.Frontend
         internal bool   Pooling                    => _pooling;
         internal string SearchPath                 => _searchPath;
         internal string UserID                     => _userId;
+        internal int    LoadBalanceTimeout         => _loadBalanceTimeout;
 
-        internal ConnectionOptions(string connectionString)
+        internal DbConnectionOptions(string connectionString)
         {
             if (connectionString == null)
             {
@@ -61,24 +63,25 @@ namespace PostgreSql.Data.Frontend
             }
 
             _connectionString           = connectionString;
-            _applicationName            = "pgsqlclient";
-            _commandTimeout             = 0;
-            _connectionLifetime         = 0;
-            _connectionTimeout          = 15;
-            _dataSource                 = "localhost";
-            _defaultTablespace          = null;
-            _defaultTransactionReadOnly = false;
-            _lockTimeout                = 0;
-            _encrypt                    = false;
-            _maxPoolSize                = 100;
-            _minPoolSize                = 0;
-            _multipleActiveResultSets   = false;
-            _packetSize                 = 8192;
-            _password                   = null;
-            _pooling                    = true;
-            _portNumber                 = 5432;
-            _searchPath                 = null;
-            _userId                     = "postgres";
+            _applicationName            = DbConnectionStringDefaults.ApplicationName;
+            _commandTimeout             = DbConnectionStringDefaults.CommandTimeout;
+            _connectionLifetime         = DbConnectionStringDefaults.ConnectionLifetime;
+            _connectionTimeout          = DbConnectionStringDefaults.ConnectionTimeout;
+            _dataSource                 = DbConnectionStringDefaults.DataSource;
+            _defaultTablespace          = DbConnectionStringDefaults.DefaultTablespace;
+            _defaultTransactionReadOnly = DbConnectionStringDefaults.DefaultTransactionReadOnly;
+            _lockTimeout                = DbConnectionStringDefaults.LockTimeout;
+            _encrypt                    = DbConnectionStringDefaults.Encrypt;
+            _maxPoolSize                = DbConnectionStringDefaults.MaxPoolSize;
+            _minPoolSize                = DbConnectionStringDefaults.MinPoolSize;
+            _multipleActiveResultSets   = DbConnectionStringDefaults.MultipleActiveResultSets;
+            _packetSize                 = DbConnectionStringDefaults.PacketSize;
+            _password                   = DbConnectionStringDefaults.Password;
+            _pooling                    = DbConnectionStringDefaults.Pooling;
+            _portNumber                 = DbConnectionStringDefaults.PortNumber;
+            _searchPath                 = DbConnectionStringDefaults.SearchPath;
+            _userId                     = DbConnectionStringDefaults.UserID;
+            _loadBalanceTimeout         = 0;
 
             ParseConnectionString(connectionString);
         }
@@ -101,90 +104,90 @@ namespace PostgreSql.Data.Frontend
                 {
                     switch (token.Groups[1].Value.Trim().ToLower())
                     {
-                        case ConnectionStringSynonyms.App:
-                        case ConnectionStringSynonyms.ApplicationName:
+                        case DbConnectionStringSynonyms.App:
+                        case DbConnectionStringSynonyms.ApplicationName:
                             _applicationName = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.CommandTimeout:
-                        case ConnectionStringSynonyms.StatementTimeout:
+                        case DbConnectionStringSynonyms.CommandTimeout:
+                        case DbConnectionStringSynonyms.StatementTimeout:
                             _commandTimeout = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.ConnectionLifetime:
+                        case DbConnectionStringSynonyms.ConnectionLifetime:
                             _connectionLifetime = Int64.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.ConnectionTimeout:
-                        case ConnectionStringSynonyms.ConnectTimeout:
-                        case ConnectionStringSynonyms.Timeout:
+                        case DbConnectionStringSynonyms.ConnectionTimeout:
+                        case DbConnectionStringSynonyms.ConnectTimeout:
+                        case DbConnectionStringSynonyms.Timeout:
                             _connectionTimeout = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.DataSource:
-                        case ConnectionStringSynonyms.Server:
-                        case ConnectionStringSynonyms.Host:
+                        case DbConnectionStringSynonyms.DataSource:
+                        case DbConnectionStringSynonyms.Server:
+                        case DbConnectionStringSynonyms.Host:
                             _dataSource = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.DefaultTablespace:
+                        case DbConnectionStringSynonyms.DefaultTablespace:
                             _defaultTablespace = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.DefaultTransactionReadOnly:
+                        case DbConnectionStringSynonyms.DefaultTransactionReadOnly:
                             _defaultTransactionReadOnly = Boolean.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.Encrypt:
+                        case DbConnectionStringSynonyms.Encrypt:
                             _encrypt = Boolean.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.InitialCatalog:
-                        case ConnectionStringSynonyms.Database:
+                        case DbConnectionStringSynonyms.InitialCatalog:
+                        case DbConnectionStringSynonyms.Database:
                             _database = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.LockTimeout:
+                        case DbConnectionStringSynonyms.LockTimeout:
                             _lockTimeout = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.PacketSize:
+                        case DbConnectionStringSynonyms.PacketSize:
                             _packetSize = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.Password:
-                        case ConnectionStringSynonyms.UserPassword:
+                        case DbConnectionStringSynonyms.Password:
+                        case DbConnectionStringSynonyms.UserPassword:
                             _password = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.Pooling:
+                        case DbConnectionStringSynonyms.Pooling:
                             _pooling = Boolean.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.PortNumber:
-                        case ConnectionStringSynonyms.Port:
+                        case DbConnectionStringSynonyms.PortNumber:
+                        case DbConnectionStringSynonyms.Port:
                             _portNumber = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.MaxPoolSize:
+                        case DbConnectionStringSynonyms.MaxPoolSize:
                             _maxPoolSize = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.MinPoolSize:
+                        case DbConnectionStringSynonyms.MinPoolSize:
                             _minPoolSize = Int32.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.MultipleActiveResultSets:
+                        case DbConnectionStringSynonyms.MultipleActiveResultSets:
                             _multipleActiveResultSets = Boolean.Parse(currentValue);
                             break;
 
-                        case ConnectionStringSynonyms.SearchPath:
+                        case DbConnectionStringSynonyms.SearchPath:
                             _searchPath = currentValue;
                             break;
 
-                        case ConnectionStringSynonyms.UserId:
-                        case ConnectionStringSynonyms.UserName:
-                        case ConnectionStringSynonyms.User:
+                        case DbConnectionStringSynonyms.UserId:
+                        case DbConnectionStringSynonyms.UserName:
+                        case DbConnectionStringSynonyms.User:
                             _userId = currentValue;
                             break;
                     }

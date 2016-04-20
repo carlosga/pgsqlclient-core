@@ -5,6 +5,7 @@ using PostgreSql.Data.Frontend;
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Data.ProviderBase;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -21,7 +22,7 @@ namespace PostgreSql.Data.SqlClient
         private PgConnectionInternal _innerConnection;
         private ConnectionState      _state;
         private string               _connectionString;
-        private ConnectionOptions    _connectionOptions;
+        private DbConnectionOptions  _connectionOptions;
 
         public override string ConnectionString
         {
@@ -31,7 +32,7 @@ namespace PostgreSql.Data.SqlClient
                 if (IsClosed)
                 {
                     _connectionString  = value;
-                    _connectionOptions = new ConnectionOptions(_connectionString);
+                    _connectionOptions = new DbConnectionOptions(_connectionString);
                 }
             }
         }
@@ -39,17 +40,21 @@ namespace PostgreSql.Data.SqlClient
         public override string          ServerVersion            => _innerConnection?.ServerVersion;
         public override string          Database                 => _connectionOptions?.Database;
         public override string          DataSource               => _connectionOptions?.DataSource;
-        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
-        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
-        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
+        public override int             ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
+        public          int             PacketSize               => (_connectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
+        public          bool            MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
         public          string          SearchPath               => (_connectionOptions?.SearchPath);
         public override ConnectionState State                    => _state;
 
-        internal PgConnectionInternal InnerConnection => _innerConnection;
+        internal PgConnectionInternal  InnerConnection => _innerConnection;
+        internal bool                  ForceNewConnection { get; set; }
+        internal DbConnectionPoolGroup PoolGroup { get; set; }
 
         internal bool IsClosed     => (_state == ConnectionState.Closed);
         internal bool IsOpen       => (_state == ConnectionState.Open);
         internal bool IsConnecting => (_state == ConnectionState.Connecting);
+
+        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
 
         public PgConnection()
             : this(null)

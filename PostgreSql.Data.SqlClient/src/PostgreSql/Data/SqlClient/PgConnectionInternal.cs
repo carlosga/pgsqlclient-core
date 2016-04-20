@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 
 namespace PostgreSql.Data.SqlClient
@@ -26,12 +27,12 @@ namespace PostgreSql.Data.SqlClient
         internal string        ServerVersion            => _connection.SessionData.ServerVersion;
         internal string        Database                 => _connection?.Database;
         internal string        DataSource               => _connection?.DataSource;
-        internal int           ConnectionTimeout        => (_connection?.ConnectionTimeout ?? 15);
-        internal int           PacketSize               => (_connection?.PacketSize ?? 8192);
-        internal bool          MultipleActiveResultSets => (_connection?.MultipleActiveResultSets ?? false);
+        internal int           ConnectionTimeout        => (_connection?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
+        internal int           PacketSize               => (_connection?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
+        internal bool          MultipleActiveResultSets => (_connection?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
         internal string        SearchPath               => (_connection?.SearchPath);
-        internal bool          Pooling                  => (_connection?.Pooling ?? false);
-        internal bool          Encrypt                  => (_connection?.Encrypt ?? false);
+        internal bool          Pooling                  => (_connection?.Pooling ?? DbConnectionStringDefaults.Pooling);
+        internal bool          Encrypt                  => (_connection?.Encrypt ?? DbConnectionStringDefaults.Encrypt);
 
         internal bool HasActiveTransaction
         {
@@ -61,7 +62,7 @@ namespace PostgreSql.Data.SqlClient
             set { _pooled = value; }
         }
 
-        internal PgConnectionInternal(ConnectionOptions connectionOptions)
+        internal PgConnectionInternal(DbConnectionOptions connectionOptions)
         {
             _connection = new Connection(connectionOptions);
             _commands   = new ConcurrentDictionary<int, WeakReference<PgCommand>>();

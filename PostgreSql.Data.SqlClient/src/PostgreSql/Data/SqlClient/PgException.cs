@@ -39,5 +39,11 @@ namespace PostgreSql.Data.SqlClient
             _errors = new PgErrorCollection();
             _errors.AddRange(errors);
         }
+
+        internal PgException InternalClone()
+        {
+#warning TODO: Implement
+            return this;
+        }
     }
 }

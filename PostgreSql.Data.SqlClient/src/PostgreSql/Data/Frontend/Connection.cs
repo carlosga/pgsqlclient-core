@@ -7,6 +7,7 @@ using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -28,14 +29,14 @@ namespace PostgreSql.Data.Frontend
         private const int ProtocolVersion3Minor = 0;
         private const int ProtocolVersion3      = (ProtocolVersion3Major << 16) | ProtocolVersion3Minor;
 
-        private Transport         _transport;
-        private ConnectionOptions _connectionOptions;
-        private TransactionState  _transactionState;
-        private SessionData       _sessionData;
-        private int               _processId;
-        private int               _secretKey;
-        private bool              _open;
-        private TypeInfoProvider  _typeInfoProvider;
+        private Transport           _transport;
+        private DbConnectionOptions _connectionOptions;
+        private TransactionState    _transactionState;
+        private SessionData         _sessionData;
+        private int                 _processId;
+        private int                 _secretKey;
+        private bool                _open;
+        private TypeInfoProvider    _typeInfoProvider;
 
         internal NotificationCallback Notification
         {
@@ -86,7 +87,7 @@ namespace PostgreSql.Data.Frontend
             return LazyInitializer.EnsureInitialized(ref _cancelRequestSemaphore, () => new SemaphoreSlim(1, 1));
         }
 
-        internal Connection(ConnectionOptions connectionOptions)
+        internal Connection(DbConnectionOptions connectionOptions)
         {
             _connectionOptions = connectionOptions;
             _transport         = new Transport();
