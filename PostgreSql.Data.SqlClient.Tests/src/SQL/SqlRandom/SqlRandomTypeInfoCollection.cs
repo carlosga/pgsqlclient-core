@@ -34,7 +34,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlDateTypeInfo(),
             new SqlTimeTypeInfo(),
             // new SqlTimestampTypeInfo(),
-            new SqlTimeTzTypeInfo(),
+            // new SqlTimeTzTypeInfo(),
             // new SqlTimestampTzTypeInfo(),
             // new SqlIntervalTypeInfo(),
 

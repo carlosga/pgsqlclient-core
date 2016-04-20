@@ -183,7 +183,7 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Text:
                 return ReadString(length);
 
-            case PgDbType.Bool:
+            case PgDbType.Boolean:
                 return ReadBoolean();
 
             case PgDbType.Byte:
@@ -283,7 +283,7 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = TypeInfoProvider.GetType(oid);
+            var elementType = TypeInfoProvider.GetTypeInfo(oid);
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)

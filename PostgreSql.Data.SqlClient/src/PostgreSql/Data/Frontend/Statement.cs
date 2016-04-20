@@ -737,7 +737,7 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = TypeInfoProvider.GetType(typeOid);
+                var typeInfo     = TypeInfoProvider.GetTypeInfo(typeOid);
 
                 if (typeInfo == null)
                 {

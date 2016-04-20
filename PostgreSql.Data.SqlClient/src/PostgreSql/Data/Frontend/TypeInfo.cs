@@ -59,7 +59,7 @@ namespace PostgreSql.Data.Frontend
             get
             {
                 return (_pgDbType == PgDbType.BigInt
-                     || _pgDbType == PgDbType.Bool
+                     || _pgDbType == PgDbType.Boolean
                      || _pgDbType == PgDbType.Byte
                      || _pgDbType == PgDbType.Char
                      || _pgDbType == PgDbType.Double

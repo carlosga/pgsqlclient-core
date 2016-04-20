@@ -8,7 +8,7 @@ namespace PostgreSql.Data.SqlClient
         Array
       , BigInt
       , Bit
-      , Bool
+      , Boolean
       , Box
       , Box2D
       , Box3D

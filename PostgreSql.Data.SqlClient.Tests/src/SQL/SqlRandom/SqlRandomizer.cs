@@ -436,7 +436,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// </summary>
         public DateTimeOffset NextTimeTZ()
         {
-            return NextDateTime(new DateTime(1, 1, 2, 0, 0, 0, 0), new DateTime(1, 1, 2, 23, 59, 59, 999));
+            return NextDateTime(new DateTime(1, 1, 1, 0, 0, 0, 0), new DateTime(1, 1, 1, 23, 59, 59, 999));
         }
 
         /// <summary>

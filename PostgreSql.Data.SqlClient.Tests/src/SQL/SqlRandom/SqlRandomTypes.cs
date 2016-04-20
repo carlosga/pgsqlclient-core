@@ -46,7 +46,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         : SqlRandomTypeInfo
     {
         public SqlBooleanTypeInfo()
-            : base(PgDbType.Bool)
+            : base(PgDbType.Boolean)
         {
         }
 
@@ -93,7 +93,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             int size = columnInfo.StorageSize.HasValue ? columnInfo.StorageSize.Value : DefaultCharSize;
             if (size < 1 || size > MaxCharSize)
             {
-                throw new NotSupportedException("wrong size");   
+                throw new NotSupportedException("wrong size");
             }
             return size;
         }

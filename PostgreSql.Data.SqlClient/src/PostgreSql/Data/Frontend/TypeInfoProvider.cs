@@ -51,8 +51,8 @@ namespace PostgreSql.Data.Frontend
 
             // boolean | 1 byte | state of true or false
 
-            types[  16] = new TypeInfo(  16, "bool"  , "bool" , PgDbType.Bool , TypeFormat.Binary, typeof(bool), typeof(PgBoolean), sizeof(bool));
-            types[1000] = new TypeInfo(1000, "bool[]", "_bool", PgDbType.Array, types[16], typeof(bool[]), typeof(PgBoolean[]));
+            types[  16] = new TypeInfo(  16, "bool"  , "bool" , PgDbType.Boolean, TypeFormat.Binary, typeof(bool), typeof(PgBoolean), sizeof(bool));
+            types[1000] = new TypeInfo(1000, "bool[]", "_bool", PgDbType.Array  , types[16], typeof(bool[]), typeof(PgBoolean[]));
 
             //
             // CHARACTER TYPES
@@ -252,9 +252,10 @@ namespace PostgreSql.Data.Frontend
         {
             switch (providerType)
             {
-                case PgDbType.Bool:
+                case PgDbType.Boolean:
                     return DbType.Boolean;
 
+                case PgDbType.Bit:
                 case PgDbType.Byte:
                     return DbType.Byte;
 
@@ -278,6 +279,18 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Date:
                     return DbType.Date;
 
+                case PgDbType.Double:
+                    return DbType.Double;
+
+                case PgDbType.Money:
+                    return DbType.Currency;
+
+                case PgDbType.Numeric:
+                    return DbType.Decimal;
+
+                case PgDbType.Real:
+                    return DbType.Single;
+
                 case PgDbType.Time:
                     return DbType.Time;
 
@@ -288,20 +301,8 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.TimestampTZ:
                     return DbType.DateTimeOffset;
 
-                case PgDbType.Numeric:
-                    return DbType.Decimal;
-
-                case PgDbType.Real:
-                    return DbType.Single;
-
-                case PgDbType.Double:
-                    return DbType.Double;
-
-                case PgDbType.Money:
-                    return DbType.Currency;
-
                 default:
-                    throw new InvalidOperationException("Invalid data type specified.");
+                    throw new NotSupportedException("Invalid data type specified.");
             }
         }
 
@@ -311,12 +312,20 @@ namespace PostgreSql.Data.Frontend
             {
                 case DbType.AnsiString:
                 case DbType.String:
-                case DbType.Object:
                     return PgDbType.VarChar;
 
                 case DbType.AnsiStringFixedLength:
                 case DbType.StringFixedLength:
                     return PgDbType.Char;
+
+                case DbType.Boolean:
+                    return PgDbType.Boolean;
+
+                case DbType.Binary:
+                    return PgDbType.Bytea;
+
+                case DbType.Byte:
+                    return PgDbType.Byte;
 
                 case DbType.Int16:
                     return PgDbType.SmallInt;
@@ -336,15 +345,6 @@ namespace PostgreSql.Data.Frontend
                 case DbType.Double:
                     return PgDbType.Double;
 
-                case DbType.Binary:
-                    return PgDbType.Bytea;
-
-                case DbType.Boolean:
-                    return PgDbType.Bool;
-
-                case DbType.Byte:
-                    return PgDbType.Byte;
-
                 case DbType.Currency:
                     return PgDbType.Money;
 
@@ -360,6 +360,9 @@ namespace PostgreSql.Data.Frontend
                 case DbType.DateTimeOffset:
                     return PgDbType.TimestampTZ;
 
+                case DbType.Object:
+                    return PgDbType.Composite;
+
                 // case DbType.Guid:
                 // case DbType.VarNumeric:
                 // case DbType.SByte:
@@ -367,11 +370,11 @@ namespace PostgreSql.Data.Frontend
                 // case DbType.UInt32:
                 // case DbType.UInt64:
                 default:
-                    throw new InvalidOperationException("Invalid data type specified.");
+                    throw new NotSupportedException("Invalid data type specified.");
             }
         }
 
-        internal static TypeInfo GetType(int oid)
+        internal static TypeInfo GetTypeInfo(int oid)
         {
             if (s_types.ContainsKey(oid))
             {
