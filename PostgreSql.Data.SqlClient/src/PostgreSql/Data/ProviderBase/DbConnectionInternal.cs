@@ -92,9 +92,8 @@ namespace System.Data.ProviderBase
             get { throw ADP.NotSupported(); }
         }
 
-        internal bool ShouldHidePassword => _hidePassword;
-
-        internal ConnectionState State => _state;
+        internal bool            ShouldHidePassword => _hidePassword;
+        internal ConnectionState State              => _state;
 
         protected internal bool   IsConnectionDoomed => _connectionIsDoomed;
         protected internal object Owner              => _owningObject.Target; 
@@ -127,7 +126,7 @@ namespace System.Data.ProviderBase
 
 #if DEBUG
             int activateCount = Interlocked.Increment(ref _activateCount);
-            Debug.Assert(1 == activateCount, "activated multiple times?");
+            Debug.Assert(activateCount == 1, "activated multiple times?");
 #endif // DEBUG
 
             Activate();
@@ -158,7 +157,7 @@ namespace System.Data.ProviderBase
 
         internal void AddWeakReference(object value, int tag)
         {
-            if (null == _referenceCollection)
+            if (_referenceCollection == null)
             {
                 _referenceCollection = CreateReferenceCollection();
                 if (null == _referenceCollection)
@@ -297,7 +296,7 @@ namespace System.Data.ProviderBase
         internal void NotifyWeakReference(int message)
         {
             DbReferenceCollection referenceCollection = ReferenceCollection;
-            if (null != referenceCollection)
+            if (referenceCollection != null)
             {
                 referenceCollection.Notify(message);
             }

@@ -27,7 +27,7 @@ namespace PostgreSql.Data.SqlClient
         private DbConnectionPoolGroup _poolGroup;
         private string                _connectionString;
         private int                   _closeCount;
-        private bool                  _applyTransientFaultHandling;
+        // private bool                  _applyTransientFaultHandling;
 
         internal DbConnectionFactory ConnectionFactory => PgConnectionFactory.SingletonInstance;
 
@@ -102,16 +102,16 @@ namespace PostgreSql.Data.SqlClient
                     // TODO: dispose managed state (managed objects).
                     try
                     {
-                        Close();
+                        // This will call the Close method
+                        base.Dispose(disposing);
                     }
                     finally
                     {
                         _innerConnection   = null;
                         _connectionString  = null;
                         _connectionOptions = null;
+                        _poolGroup         = null;
                     }
-
-                    base.Dispose(disposing);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -147,6 +147,7 @@ namespace PostgreSql.Data.SqlClient
             if (!TryOpen(null))
             {
 #warning TODO: Throw exception
+                throw new InvalidOperationException("Cannot open a new connection");
             }
         }
 
@@ -166,11 +167,6 @@ namespace PostgreSql.Data.SqlClient
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            var internalConnection = _innerConnection as PgConnectionInternal;
-            if (internalConnection.HasActiveTransaction)
-            {
-                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
-            }
             if (String.IsNullOrEmpty(transactionName))
             {
                 throw new InvalidOperationException("Invalid transaction or invalid name for a point at which to save within the transaction.");
@@ -186,15 +182,6 @@ namespace PostgreSql.Data.SqlClient
 
         public override void ChangeDatabase(string database)
         {
-            if (database == null || database.Trim().Length == 0)
-            {
-                throw new InvalidOperationException("Database name is not valid.");
-            }
-            // if (_state == ConnectionState.Closed)
-            // {
-            //     throw new InvalidOperationException("ChangeDatabase requires an open and available Connection.");
-            // }
-
             _innerConnection.ChangeDatabase(database);
         }
 
@@ -319,8 +306,8 @@ namespace PostgreSql.Data.SqlClient
 
             if (!innerConnection.ConnectionOptions.Pooling)
             {
-                // For non-pooled connections, we need to make sure that the finalizer does actually run to avoid leaking SNI handles
-                // GC.ReRegisterForFinalize(this);
+                // For non-pooled connections, we need to make sure that the finalizer does actually run
+                GC.ReRegisterForFinalize(this);
             }
 
             return true;

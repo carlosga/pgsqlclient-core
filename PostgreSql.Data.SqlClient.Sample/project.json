@@ -6,10 +6,9 @@
         "platform"        : "x64"
     },
     "dependencies": {
-        "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-24008"
+            "version": "1.0.0-rc2-*"
         },
         "PostgreSql.Data.SqlClient": {
             "target"  : "project",

@@ -67,8 +67,6 @@ namespace PostgreSql.Data.SqlClient
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    // Close();
-
                     base.Dispose();
                 }
 
@@ -98,6 +96,7 @@ namespace PostgreSql.Data.SqlClient
         protected override void Activate()
         {
         }
+
         protected override void Deactivate()
         {
         }
@@ -110,30 +109,7 @@ namespace PostgreSql.Data.SqlClient
 
         protected override void PrepareForCloseConnection()
         {
-            // Dispose Active commands
-            CloseCommands();
-
             // Rollback active transaction
-            DisposeActiveTransaction();
-        }
-
-        internal override void ChangeDatabase(string database)
-        {
-            _connection.ChangeDatabase(database);
-        }
-
-        internal override DbTransaction BeginTransaction(IsolationLevel isolationLevel)
-        {
-            var transaction = new PgTransaction(OwningConnection, isolationLevel);
-            transaction.Begin();
-
-            _activeTransaction = new WeakReference(transaction);
-
-            return transaction;
-        }
-
-        internal void DisposeActiveTransaction()
-        {
             if (HasActiveTransaction)
             {
                 ActiveTransaction.Dispose();
@@ -141,38 +117,34 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        internal override void ChangeDatabase(string database)
+        {
+            if (database == null || database.Trim().Length == 0)
+            {
+                throw ADP.EmptyDatabaseName();
+            }
+            _connection.ChangeDatabase(database);
+        }
+
+        internal override DbTransaction BeginTransaction(IsolationLevel isolationLevel)
+        {
+            if (HasActiveTransaction)
+            {
+                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
+            }
+
+            var transaction = new PgTransaction(OwningConnection, isolationLevel);
+
+            transaction.Begin();
+
+            _activeTransaction = new WeakReference(transaction);
+
+            return transaction;
+        }
+
         internal Statement CreateStatement() => _connection.CreateStatement();
 
         internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
-
-        internal void CloseCommands()
-        {
-#warning TODO: Use PgReferenceCollection
-            // foreach (var commandRef in _commands)
-            // {
-            //     PgCommand command = null;
-
-            //     if (commandRef.Value != null && commandRef.Value.TryGetTarget(out command))
-            //     {
-            //         command.InternalClose();
-            //     }
-            // }
-            
-            // _commands.Clear();
-        }
-
-        internal void AddCommand(PgCommand command)
-        {
-#warning TODO: Use PgReferenceCollection
-            // _commands[command.GetHashCode()] = new WeakReference<PgCommand>(command);
-        }
-
-        internal void RemoveCommand(PgCommand command)
-        {
-#warning TODO: Use PgReferenceCollection
-            // WeakReference<PgCommand> removed = null;
-            // _commands.TryRemove(command.GetHashCode(), out removed);
-        }
 
         internal bool Verify()
         {
@@ -193,6 +165,7 @@ namespace PostgreSql.Data.SqlClient
 
         protected override DbReferenceCollection CreateReferenceCollection()
         {
+            Console.WriteLine("PgReferenceCollection");
             return new PgReferenceCollection();
         }
 

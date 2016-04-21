@@ -94,14 +94,11 @@ namespace System.Data.Common
 //             }
 //         }
 
-//         //
-//         // COM+ exceptions
-//         //
-//         internal static ArgumentException Argument(string error)
-//         {
-//             ArgumentException e = new ArgumentException(error);
-//             return e;
-//         }
+        //
+        // COM+ exceptions
+        //
+        internal static ArgumentException Argument(string error) => new ArgumentException(error);
+
 //         internal static ArgumentException Argument(string error, Exception inner)
 //         {
 //             ArgumentException e = new ArgumentException(error, inner);
@@ -112,16 +109,10 @@ namespace System.Data.Common
 //             ArgumentException e = new ArgumentException(error, parameter);
 //             return e;
 //         }
-        internal static ArgumentNullException ArgumentNull(string parameter)
-        {
-            ArgumentNullException e = new ArgumentNullException(parameter);
-            return e;
-        }
-        internal static ArgumentNullException ArgumentNull(string parameter, string error)
-        {
-            ArgumentNullException e = new ArgumentNullException(parameter, error);
-            return e;
-        }
+
+        internal static ArgumentNullException ArgumentNull(string parameter) => new ArgumentNullException(parameter);
+        internal static ArgumentNullException ArgumentNull(string parameter, string error) => new ArgumentNullException(parameter, error);
+
 //         internal static ArgumentOutOfRangeException ArgumentOutOfRange(string parameterName)
 //         {
 //             ArgumentOutOfRangeException e = new ArgumentOutOfRangeException(parameterName);
@@ -156,31 +147,18 @@ namespace System.Data.Common
 //             InvalidCastException e = new InvalidCastException(error, inner);
 //             return e;
 //         }
-        internal static InvalidOperationException InvalidOperation(string error)
-        {
-            InvalidOperationException e = new InvalidOperationException(error);
-            return e;
-        }
-        internal static TimeoutException TimeoutException(string error)
-        {
-            TimeoutException e = new TimeoutException(error);
-            return e;
-        }
+        internal static InvalidOperationException InvalidOperation(string error) => new InvalidOperationException(error);
+
+        internal static TimeoutException TimeoutException(string error) => new TimeoutException(error);
+
         internal static InvalidOperationException InvalidOperation(string error, Exception inner)
         {
-            InvalidOperationException e = new InvalidOperationException(error, inner);
-            return e;
+            return new InvalidOperationException(error, inner);
         }
-        internal static NotSupportedException NotSupported()
-        {
-            NotSupportedException e = new NotSupportedException();
-            return e;
-        }
-        internal static NotSupportedException NotSupported(string error)
-        {
-            NotSupportedException e = new NotSupportedException(error);
-            return e;
-        }
+
+        internal static NotSupportedException NotSupported()             => new NotSupportedException();
+        internal static NotSupportedException NotSupported(string error) => new NotSupportedException(error);
+
 //         internal static OverflowException Overflow(string error)
 //         {
 //             return Overflow(error, null);
@@ -607,6 +585,7 @@ namespace System.Data.Common
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_ConnectionIsDisabled), InnerException);
 //         }
+
         internal static Exception ClosedConnectionError()
         {
             return InvalidOperation("Invalid operation. The connection is closed.");
@@ -625,10 +604,11 @@ namespace System.Data.Common
             // return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionPropertySet, property, ADP.ConnectionStateMsg(state)));
         }
 
-        // internal static Exception EmptyDatabaseName()
-        // {
-        //     return Argument(Res.GetString(Res.ADP_EmptyDatabaseName));
-        // }
+        internal static Exception EmptyDatabaseName()
+        {
+            return Argument("Database name is not valid.");
+            // return Argument(Res.GetString(Res.ADP_EmptyDatabaseName));
+        }
 
         internal enum ConnectionError
         {
@@ -856,16 +836,8 @@ namespace System.Data.Common
             ticks = DateTime.UtcNow.ToFileTimeUtc();
         }
 
-        internal static long TimerCurrent()
-        {
-            return DateTime.UtcNow.ToFileTimeUtc();
-        }
-
-        internal static long TimerFromSeconds(int seconds)
-        {
-            long result = checked((long)seconds * TimeSpan.TicksPerSecond);
-            return result;
-        }
+        internal static long TimerCurrent()                => DateTime.UtcNow.ToFileTimeUtc();
+        internal static long TimerFromSeconds(int seconds) => checked((long)seconds * TimeSpan.TicksPerSecond);
 
 //         internal static long TimerFromMilliseconds(long milliseconds)
 //         {
@@ -873,11 +845,7 @@ namespace System.Data.Common
 //             return result;
 //         }
 
-        internal static bool TimerHasExpired(long timerExpire)
-        {
-            bool result = TimerCurrent() > timerExpire;
-            return result;
-        }
+        internal static bool TimerHasExpired(long timerExpire) => TimerCurrent() > timerExpire;
 
         internal static long TimerRemaining(long timerExpire)
         {
@@ -886,11 +854,7 @@ namespace System.Data.Common
             return result;
         }
 
-        internal static long TimerRemainingMilliseconds(long timerExpire)
-        {
-            long result = TimerToMilliseconds(TimerRemaining(timerExpire));
-            return result;
-        }
+        internal static long TimerRemainingMilliseconds(long timerExpire) => TimerToMilliseconds(TimerRemaining(timerExpire));
 
 //         internal static long TimerRemainingSeconds(long timerExpire)
 //         {
@@ -898,11 +862,7 @@ namespace System.Data.Common
 //             return result;
 //         }
 
-        internal static long TimerToMilliseconds(long timerValue)
-        {
-            long result = timerValue / TimeSpan.TicksPerMillisecond;
-            return result;
-        }
+        internal static long TimerToMilliseconds(long timerValue) => timerValue / TimeSpan.TicksPerMillisecond;
 
 //         static private long TimerToSeconds(long timerValue)
 //         {

@@ -335,7 +335,7 @@ namespace PostgreSql.Data.SqlClient
 
                 var internalConnection = _connection.InnerConnection as PgConnectionInternal;
 
-                internalConnection.RemoveCommand(this);
+                internalConnection.RemoveWeakReference(this);
                 _statement.Dispose();
             }
             catch
@@ -388,7 +388,8 @@ namespace PostgreSql.Data.SqlClient
             _statement.FetchSize     = _fetchSize;
 
             _statement.Prepare();
-            internalConnection.AddCommand(this);
+
+            internalConnection.AddWeakReference(this, PgReferenceCollection.CommandTag);
         }
 
         private int InternalExecuteNonQuery()

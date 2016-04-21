@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
-//------------------------------------------------------------------------------
-
 using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Diagnostics;
 
 namespace System.Data.ProviderBase
 {
-    // set_ConnectionString calls DbConnectionFactory.GetConnectionPoolGroup
+    // InternalSetConnectionString calls DbConnectionFactory.GetConnectionPoolGroup
     // when not found a new pool entry is created and potentially added
     // DbConnectionPoolGroup starts in the Active state
 

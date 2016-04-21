@@ -38,6 +38,8 @@ namespace PostgreSql.Data.SqlClient.Sample
                 {
                     connection.Open();
 
+                    Console.WriteLine("Connection open in theory");
+
                     // command.FetchSize = 10000;   // Fetch size
 
                     // Stopwatch stopWatch = new Stopwatch();
