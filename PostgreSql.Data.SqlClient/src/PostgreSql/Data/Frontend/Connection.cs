@@ -67,7 +67,7 @@ namespace PostgreSql.Data.Frontend
         internal string           ConnectionString         => _connectionOptions?.ConnectionString;
         internal string           Database                 => _connectionOptions?.Database;
         internal string           DataSource               => _connectionOptions?.DataSource;
-        internal int              ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? 15);
+        internal int              ConnectTimeout           => (_connectionOptions?.ConnectTimeout ?? 15);
         internal int              PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
         internal bool             MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
         internal string           SearchPath               => (_connectionOptions?.SearchPath);
@@ -342,7 +342,7 @@ namespace PostgreSql.Data.Frontend
             // Open the channel
             _transport.Open(_connectionOptions.DataSource
                           , _connectionOptions.PortNumber
-                          , _connectionOptions.ConnectionTimeout
+                          , _connectionOptions.ConnectTimeout
                           , _connectionOptions.PacketSize
                           , _connectionOptions.Encrypt);
 

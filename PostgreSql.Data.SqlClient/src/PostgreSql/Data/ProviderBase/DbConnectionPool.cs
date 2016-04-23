@@ -81,7 +81,6 @@ namespace System.Data.ProviderBase
         private const int CREATION_HANDLE  = (int)0x2;
         private const int BOGUS_HANDLE     = (int)0x3;
 
-
         private const int ERROR_WAIT_DEFAULT = 5 * 1000; // 5 seconds
 
         // we do want a testable, repeatable set of generated random numbers
@@ -115,7 +114,6 @@ namespace System.Data.ProviderBase
         private Timer _errorTimer;
 
         private Timer _cleanupTimer;
-
 
         private readonly List<DbConnectionInternal> _objectList;
         private int                                 _totalObjects;
@@ -672,12 +670,9 @@ namespace System.Data.ProviderBase
                 return true;
             }
 
-            var pendingGetConnection =
-                new PendingGetConnection(
-                    CreationTimeout == 0 ? Timeout.Infinite : ADP.TimerCurrent() + ADP.TimerFromSeconds(CreationTimeout / 1000),
-                    owningObject,
-                    retry,
-                    userOptions);
+            var dueTime = CreationTimeout == 0 ? Timeout.Infinite : ADP.TimerCurrent() + ADP.TimerFromSeconds(CreationTimeout / 1000); 
+            var pendingGetConnection = new PendingGetConnection(dueTime, owningObject, retry, userOptions);
+
             _pendingOpens.Enqueue(pendingGetConnection);
 
             // it is better to StartNew too many times than not enough
@@ -700,7 +695,7 @@ namespace System.Data.ProviderBase
                                     , out DbConnectionInternal connection)
         {
             DbConnectionInternal obj = null;
-            if (null == obj)
+            if (obj == null)
             {
                 Interlocked.Increment(ref _waitCount);
 
@@ -709,6 +704,7 @@ namespace System.Data.ProviderBase
                     int waitResult = BOGUS_HANDLE;
                     try
                     {
+#warning TODO: Empty try
                         try
                         {
                         }
@@ -960,7 +956,7 @@ namespace System.Data.ProviderBase
 
                                         // We do not need to check error flag here, since we know if
                                         // CreateObject returned null, we are in error case.
-                                        if (null != newObj)
+                                        if (newObj != null)
                                         {
                                             PutNewObject(newObj);
                                         }
@@ -1001,7 +997,7 @@ namespace System.Data.ProviderBase
 
         internal void PutObject(DbConnectionInternal obj, object owningObject)
         {
-            Debug.Assert(null != obj, "null obj?");
+            Debug.Assert(obj != null, "null obj?");
 
             // Once a connection is closing (which is the state that we're in at
             // this point in time) you cannot delegate a transaction to or enlist
@@ -1047,7 +1043,7 @@ namespace System.Data.ProviderBase
                 {
                     DbConnectionInternal obj = _objectList[i];
 
-                    if (null != obj)
+                    if (obj != null)
                     {
                         bool locked = false;
 

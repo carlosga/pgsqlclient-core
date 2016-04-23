@@ -37,7 +37,14 @@ namespace PostgreSql.Data.SqlClient
 
         internal override DbConnectionPoolProviderInfo CreateConnectionPoolProviderInfo(DbConnectionOptions connectionOptions)
         {
-            return null;
+            DbConnectionPoolProviderInfo providerInfo = null;
+
+            // if (connectionOptions.UserInstance)
+            // {
+            //     providerInfo = new DbConnectionPoolProviderInfo();
+            // }
+
+            return providerInfo;
         }
 
         protected override DbConnectionInternal CreateConnection(DbConnectionOptions               options
@@ -82,10 +89,9 @@ namespace PostgreSql.Data.SqlClient
         {
             DbConnectionPoolGroupOptions poolingOptions = null;
 
-            if (connectionOptions.Pooling)
+            if (connectionOptions.Pooling) // never pool context connections.
             {
-                // never pool context connections.
-                int connectionTimeout = connectionOptions.ConnectionTimeout;
+                int connectionTimeout = connectionOptions.ConnectTimeout;
 
                 if ((0 < connectionTimeout) && (connectionTimeout < Int32.MaxValue / 1000))
                 {
@@ -96,14 +102,113 @@ namespace PostgreSql.Data.SqlClient
                     connectionTimeout = Int32.MaxValue;
                 }
 
-                poolingOptions = new DbConnectionPoolGroupOptions(connectionOptions.MinPoolSize
+                poolingOptions = new DbConnectionPoolGroupOptions(false //opt.IntegratedSecurity,
+                                                                , connectionOptions.MinPoolSize
                                                                 , connectionOptions.MaxPoolSize
                                                                 , connectionTimeout
                                                                 , connectionOptions.LoadBalanceTimeout);
             }
             return poolingOptions;
-        }
 
+
+            // PgConnectionString opt = (PgConnectionString)options;
+            // PgConnectionPoolKey key = (PgConnectionPoolKey)poolKey;
+            // PgInternalConnection result = null;
+            // SessionData recoverySessionData = null;
+            // PgConnection sqlOwningConnection = (PgConnection)owningConnection;
+            // bool applyTransientFaultHandling = sqlOwningConnection != null ? sqlOwningConnection._applyTransientFaultHandling : false;
+
+            // SqlConnectionString userOpt = null;
+            // if (userOptions != null)
+            // {
+            //     userOpt = (SqlConnectionString)userOptions;
+            // }
+            // else if (sqlOwningConnection != null)
+            // {
+            //     userOpt = (SqlConnectionString)(sqlOwningConnection.UserConnectionOptions);
+            // }
+
+            // if (sqlOwningConnection != null)
+            // {
+            //     recoverySessionData = sqlOwningConnection._recoverySessionData;
+            // }
+
+            // bool redirectedUserInstance = false;
+            // DbConnectionPoolIdentity identity = null;
+
+            // // Pass DbConnectionPoolIdentity to SqlInternalConnectionTds if using integrated security.
+            // // Used by notifications.
+            // if (opt.IntegratedSecurity)
+            // {
+            //     if (pool != null)
+            //     {
+            //         identity = pool.Identity;
+            //     }
+            //     else
+            //     {
+            //         identity = DbConnectionPoolIdentity.GetCurrent();
+            //     }
+            // }
+
+            // // FOLLOWING IF BLOCK IS ENTIRELY FOR SSE USER INSTANCES
+            // // If "user instance=true" is in the connection string, we're using SSE user instances
+            // if (opt.UserInstance)
+            // {
+            //     // opt.DataSource is used to create the SSE connection
+            //     redirectedUserInstance = true;
+            //     string instanceName;
+
+            //     if ((null == pool) ||
+            //          (null != pool && pool.Count <= 0))
+            //     { // Non-pooled or pooled and no connections in the pool.
+            //         SqlInternalConnectionTds sseConnection = null;
+            //         try
+            //         {
+            //             // We throw an exception in case of a failure
+            //             // NOTE: Cloning connection option opt to set 'UserInstance=True' and 'Enlist=False'
+            //             //       This first connection is established to SqlExpress to get the instance name 
+            //             //       of the UserInstance.
+            //             SqlConnectionString sseopt = new SqlConnectionString(opt, opt.DataSource, true /* user instance=true */);
+            //             sseConnection = new SqlInternalConnectionTds(identity, sseopt, null, false, applyTransientFaultHandling: applyTransientFaultHandling);
+            //             // NOTE: Retrieve <UserInstanceName> here. This user instance name will be used below to connect to the Sql Express User Instance.
+            //             instanceName = sseConnection.InstanceName;
+
+            //             if (!instanceName.StartsWith("\\\\.\\", StringComparison.Ordinal))
+            //             {
+            //                 throw SQL.NonLocalSSEInstance();
+            //             }
+
+            //             if (null != pool)
+            //             { // Pooled connection - cache result
+            //                 SqlConnectionPoolProviderInfo providerInfo = (SqlConnectionPoolProviderInfo)pool.ProviderInfo;
+            //                 // No lock since we are already in creation mutex
+            //                 providerInfo.InstanceName = instanceName;
+            //             }
+            //         }
+            //         finally
+            //         {
+            //             if (null != sseConnection)
+            //             {
+            //                 sseConnection.Dispose();
+            //             }
+            //         }
+            //     }
+            //     else
+            //     { // Cached info from pool.
+            //         SqlConnectionPoolProviderInfo providerInfo = (SqlConnectionPoolProviderInfo)pool.ProviderInfo;
+            //         // No lock since we are already in creation mutex
+            //         instanceName = providerInfo.InstanceName;
+            //     }
+
+            //     // NOTE: Here connection option opt is cloned to set 'instanceName=<UserInstanceName>' that was
+            //     //       retrieved from the previous SSE connection. For this UserInstance connection 'Enlist=True'.
+            //     // options immutable - stored in global hash - don't modify
+            //     opt = new SqlConnectionString(opt, instanceName, false /* user instance=false */);
+            //     poolGroupProviderInfo = null; // null so we do not pass to constructor below...
+            // }
+            // result = new SqlInternalConnectionTds(identity, opt, poolGroupProviderInfo, redirectedUserInstance, userOpt, recoverySessionData, applyTransientFaultHandling: applyTransientFaultHandling);
+            // return result;
+        }
 
         internal override DbConnectionPoolGroupProviderInfo CreateConnectionPoolGroupProviderInfo(DbConnectionOptions connectionOptions)
         {
@@ -167,7 +272,7 @@ namespace PostgreSql.Data.SqlClient
             return false;
         }
 
-        override internal void SetInnerConnectionTo(DbConnection owningObject, DbConnectionInternal to)
+        internal override void SetInnerConnectionTo(DbConnection owningObject, DbConnectionInternal to)
         {
             var c = owningObject as PgConnection;
             if (c != null)

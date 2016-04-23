@@ -6,6 +6,7 @@ namespace System.Data.ProviderBase
 {
     internal sealed class DbConnectionPoolGroupOptions
     {
+        private readonly bool     _poolByIdentity;
         private readonly int      _minPoolSize;
         private readonly int      _maxPoolSize;
         private readonly int      _creationTimeout;
@@ -16,13 +17,16 @@ namespace System.Data.ProviderBase
         public TimeSpan LoadBalanceTimeout  => _loadBalanceTimeout;
         public int      MaxPoolSize         => _maxPoolSize;
         public int      MinPoolSize         => _minPoolSize;
+        public bool PoolByIdentity          => _poolByIdentity;
         public bool     UseLoadBalancing    => _useLoadBalancing;
 
-        public DbConnectionPoolGroupOptions(int minPoolSize
-                                          , int maxPoolSize
-                                          , int creationTimeout
-                                          , int loadBalanceTimeout)
+        public DbConnectionPoolGroupOptions(bool poolByIdentity
+                                          , int  minPoolSize
+                                          , int  maxPoolSize
+                                          , int  creationTimeout
+                                          , int  loadBalanceTimeout)
         {
+            _poolByIdentity  = poolByIdentity;
             _minPoolSize     = minPoolSize;
             _maxPoolSize     = maxPoolSize;
             _creationTimeout = creationTimeout;

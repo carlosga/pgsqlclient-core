@@ -14,8 +14,8 @@ namespace System.Data.Common
         private string _connectionString;
         private string _applicationName;
         private int    _commandTimeout;
+        private int    _connectTimeout;
         private long   _connectionLifetime;
-        private int    _connectionTimeout;
         private string _database;
         private string _dataSource;
         private bool   _defaultTransactionReadOnly;
@@ -36,8 +36,8 @@ namespace System.Data.Common
         internal string ConnectionString           => _connectionString;
         internal string ApplicationName            => _applicationName;
         internal int    CommandTimeout             => _commandTimeout;
+        internal int    ConnectTimeout             => _connectTimeout;
         internal long   ConnectionLifeTime         => _connectionLifetime;
-        internal int    ConnectionTimeout          => _connectionTimeout;
         internal string Database                   => _database;
         internal string DataSource                 => _dataSource;
         internal bool   DefaultTransactionReadOnly => _defaultTransactionReadOnly;
@@ -68,7 +68,7 @@ namespace System.Data.Common
             _applicationName            = DbConnectionStringDefaults.ApplicationName;
             _commandTimeout             = DbConnectionStringDefaults.CommandTimeout;
             _connectionLifetime         = DbConnectionStringDefaults.ConnectionLifetime;
-            _connectionTimeout          = DbConnectionStringDefaults.ConnectionTimeout;
+            _connectTimeout             = DbConnectionStringDefaults.ConnectTimeout;
             _dataSource                 = DbConnectionStringDefaults.DataSource;
             _defaultTablespace          = DbConnectionStringDefaults.DefaultTablespace;
             _defaultTransactionReadOnly = DbConnectionStringDefaults.DefaultTransactionReadOnly;
@@ -123,7 +123,7 @@ namespace System.Data.Common
                         case DbConnectionStringSynonyms.ConnectionTimeout:
                         case DbConnectionStringSynonyms.ConnectTimeout:
                         case DbConnectionStringSynonyms.Timeout:
-                            _connectionTimeout = Int32.Parse(currentValue);
+                            _connectTimeout = Int32.Parse(currentValue);
                             break;
 
                         case DbConnectionStringSynonyms.DataSource:
@@ -206,9 +206,9 @@ namespace System.Data.Common
 
                 throw new ArgumentException(msg);
             }
-            else if (_connectionTimeout < 0 || _connectionTimeout > 2147483647)
+            else if (_connectTimeout < 0 || _connectTimeout > 2147483647)
             {
-                string msg = $"'Connection Timeout' value of {_connectionTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
+                string msg = $"'Connection Timeout' value of {_connectTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
 
                 throw new ArgumentException(msg);
             }

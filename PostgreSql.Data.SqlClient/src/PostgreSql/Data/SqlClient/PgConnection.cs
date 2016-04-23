@@ -60,7 +60,7 @@ namespace PostgreSql.Data.SqlClient
         public override string ServerVersion            => _innerConnection?.ServerVersion;
         public override string Database                 => _connectionOptions?.Database;
         public override string DataSource               => _connectionOptions?.DataSource;
-        public override int    ConnectionTimeout        => (_connectionOptions?.ConnectionTimeout ?? DbConnectionStringDefaults.ConnectionTimeout);
+        public override int    ConnectionTimeout        => (_connectionOptions?.ConnectTimeout ?? DbConnectionStringDefaults.ConnectTimeout);
         public          int    PacketSize               => (_connectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
         public          bool   MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
         public          string SearchPath               => (_connectionOptions?.SearchPath);

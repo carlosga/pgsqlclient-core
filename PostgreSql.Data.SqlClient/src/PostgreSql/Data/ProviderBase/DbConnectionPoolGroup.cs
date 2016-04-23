@@ -69,7 +69,7 @@ namespace System.Data.ProviderBase
             set
             {
                 _providerInfo = value;
-                if (null != value)
+                if (value != null)
                 {
                     _providerInfo.PoolGroup = this;
                 }
@@ -123,18 +123,18 @@ namespace System.Data.ProviderBase
             // PoolGroupOptions will only be null when we're not supposed to pool
             // connections.
             DbConnectionPool pool = null;
-            if (null != _poolGroupOptions)
+            if (_poolGroupOptions != null)
             {
                 DbConnectionPoolIdentity currentIdentity = DbConnectionPoolIdentity.NoIdentity;
 
                 if (currentIdentity != null)
                 {
-                    if (!_poolCollection.TryGetValue(currentIdentity, out pool))
-                    { // find the pool
-                        DbConnectionPoolProviderInfo connectionPoolProviderInfo = connectionFactory.CreateConnectionPoolProviderInfo(this.ConnectionOptions);
+                    if (!_poolCollection.TryGetValue(currentIdentity, out pool))    // find the pool
+                    { 
+                        var connectionPoolProviderInfo = connectionFactory.CreateConnectionPoolProviderInfo(this.ConnectionOptions);
 
                         // optimistically create pool, but its callbacks are delayed until after actual add
-                        DbConnectionPool newPool = new DbConnectionPool(connectionFactory, this, currentIdentity, connectionPoolProviderInfo);
+                        var newPool = new DbConnectionPool(connectionFactory, this, currentIdentity, connectionPoolProviderInfo);
 
                         lock (this)
                         {
@@ -149,7 +149,7 @@ namespace System.Data.ProviderBase
                                     newPool.Startup(); // must start pool before usage
                                     bool addResult = _poolCollection.TryAdd(currentIdentity, newPool);
                                     Debug.Assert(addResult, "No other pool with current identity should exist at this point");
-                                    pool = newPool;
+                                    pool    = newPool;
                                     newPool = null;
                                 }
                                 else
@@ -176,7 +176,7 @@ namespace System.Data.ProviderBase
                 }
             }
 
-            if (null == pool)
+            if (pool == null)
             {
                 lock (this)
                 {
@@ -185,18 +185,6 @@ namespace System.Data.ProviderBase
                 }
             }
             return pool;
-        }
-
-        private bool MarkPoolGroupAsActive()
-        {
-            // when getting a connection, make the entry active if it was idle (but not disabled)
-            // must always lock this before calling
-
-            if (PoolGroupStateIdle == _state)
-            {
-                _state = PoolGroupStateActive;
-            }
-            return (PoolGroupStateActive == _state);
         }
 
         internal bool Prune()
@@ -241,7 +229,7 @@ namespace System.Data.ProviderBase
 
                 // must be pruning thread to change state and no connections
                 // otherwise pruning thread risks making entry disabled soon after user calls ClearPool
-                if (0 == _poolCollection.Count)
+                if (_poolCollection.Count == 0)
                 {
                     if (PoolGroupStateActive == _state)
                     {
@@ -254,6 +242,18 @@ namespace System.Data.ProviderBase
                 }
                 return (PoolGroupStateDisabled == _state);
             }
+        }
+
+        private bool MarkPoolGroupAsActive()
+        {
+            // when getting a connection, make the entry active if it was idle (but not disabled)
+            // must always lock this before calling
+
+            if (PoolGroupStateIdle == _state)
+            {
+                _state = PoolGroupStateActive;
+            }
+            return (PoolGroupStateActive == _state);
         }
     }
 }

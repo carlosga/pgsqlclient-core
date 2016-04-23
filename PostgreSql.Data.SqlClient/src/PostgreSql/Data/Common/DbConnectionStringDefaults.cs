@@ -7,8 +7,8 @@ namespace System.Data.Common
     {
         internal const string ApplicationName            = "pgsqlclient";
         internal const int    CommandTimeout             = 0;
+        internal const int    ConnectTimeout             = 15;
         internal const int    ConnectionLifetime         = 0;
-        internal const int    ConnectionTimeout          = 15;
         internal const string DataSource                 = "localhost";
         internal const bool   DefaultTransactionReadOnly = false;
         internal const string DefaultTablespace          = null;
