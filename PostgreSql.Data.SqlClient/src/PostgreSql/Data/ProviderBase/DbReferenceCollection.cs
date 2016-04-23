@@ -14,10 +14,14 @@ namespace System.Data.ProviderBase
             private int           _tag;     // information about the reference
             private WeakReference _weak;    // the reference itself.
 
+            public int    Tag       => _tag;
+            public bool   HasTarget => ((_tag != 0) && (_weak.IsAlive));
+            public object Target    => (_tag == 0 ? null : _weak.Target);
+
             public void NewTarget(int tag, object target)
             {
-                Debug.Assert(!HasTarget, "Entry already has a valid target");
-                Debug.Assert(tag != 0, "Bad tag");
+                Debug.Assert(!HasTarget    , "Entry already has a valid target");
+                Debug.Assert(tag    != 0   , "Bad tag");
                 Debug.Assert(target != null, "Invalid target");
 
                 if (_weak == null)
@@ -35,10 +39,6 @@ namespace System.Data.ProviderBase
             {
                 _tag = 0;
             }
-
-            public bool   HasTarget => ((_tag != 0) && (_weak.IsAlive));
-            public int    Tag       => _tag;
-            public object Target    => (_tag == 0 ? null : _weak.Target);
         }
 
         // Time to wait (in ms) between attempting to get the _itemLock
@@ -186,7 +186,7 @@ namespace System.Data.ProviderBase
                             for (int index = 0; index <= _lastItemIndex; ++index)
                             {
                                 object value = _items[index].Target; // checks tag & gets target
-                                if (null != value)
+                                if (value != null)
                                 {
                                     NotifyItem(message, _items[index].Tag, value);
                                     _items[index].RemoveTarget();
@@ -221,7 +221,7 @@ namespace System.Data.ProviderBase
 
         protected void RemoveItem(object value)
         {
-            Debug.Assert(null != value, "RemoveItem with null");
+            Debug.Assert(value != null, "RemoveItem with null");
 
             bool lockObtained = false;
             try

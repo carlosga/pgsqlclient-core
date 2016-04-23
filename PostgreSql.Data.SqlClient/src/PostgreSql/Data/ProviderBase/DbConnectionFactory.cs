@@ -82,7 +82,7 @@ namespace System.Data.ProviderBase
         {
             Debug.Assert(key != null, "key cannot be null");
             
-            ADP.CheckArgumentNull(key.ConnectionString, nameof(key) + "." + nameof(key.ConnectionString));
+            ADP.CheckArgumentNull(key.ConnectionString, $"{nameof(key)}.{nameof(key.ConnectionString)}");
 
             DbConnectionPoolGroup poolGroup;
             var connectionPoolGroups = _connectionPoolGroups;
@@ -377,13 +377,14 @@ namespace System.Data.ProviderBase
                 // new pool entry and add it to our collection.
 
                 DbConnectionOptions connectionOptions = CreateConnectionOptions(key.ConnectionString, userConnectionOptions);
-                if (null == connectionOptions)
+                if (connectionOptions == null)
                 {
                     throw ADP.InternalConnectionError(ADP.ConnectionError.ConnectionOptionsMissing);
                 }
 
                 if (userConnectionOptions == null)
-                { // we only allow one expansion on the connection string
+                {
+                    // we only allow one expansion on the connection string
                     userConnectionOptions = connectionOptions;
                 }
 
@@ -432,7 +433,7 @@ namespace System.Data.ProviderBase
                 Debug.Assert(connectionPoolGroup   != null, "how did we not create a pool entry?");
                 Debug.Assert(userConnectionOptions != null, "how did we not have user connection options?");
             }
-            else if (null == userConnectionOptions)
+            else if (userConnectionOptions == null)
             {
                 userConnectionOptions = connectionPoolGroup.ConnectionOptions;
             }
@@ -447,12 +448,12 @@ namespace System.Data.ProviderBase
             // distributed transactions that need it.
             lock (_poolsToRelease)
             {
-                if (0 != _poolsToRelease.Count)
+                if (_poolsToRelease.Count != 0)
                 {
                     DbConnectionPool[] poolsToRelease = _poolsToRelease.ToArray();
                     foreach (DbConnectionPool pool in poolsToRelease)
                     {
-                        if (null != pool)
+                        if (pool != null)
                         {
                             pool.Clear();
 
@@ -470,16 +471,16 @@ namespace System.Data.ProviderBase
             // empty, it's because there are active pools that need it.
             lock (_poolGroupsToRelease)
             {
-                if (0 != _poolGroupsToRelease.Count)
+                if (_poolGroupsToRelease.Count != 0)
                 {
                     DbConnectionPoolGroup[] poolGroupsToRelease = _poolGroupsToRelease.ToArray();
                     foreach (DbConnectionPoolGroup poolGroup in poolGroupsToRelease)
                     {
-                        if (null != poolGroup)
+                        if (poolGroup != null)
                         {
                             int poolsLeft = poolGroup.Clear(); // may add entries to _poolsToRelease
 
-                            if (0 == poolsLeft)
+                            if (poolsLeft == 0)
                             {
                                 _poolGroupsToRelease.Remove(poolGroup);
                             }
@@ -493,12 +494,12 @@ namespace System.Data.ProviderBase
             // into the release list.
             lock (this)
             {
-                var connectionPoolGroups = _connectionPoolGroups;
+                var connectionPoolGroups    = _connectionPoolGroups;
                 var newConnectionPoolGroups = new Dictionary<DbConnectionPoolKey, DbConnectionPoolGroup>(connectionPoolGroups.Count);
 
                 foreach (KeyValuePair<DbConnectionPoolKey, DbConnectionPoolGroup> entry in connectionPoolGroups)
                 {
-                    if (null != entry.Value)
+                    if (entry.Value != null)
                     {
                         Debug.Assert(!entry.Value.IsDisabled, "Disabled pool entry discovered");
 
@@ -506,7 +507,8 @@ namespace System.Data.ProviderBase
                         // move idle entries from last prune pass to a queue for pending release
                         // otherwise process entry which may move it from active to idle
                         if (entry.Value.Prune())
-                        { // may add entries to _poolsToRelease
+                        { 
+                            // may add entries to _poolsToRelease
                             QueuePoolGroupForRelease(entry.Value);
                         }
                         else
@@ -524,7 +526,7 @@ namespace System.Data.ProviderBase
             // Queue the pool up for release -- we'll clear it out and dispose
             // of it as the last part of the pruning timer callback so we don't
             // do it with the pool entry or the pool collection locked.
-            Debug.Assert(null != pool, "null pool?");
+            Debug.Assert(pool != null, "null pool?");
 
             // set the pool to the shutdown state to force all active
             // connections to be automatically disposed when they
@@ -543,7 +545,7 @@ namespace System.Data.ProviderBase
 
         internal void QueuePoolGroupForRelease(DbConnectionPoolGroup poolGroup)
         {
-            Debug.Assert(null != poolGroup, "null poolGroup?");
+            Debug.Assert(poolGroup != null, "null poolGroup?");
 
             lock (_poolGroupsToRelease)
             {

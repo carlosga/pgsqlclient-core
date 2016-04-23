@@ -19,7 +19,7 @@ namespace System.Data.ProviderBase
     //   Get remaining time in appropriate format to pass to subsystem timeouts
     //   Check for timeout via IsExpired for checks in managed code.
     //   Simply abandon to GC when done.
-    internal class TimeoutTimer
+    internal sealed class TimeoutTimer
     {
         //-------------------
         // Fields
@@ -105,31 +105,13 @@ namespace System.Data.ProviderBase
         internal static readonly long InfiniteTimeout = 0;
 
         // Is this timer in an expired state?
-        internal bool IsExpired
-        {
-            get
-            {
-                return !IsInfinite && ADP.TimerHasExpired(_timerExpire);
-            }
-        }
+        internal bool IsExpired => !IsInfinite && ADP.TimerHasExpired(_timerExpire);
 
         // is this an infinite-timeout timer?
-        internal bool IsInfinite
-        {
-            get
-            {
-                return _isInfiniteTimeout;
-            }
-        }
+        internal bool IsInfinite => _isInfiniteTimeout;
 
         // Special accessor for TimerExpire for use when thunking to legacy timeout methods.
-        internal long LegacyTimerExpire
-        {
-            get
-            {
-                return (_isInfiniteTimeout) ? Int64.MaxValue : _timerExpire;
-            }
-        }
+        internal long LegacyTimerExpire => (_isInfiniteTimeout) ? Int64.MaxValue : _timerExpire;
 
         // Returns milliseconds remaining trimmed to zero for none remaining
         //  and long.MaxValue for infinite
@@ -167,4 +149,3 @@ namespace System.Data.ProviderBase
         }
     }
 }
-
