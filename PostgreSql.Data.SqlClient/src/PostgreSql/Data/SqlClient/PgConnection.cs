@@ -147,7 +147,6 @@ namespace PostgreSql.Data.SqlClient
 
             if (!TryOpen(null))
             {
-#warning TODO: Throw exception
                 throw new InvalidOperationException("Cannot open a new connection");
             }
         }
@@ -240,7 +239,7 @@ namespace PostgreSql.Data.SqlClient
         {
             ConnectionState originalState = _innerConnection.State & ConnectionState.Open;
             ConnectionState currentState  = to.State & ConnectionState.Open;
-            if ((originalState != currentState) && (ConnectionState.Closed == currentState))
+            if (originalState != currentState && ConnectionState.Closed == currentState)
             {
                 unchecked { _closeCount++; }
             }
