@@ -317,7 +317,8 @@ namespace PostgreSql.Data.SqlClient
 
             // does not require GC.KeepAlive(this) because of OnStateChange
 
-            var innerConnection = (PgConnectionInternal)InnerConnection;
+            var innerConnection = InnerConnection as PgConnectionInternal;
+            Debug.Assert(innerConnection != null           , "Invalid connection state.");
             Debug.Assert(innerConnection.Connection != null, "Frontend connection cannot be null.");
 
             if (!innerConnection.ConnectionOptions.Pooling)

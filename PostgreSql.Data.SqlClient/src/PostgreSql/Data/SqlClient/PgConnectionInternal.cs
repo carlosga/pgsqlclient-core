@@ -52,12 +52,14 @@ namespace PostgreSql.Data.SqlClient
                                     , bool                              applyTransientFaultHandling = false) 
             : base() // : base(connectionOptions)
         {
-            _connection                  = new Connection(_connectionOptions);
             _connectionOptions           = connectionOptions;
             _identity                    = identity;
             _providerInfo                = providerInfo;
             _userConnectionOptions       = userConnectionOptions;
             _applyTransientFaultHandling = applyTransientFaultHandling;
+            _connection                  = new Connection(_connectionOptions);
+
+            _connection.Open();
         }
 
         #region IDisposable Support
@@ -102,12 +104,6 @@ namespace PostgreSql.Data.SqlClient
 
         protected override void Deactivate()
         {
-        }
-
-        internal void Open(PgConnection owner)
-        {
-            // Connect
-            _connection.Open();
         }
 
         protected override void PrepareForCloseConnection()
@@ -166,18 +162,18 @@ namespace PostgreSql.Data.SqlClient
             return isValid;
         }
 
-        protected override DbReferenceCollection CreateReferenceCollection()
-        {
-            Console.WriteLine("PgReferenceCollection");
-            return new PgReferenceCollection();
-        }
-
         internal override bool TryReplaceConnection(DbConnection                               outerConnection
                                                   , DbConnectionFactory                        connectionFactory
                                                   , TaskCompletionSource<DbConnectionInternal> retry
                                                   , DbConnectionOptions                        userOptions)
         {
             return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
+        }
+
+        protected override DbReferenceCollection CreateReferenceCollection()
+        {
+            Console.WriteLine("PgReferenceCollection");
+            return new PgReferenceCollection();
         }
     }
 }
