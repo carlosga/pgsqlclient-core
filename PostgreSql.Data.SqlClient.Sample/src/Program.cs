@@ -25,10 +25,9 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.UserID                   = "northwind";
             csb.Password                 = "northwind";
             csb.PortNumber               = 5432;
-            csb.Encrypt                  = false;
-            csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
-            csb.PacketSize               = Int16.MaxValue;
+
+            Console.WriteLine(csb.ToString());
 
             // int count = 0;
 

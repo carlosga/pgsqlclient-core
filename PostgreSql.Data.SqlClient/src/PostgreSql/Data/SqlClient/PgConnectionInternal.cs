@@ -108,7 +108,6 @@ namespace PostgreSql.Data.SqlClient
 
         protected override void PrepareForCloseConnection()
         {
-            // Rollback active transaction
             if (HasActiveTransaction)
             {
                 ActiveTransaction.Dispose();
