@@ -18,8 +18,9 @@ namespace System.Data.Common
             synonyms.Add(DbConnectionStringSynonyms.ApplicationName           , DbConnectionStringKeywords.ApplicationName);
             synonyms.Add(DbConnectionStringSynonyms.CommandTimeout            , DbConnectionStringKeywords.CommandTimeout);
             synonyms.Add(DbConnectionStringSynonyms.StatementTimeout          , DbConnectionStringKeywords.CommandTimeout);
-            synonyms.Add(DbConnectionStringSynonyms.ConnectionLifetime        , DbConnectionStringKeywords.ConnectionLifetime);
-            synonyms.Add(DbConnectionStringSynonyms.ConnectionTimeout         , DbConnectionStringKeywords.ConnectionTimeout);
+            synonyms.Add(DbConnectionStringSynonyms.ConnectRetryCount         , DbConnectionStringKeywords.ConnectRetryCount);
+            synonyms.Add(DbConnectionStringSynonyms.ConnectRetryInterval      , DbConnectionStringKeywords.ConnectRetryInterval);
+            synonyms.Add(DbConnectionStringSynonyms.ConnectTimeout            , DbConnectionStringKeywords.ConnectTimeout);
             synonyms.Add(DbConnectionStringSynonyms.DataSource                , DbConnectionStringKeywords.DataSource);
             synonyms.Add(DbConnectionStringSynonyms.Host                      , DbConnectionStringKeywords.DataSource);
             synonyms.Add(DbConnectionStringSynonyms.Server                    , DbConnectionStringKeywords.DataSource);
@@ -27,6 +28,8 @@ namespace System.Data.Common
             synonyms.Add(DbConnectionStringSynonyms.DefaultTransactionReadOnly, DbConnectionStringKeywords.DefaultTransactionReadOnly);
             synonyms.Add(DbConnectionStringSynonyms.InitialCatalog            , DbConnectionStringKeywords.InitialCatalog);
             synonyms.Add(DbConnectionStringSynonyms.Database                  , DbConnectionStringKeywords.InitialCatalog);
+            synonyms.Add(DbConnectionStringSynonyms.LoadBalanceTimeout        , DbConnectionStringKeywords.LoadBalanceTimeout);
+            synonyms.Add(DbConnectionStringSynonyms.ConnectionLifetime        , DbConnectionStringKeywords.LoadBalanceTimeout);
             synonyms.Add(DbConnectionStringSynonyms.LockTimeout               , DbConnectionStringKeywords.LockTimeout);
             synonyms.Add(DbConnectionStringSynonyms.PacketSize                , DbConnectionStringKeywords.PacketSize);
             synonyms.Add(DbConnectionStringSynonyms.UserPassword              , DbConnectionStringKeywords.Password);
@@ -49,9 +52,11 @@ namespace System.Data.Common
         internal const string App                        = "app";
         internal const string ApplicationName            = "application name";
         internal const string CommandTimeout             = "command timeout";
-        internal const string ConnectionLifetime         = "connection lifetime";
-        internal const string ConnectionTimeout          = "connection timeout";
+        internal const string ConnectRetryCount          = "connection retry count";
+        internal const string ConnectRetryInterval       = "connection retry interval";
         internal const string ConnectTimeout             = "connect timeout";
+        internal const string ConnectionTimeout          = "connection timeout";
+        internal const string ConnectionLifetime         = "connection lifetime";
         internal const string Database                   = "database";
         internal const string DataSource                 = "data source";
         internal const string DefaultTransactionReadOnly = "default transaction read only";
@@ -59,6 +64,7 @@ namespace System.Data.Common
         internal const string Encrypt                    = "encrypt";
         internal const string Host                       = "host";
         internal const string InitialCatalog             = "initial catalog";
+        internal const string LoadBalanceTimeout         = "load balance timeout";
         internal const string LockTimeout                = "lock timeout";
         internal const string Password                   = "password";
         internal const string Port                       = "port";

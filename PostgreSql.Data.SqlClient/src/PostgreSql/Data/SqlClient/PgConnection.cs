@@ -23,13 +23,11 @@ namespace PostgreSql.Data.SqlClient
         public event LocalCertificateSelectionCallback   UserCertificateSelection;
 
         private DbConnectionInternal  _innerConnection;
-        private DbConnectionOptions   _connectionOptions;
+        private DbConnectionOptions   _userConnectionOptions;
         private DbConnectionPoolGroup _poolGroup;
         private string                _connectionString;
         private int                   _closeCount;
-        // private bool                  _applyTransientFaultHandling;
-
-        internal DbConnectionFactory ConnectionFactory => PgConnectionFactory.SingletonInstance;
+        private bool                  _applyTransientFaultHandling;
 
         public static void ClearAllPools()
         {
@@ -57,18 +55,21 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        public override ConnectionState State           => _innerConnection.State;
         public override string ServerVersion            => _innerConnection?.ServerVersion;
-        public override string Database                 => _connectionOptions?.Database;
-        public override string DataSource               => _connectionOptions?.DataSource;
-        public override int    ConnectionTimeout        => (_connectionOptions?.ConnectTimeout ?? DbConnectionStringDefaults.ConnectTimeout);
-        public          int    PacketSize               => (_connectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
-        public          bool   MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
-        public          string SearchPath               => (_connectionOptions?.SearchPath);
-        
-        public override ConnectionState State => _innerConnection.State;
+        public override string Database                 => _userConnectionOptions?.InitialCatalog;
+        public override string DataSource               => _userConnectionOptions?.DataSource;
+        public override int    ConnectionTimeout        => (_userConnectionOptions?.ConnectTimeout ?? DbConnectionStringDefaults.ConnectTimeout);
+        public          int    PacketSize               => (_userConnectionOptions?.PacketSize ?? DbConnectionStringDefaults.PacketSize);
+        public          bool   MultipleActiveResultSets => (_userConnectionOptions?.MultipleActiveResultSets ?? DbConnectionStringDefaults.MultipleActiveResultSets);
+        public          string SearchPath               => (_userConnectionOptions?.SearchPath);
 
-        internal DbConnectionInternal InnerConnection   => _innerConnection;
-        internal DbConnectionOptions  ConnectionOptions => ((_poolGroup != null) ? _poolGroup.ConnectionOptions : null);
+        internal DbConnectionFactory  ConnectionFactory     => PgConnectionFactory.SingletonInstance;
+        internal DbConnectionInternal InnerConnection       => _innerConnection;
+        internal DbConnectionOptions  ConnectionOptions     => ((_poolGroup != null) ? _poolGroup.ConnectionOptions : null);
+        internal DbConnectionOptions  UserConnectionOptions => _userConnectionOptions;
+
+        internal bool ApplyTransientFaultHandling => _applyTransientFaultHandling;
 
         internal bool ForceNewConnection { get; set; }
 
@@ -107,10 +108,10 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _innerConnection   = null;
-                        _connectionString  = null;
-                        _connectionOptions = null;
-                        _poolGroup         = null;
+                        _innerConnection       = null;
+                        _connectionString      = null;
+                        _userConnectionOptions = null;
+                        _poolGroup             = null;
                     }
                 }
 
@@ -225,14 +226,13 @@ namespace PostgreSql.Data.SqlClient
         internal void PermissionDemand()
         {
             Debug.Assert(DbConnectionClosedConnecting.SingletonInstance == _innerConnection, "not connecting");
-
             DbConnectionPoolGroup poolGroup         = PoolGroup;
-            DbConnectionOptions   connectionOptions = ((poolGroup != null) ? poolGroup.ConnectionOptions : null);
-            if ((connectionOptions == null) || connectionOptions.IsEmpty)
+            DbConnectionOptions   connectionOptions = ConnectionOptions;
+            if (connectionOptions == null || connectionOptions.IsEmpty)
             {
                 throw ADP.NoConnectionString();
             }
-            DbConnectionOptions userConnectionOptions = ConnectionOptions;
+            DbConnectionOptions userConnectionOptions = UserConnectionOptions;
             Debug.Assert(userConnectionOptions != null, "null UserConnectionOptions");
         }
 
@@ -263,9 +263,24 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        internal void AddWeakReference(object value, int tag)
+        {
+            InnerConnection.AddWeakReference(value, tag);
+        }
+
+        internal void NotifyWeakReference(int message)
+        {
+            InnerConnection.NotifyWeakReference(message);
+        }
+
+        internal void RemoveWeakReference(object value)
+        {
+            InnerConnection.RemoveWeakReference(value);
+        }
+
         internal bool SetInnerConnectionFrom(DbConnectionInternal to, DbConnectionInternal from)
         {
-            return (from == Interlocked.CompareExchange<DbConnectionInternal>(ref _innerConnection, to, from));
+            return (Interlocked.CompareExchange<DbConnectionInternal>(ref _innerConnection, to, from) == from);
         }
 
         internal void SetInnerConnectionTo(DbConnectionInternal to)
@@ -275,9 +290,10 @@ namespace PostgreSql.Data.SqlClient
 
         private bool TryOpen(TaskCompletionSource<DbConnectionInternal> retry)
         {
-            // _applyTransientFaultHandling = (retry == null && _connectionOptions != null && _connectionOptions.ConnectRetryCount > 0);
+            var connectionOptions        = ConnectionOptions;
+            _applyTransientFaultHandling = (retry == null && connectionOptions != null && connectionOptions.ConnectRetryCount > 0);
 
-#warning TODO: Callbacks should be passed as parameters to TryReplaceConnection & TryOpenConnection methods
+#warning TODO : Wire up SSL Callbacks
             // if (_innerConnection.Encrypt)
             // {
             //     // Add SSL callback handlers
@@ -285,20 +301,21 @@ namespace PostgreSql.Data.SqlClient
             //     _innerConnection.Connection.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
             // }
 
-            // if (ForceNewConnection)
-            // {
-            //     if (!InnerConnection.TryReplaceConnection(this, ConnectionFactory, retry, _connectionOptions))
-            //     {
-            //         return false;
-            //     }
-            // }
-            // else
-            // {
-            if (!InnerConnection.TryOpenConnection(this, ConnectionFactory, retry, _connectionOptions))
+            if (ForceNewConnection)
             {
-                return false;
+                if (!InnerConnection.TryReplaceConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                {
+                    return false;
+                }
             }
-            // }
+            else
+            {
+                if (!InnerConnection.TryOpenConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                {
+                    return false;
+                }
+            }
+
             // does not require GC.KeepAlive(this) because of OnStateChange
 
             var innerConnection = (PgConnectionInternal)InnerConnection;
@@ -306,20 +323,29 @@ namespace PostgreSql.Data.SqlClient
 
             if (!innerConnection.ConnectionOptions.Pooling)
             {
-                // For non-pooled connections, we need to make sure that the finalizer does actually run
-                GC.ReRegisterForFinalize(this);
+                // For non-pooled connections, we need to make sure that the finalizer does actually run to avoid leaking SNI handles
+                // GC.ReRegisterForFinalize(this);
             }
+
+            // if (StatisticsEnabled)
+            // {
+            //     ADP.TimerCurrent(out _statistics._openTimestamp);
+            //     tdsInnerConnection.Parser.Statistics = _statistics;
+            // }
+            // else
+            // {
+            //     tdsInnerConnection.Parser.Statistics = null;
+            //     _statistics = null; // in case of previous Open/Close/reset_CollectStats sequence
+            // }
 
             return true;
         }
 
         private string InternalGetConnectionString()
         {
-            bool hidePassword = InnerConnection.ShouldHidePassword;
-            DbConnectionOptions connectionOptions = _connectionOptions;
-#warning TODO: Hide Password
-            return ((connectionOptions != null) ? connectionOptions.ConnectionString : String.Empty);
-            // return ((connectionOptions != null) ? _connectionOptions.UsersConnectionString(hidePassword) : String.Empty);
+            bool hidePassword      = InnerConnection.ShouldHidePassword;
+            var  connectionOptions = _userConnectionOptions;
+            return ((connectionOptions != null) ? connectionOptions.UsersConnectionString(hidePassword) : String.Empty);
         }
 
         private void InternalSetConnectionString(string connectionString)
@@ -334,9 +360,9 @@ namespace PostgreSql.Data.SqlClient
                 flag = SetInnerConnectionFrom(DbConnectionClosedBusy.SingletonInstance, connectionInternal);
                 if (flag)
                 {
-                    _connectionOptions = connectionOptions;
-                    _poolGroup         = poolGroup;
-                    _innerConnection   = DbConnectionClosedNeverOpened.SingletonInstance;
+                    _userConnectionOptions = connectionOptions;
+                    _poolGroup             = poolGroup;
+                    _innerConnection       = DbConnectionClosedNeverOpened.SingletonInstance;
                 }
             }
             if (!flag)

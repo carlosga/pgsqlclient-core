@@ -7,13 +7,16 @@ namespace System.Data.Common
     {
         internal const string ApplicationName            = "application name";
         internal const string CommandTimeout             = "command timeout";
+        internal const string ConnectRetryCount          = "connection retry count";
+        internal const string ConnectRetryInterval       = "connection retry interval";
+        internal const string ConnectTimeout             = "connection timeout";
         internal const string ConnectionLifetime         = "connection lifetime";
-        internal const string ConnectionTimeout          = "connection timeout";
         internal const string DataSource                 = "data source";
         internal const string DefaultTransactionReadOnly = "default transaction read only";
         internal const string DefaultTablespace          = "default table space";
         internal const string Encrypt                    = "encrypt";
         internal const string InitialCatalog             = "initial catalog";
+        internal const string LoadBalanceTimeout         = "load balance timeout";
         internal const string LockTimeout                = "lock timeout";
         internal const string MaxPoolSize                = "max pool size";
         internal const string MinPoolSize                = "min pool size";

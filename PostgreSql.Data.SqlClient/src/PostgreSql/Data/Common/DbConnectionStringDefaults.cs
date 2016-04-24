@@ -7,13 +7,15 @@ namespace System.Data.Common
     {
         internal const string ApplicationName            = "pgsqlclient";
         internal const int    CommandTimeout             = 0;
+        internal const int    ConnectRetryCount          = 1;
+        internal const int    ConnectRetryInterval       = 10;
         internal const int    ConnectTimeout             = 15;
-        internal const int    ConnectionLifetime         = 0;
         internal const string DataSource                 = "localhost";
         internal const bool   DefaultTransactionReadOnly = false;
         internal const string DefaultTablespace          = null;
         internal const bool   Encrypt                    = false;
-        internal const string InitialCatalog             = "initial catalog";
+        internal const string InitialCatalog             = "";
+        internal const int    LoadBalanceTimeout         = 0;
         internal const int    LockTimeout                = 0;
         internal const int    MaxPoolSize                = 100;
         internal const int    MinPoolSize                = 0;

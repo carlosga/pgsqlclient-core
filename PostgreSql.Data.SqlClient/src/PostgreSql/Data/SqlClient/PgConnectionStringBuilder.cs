@@ -22,16 +22,22 @@ namespace PostgreSql.Data.SqlClient
             set { SetValue(DbConnectionStringKeywords.CommandTimeout, value); }
         }
 
-        public int ConnectTimeout
+        public int ConnectRetryCount
         {
-            get { return GetInt32(DbConnectionStringKeywords.ConnectionTimeout); }
-            set { SetValue(DbConnectionStringKeywords.ConnectionTimeout, value); }
+            get { return GetInt32(DbConnectionStringKeywords.ConnectRetryCount); }
+            set { SetValue(DbConnectionStringKeywords.ConnectRetryCount, value); }
         }
 
-        public int ConnectionLifeTime
+        public int ConnectRetryInterval
         {
-            get { return GetInt32(DbConnectionStringKeywords.ConnectionLifetime); }
-            set { SetValue(DbConnectionStringKeywords.ConnectionLifetime, value); }
+            get { return GetInt32(DbConnectionStringKeywords.ConnectRetryInterval); }
+            set { SetValue(DbConnectionStringKeywords.ConnectRetryInterval, value); }
+        }
+
+        public int ConnectTimeout
+        {
+            get { return GetInt32(DbConnectionStringKeywords.ConnectTimeout); }
+            set { SetValue(DbConnectionStringKeywords.ConnectTimeout, value); }
         }
 
         public string DataSource
@@ -62,6 +68,12 @@ namespace PostgreSql.Data.SqlClient
         {
             get { return GetString(DbConnectionStringKeywords.InitialCatalog); }
             set { SetValue(DbConnectionStringKeywords.InitialCatalog, value); }
+        }
+
+        public int LoadBalanceTimeout
+        {
+            get { return GetInt32(DbConnectionStringKeywords.LoadBalanceTimeout); }
+            set { SetValue(DbConnectionStringKeywords.LoadBalanceTimeout, value); }
         }
 
         public int LockTimeout

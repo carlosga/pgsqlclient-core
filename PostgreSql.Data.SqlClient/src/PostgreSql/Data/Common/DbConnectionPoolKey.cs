@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace System.Data.Common
 {
     // DbConnectionPoolKey: Base class implementation of a key to connection pool groups
-    //  Only connection string is used as a key
+    // Only connection string is used as a key
     internal class DbConnectionPoolKey
     {
         private string _connectionString;

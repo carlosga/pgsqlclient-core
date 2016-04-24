@@ -16,18 +16,22 @@ namespace PostgreSql.Data.SqlClient
     internal sealed class PgConnectionInternal
         : DbConnectionInternal, IDisposable
     {
-        private DbConnectionOptions               _connectionOptions;
         private Connection                        _connection;
+        private DbConnectionOptions               _connectionOptions;
         private WeakReference                     _activeTransaction;
         private DbConnectionPoolIdentity          _identity;
         private DbConnectionPoolGroupProviderInfo _providerInfo;
+        private DbConnectionOptions               _userConnectionOptions;
+        private bool                              _applyTransientFaultHandling;
 
-        internal PgConnection        OwningConnection  => (PgConnection)Owner;
-        internal Connection          Connection        => _connection;
-        internal PgTransaction       ActiveTransaction => _activeTransaction?.Target as PgTransaction;
-        internal string              Database          => _connection?.Database;
-        internal string              DataSource        => _connection?.DataSource;
-        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
+        internal PgConnection        OwningConnection      => (PgConnection)Owner;
+        internal Connection          Connection            => _connection;
+        internal PgTransaction       ActiveTransaction     => _activeTransaction?.Target as PgTransaction;
+        internal string              Database              => _connection?.Database;
+        internal string              DataSource            => _connection?.DataSource;
+        internal DbConnectionOptions ConnectionOptions     => _connectionOptions;
+        internal DbConnectionOptions UserConnectionOptions => _userConnectionOptions;
+        internal bool ApplyTransientFaultHandling          => _applyTransientFaultHandling;
 
         internal override string ServerVersion => _connection.SessionData.ServerVersion;
 
@@ -41,20 +45,19 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        internal PgConnectionInternal(DbConnectionOptions connectionOptions)
-            : this(DbConnectionPoolIdentity.NoIdentity, null, connectionOptions)
-        {
-        }
-
         internal PgConnectionInternal(DbConnectionPoolIdentity          identity
+                                    , DbConnectionOptions               connectionOptions
                                     , DbConnectionPoolGroupProviderInfo providerInfo
-                                    , DbConnectionOptions               connectionOptions)
-            : base()
+                                    , DbConnectionOptions               userConnectionOptions       = null
+                                    , bool                              applyTransientFaultHandling = false) 
+            : base() // : base(connectionOptions)
         {
-            _connectionOptions = connectionOptions;
-            _connection        = new Connection(_connectionOptions);
-            _identity          = identity;
-            _providerInfo      = providerInfo;
+            _connection                  = new Connection(_connectionOptions);
+            _connectionOptions           = connectionOptions;
+            _identity                    = identity;
+            _providerInfo                = providerInfo;
+            _userConnectionOptions       = userConnectionOptions;
+            _applyTransientFaultHandling = applyTransientFaultHandling;
         }
 
         #region IDisposable Support

@@ -333,9 +333,7 @@ namespace PostgreSql.Data.SqlClient
                     }
                 }
 
-                var internalConnection = _connection.InnerConnection as PgConnectionInternal;
-
-                internalConnection.RemoveWeakReference(this);
+                _connection.RemoveWeakReference(this);
                 _statement.Dispose();
             }
             catch
@@ -375,7 +373,7 @@ namespace PostgreSql.Data.SqlClient
 
             if (_statement == null)
             {
-                _statement = internalConnection.CreateStatement();
+                _statement            = internalConnection.CreateStatement();
                 _statement.Parameters = _parameters; 
             }
             else if (_statement.IsPrepared)
@@ -389,7 +387,7 @@ namespace PostgreSql.Data.SqlClient
 
             _statement.Prepare();
 
-            internalConnection.AddWeakReference(this, PgReferenceCollection.CommandTag);
+            _connection.AddWeakReference(this, PgReferenceCollection.CommandTag);
         }
 
         private int InternalExecuteNonQuery()

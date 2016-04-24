@@ -65,7 +65,7 @@ namespace PostgreSql.Data.Frontend
         internal SessionData      SessionData              => _sessionData;
         internal TransactionState TransactionState         => _transactionState;
         internal string           ConnectionString         => _connectionOptions?.ConnectionString;
-        internal string           Database                 => _connectionOptions?.Database;
+        internal string           Database                 => _connectionOptions?.InitialCatalog;
         internal string           DataSource               => _connectionOptions?.DataSource;
         internal int              ConnectTimeout           => (_connectionOptions?.ConnectTimeout ?? 15);
         internal int              PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
@@ -363,10 +363,10 @@ namespace PostgreSql.Data.Frontend
             message.WriteNullString(_connectionOptions.UserID);
 
             // database
-            if (!String.IsNullOrEmpty(_connectionOptions.Database))
+            if (!String.IsNullOrEmpty(_connectionOptions.InitialCatalog))
             {
                 message.WriteNullString("database");
-                message.WriteNullString(_connectionOptions.Database);
+                message.WriteNullString(_connectionOptions.InitialCatalog);
             }
 
             // select ISO date style
