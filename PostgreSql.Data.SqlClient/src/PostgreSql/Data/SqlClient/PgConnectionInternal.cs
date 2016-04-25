@@ -50,7 +50,7 @@ namespace PostgreSql.Data.SqlClient
                                     , DbConnectionPoolGroupProviderInfo providerInfo
                                     , DbConnectionOptions               userConnectionOptions       = null
                                     , bool                              applyTransientFaultHandling = false) 
-            : base() // : base(connectionOptions)
+            : base()
         {
             _connectionOptions           = connectionOptions;
             _identity                    = identity;
