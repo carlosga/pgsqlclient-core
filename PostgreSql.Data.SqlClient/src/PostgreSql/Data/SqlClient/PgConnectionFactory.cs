@@ -1,6 +1,5 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Data.Common;
@@ -14,7 +13,7 @@ namespace PostgreSql.Data.SqlClient
     {
         internal static readonly PgConnectionFactory SingletonInstance = new PgConnectionFactory();
 
-        internal static DbConnectionOptions FindDbConnectionOptions(PgConnectionPoolKey key)
+        internal static DbConnectionOptions FindDbConnectionOptions(DbConnectionPoolKey key)
         {
             var connectionOptions = SingletonInstance.FindConnectionOptions(key);
             if (connectionOptions == null)
@@ -63,10 +62,9 @@ namespace PostgreSql.Data.SqlClient
                                                                , DbConnection                      owningDbConnection
                                                                , DbConnectionOptions               userOptions)
         {
-            var  key              = (PgConnectionPoolKey)poolKey;
-            var  owningConnection = (PgConnection)owningDbConnection;
-            var  identity         = DbConnectionPoolIdentity.NoIdentity;
-            bool applyTransientFaultHandling = ((owningConnection != null) ? owningConnection.ApplyTransientFaultHandling : false);
+            var owningConnection            = (PgConnection)owningDbConnection;
+            var identity                    = DbConnectionPoolIdentity.NoIdentity;
+            var applyTransientFaultHandling = ((owningConnection != null) ? owningConnection.ApplyTransientFaultHandling : false);
 
             DbConnectionOptions userOpt = null;
             if (userOptions != null)

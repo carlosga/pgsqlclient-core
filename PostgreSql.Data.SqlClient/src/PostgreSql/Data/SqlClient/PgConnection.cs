@@ -172,7 +172,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.NullEmptyTransactionName();
             }
 
-            PgTransaction transaction = _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
+            var transaction = _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
             if (transaction != null)
             {
                 transaction.Save(transactionName);
@@ -351,7 +351,7 @@ namespace PostgreSql.Data.SqlClient
 
         private void InternalSetConnectionString(string connectionString)
         {
-            DbConnectionPoolKey   key                = new PgConnectionPoolKey(connectionString);
+            DbConnectionPoolKey   key                = new DbConnectionPoolKey(connectionString);
             DbConnectionOptions   connectionOptions  = null;
             DbConnectionPoolGroup poolGroup          = ConnectionFactory.GetConnectionPoolGroup(key, null, ref connectionOptions);
             DbConnectionInternal  connectionInternal = InnerConnection;

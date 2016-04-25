@@ -1,12 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System.Security.Principal;
 
 namespace System.Data.ProviderBase
 {
-    internal sealed partial class DbConnectionPoolIdentity
+    internal sealed class DbConnectionPoolIdentity
     {
         internal static readonly DbConnectionPoolIdentity NoIdentity = new DbConnectionPoolIdentity(String.Empty, false, true);
 
@@ -15,6 +12,8 @@ namespace System.Data.ProviderBase
         private readonly bool   _isNetwork;
         private readonly int    _hashCode;
 
+        internal bool IsRestricted => _isRestricted;
+
         private DbConnectionPoolIdentity(string sidString, bool isRestricted, bool isNetwork)
         {
             _sidString    = sidString;
@@ -22,8 +21,6 @@ namespace System.Data.ProviderBase
             _isNetwork    = isNetwork;
             _hashCode     = ((sidString == null) ? 0 : sidString.GetHashCode());
         }
-
-        internal bool IsRestricted => _isRestricted;
 
         public override bool Equals(object value)
         {

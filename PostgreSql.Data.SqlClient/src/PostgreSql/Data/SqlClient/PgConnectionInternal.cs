@@ -40,7 +40,7 @@ namespace PostgreSql.Data.SqlClient
         {
             get
             {
-                 return (_activeTransaction != null 
+                 return (_activeTransaction != null
                       && _activeTransaction.IsAlive
                       && _connection.TransactionState != TransactionState.Default); 
             }
@@ -122,7 +122,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.ParallelTransactionsNotSupported(OwningConnection);
             }
 
-            var transaction = new PgTransaction(OwningConnection, isolationLevel);
+            var transaction = new PgTransaction(OwningConnection, _connection.CreateTransaction(isolationLevel));
 
             transaction.Begin();
 
@@ -131,8 +131,7 @@ namespace PostgreSql.Data.SqlClient
             return transaction;
         }
 
-        internal Statement CreateStatement() => _connection.CreateStatement();
-
+        internal Statement CreateStatement()                => _connection.CreateStatement();
         internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
 
         internal override bool IsConnectionAlive(bool throwOnException = false)
@@ -159,15 +158,6 @@ namespace PostgreSql.Data.SqlClient
             return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
         }
 
-        protected override void PrepareForCloseConnection()
-        {
-            if (HasActiveTransaction)
-            {
-                ActiveTransaction.Dispose();
-                _activeTransaction = null;
-            }
-        }
-
         protected override void Activate()
         {
         }
@@ -176,6 +166,11 @@ namespace PostgreSql.Data.SqlClient
         {
             try
             {
+                if (HasActiveTransaction)
+                {
+                    ActiveTransaction.Dispose();
+                    _activeTransaction = null;
+                }
                 var referenceCollection = ReferenceCollection as PgReferenceCollection;
                 if (referenceCollection != null)
                 {

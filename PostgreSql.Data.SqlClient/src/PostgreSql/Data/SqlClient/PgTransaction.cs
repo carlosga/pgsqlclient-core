@@ -20,21 +20,11 @@ namespace PostgreSql.Data.SqlClient
 
         protected override DbConnection DbConnection => _connection;
 
-        private PgTransaction()
-            : this(null)
-        {
-        }
-
-        internal PgTransaction(PgConnection connection)
-            : this(connection, IsolationLevel.ReadCommitted)
-        {
-        }
-
-        internal PgTransaction(PgConnection connection, IsolationLevel isolationLevel)
+        internal PgTransaction(PgConnection connection, Transaction innerTransaction)
         {
             _connection       = connection;
-            _isolationLevel   = isolationLevel;
-            _innerTransaction = ((PgConnectionInternal)connection.InnerConnection).Connection.CreateTransaction(IsolationLevel);
+            _innerTransaction = innerTransaction;
+            _isolationLevel   = innerTransaction.IsolationLevel;
         }
 
         #region IDisposable Support

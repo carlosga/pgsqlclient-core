@@ -1,6 +1,5 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 using PostgreSql.Data.Frontend;
 using PostgreSql.Data.PgTypes;
@@ -313,10 +312,11 @@ namespace System.Data.Common
 //         {
 //             return Argument(Res.GetString(Res.ADP_MissingConnectionOptionValue, key, requiredAdditionalKey));
 //         }
-//         internal static Exception WrongType(Type got, Type expected)
-//         {
-//             return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
-//         }
+        internal static Exception WrongType(Type got, Type expected)
+        {
+            return Argument($"Expecting argument of type {got.ToString()}, but received type {expected.ToString()}.");
+            // return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
+        }
 
         //
         // DbConnection

@@ -1,49 +1,58 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System.Diagnostics;
+// --------------------------------------------------------------------------------------------------
+// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace System.Data.Common
 {
-    // DbConnectionPoolKey: Base class implementation of a key to connection pool groups
-    // Only connection string is used as a key
-    internal class DbConnectionPoolKey
+    // Immutable key for connection pool groups
+    internal sealed class DbConnectionPoolKey
+        : IEquatable<DbConnectionPoolKey>
     {
-        private string _connectionString;
+        private readonly string _connectionString;
+        private readonly int    _hashValue;
 
-        internal virtual string ConnectionString
-        {
-            get { return _connectionString; }
-            set { _connectionString = value; }
-        }
+        internal string ConnectionString => _connectionString;
 
         internal DbConnectionPoolKey(string connectionString)
         {
             _connectionString = connectionString;
+            _hashValue        = ((_connectionString == null) ? 0 : _connectionString.GetHashCode());
         }
 
-        protected DbConnectionPoolKey(DbConnectionPoolKey key)
+        private DbConnectionPoolKey(DbConnectionPoolKey key)
+            : this(key.ConnectionString)
         {
-            _connectionString = key.ConnectionString;
         }
 
-        internal virtual DbConnectionPoolKey Clone()
+        internal DbConnectionPoolKey Clone()
         {
             return new DbConnectionPoolKey(this);
         }
 
+        public bool Equals(DbConnectionPoolKey other)
+        {
+            return (other != null && _connectionString == other._connectionString);
+        }
+
         public override bool Equals(object obj)
         {
-            DbConnectionPoolKey key = obj as DbConnectionPoolKey;
-            Debug.Assert(obj.GetType() == typeof(DbConnectionPoolKey), "Derived classes should not be using DbConnectionPoolKey.Equals");
-
-            return (key != null && _connectionString == key._connectionString);
+            if (obj == null)
+            {
+                return false;
+            }
+            var key = obj as DbConnectionPoolKey;
+            if (key == null)
+            {
+                throw ADP.WrongType(obj.GetType(), typeof(DbConnectionPoolKey));
+            }
+            return Equals(key);
         }
 
         public override int GetHashCode()
         {
-            return _connectionString == null ? 0 : _connectionString.GetHashCode();
+            return _hashValue;
         }
     }
 }

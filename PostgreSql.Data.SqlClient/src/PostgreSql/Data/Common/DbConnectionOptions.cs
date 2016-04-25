@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace System.Data.Common
@@ -57,7 +56,7 @@ namespace System.Data.Common
         internal string SearchPath                 => _searchPath;
         internal string UserID                     => _userId;
 
-        internal bool   IsEmpty => String.IsNullOrEmpty(_connectionString);  
+        internal bool IsEmpty => String.IsNullOrEmpty(_connectionString);  
 
         internal DbConnectionOptions(string connectionString)
         {

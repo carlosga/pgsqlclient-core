@@ -13,6 +13,8 @@ namespace PostgreSql.Data.Frontend
         private readonly Connection     _connection;
         private readonly IsolationLevel _isolationLevel;
 
+        internal IsolationLevel IsolationLevel => _isolationLevel; 
+
         internal Transaction(Connection connection, IsolationLevel isolationLevel)
         {
             _connection     = connection;
