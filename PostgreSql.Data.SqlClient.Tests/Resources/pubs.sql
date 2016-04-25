@@ -1,4 +1,13 @@
-﻿SET statement_timeout = 0;
+﻿-- Copyright Microsoft, Inc.
+-- All Rights Reserved.
+--
+-- Changes for PostgreSQL Copyright 2016 Carlos Guzmán Álvarez
+--
+-- This file is distributed under the MIT License.
+-- See license.md for more information.
+
+
+SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
