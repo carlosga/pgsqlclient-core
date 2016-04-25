@@ -97,14 +97,9 @@ namespace System.Data.Common
         //
         // COM+ exceptions
         //
-        internal static ArgumentException Argument(string error)                  => new ArgumentException(error);
-        internal static ArgumentException Argument(string error, Exception inner) => new ArgumentException(error, inner);
-
-        internal static ArgumentException Argument(string error, string parameter)
-        {
-            ArgumentException e = new ArgumentException(error, parameter);
-            return e;
-        }
+        internal static ArgumentException Argument(string error)                   => new ArgumentException(error);
+        internal static ArgumentException Argument(string error, Exception inner)  => new ArgumentException(error, inner);
+        internal static ArgumentException Argument(string error, string parameter) => new ArgumentException(error, parameter);
 
         internal static ArgumentNullException ArgumentNull(string parameter) => new ArgumentNullException(parameter);
         internal static ArgumentNullException ArgumentNull(string parameter, string error) => new ArgumentNullException(parameter, error);
@@ -203,19 +198,16 @@ namespace System.Data.Common
 //             InvalidOperationException e = new InvalidOperationException(Res.GetString(Res.ADP_CalledTwice, method));
 //             return e;
 //         }
-
 //         internal static ArgumentException InvalidMultipartName(string property, string value)
 //         {
 //             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartName, Res.GetString(property), value));
 //             return e;
 //         }
-
 //         internal static ArgumentException InvalidMultipartNameIncorrectUsageOfQuotes(string property, string value)
 //         {
 //             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartNameQuoteUsage, Res.GetString(property), value));
 //             return e;
 //         }
-
 //         internal static ArgumentException InvalidMultipartNameToManyParts(string property, string value, int limit)
 //         {
 //             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartNameToManyParts, Res.GetString(property), value, limit));
@@ -260,15 +252,6 @@ namespace System.Data.Common
         //
         // DbConnectionOptions, DataAccess
         //
-//         internal static ArgumentException KeywordNotSupported(string keyword)
-//         {
-//             return Argument(Res.GetString(Res.ADP_KeywordNotSupported, keyword));
-//         }
-//         internal static ArgumentException ConvertFailed(Type fromType, Type toType, Exception innerException)
-//         {
-//             return ADP.Argument(Res.GetString(Res.SqlConvert_ConvertFailed, fromType.FullName, toType.FullName), innerException);
-//         }
-
         internal static ArgumentException InvalidConnectionStringArgument()
         {
             return Argument("An invalid connection string argument has been supplied or a required connection string argument has not been supplied.");
@@ -306,6 +289,36 @@ namespace System.Data.Common
             return ADP.Argument("Invalid min or max pool size values, min pool size cannot be greater than the max pool size.");
             // return ADP.Argument(Res.GetString(Res.ADP_InvalidMinMaxPoolSizeValues));
         }
+
+//         internal static ArgumentException KeywordNotSupported(string keyword)
+//         {
+//             return Argument(Res.GetString(Res.ADP_KeywordNotSupported, keyword));
+//         }
+//         internal static ArgumentException ConvertFailed(Type fromType, Type toType, Exception innerException)
+//         {
+//             return ADP.Argument(Res.GetString(Res.SqlConvert_ConvertFailed, fromType.FullName, toType.FullName), innerException);
+//         }
+
+//         internal static Exception InvalidConnectionOptionValue(string key)
+//         {
+//             return InvalidConnectionOptionValue(key, null);
+//         }
+//         internal static Exception InvalidConnectionOptionValueLength(string key, int limit)
+//         {
+//             return Argument(Res.GetString(Res.ADP_InvalidConnectionOptionValueLength, key, limit));
+//         }
+//         internal static Exception InvalidConnectionOptionValue(string key, Exception inner)
+//         {
+//             return Argument(Res.GetString(Res.ADP_InvalidConnectionOptionValue, key), inner);
+//         }
+//         internal static Exception MissingConnectionOptionValue(string key, string requiredAdditionalKey)
+//         {
+//             return Argument(Res.GetString(Res.ADP_MissingConnectionOptionValue, key, requiredAdditionalKey));
+//         }
+//         internal static Exception WrongType(Type got, Type expected)
+//         {
+//             return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
+//         }
 
         //
         // DbConnection
@@ -356,31 +369,6 @@ namespace System.Data.Common
             }
         }
 
-
-//         //
-//         // : DbConnectionOptions, DataAccess, SqlClient
-//         //
-//         internal static Exception InvalidConnectionOptionValue(string key)
-//         {
-//             return InvalidConnectionOptionValue(key, null);
-//         }
-//         internal static Exception InvalidConnectionOptionValueLength(string key, int limit)
-//         {
-//             return Argument(Res.GetString(Res.ADP_InvalidConnectionOptionValueLength, key, limit));
-//         }
-//         internal static Exception InvalidConnectionOptionValue(string key, Exception inner)
-//         {
-//             return Argument(Res.GetString(Res.ADP_InvalidConnectionOptionValue, key), inner);
-//         }
-//         internal static Exception MissingConnectionOptionValue(string key, string requiredAdditionalKey)
-//         {
-//             return Argument(Res.GetString(Res.ADP_MissingConnectionOptionValue, key, requiredAdditionalKey));
-//         }
-//         internal static Exception WrongType(Type got, Type expected)
-//         {
-//             return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
-//         }
-
         //
         // DbConnectionPool and related
         //
@@ -429,7 +417,7 @@ namespace System.Data.Common
 //         }
 
         //
-        // DbProviderException
+        // : IDbCommand
         //
         internal static InvalidOperationException TransactionConnectionMismatch()
         {
@@ -468,41 +456,6 @@ namespace System.Data.Common
             // return InvalidOperation(Res.GetString(Res.ADP_OpenReaderExists), e);
         }
 
-//         //
-//         // DbDataReader
-//         //
-//         internal static Exception NonSeqByteAccess(long badIndex, long currIndex, string method)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_NonSeqByteAccess, badIndex.ToString(CultureInfo.InvariantCulture), currIndex.ToString(CultureInfo.InvariantCulture), method));
-//         }
-
-//         internal static Exception NegativeParameter(string parameterName)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_NegativeParameter, parameterName));
-//         }
-
-//         internal static Exception InvalidSeekOrigin(string parameterName)
-//         {
-//             return ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidSeekOrigin), parameterName);
-//         }
-
-//         //
-//         // SqlMetaData, SqlTypes, SqlClient
-//         //
-//         internal static Exception InvalidMetaDataValue()
-//         {
-//             return ADP.Argument(Res.GetString(Res.ADP_InvalidMetaDataValue));
-//         }
-
-//         internal static InvalidOperationException NonSequentialColumnAccess(int badCol, int currCol)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_NonSequentialColumnAccess, badCol.ToString(CultureInfo.InvariantCulture), currCol.ToString(CultureInfo.InvariantCulture)));
-//         }
-
-
-//         //
-//         // : IDbCommand
-//         //
 //         internal static Exception InvalidCommandTimeout(int value, [CallerMemberName] string property = "")
 //         {
 //             return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
@@ -602,6 +555,19 @@ namespace System.Data.Common
         //
         // : DbDataReader
         //
+//         internal static Exception NonSeqByteAccess(long badIndex, long currIndex, string method)
+//         {
+//             return InvalidOperation(Res.GetString(Res.ADP_NonSeqByteAccess, badIndex.ToString(CultureInfo.InvariantCulture), currIndex.ToString(CultureInfo.InvariantCulture), method));
+//         }
+//         internal static Exception NegativeParameter(string parameterName)
+//         {
+//             return InvalidOperation(Res.GetString(Res.ADP_NegativeParameter, parameterName));
+//         }
+//         internal static Exception InvalidSeekOrigin(string parameterName)
+//         {
+//             return ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidSeekOrigin), parameterName);
+//         }
+
 //         internal static Exception DataReaderClosed([CallerMemberName] string method = "")
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_DataReaderClosed, method));
@@ -759,6 +725,10 @@ namespace System.Data.Common
 
         internal static long TimerToMilliseconds(long timerValue) => timerValue / TimeSpan.TicksPerMillisecond;
         private static long TimerToSeconds(long timerValue)       => timerValue / TimeSpan.TicksPerSecond;
+
+        //
+        // : Misc
+        //
 
 //         internal static string BuildQuotedString(string quotePrefix, string quoteSuffix, string unQuotedString)
 //         {

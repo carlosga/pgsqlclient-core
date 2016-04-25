@@ -193,7 +193,7 @@ namespace System.Data.ProviderBase
         }
 
         internal DbConnectionPoolIdentity Identity  => _identity;
-        internal bool                     IsRunning => State.Running == _state;
+        internal bool                     IsRunning => (State.Running == _state);
 
         private int MaxPoolSize => PoolGroupOptions.MaxPoolSize;
         private int MinPoolSize => PoolGroupOptions.MinPoolSize;
@@ -203,10 +203,9 @@ namespace System.Data.ProviderBase
         internal DbConnectionPoolProviderInfo ProviderInfo     => _connectionPoolProviderInfo;        
         internal bool                         UseLoadBalancing => PoolGroupOptions.UseLoadBalancing;
 
-#warning Remove
         private bool UsingIntegrateSecurity
         {
-            get { return (null != _identity && DbConnectionPoolIdentity.NoIdentity != _identity); }
+            get { return (_identity != null && _identity != DbConnectionPoolIdentity.NoIdentity); }
         }
 
         private void CleanupCallback(Object state)
@@ -336,13 +335,13 @@ namespace System.Data.ProviderBase
             try
             {
                 newObj = _connectionFactory.CreatePooledConnection(this, owningObject, _connectionPoolGroup.ConnectionOptions, _connectionPoolGroup.PoolKey, userOptions);
-                if (null == newObj)
+                if (newObj == null)
                 {
                     throw ADP.InternalError(ADP.InternalErrorCode.CreateObjectReturnedNull);    // CreateObject succeeded, but null object
                 }
                 if (!newObj.CanBePooled)
                 {
-                    throw ADP.InternalError(ADP.InternalErrorCode.NewObjectCannotBePooled);        // CreateObject succeeded, but non-poolable object
+                    throw ADP.InternalError(ADP.InternalErrorCode.NewObjectCannotBePooled);     // CreateObject succeeded, but non-poolable object
                 }
                 newObj.PrePush(null);
 
@@ -509,7 +508,7 @@ namespace System.Data.ProviderBase
                 _totalObjects = _objectList.Count;
             }
 
-#warning Shouldn't the obj.Dispose call be inside the if block
+#warning TODO: Should the obj.Dispose call be inside the if block ??
             if (removed)
             {
             }
