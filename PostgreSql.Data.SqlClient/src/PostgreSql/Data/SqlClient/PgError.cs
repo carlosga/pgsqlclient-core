@@ -66,5 +66,19 @@ namespace PostgreSql.Data.SqlClient
             _line     = line;
             _routine  = routine;
         }
+
+        internal PgError InternalClone()
+        {
+            return new PgError(_severity
+                             , _message
+                             , _code
+                             , _detail
+                             , _hint
+                             , _where
+                             , _position
+                             , _file
+                             , _line
+                             , _routine);
+        }
     }
 }

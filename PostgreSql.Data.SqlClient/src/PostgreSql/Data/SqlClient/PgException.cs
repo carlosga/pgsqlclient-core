@@ -42,8 +42,15 @@ namespace PostgreSql.Data.SqlClient
 
         internal PgException InternalClone()
         {
-#warning TODO: Implement
-            return this;
+            List<PgError> errors = new List<PgError>();
+            if (_errors != null && _errors.Count > 0)
+            {
+                for (int i = 0; i < _errors.Count; ++i)
+                {
+                    errors.Add(_errors[i].InternalClone());
+                }
+            }
+            return new PgException(Message, errors);
         }
     }
 }
