@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
 using PostgreSql.Data.SqlClient;
 
 namespace PostgreSql.Data.Frontend
@@ -83,7 +84,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (savePointName == null || savePointName.Length == 0)
             {
-                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
+                throw ADP.NullEmptyTransactionName();
             }
 
             using (var stmt = _connection.CreateStatement($"SAVEPOINT {savePointName}"))
@@ -96,7 +97,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (savePointName == null || savePointName.Length == 0)
             {
-                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
+                throw ADP.NullEmptyTransactionName();
             }
 
             using (var stmt = _connection.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
@@ -109,7 +110,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (savePointName == null || savePointName.Length == 0)
             {
-                throw new ArgumentException("Invalid transaction or invalid name for a point at which to save within the transaction.");
+                throw ADP.NullEmptyTransactionName();
             }
 
             using (var stmt = _connection.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))

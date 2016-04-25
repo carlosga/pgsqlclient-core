@@ -211,43 +211,35 @@ namespace System.Data.Common
 
             if (String.IsNullOrEmpty(_userId) || String.IsNullOrEmpty(_dataSource))
             {
-                throw new ArgumentException("An invalid connection string argument has been supplied or a required connection string argument has not been supplied.");
+                throw ADP.InvalidConnectionStringArgument();
             }
             else if (_packetSize < 512 || _packetSize > 32767)
             {
-                string msg = $"'Packet Size' value of {_packetSize} is not valid.\r\nThe value should be an integer >= 512 and <= 32767.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidPacketSizeValue(_packetSize);
             }
             else if (_connectRetryCount < 0 || _connectRetryCount > 255)
             {
-                string msg = $"'Connection Retry Count' value of {_connectRetryCount} is not valid.\r\nThe value should be an integer >= 0 and <= 255.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidConnectRetryCountValue(_connectRetryCount);
             }
             else if (_connectRetryInterval < 1 || _connectRetryInterval > 60)
             {
-                string msg = $"'Connection Retry Interval' value of {_connectRetryInterval} is not valid.\r\nThe value should be an integer >= 1 and <= 60.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidConnectRetryIntervalValue(_connectRetryInterval);
             }
             else if (_connectTimeout < 0 || _connectTimeout > 2147483647)
             {
-                string msg = $"'Connection Timeout' value of {_connectTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidConnectTimeoutValue(_connectTimeout);
             }
             else if (_commandTimeout < 0 || _commandTimeout > 2147483647)
             {
-                string msg = $"'Command Timeout' value of {_commandTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidCommandTimeoutValue(_commandTimeout);
             }
             else if (_lockTimeout < 0 || _lockTimeout > 2147483647)
             {
-                string msg = $"'Lock Timeout' value of {_lockTimeout} is not valid.\r\nThe value should be an integer >= 0 and <= 2147483647.";
-
-                throw new ArgumentException(msg);
+                throw ADP.InvalidLockTimeoutValue(_lockTimeout);
+            }
+            else if (_minPoolSize < 0 || _maxPoolSize < 0 || _minPoolSize > _maxPoolSize)
+            {
+                throw ADP.InvalidMinMaxPoolSizeValues();
             }
         }
 

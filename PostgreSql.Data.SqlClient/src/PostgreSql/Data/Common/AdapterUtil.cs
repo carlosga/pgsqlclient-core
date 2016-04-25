@@ -149,7 +149,7 @@ namespace System.Data.Common
             return new InvalidOperationException(error, inner);
         }
 
-        internal static TimeoutException          TimeoutException(string error) => new TimeoutException(error);
+        internal static TimeoutException TimeoutException(string error) => new TimeoutException(error);
 
         internal static NotSupportedException NotSupported()             => new NotSupportedException();
         internal static NotSupportedException NotSupported(string error) => new NotSupportedException(error);
@@ -257,25 +257,55 @@ namespace System.Data.Common
 //             return ADP.ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidEnumerationValue, type.Name, value.ToString(System.Globalization.CultureInfo.InvariantCulture)), type.Name);
 //         }
 
-//         //
-//         // DbConnectionOptions, DataAccess
-//         //
-//         internal static ArgumentException ConnectionStringSyntax(int index)
-//         {
-//             return Argument(Res.GetString(Res.ADP_ConnectionStringSyntax, index));
-//         }
+        //
+        // DbConnectionOptions, DataAccess
+        //
 //         internal static ArgumentException KeywordNotSupported(string keyword)
 //         {
 //             return Argument(Res.GetString(Res.ADP_KeywordNotSupported, keyword));
-//         }
-//         internal static ArgumentException InvalidMinMaxPoolSizeValues()
-//         {
-//             return ADP.Argument(Res.GetString(Res.ADP_InvalidMinMaxPoolSizeValues));
 //         }
 //         internal static ArgumentException ConvertFailed(Type fromType, Type toType, Exception innerException)
 //         {
 //             return ADP.Argument(Res.GetString(Res.SqlConvert_ConvertFailed, fromType.FullName, toType.FullName), innerException);
 //         }
+
+        internal static ArgumentException InvalidConnectionStringArgument()
+        {
+            return Argument("An invalid connection string argument has been supplied or a required connection string argument has not been supplied.");
+        }
+
+        internal static ArgumentException InvalidPacketSizeValue(int value)
+        {
+            return ADP.Argument($"'Packet Size' value of {value} is not valid. The value should be an integer >= 512 and <= 32767.");
+        }
+
+        internal static ArgumentException InvalidConnectRetryCountValue(int value)
+        {
+            return ADP.Argument($"'Connection Retry Count' value of {value} is not valid. The value should be an integer >= 0 and <= 255.");
+        }
+        internal static ArgumentException InvalidConnectRetryIntervalValue(int value)
+        {
+            return ADP.Argument($"'Connection Retry Interval' value of {value} is not valid. The value should be an integer >= 1 and <= 60.");
+        }
+
+        internal static ArgumentException InvalidConnectTimeoutValue(int value)
+        {
+            return ADP.Argument($"'Connection Timeout' value of {value} is not valid. The value should be an integer >= 0 and <= 2147483647.");
+        }
+        internal static ArgumentException InvalidCommandTimeoutValue(int value)
+        {
+            return ADP.Argument($"'Command Timeout' value of {value} is not valid. The value should be an integer >= 0 and <= 2147483647.");
+        }
+        internal static ArgumentException InvalidLockTimeoutValue(int value)
+        {
+            return ADP.Argument($"'Lock Timeout' value of {value} is not valid. The value should be an integer >= 0 and <= 2147483647.");
+        }
+
+        internal static ArgumentException InvalidMinMaxPoolSizeValues()
+        {
+            return ADP.Argument("Invalid min or max pool size values, min pool size cannot be greater than the max pool size.");
+            // return ADP.Argument(Res.GetString(Res.ADP_InvalidMinMaxPoolSizeValues));
+        }
 
         //
         // DbConnection
@@ -283,6 +313,10 @@ namespace System.Data.Common
         internal static InvalidOperationException NoConnectionString()
         {
             return InvalidOperation("The ConnectionString property has not been initialized.");
+        }
+        internal static InvalidOperationException NullEmptyTransactionName()
+        {
+            return InvalidOperation("Invalid transaction or invalid name for a point at which to save within the transaction.");
         }
 
         internal static Exception MethodNotImplemented([CallerMemberName] string methodName = "")
@@ -565,16 +599,6 @@ namespace System.Data.Common
             // return InvalidOperation(Res.GetString(Res.ADP_InternalProviderError, (int)internalError));
         }
 
-//        internal static Exception InvalidConnectRetryCountValue()
-//        {
-//            return Argument(Res.GetString(Res.SQLCR_InvalidConnectRetryCountValue));
-//        }
-
-//         internal static Exception InvalidConnectRetryIntervalValue()
-//         {
-//             return Argument(Res.GetString(Res.SQLCR_InvalidConnectRetryIntervalValue));
-//         }
-
         //
         // : DbDataReader
         //
@@ -704,13 +728,11 @@ namespace System.Data.Common
         internal static Exception ParallelTransactionsNotSupported(DbConnection obj)
         {
             return InvalidOperation("A transaction is currently active. Parallel transactions are not supported.");
-            // return InvalidOperation(Res.GetString(Res.ADP_ParallelTransactionsNotSupported, obj.GetType().Name));
         }
-//         internal static Exception TransactionZombied(DbTransaction obj)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_TransactionZombied, obj.GetType().Name));
-//         }
-
+        internal static Exception TransactionZombied(DbTransaction obj)
+        {
+            return InvalidOperation($"This {obj.GetType().Name} has completed; it is no longer usable.");
+        }
 
         //
         // : Timers

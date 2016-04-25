@@ -132,7 +132,7 @@ namespace PostgreSql.Data.SqlClient
             var internalConnection = _connection?.InnerConnection as PgConnectionInternal; 
             if (internalConnection != null && !internalConnection.HasActiveTransaction)
             {
-                throw new InvalidOperationException("This Transaction has completed; it is no longer usable.");
+                throw ADP.TransactionZombied(this);
             }
         }
     }

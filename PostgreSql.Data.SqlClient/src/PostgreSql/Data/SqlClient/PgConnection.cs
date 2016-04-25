@@ -142,7 +142,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (String.IsNullOrEmpty(_connectionString))
             {
-                throw new InvalidOperationException("Connection String is not initialized.");
+                throw ADP.NoConnectionString();
             }
 
             if (!TryOpen(null))
@@ -169,7 +169,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (String.IsNullOrEmpty(transactionName))
             {
-                throw new InvalidOperationException("Invalid transaction or invalid name for a point at which to save within the transaction.");
+                throw ADP.NullEmptyTransactionName();
             }
 
             PgTransaction transaction = _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
@@ -177,6 +177,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 transaction.Save(transactionName);
             }
+
             return transaction;
         }
 
