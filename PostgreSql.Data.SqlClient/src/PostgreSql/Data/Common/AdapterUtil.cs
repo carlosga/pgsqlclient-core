@@ -542,19 +542,24 @@ namespace System.Data.Common
 
         internal static Exception InternalConnectionError(ConnectionError internalError)
         {
-            return InvalidOperation(String.Format("Internal DbConnection Error: {0}", (int)internalError));
+            return InvalidOperation("Internal DbConnection Error: {(int)internalError}");
             // return InvalidOperation(Res.GetString(Res.ADP_InternalConnectionError, (int)internalError));
         }
 
         internal static Exception InternalError(InternalErrorCode internalError)
         {
-            return InvalidOperation(String.Format("Internal .Net Framework Data Provider error {0}.", (int)internalError));
+            return InvalidOperation($"Internal .Net Framework Data Provider error {(int)internalError}.");
             // return InvalidOperation(Res.GetString(Res.ADP_InternalProviderError, (int)internalError));
         }
 
         //
-        // : DbDataReader
+        // : DataReader
         //
+        internal static Exception InvalidRead()
+        {
+             return InvalidOperation("Invalid attempt to read when no data is present.");
+        }
+
 //         internal static Exception NonSeqByteAccess(long badIndex, long currIndex, string method)
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_NonSeqByteAccess, badIndex.ToString(CultureInfo.InvariantCulture), currIndex.ToString(CultureInfo.InvariantCulture), method));

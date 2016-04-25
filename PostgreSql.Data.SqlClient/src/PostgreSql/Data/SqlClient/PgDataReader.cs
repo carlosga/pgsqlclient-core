@@ -19,11 +19,6 @@ namespace PostgreSql.Data.SqlClient
     {
         private const int STARTPOS = -1;
 
-        private static InvalidOperationException InvalidRead()
-        {
-             return new InvalidOperationException("Invalid attempt to read when no data is present.");
-        }
-
         private bool            _open;
         private int             _position;
         private int             _recordsAffected;
@@ -45,7 +40,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw InvalidRead();
+                    throw ADP.InvalidRead();
                 }
                 return 0;
             }
@@ -60,7 +55,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw InvalidRead();
+                    throw ADP.InvalidRead();
                 }
                 return _statement?.RowDescriptor.Count ?? 0;
             }
@@ -72,7 +67,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw InvalidRead();
+                    throw ADP.InvalidRead();
                 }
                 return _statement.HasRows;
             }
@@ -149,7 +144,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw InvalidRead();
+                throw ADP.InvalidRead();
             }
 
             // Throw exception if the statement has been cancelled
@@ -197,7 +192,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw InvalidRead();
+                throw ADP.InvalidRead();
             }
 
             return _row.GetBytes(i, dataIndex, buffer, bufferIndex, length);
@@ -207,7 +202,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw InvalidRead();
+                throw ADP.InvalidRead();
             }
 
             return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
@@ -349,7 +344,8 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw new InvalidOperationException("Reader closed");
+                throw ADP.InvalidRead();
+                // throw new InvalidOperationException("Reader closed");
             }
 
             return _statement.RowDescriptor.IndexOf(name);
@@ -503,11 +499,11 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw InvalidRead();
+                throw ADP.InvalidRead();
             }
             if (_position == STARTPOS)
             {
-                throw InvalidRead();
+                throw ADP.InvalidRead();
             }
         }
 
@@ -515,7 +511,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (i < 0 || i >= FieldCount)
             {
-                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
+                throw ADP.InvalidRead();
             }
         }
     }
