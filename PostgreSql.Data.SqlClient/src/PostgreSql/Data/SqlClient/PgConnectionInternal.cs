@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.ProviderBase;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PostgreSql.Data.SqlClient
@@ -71,6 +72,13 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (disposing)
                 {
+                    // guard against multiple concurrent dispose calls
+                    var connection = Interlocked.Exchange(ref _connection, null);
+                    if (connection != null)
+                    {
+                        connection.Close();
+                    }
+
                     // TODO: dispose managed state (managed objects).
                     base.Dispose();
                 }
@@ -97,23 +105,6 @@ namespace PostgreSql.Data.SqlClient
         //     // GC.SuppressFinalize(this);
         // }
         #endregion
-
-        protected override void Activate()
-        {
-        }
-
-        protected override void Deactivate()
-        {
-        }
-
-        protected override void PrepareForCloseConnection()
-        {
-            if (HasActiveTransaction)
-            {
-                ActiveTransaction.Dispose();
-                _activeTransaction = null;
-            }
-        }
 
         internal override void ChangeDatabase(string database)
         {
@@ -166,6 +157,43 @@ namespace PostgreSql.Data.SqlClient
                                                   , DbConnectionOptions                        userOptions)
         {
             return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
+        }
+
+        protected override void PrepareForCloseConnection()
+        {
+            if (HasActiveTransaction)
+            {
+                ActiveTransaction.Dispose();
+                _activeTransaction = null;
+            }
+        }
+
+        protected override void Activate()
+        {
+        }
+
+        protected override void Deactivate()
+        {
+            try
+            {
+                var referenceCollection = ReferenceCollection as PgReferenceCollection;
+                if (referenceCollection != null)
+                {
+                    referenceCollection.Deactivate();
+                }
+            }
+            catch (Exception e)
+            {
+                if (!ADP.IsCatchableExceptionType(e))
+                {
+                    throw;
+                }
+
+                // if an exception occurred, the inner connection will be
+                // marked as unusable and destroyed upon returning to the
+                // pool
+                DoomThisConnection();
+            }
         }
 
         protected override DbReferenceCollection CreateReferenceCollection()
