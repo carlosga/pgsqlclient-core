@@ -326,6 +326,22 @@ namespace PostgreSql.Data.Frontend
 
         internal void Send(MessageWriter message) => _transport.WriteMessage(message);
 
+        internal bool IsConnectionAlive(bool throwOnException = false)
+        {
+            try
+            {
+                return _transport.IsTransportAlive(throwOnException); 
+            }
+            catch
+            {
+                if (throwOnException)
+                {
+                    throw;
+                }
+                return false;
+            }
+        }
+
         private void OpenInternal()
         {
             // Reset instance data

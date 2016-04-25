@@ -144,21 +144,20 @@ namespace PostgreSql.Data.SqlClient
 
         internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
 
-        internal bool Verify()
+        internal override bool IsConnectionAlive(bool throwOnException = false)
         {
-            bool isValid = true;
-
             try
             {
-                // Try to send a Sync message
-                _connection.Sync();
+                return _connection.IsConnectionAlive(throwOnException);
             }
             catch
             {
-                isValid = false;
+                if (throwOnException)
+                {
+                    throw;
+                }
+                return false;
             }
-
-            return isValid;
         }
 
         internal override bool TryReplaceConnection(DbConnection                               outerConnection

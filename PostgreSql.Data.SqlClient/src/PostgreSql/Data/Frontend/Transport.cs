@@ -134,6 +134,22 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal bool IsTransportAlive(bool throwOnException = false)
+        {
+            try
+            {
+                return _socket.Connected && _socket.Poll(1000, SelectMode.SelectRead);
+            }
+            catch
+            {
+                if (throwOnException)
+                {
+                    throw;
+                }
+                return false;
+            }
+        }
+
         internal MessageReader ReadMessage(SessionData sessionData)
         {
             byte[] buffer = null;
