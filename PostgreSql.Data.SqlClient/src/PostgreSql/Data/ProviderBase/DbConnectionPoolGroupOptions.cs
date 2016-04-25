@@ -17,7 +17,7 @@ namespace System.Data.ProviderBase
         public TimeSpan LoadBalanceTimeout  => _loadBalanceTimeout;
         public int      MaxPoolSize         => _maxPoolSize;
         public int      MinPoolSize         => _minPoolSize;
-        public bool PoolByIdentity          => _poolByIdentity;
+        public bool     PoolByIdentity      => _poolByIdentity;
         public bool     UseLoadBalancing    => _useLoadBalancing;
 
         public DbConnectionPoolGroupOptions(bool poolByIdentity

@@ -160,7 +160,7 @@ namespace System.Data.ProviderBase
             if (_referenceCollection == null)
             {
                 _referenceCollection = CreateReferenceCollection();
-                if (null == _referenceCollection)
+                if (_referenceCollection == null)
                 {
                     throw ADP.InternalError(ADP.InternalErrorCode.CreateReferenceCollectionReturnedNull);
                 }
@@ -277,9 +277,7 @@ namespace System.Data.ProviderBase
 
         internal void MakeNonPooledObject(object owningObject)
         {
-            // Used by DbConnectionFactory to indicate that this object IS NOT part of
-            // a connection pool.
-
+            // Used by DbConnectionFactory to indicate that this object IS NOT part of a connection pool.
             _connectionPool      = null;
             _owningObject.Target = owningObject;
             _pooledCount         = -1;
@@ -287,8 +285,7 @@ namespace System.Data.ProviderBase
 
         internal void MakePooledConnection(DbConnectionPool connectionPool)
         {
-            // Used by DbConnectionFactory to indicate that this object IS part of
-            // a connection pool.
+            // Used by DbConnectionFactory to indicate that this object IS part of a connection pool.
             _createTime     = DateTime.UtcNow;
             _connectionPool = connectionPool;
         }
@@ -311,7 +308,7 @@ namespace System.Data.ProviderBase
         }
 
         /// <devdoc>The default implementation is for the open connection objects, and
-        /// it simply throws.  Our private closed-state connection objects
+        /// it simply throws. Our private closed-state connection objects
         /// override this and do the correct thing.</devdoc>
         // User code should either override DbConnectionInternal.Activate when it comes out of the pool
         // or override DbConnectionFactory.CreateConnection when the connection is created for non-pooled connections

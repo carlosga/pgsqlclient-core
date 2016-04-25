@@ -30,9 +30,10 @@ namespace System.Data.ProviderBase
         private readonly DbConnectionOptions          _connectionOptions;
         private readonly DbConnectionPoolKey          _poolKey;
         private readonly DbConnectionPoolGroupOptions _poolGroupOptions;
+
         private ConcurrentDictionary<DbConnectionPoolIdentity, DbConnectionPool> _poolCollection;
 
-        private int _state;          // see PoolGroupState* below
+        private int _state; // see PoolGroupState* below
 
         private DbConnectionPoolGroupProviderInfo _providerInfo;
 
@@ -42,26 +43,11 @@ namespace System.Data.ProviderBase
         private const int PoolGroupStateIdle     = 2; // all pools are pruned via Clear
         private const int PoolGroupStateDisabled = 4; // factory pool entry pruning method
 
-        internal DbConnectionPoolGroup(DbConnectionOptions          connectionOptions
-                                     , DbConnectionPoolKey          key
-                                     , DbConnectionPoolGroupOptions poolGroupOptions)
-        {
-            Debug.Assert(null != connectionOptions, "null connection options");
+        internal DbConnectionOptions          ConnectionOptions => _connectionOptions;
+        internal DbConnectionPoolKey          PoolKey           => _poolKey;
+        internal DbConnectionPoolGroupOptions PoolGroupOptions  => _poolGroupOptions;
 
-            _connectionOptions = connectionOptions;
-            _poolKey           = key;
-            _poolGroupOptions  = poolGroupOptions;
-
-            // always lock this object before changing state
-            // HybridDictionary does not create any sub-objects until add
-            // so it is safe to use for non-pooled connection as long as
-            // we check _poolGroupOptions first
-            _poolCollection = new ConcurrentDictionary<DbConnectionPoolIdentity, DbConnectionPool>();
-            _state = PoolGroupStateActive;
-        }
-
-        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
-        internal DbConnectionPoolKey PoolKey           => _poolKey;
+        internal bool IsDisabled => (PoolGroupStateDisabled == _state);
 
         internal DbConnectionPoolGroupProviderInfo ProviderInfo
         {
@@ -76,9 +62,23 @@ namespace System.Data.ProviderBase
             }
         }
 
-        internal bool IsDisabled => (PoolGroupStateDisabled == _state);
+        internal DbConnectionPoolGroup(DbConnectionOptions          connectionOptions
+                                     , DbConnectionPoolKey          key
+                                     , DbConnectionPoolGroupOptions poolGroupOptions)
+        {
+            Debug.Assert(connectionOptions != null, "null connection options");
 
-        internal DbConnectionPoolGroupOptions PoolGroupOptions => _poolGroupOptions;
+            _connectionOptions = connectionOptions;
+            _poolKey           = key;
+            _poolGroupOptions  = poolGroupOptions;
+
+            // always lock this object before changing state
+            // HybridDictionary does not create any sub-objects until add
+            // so it is safe to use for non-pooled connection as long as
+            // we check _poolGroupOptions first
+            _poolCollection = new ConcurrentDictionary<DbConnectionPoolIdentity, DbConnectionPool>();
+            _state          = PoolGroupStateActive;
+        }
 
         internal int Clear()
         {

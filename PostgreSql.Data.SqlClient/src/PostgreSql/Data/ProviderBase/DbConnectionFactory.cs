@@ -303,7 +303,7 @@ namespace System.Data.ProviderBase
                         {
                             // We've hit the race condition, where the pool was shut down after we got it from the group.
                             // Yield time slice to allow shut down activities to complete and a new, running pool to be instantiated
-                            //  before retrying.
+                            // before retrying.
                             Threading.Thread.Sleep(timeBetweenRetriesMilliseconds);
                             timeBetweenRetriesMilliseconds *= 2; // double the wait time for next iteration
                         }
@@ -389,9 +389,9 @@ namespace System.Data.ProviderBase
                 }
 
                 // We don't support connection pooling on Win9x
-                if (null == poolOptions)
+                if (poolOptions == null)
                 {
-                    if (null != connectionPoolGroup)
+                    if (connectionPoolGroup != null)
                     {
                         // reusing existing pool option in case user originally used SetConnectionPoolOptions
                         poolOptions = connectionPoolGroup.PoolGroupOptions;
@@ -457,7 +457,7 @@ namespace System.Data.ProviderBase
                         {
                             pool.Clear();
 
-                            if (0 == pool.Count)
+                            if (pool.Count == 0)
                             {
                                 _poolsToRelease.Remove(pool);
                             }
