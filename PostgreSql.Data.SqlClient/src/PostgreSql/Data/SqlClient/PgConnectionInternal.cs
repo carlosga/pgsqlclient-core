@@ -171,7 +171,6 @@ namespace PostgreSql.Data.SqlClient
 
         protected override DbReferenceCollection CreateReferenceCollection()
         {
-            Console.WriteLine("PgReferenceCollection");
             return new PgReferenceCollection();
         }
     }
