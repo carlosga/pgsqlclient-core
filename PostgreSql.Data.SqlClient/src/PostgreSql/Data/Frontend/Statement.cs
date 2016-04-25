@@ -735,7 +735,7 @@ namespace PostgreSql.Data.Frontend
             {
                 var p = _parameters[i];
 
-                if (p.Direction == ParameterDirection.InputOutput || p.Direction == ParameterDirection.Output)
+                if (p.Direction != ParameterDirection.Input)
                 {
                     p.Value = message.ReadValue(p.TypeInfo, message.ReadInt32());
                 }

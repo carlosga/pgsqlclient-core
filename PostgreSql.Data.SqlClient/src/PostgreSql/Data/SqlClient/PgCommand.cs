@@ -519,28 +519,31 @@ namespace PostgreSql.Data.SqlClient
 
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
         {
-            if (_connection == null || _connection.State != ConnectionState.Open)
+            if (_connection == null)
             {
-                throw new InvalidOperationException($"{memberName} requires an open and available Connection. The connection's current state is closed.");
+                throw ADP.ConnectionRequired(memberName);
+            }
+            if (_connection.State != ConnectionState.Open)
+            {
+                throw ADP.OpenConnectionRequired(memberName, _connection.State);
             }
             if (_activeDataReader != null && _activeDataReader.IsAlive)
             {
-                throw new InvalidOperationException("There is already an open DataReader associated with this Command which must be closed first.");
+                throw ADP.OpenReaderExists();
             }
 
             if (_transaction == null && ((PgConnectionInternal)_connection.InnerConnection).HasActiveTransaction)
             {
-                throw new InvalidOperationException($"{memberName} requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.");
+                throw ADP.TransactionRequired(memberName);
             }
-
             if (_transaction != null && !_connection.Equals(Transaction.Connection))
             {
-                throw new InvalidOperationException("The transaction is either not associated with the current connection or has been completed.");
+                throw ADP.TransactionConnectionMismatch();
             }
 
             if (_commandText == null || _commandText.Length == 0)
             {
-                throw new InvalidOperationException("The command text for this Command has not been set.");
+                throw ADP.CommandTextRequired(memberName);
             }
         }
     }

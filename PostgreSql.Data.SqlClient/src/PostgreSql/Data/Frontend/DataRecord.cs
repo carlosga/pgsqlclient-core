@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Data.Common;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -56,7 +57,7 @@ namespace PostgreSql.Data.Frontend
         {
             CheckIndex(i);
 
-            return (_values[i] == DBNull.Value);
+            return ADP.IsNull(_values[i]);
         }
 
         internal long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)

@@ -128,7 +128,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (HasActiveTransaction)
             {
-                throw new InvalidOperationException("A transaction is currently active. Parallel transactions are not supported.");
+                throw ADP.ParallelTransactionsNotSupported(OwningConnection);
             }
 
             var transaction = new PgTransaction(OwningConnection, isolationLevel);

@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Data.Common;
 using System.IO;
 
 namespace PostgreSql.Data.Frontend
@@ -224,7 +225,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(TypeInfo typeInfo, object value)
         {
-            if (value == System.DBNull.Value || value == null)
+            if (ADP.IsNull(value))
             {
                 Write(-1);  // -1 indicates a NULL value
                 return;

@@ -54,18 +54,6 @@ namespace System.Data.Common
 //             return completion.Task;
 //         }
 
-        internal static Exception ExceptionWithStackTrace(Exception e)
-        {
-            try
-            {
-                throw e;
-            }
-            catch (Exception caught)
-            {
-                return caught;
-            }
-        }
-
 //         // NOTE: Initializing a Task in SQL CLR requires the "UNSAFE" permission set (http://msdn.microsoft.com/en-us/library/ms172338.aspx)
 //         // Therefore we are lazily initializing these Tasks to avoid forcing customers to use the "UNSAFE" set when they are actually using no Async features
 //         static private Task<bool> s_trueTask = null;
@@ -94,21 +82,29 @@ namespace System.Data.Common
 //             }
 //         }
 
+        internal static Exception ExceptionWithStackTrace(Exception e)
+        {
+            try
+            {
+                throw e;
+            }
+            catch (Exception caught)
+            {
+                return caught;
+            }
+        }
+
         //
         // COM+ exceptions
         //
-        internal static ArgumentException Argument(string error) => new ArgumentException(error);
+        internal static ArgumentException Argument(string error)                  => new ArgumentException(error);
+        internal static ArgumentException Argument(string error, Exception inner) => new ArgumentException(error, inner);
 
-//         internal static ArgumentException Argument(string error, Exception inner)
-//         {
-//             ArgumentException e = new ArgumentException(error, inner);
-//             return e;
-//         }
-//         internal static ArgumentException Argument(string error, string parameter)
-//         {
-//             ArgumentException e = new ArgumentException(error, parameter);
-//             return e;
-//         }
+        internal static ArgumentException Argument(string error, string parameter)
+        {
+            ArgumentException e = new ArgumentException(error, parameter);
+            return e;
+        }
 
         internal static ArgumentNullException ArgumentNull(string parameter) => new ArgumentNullException(parameter);
         internal static ArgumentNullException ArgumentNull(string parameter, string error) => new ArgumentNullException(parameter, error);
@@ -148,13 +144,12 @@ namespace System.Data.Common
 //             return e;
 //         }
         internal static InvalidOperationException InvalidOperation(string error) => new InvalidOperationException(error);
-
-        internal static TimeoutException TimeoutException(string error) => new TimeoutException(error);
-
         internal static InvalidOperationException InvalidOperation(string error, Exception inner)
         {
             return new InvalidOperationException(error, inner);
         }
+
+        internal static TimeoutException          TimeoutException(string error) => new TimeoutException(error);
 
         internal static NotSupportedException NotSupported()             => new NotSupportedException();
         internal static NotSupportedException NotSupported(string error) => new NotSupportedException(error);
@@ -193,10 +188,10 @@ namespace System.Data.Common
 //         {
 //             return InvalidOperation(error);
 //         }
-//         static private InvalidOperationException Provider(string error)
-//         {
-//             return InvalidOperation(error);
-//         }
+        private static InvalidOperationException Provider(string error)
+        {
+            return InvalidOperation(error);
+        }
 //         internal static ObjectDisposedException ObjectDisposed(object instance)
 //         {
 //             ObjectDisposedException e = new ObjectDisposedException(instance.GetType().Name);
@@ -208,7 +203,6 @@ namespace System.Data.Common
 //             InvalidOperationException e = new InvalidOperationException(Res.GetString(Res.ADP_CalledTwice, method));
 //             return e;
 //         }
-
 
 //         internal static ArgumentException InvalidMultipartName(string property, string value)
 //         {
@@ -263,81 +257,6 @@ namespace System.Data.Common
 //             return ADP.ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidEnumerationValue, type.Name, value.ToString(System.Globalization.CultureInfo.InvariantCulture)), type.Name);
 //         }
 
-
-//         // IDbCommand.CommandType
-//         internal static ArgumentOutOfRangeException InvalidCommandType(CommandType value)
-//         {
-// #if DEBUG
-//             switch (value)
-//             {
-//                 case CommandType.Text:
-//                 case CommandType.StoredProcedure:
-//                 case CommandType.TableDirect:
-//                     Debug.Assert(false, "valid CommandType " + value.ToString());
-//                     break;
-//             }
-// #endif
-//             return InvalidEnumerationValue(typeof(CommandType), (int)value);
-//         }
-
-
-//         // IDbConnection.BeginTransaction, OleDbTransaction.Begin
-//         internal static ArgumentOutOfRangeException InvalidIsolationLevel(IsolationLevel value)
-//         {
-// #if DEBUG
-//             switch (value)
-//             {
-//                 case IsolationLevel.Unspecified:
-//                 case IsolationLevel.Chaos:
-//                 case IsolationLevel.ReadUncommitted:
-//                 case IsolationLevel.ReadCommitted:
-//                 case IsolationLevel.RepeatableRead:
-//                 case IsolationLevel.Serializable:
-//                 case IsolationLevel.Snapshot:
-//                     Debug.Fail("valid IsolationLevel " + value.ToString());
-//                     break;
-//             }
-// #endif
-//             return InvalidEnumerationValue(typeof(IsolationLevel), (int)value);
-//         }
-
-
-//         // IDataParameter.Direction
-//         internal static ArgumentOutOfRangeException InvalidParameterDirection(ParameterDirection value)
-//         {
-// #if DEBUG
-//             switch (value)
-//             {
-//                 case ParameterDirection.Input:
-//                 case ParameterDirection.Output:
-//                 case ParameterDirection.InputOutput:
-//                 case ParameterDirection.ReturnValue:
-//                     Debug.Assert(false, "valid ParameterDirection " + value.ToString());
-//                     break;
-//             }
-// #endif
-//             return InvalidEnumerationValue(typeof(ParameterDirection), (int)value);
-//         }
-
-
-//         // IDbCommand.UpdateRowSource
-//         internal static ArgumentOutOfRangeException InvalidUpdateRowSource(UpdateRowSource value)
-//         {
-// #if DEBUG
-//             switch (value)
-//             {
-//                 case UpdateRowSource.None:
-//                 case UpdateRowSource.OutputParameters:
-//                 case UpdateRowSource.FirstReturnedRecord:
-//                 case UpdateRowSource.Both:
-//                     Debug.Assert(false, "valid UpdateRowSource " + value.ToString());
-//                     break;
-//             }
-// #endif
-//             return InvalidEnumerationValue(typeof(UpdateRowSource), (int)value);
-//         }
-
-
 //         //
 //         // DbConnectionOptions, DataAccess
 //         //
@@ -357,7 +276,6 @@ namespace System.Data.Common
 //         {
 //             return ADP.Argument(Res.GetString(Res.SqlConvert_ConvertFailed, fromType.FullName, toType.FullName), innerException);
 //         }
-
 
         //
         // DbConnection
@@ -424,17 +342,14 @@ namespace System.Data.Common
 //         {
 //             return Argument(Res.GetString(Res.ADP_MissingConnectionOptionValue, key, requiredAdditionalKey));
 //         }
-
-
 //         internal static Exception WrongType(Type got, Type expected)
 //         {
 //             return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
 //         }
 
-
-//         //
-//         // DbConnectionPool and related
-//         //
+        //
+        // DbConnectionPool and related
+        //
         internal static Exception PooledOpenTimeout()
         {
             return InvalidOperation("Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.");
@@ -447,9 +362,9 @@ namespace System.Data.Common
             // return ADP.InvalidOperation(Res.GetString(Res.ADP_NonPooledOpenTimeout));
         }
 
-//         //
-//         // Generic Data Provider Collection
-//         //
+        //
+        // Generic Data Provider Collection
+        //
 //         internal static ArgumentException CollectionRemoveInvalidObject(Type itemType, ICollection collection)
 //         {
 //             return Argument(Res.GetString(Res.ADP_CollectionRemoveInvalidObject, itemType.Name, collection.GetType().Name));
@@ -479,43 +394,45 @@ namespace System.Data.Common
 //             return Argument(Res.GetString(Res.ADP_CollectionIsNotParent, parameterType.Name, collection.GetType().Name));
 //         }
 
-//         //
-//         // DbProviderException
-//         //
-//         internal static InvalidOperationException TransactionConnectionMismatch()
-//         {
-//             return Provider(Res.GetString(Res.ADP_TransactionConnectionMismatch));
-//         }
-//         internal static InvalidOperationException TransactionRequired(string method)
-//         {
-//             return Provider(Res.GetString(Res.ADP_TransactionRequired, method));
-//         }
+        //
+        // DbProviderException
+        //
+        internal static InvalidOperationException TransactionConnectionMismatch()
+        {
+            return Provider("The transaction is either not associated with the current connection or has been completed.");
+            // return Provider(Res.GetString(Res.ADP_TransactionConnectionMismatch));
+        }
+        internal static InvalidOperationException TransactionRequired(string method)
+        {
+            return Provider($"{method} requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.");
+            // return Provider(Res.GetString(Res.ADP_TransactionRequired, method));
+        }
 
+        internal static Exception CommandTextRequired(string method)
+        {
+            return InvalidOperation("The command text for this Command has not been set.");
+            // return InvalidOperation(Res.GetString(Res.ADP_CommandTextRequired, method));
+        }
+        internal static InvalidOperationException ConnectionRequired(string method)
+        {
+            return InvalidOperation($"{method} requires an available Connection.");
+            // return InvalidOperation(Res.GetString(Res.ADP_ConnectionRequired, method));
+        }
+        internal static InvalidOperationException OpenConnectionRequired(string method, ConnectionState state)
+        {
+            return InvalidOperation($"{method} requires an open and available Connection. The connection's current state is {state}.");
+            // return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionRequired, method, ADP.ConnectionStateMsg(state)));
+        }
 
-//         internal static Exception CommandTextRequired(string method)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_CommandTextRequired, method));
-//         }
-
-//         internal static InvalidOperationException ConnectionRequired(string method)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_ConnectionRequired, method));
-//         }
-//         internal static InvalidOperationException OpenConnectionRequired(string method, ConnectionState state)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionRequired, method, ADP.ConnectionStateMsg(state)));
-//         }
-
-//         internal static Exception OpenReaderExists()
-//         {
-//             return OpenReaderExists(null);
-//         }
-
-//         internal static Exception OpenReaderExists(Exception e)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_OpenReaderExists), e);
-//         }
-
+        internal static Exception OpenReaderExists()
+        {
+            return OpenReaderExists(null);
+        }
+        internal static Exception OpenReaderExists(Exception e)
+        {
+            return InvalidOperation("There is already an open DataReader associated with this Command which must be closed first.");
+            // return InvalidOperation(Res.GetString(Res.ADP_OpenReaderExists), e);
+        }
 
 //         //
 //         // DbDataReader
@@ -529,7 +446,6 @@ namespace System.Data.Common
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_NegativeParameter, parameterName));
 //         }
-
 
 //         internal static Exception InvalidSeekOrigin(string parameterName)
 //         {
@@ -620,39 +536,21 @@ namespace System.Data.Common
 
         internal enum InternalErrorCode
         {
-            UnpooledObjectHasOwner              = 0,
-            UnpooledObjectHasWrongOwner         = 1,
-            PushingObjectSecondTime             = 2,
-            PooledObjectHasOwner                = 3,
-            PooledObjectInPoolMoreThanOnce      = 4,
-            CreateObjectReturnedNull            = 5,
-            NewObjectCannotBePooled             = 6,
-            NonPooledObjectUsedMoreThanOnce     = 7,
-            AttemptingToPoolOnRestrictedToken   = 8,
-            // ConvertSidToStringSidWReturnedNull  = 10,
+            UnpooledObjectHasOwner                                 =  0,
+            UnpooledObjectHasWrongOwner                            =  1,
+            PushingObjectSecondTime                                =  2,
+            PooledObjectHasOwner                                   =  3,
+            PooledObjectInPoolMoreThanOnce                         =  4,
+            CreateObjectReturnedNull                               =  5,
+            NewObjectCannotBePooled                                =  6,
+            NonPooledObjectUsedMoreThanOnce                        =  7,
+            AttemptingToPoolOnRestrictedToken                      =  8,
             AttemptingToConstructReferenceCollectionOnStaticObject = 12,
-            // AttemptingToEnlistTwice               = 13,
-            CreateReferenceCollectionReturnedNull = 14,
-            // PooledObjectWithoutPool               = 15,
-            UnexpectedWaitAnyResult               = 16,
-            SynchronousConnectReturnedPending     = 17,
-            // CompletedConnectReturnedPending       = 18,
-
-            // NameValuePairNext   = 20,
-            // InvalidParserState1 = 21,
-            // InvalidParserState2 = 22,
-            // InvalidParserState3 = 23,
-
-            // InvalidBuffer = 30,
-
-            // UnimplementedSMIMethod = 40,
-            // InvalidSmiCall         = 41,
-
-            // SqlDependencyObtainProcessDispatcherFailureObjectHandle = 50,
-            // SqlDependencyProcessDispatcherFailureCreateInstance     = 51,
-            // SqlDependencyProcessDispatcherFailureAppDomain          = 52,
-            // SqlDependencyCommandHashIsNotAssociatedWithNotification = 53,
-            // UnknownTransactionFailure = 60
+            CreateReferenceCollectionReturnedNull                  = 14,
+            PooledObjectWithoutPool                                = 15,
+            UnexpectedWaitAnyResult                                = 16,
+            SynchronousConnectReturnedPending                      = 17,
+            CompletedConnectReturnedPending                        = 18
         }
 
         internal static Exception InternalConnectionError(ConnectionError internalError)
@@ -667,19 +565,19 @@ namespace System.Data.Common
             // return InvalidOperation(Res.GetString(Res.ADP_InternalProviderError, (int)internalError));
         }
 
-//         internal static Exception InvalidConnectRetryCountValue()
-//         {
-//             return Argument(Res.GetString(Res.SQLCR_InvalidConnectRetryCountValue));
-//         }
+//        internal static Exception InvalidConnectRetryCountValue()
+//        {
+//            return Argument(Res.GetString(Res.SQLCR_InvalidConnectRetryCountValue));
+//        }
 
 //         internal static Exception InvalidConnectRetryIntervalValue()
 //         {
 //             return Argument(Res.GetString(Res.SQLCR_InvalidConnectRetryIntervalValue));
 //         }
 
-//         //
-//         // : DbDataReader
-//         //
+        //
+        // : DbDataReader
+        //
 //         internal static Exception DataReaderClosed([CallerMemberName] string method = "")
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_DataReaderClosed, method));
@@ -705,9 +603,9 @@ namespace System.Data.Common
 //             return InvalidOperation(Res.GetString(Res.ADP_PendingAsyncOperation));
 //         }
 
-//         //
-//         // : Stream
-//         //
+        //
+        // : Stream
+        //
 //         internal static Exception StreamClosed([CallerMemberName] string method = "")
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_StreamClosed, method));
@@ -780,9 +678,9 @@ namespace System.Data.Common
 //             return e;
 //         }
 
-//         //
-//         // : IDataParameterCollection
-//         //
+        //
+        // : IDataParameterCollection
+        //
 //         internal static Exception ParametersMappingIndex(int index, DbParameterCollection collection)
 //         {
 //             return CollectionIndexInt32(index, collection.GetType(), collection.Count);
@@ -800,38 +698,25 @@ namespace System.Data.Common
 //             return CollectionInvalidType(collection.GetType(), parameterType, invalidValue);
 //         }
 
-//         //
-//         // : IDbTransaction
-//         //
-//         internal static Exception ParallelTransactionsNotSupported(DbConnection obj)
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_ParallelTransactionsNotSupported, obj.GetType().Name));
-//         }
+        //
+        // : IDbTransaction
+        //
+        internal static Exception ParallelTransactionsNotSupported(DbConnection obj)
+        {
+            return InvalidOperation("A transaction is currently active. Parallel transactions are not supported.");
+            // return InvalidOperation(Res.GetString(Res.ADP_ParallelTransactionsNotSupported, obj.GetType().Name));
+        }
 //         internal static Exception TransactionZombied(DbTransaction obj)
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_TransactionZombied, obj.GetType().Name));
 //         }
 
 
-//         // global constant strings
-//         internal const string Parameter = "Parameter";
-//         internal const string ParameterName = "ParameterName";
-//         internal const string ParameterSetPosition = "set_Position";
+        //
+        // : Timers
+        //
 
-//         internal const CompareOptions compareOptions = CompareOptions.IgnoreKanaType | CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase;
-//         internal const int DecimalMaxPrecision = 29;
-//         internal const int DecimalMaxPrecision28 = 28;  // there are some cases in Odbc where we need that ...
-//         internal const int DefaultCommandTimeout = 30;
-//         internal const int DefaultConnectionTimeout = ConnectionStringDefaults.ConnectionTimeout;
-//         internal const float FailoverTimeoutStep = 0.08F;    // fraction of timeout to use for fast failover connections
-
-//         // security issue, don't rely upon static public readonly values - AS/URT 109635
-//         internal static readonly String StrEmpty = ""; // String.Empty
-
-//         internal const int CharSize = sizeof(char);
-
-
-        internal static void TimerCurrent(out long ticks)
+        internal static void TimerCurrent(out long ticks) 
         {
             ticks = DateTime.UtcNow.ToFileTimeUtc();
         }
@@ -839,37 +724,19 @@ namespace System.Data.Common
         internal static long TimerCurrent()                => DateTime.UtcNow.ToFileTimeUtc();
         internal static long TimerFromSeconds(int seconds) => checked((long)seconds * TimeSpan.TicksPerSecond);
 
-//         internal static long TimerFromMilliseconds(long milliseconds)
-//         {
-//             long result = checked(milliseconds * TimeSpan.TicksPerMillisecond);
-//             return result;
-//         }
-
-        internal static bool TimerHasExpired(long timerExpire) => TimerCurrent() > timerExpire;
-
-        internal static long TimerRemaining(long timerExpire)
+        internal static long TimerFromMilliseconds(long milliseconds)
         {
-            long timerNow = TimerCurrent();
-            long result   = checked(timerExpire - timerNow);
-            return result;
+            return checked(milliseconds * TimeSpan.TicksPerMillisecond);
         }
 
-        internal static long TimerRemainingMilliseconds(long timerExpire) => TimerToMilliseconds(TimerRemaining(timerExpire));
+        internal static bool TimerHasExpired(long timerExpire) => TimerCurrent() > timerExpire;
+        internal static long TimerRemaining(long timerExpire)  => checked(timerExpire - TimerCurrent());
 
-//         internal static long TimerRemainingSeconds(long timerExpire)
-//         {
-//             long result = TimerToSeconds(TimerRemaining(timerExpire));
-//             return result;
-//         }
+        internal static long TimerRemainingMilliseconds(long timerExpire) => TimerToMilliseconds(TimerRemaining(timerExpire));
+        internal static long TimerRemainingSeconds(long timerExpire)      => TimerToSeconds(TimerRemaining(timerExpire));
 
         internal static long TimerToMilliseconds(long timerValue) => timerValue / TimeSpan.TicksPerMillisecond;
-
-//         static private long TimerToSeconds(long timerValue)
-//         {
-//             long result = timerValue / TimeSpan.TicksPerSecond;
-//             return result;
-//         }
-
+        private static long TimerToSeconds(long timerValue)       => timerValue / TimeSpan.TicksPerSecond;
 
 //         internal static string BuildQuotedString(string quotePrefix, string quoteSuffix, string unQuotedString)
 //         {
@@ -893,55 +760,6 @@ namespace System.Data.Common
 //             return resultString.ToString();
 //         }
 
-
-//         // { "a", "a", "a" } -> { "a", "a1", "a2" }
-//         // { "a", "a", "a1" } -> { "a", "a2", "a1" }
-//         // { "a", "A", "a" } -> { "a", "A1", "a2" }
-//         // { "a", "A", "a1" } -> { "a", "A2", "a1" }
-//         internal static void BuildSchemaTableInfoTableNames(string[] columnNameArray)
-//         {
-//             Dictionary<string, int> hash = new Dictionary<string, int>(columnNameArray.Length);
-
-//             int startIndex = columnNameArray.Length; // lowest non-unique index
-//             for (int i = columnNameArray.Length - 1; 0 <= i; --i)
-//             {
-//                 string columnName = columnNameArray[i];
-//                 if ((null != columnName) && (0 < columnName.Length))
-//                 {
-//                     columnName = columnName.ToLowerInvariant();
-//                     int index;
-//                     if (hash.TryGetValue(columnName, out index))
-//                     {
-//                         startIndex = Math.Min(startIndex, index);
-//                     }
-//                     hash[columnName] = i;
-//                 }
-//                 else
-//                 {
-//                     columnNameArray[i] = ADP.StrEmpty;
-//                     startIndex = i;
-//                 }
-//             }
-//             int uniqueIndex = 1;
-//             for (int i = startIndex; i < columnNameArray.Length; ++i)
-//             {
-//                 string columnName = columnNameArray[i];
-//                 if (0 == columnName.Length)
-//                 { // generate a unique name
-//                     columnNameArray[i] = "Column";
-//                     uniqueIndex = GenerateUniqueName(hash, ref columnNameArray[i], i, uniqueIndex);
-//                 }
-//                 else
-//                 {
-//                     columnName = columnName.ToLowerInvariant();
-//                     if (i != hash[columnName])
-//                     {
-//                         GenerateUniqueName(hash, ref columnNameArray[i], i, 1);
-//                     }
-//                 }
-//             }
-//         }
-
 //         static private int GenerateUniqueName(Dictionary<string, int> hash, ref string columnName, int index, int uniqueIndex)
 //         {
 //             for (; ; ++uniqueIndex)
@@ -958,44 +776,17 @@ namespace System.Data.Common
 //             return uniqueIndex;
 //         }
 
+//         internal static bool IsDirection(DbParameter value, ParameterDirection condition) => (condition == (condition & value.Direction));
 
-//         internal static int DstCompare(string strA, string strB)
-//         { // this is null safe
-//             return CultureInfo.CurrentCulture.CompareInfo.Compare(strA, strB, ADP.compareOptions);
-//         }
-
-//         internal static bool IsDirection(DbParameter value, ParameterDirection condition)
-//         {
-// #if DEBUG
-//             IsDirectionValid(condition);
-// #endif
-//             return (condition == (condition & value.Direction));
-//         }
-// #if DEBUG
-//         static private void IsDirectionValid(ParameterDirection value)
-//         {
-//             switch (value)
-//             { // @perfnote: Enum.IsDefined
-//                 case ParameterDirection.Input:
-//                 case ParameterDirection.Output:
-//                 case ParameterDirection.InputOutput:
-//                 case ParameterDirection.ReturnValue:
-//                     break;
-//                 default:
-//                     throw ADP.InvalidParameterDirection(value);
-//             }
-//         }
-// #endif
-
-//         internal static bool IsNull(object value)
-//         {
-//             if ((null == value) || (DBNull.Value == value))
-//             {
-//                 return true;
-//             }
-//             INullable nullable = (value as INullable);
-//             return ((null != nullable) && nullable.IsNull);
-//         }
+        internal static bool IsNull(object value)
+        {
+            if ((value == null) || (DBNull.Value == value))
+            {
+                return true;
+            }
+            INullable nullable = (value as INullable);
+            return (nullable != null && nullable.IsNull);
+        }
 
 //         internal static void IsNullOrSqlType(object value, out bool isNull, out bool isSqlType)
 //         {
@@ -1034,20 +825,6 @@ namespace System.Data.Common
 //                     isSqlType = false;
 //                 }
 //             }
-//         }
-
-
-//         private static Version s_systemDataVersion;
-
-//         internal static Version GetAssemblyVersion()
-//         {
-//             // NOTE: Using lazy thread-safety since we don't care if two threads both happen to update the value at the same time
-//             if (s_systemDataVersion == null)
-//             {
-//                 s_systemDataVersion = new Version(ThisAssembly.InformationalVersion);
-//             }
-
-//             return s_systemDataVersion;
 //         }
     }
 }
