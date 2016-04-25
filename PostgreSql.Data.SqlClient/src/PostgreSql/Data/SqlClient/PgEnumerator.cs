@@ -21,7 +21,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (reader == null)
             {
-                throw new ArgumentNullException("reader");
+                throw ADP.ArgumentNull("reader");
             }
             _reader      = reader;
             _closeReader = closeReader;

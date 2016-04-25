@@ -234,7 +234,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (i < 0 || i >= FieldCount)
             {
-                throw new InvalidOperationException("Invalid attempt to read when no data is present.");
+                throw ADP.InvalidRead();
             }
         }
     }

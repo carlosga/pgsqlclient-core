@@ -119,25 +119,23 @@ namespace System.Data.Common
 //             IndexOutOfRangeException e = new IndexOutOfRangeException(value.ToString(CultureInfo.InvariantCulture));
 //             return e;
 //         }
-//         internal static IndexOutOfRangeException IndexOutOfRange(string error)
-//         {
-//             IndexOutOfRangeException e = new IndexOutOfRangeException(error);
-//             return e;
-//         }
+        internal static IndexOutOfRangeException IndexOutOfRange(string error)
+        {
+            return new IndexOutOfRangeException(error);
+        }
 //         internal static IndexOutOfRangeException IndexOutOfRange()
 //         {
 //             IndexOutOfRangeException e = new IndexOutOfRangeException();
 //             return e;
 //         }
-//         internal static InvalidCastException InvalidCast(string error)
-//         {
-//             return InvalidCast(error, null);
-//         }
-//         internal static InvalidCastException InvalidCast(string error, Exception inner)
-//         {
-//             InvalidCastException e = new InvalidCastException(error, inner);
-//             return e;
-//         }
+        internal static InvalidCastException InvalidCast(string error)
+        {
+            return InvalidCast(error, null);
+        }
+        internal static InvalidCastException InvalidCast(string error, Exception inner)
+        {
+            return new InvalidCastException(error, inner);
+        }
         internal static InvalidOperationException InvalidOperation(string error) => new InvalidOperationException(error);
         internal static InvalidOperationException InvalidOperation(string error, Exception inner)
         {

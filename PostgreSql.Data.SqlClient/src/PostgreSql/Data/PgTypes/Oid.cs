@@ -13,7 +13,7 @@ namespace PostgreSql.Data.PgTypes
       , Boolean     = 16
       , Boolean_    = 1000
       , Varchar     = 1043
-      , _Varchar    = 1015
+      , Varchar_    = 1015
       , Char        = 1002
       , Text        = 25
       , Text_       = 1009
