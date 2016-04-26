@@ -456,15 +456,15 @@ namespace PostgreSql.Data.SqlClient
                 // Add refcusor's names to the queue
                 DataRecord row = null;
 
-                while (_statement.HasRows)
+                do
                 {
                     row = _statement.FetchRow();
 
                     if (row != null)
                     {
-                        _refCursors.Enqueue((string)row[0]);
+                        _refCursors.Enqueue(row.GetString(0));
                     }
-                }
+                } while (row != null);
 
                 // Grab information of the first refcursor
                 NextResult();
