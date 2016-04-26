@@ -2,10 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.Frontend;
-using PostgreSql.Data.SqlClient;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.Common;
 
 namespace PostgreSql.Data.Schema
 {

@@ -15,7 +15,7 @@ namespace System.Data.ProviderBase
 
             public int    Tag       => _tag;
             public bool   HasTarget => ((_tag != 0) && (_weak.IsAlive));
-            public object Target    => (_tag == 0 ? null : _weak.Target);
+            public object Target    => ((_tag == 0) ? null : _weak.Target);
 
             public void NewTarget(int tag, object target)
             {
@@ -199,7 +199,7 @@ namespace System.Data.ProviderBase
                         if (_items.Length > 100)
                         {
                             _lastItemIndex = 0;
-                            _items = new CollectionEntry[DefaultCollectionSize];
+                            _items         = new CollectionEntry[DefaultCollectionSize];
                         }
                     }
                     finally

@@ -1,7 +1,6 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Frontend;
 using System;
 using System.Data;
 using System.Data.Common;
@@ -303,28 +302,26 @@ namespace PostgreSql.Data.SqlClient
 
             if (ForceNewConnection)
             {
-                if (!InnerConnection.TryReplaceConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                if (!_innerConnection.TryReplaceConnection(this, ConnectionFactory, retry, UserConnectionOptions))
                 {
                     return false;
                 }
             }
             else
             {
-                if (!InnerConnection.TryOpenConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                if (!_innerConnection.TryOpenConnection(this, ConnectionFactory, retry, UserConnectionOptions))
                 {
                     return false;
                 }
             }
 
-            // does not require GC.KeepAlive(this) because of OnStateChange
-
-            var innerConnection = InnerConnection as PgConnectionInternal;
+            var innerConnection = _innerConnection as PgConnectionInternal;
             Debug.Assert(innerConnection != null           , "Invalid connection state.");
             Debug.Assert(innerConnection.Connection != null, "Frontend connection cannot be null.");
 
             if (!innerConnection.ConnectionOptions.Pooling)
             {
-                // For non-pooled connections, we need to make sure that the finalizer does actually run to avoid leaking SNI handles
+                // For non-pooled connections, we need to make sure that the finalizer does actually run
                 // GC.ReRegisterForFinalize(this);
             }
 
@@ -344,7 +341,7 @@ namespace PostgreSql.Data.SqlClient
 
         private string InternalGetConnectionString()
         {
-            bool hidePassword      = InnerConnection.ShouldHidePassword;
+            bool hidePassword      = _innerConnection.ShouldHidePassword;
             var  connectionOptions = _userConnectionOptions;
             return ((connectionOptions != null) ? connectionOptions.UsersConnectionString(hidePassword) : String.Empty);
         }

@@ -1,18 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using PostgreSql.Data.Frontend;
 using PostgreSql.Data.PgTypes;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-using Res = System.SR;
 
 namespace System
 {

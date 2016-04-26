@@ -1,16 +1,15 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.Frontend;
+using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.Schema;
 using System;
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
-using System.Threading.Tasks;
 
 namespace PostgreSql.Data.SqlClient
 {

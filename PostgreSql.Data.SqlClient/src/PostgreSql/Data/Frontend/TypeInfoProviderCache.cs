@@ -1,11 +1,8 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
 
 namespace PostgreSql.Data.Frontend
 {

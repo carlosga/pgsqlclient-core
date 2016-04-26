@@ -5,13 +5,9 @@ using PostgreSql.Data.Authentication;
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace PostgreSql.Data.Frontend

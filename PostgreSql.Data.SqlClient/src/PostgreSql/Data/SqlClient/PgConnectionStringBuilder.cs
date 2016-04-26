@@ -3,7 +3,6 @@
 
 using System;
 using System.Data.Common;
-using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.SqlClient
 {

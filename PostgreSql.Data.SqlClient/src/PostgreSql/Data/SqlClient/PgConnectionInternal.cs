@@ -3,12 +3,9 @@
 
 using PostgreSql.Data.Frontend;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.ProviderBase;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +14,11 @@ namespace PostgreSql.Data.SqlClient
     internal sealed class PgConnectionInternal
         : DbConnectionInternal, IDisposable
     {
+        private static bool IsTransient(Exception ex)
+        {
+            return false;
+        }
+        
         private Connection                        _connection;
         private DbConnectionOptions               _connectionOptions;
         private WeakReference                     _activeTransaction;
@@ -60,7 +62,11 @@ namespace PostgreSql.Data.SqlClient
             _applyTransientFaultHandling = applyTransientFaultHandling;
             _connection                  = new Connection(_connectionOptions);
 
-            _connection.Open();
+            RetryOperation operation = new RetryOperation(_connectionOptions.ConnectRetryCount
+                                                        , _connectionOptions.ConnectRetryInterval * 1000
+                                                        , true);
+
+            operation.Execute(() => _connection.Open(), (ex) => IsTransient(ex));
         }
 
         #region IDisposable Support

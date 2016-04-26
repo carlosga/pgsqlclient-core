@@ -36,14 +36,15 @@ namespace PostgreSql.Data.SqlClient
 
         internal override DbConnectionPoolProviderInfo CreateConnectionPoolProviderInfo(DbConnectionOptions connectionOptions)
         {
-            DbConnectionPoolProviderInfo providerInfo = null;
+            //DbConnectionPoolProviderInfo providerInfo = null;
 
-            // if (connectionOptions.UserInstance)
-            // {
-            //     providerInfo = new DbConnectionPoolProviderInfo();
-            // }
+            //if (connectionOptions.UserInstance)
+            //{
+            //    providerInfo = new DbConnectionPoolProviderInfo();
+            //}
 
-            return providerInfo;
+            //return providerInfo;
+            return null;
         }
 
         protected override DbConnectionInternal CreateConnection(DbConnectionOptions               options
