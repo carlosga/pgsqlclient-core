@@ -273,7 +273,7 @@ namespace PostgreSql.Data.Frontend
                     complete.WaitOne();
                     
                     throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
-                }               
+                }
             }
             catch
             {
