@@ -18,6 +18,7 @@
     "frameworks": {
         "netcoreapp1.0": { }
     },
+    "runtimes": "ubuntu.14.04-x64",
     "configurations": {
         "Debug": {
             "compilationOptions": {

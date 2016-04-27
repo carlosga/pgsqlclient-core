@@ -203,48 +203,86 @@ namespace PostgreSql.Data.Frontend
 
         private void Connect(string host, int port, int connectTimeout, int packetSize)
         {
-            var remoteAddress = Task.Run<IPAddress>(async () => {
-                return await GetIPAddressAsync(host, AddressFamily.InterNetwork);
+            // Obtain the IP addresses for the specified host
+            var task = Task.Run<IPAddress[]>(async () => {
+                return await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             });
+            
+            var remoteAddresses = task.Result;
 
-            var remoteEP = new IPEndPoint(remoteAddress.Result, port);
-
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            // Set Receive Buffer size.
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, packetSize);
-
-            // Set Send Buffer size.
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, packetSize);
-
-            // Disables the Nagle algorithm.
-            _socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
-
-            // Connect to the host
-            var complete = new ManualResetEvent(false);
-            var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
-
-            args.Completed += (object sender, SocketAsyncEventArgs saeargs) =>
+            // Try to connect on each IP address until one succeeds
+            for (int i = 0; i < remoteAddresses.Length; ++i)
             {
-                var mre = saeargs.UserToken as ManualResetEvent;
-                mre.Set();
-            };
-
-            var result = _socket.ConnectAsync(args);
-
-            complete.WaitOne(connectTimeout * 1000);
-
-            if (!result || !_socket.Connected || args.SocketError != SocketError.Success)
-            {
-                complete.Reset();
-                Socket.CancelConnectAsync(args);
-                complete.WaitOne();
+                if (remoteAddresses[i].AddressFamily == AddressFamily.InterNetwork      // Address for IP version 4.
+                 || remoteAddresses[i].AddressFamily == AddressFamily.InterNetworkV6)   // Address for IP version 6.
+                {
+                    _socket = TryConnect(remoteAddresses[i], port, connectTimeout, packetSize);
+                }
                 
-                throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
+                if (_socket != null)
+                {
+                    break;
+                }
+            }
+            
+            if (_socket == null)
+            {
+                throw new PgException($"No valid IP addresses found for the given host {host}:{port}.");
             }
 
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
+        }
+        
+        private Socket TryConnect(IPAddress address, int port, int connectTimeout, int packetSize)
+        {
+            IPEndPoint remoteEP = new IPEndPoint(address, port);
+            Socket     socket   = null;
+
+            try
+            {
+                socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                // Set Receive Buffer size.
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, packetSize);
+
+                // Set Send Buffer size.
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, packetSize);
+
+                // Disables the Nagle algorithm.
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
+
+                // Connect to the host
+                var complete = new ManualResetEvent(false);
+                var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
+
+                args.Completed += (object sender, SocketAsyncEventArgs saeargs) =>
+                {
+                    var mre = saeargs.UserToken as ManualResetEvent;
+                    mre.Set();
+                };
+
+                var result = socket.ConnectAsync(args);
+
+                complete.WaitOne(connectTimeout * 1000);
+
+                if (!result || !socket.Connected || args.SocketError != SocketError.Success)
+                {
+                    complete.Reset();
+                    Socket.CancelConnectAsync(args);
+                    complete.WaitOne();
+                    
+                    throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
+                }               
+            }
+            catch
+            {
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Dispose();
+                socket = null;
+            }
+            
+            return socket;
         }
 
         private bool OpenSecureChannel(string host)
@@ -271,13 +309,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             return false;
-        }
-
-        private async Task<IPAddress> GetIPAddressAsync(string dataSource, AddressFamily addressFamily)
-        {
-            IPAddress[] addresses = await Dns.GetHostAddressesAsync(dataSource).ConfigureAwait(false);
-
-            return addresses.FirstOrDefault(a => a.AddressFamily == addressFamily) ?? addresses[0];
         }
 
         internal bool RequestSecureChannel()

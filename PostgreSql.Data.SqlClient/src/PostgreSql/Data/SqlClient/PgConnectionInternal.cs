@@ -55,6 +55,11 @@ namespace PostgreSql.Data.SqlClient
                                     , bool                              applyTransientFaultHandling = false) 
             : base()
         {
+            if (connectionOptions.DataSource == null || connectionOptions.DataSource.Length == 0)
+            {
+                throw ADP.InvalidOperation("Cannot open a connection without specifying a data source or server.");
+            }
+
             _connectionOptions           = connectionOptions;
             _identity                    = identity;
             _providerInfo                = providerInfo;
