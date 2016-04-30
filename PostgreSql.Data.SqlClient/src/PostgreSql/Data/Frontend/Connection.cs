@@ -60,16 +60,8 @@ namespace PostgreSql.Data.Frontend
 
         internal SessionData      SessionData              => _sessionData;
         internal TransactionState TransactionState         => _transactionState;
-        internal string           ConnectionString         => _connectionOptions?.ConnectionString;
         internal string           Database                 => _connectionOptions?.InitialCatalog;
         internal string           DataSource               => _connectionOptions?.DataSource;
-        internal int              ConnectTimeout           => (_connectionOptions?.ConnectTimeout ?? 15);
-        internal int              PacketSize               => (_connectionOptions?.PacketSize ?? 8192);
-        internal bool             MultipleActiveResultSets => (_connectionOptions?.MultipleActiveResultSets ?? false);
-        internal string           SearchPath               => (_connectionOptions?.SearchPath);
-        internal bool             Pooling                  => (_connectionOptions?.Pooling ?? false);
-        internal bool             Encrypt                  => (_connectionOptions?.Encrypt ?? false);
-        internal TypeInfoProvider TypeInfoProvider         => _typeInfoProvider;
         internal string           InternalUrl              => $"{DataSource}://{Database}";
 
         private SemaphoreSlim _activeSemaphore;
@@ -193,10 +185,7 @@ namespace PostgreSql.Data.Frontend
                 _cancelRequestSemaphore = null;
 
                 // Callback cleanup
-                InfoMessage               = null;
-                Notification              = null;
-                UserCertificateValidation = null;
-                UserCertificateSelection  = null;
+                ReleaseCallbacks();
             }
         }
 
@@ -225,14 +214,6 @@ namespace PostgreSql.Data.Frontend
             {
                 ReleaseLock();
             }
-        }
-
-        internal void ReleaseCallbacks()
-        {
-            UserCertificateValidation = null;
-            UserCertificateSelection  = null;
-            InfoMessage               = null;
-            Notification              = null;
         }
 
         internal Transaction CreateTransaction(IsolationLevel isolationLevel) => new Transaction(this, isolationLevel);
@@ -643,5 +624,13 @@ namespace PostgreSql.Data.Frontend
 
         private void HandleParameterStatus(MessageReader message)
             => _sessionData.SetValue(message.ReadNullString(), message.ReadNullString());
+            
+        private void ReleaseCallbacks()
+        {
+            UserCertificateValidation = null;
+            UserCertificateSelection  = null;
+            InfoMessage               = null;
+            Notification              = null;
+        }
     }
 }

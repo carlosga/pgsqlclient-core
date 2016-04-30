@@ -10,10 +10,30 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
+            simple_pooling_test();
             // composite_type_test();
-            pgsqlclient_test();
+            // pgsqlclient_test();
 
             Console.WriteLine("Finished");
+        }
+
+        static void simple_pooling_test()
+        {
+            var csb = new PgConnectionStringBuilder();
+
+            csb.DataSource      = "localhost";
+            csb.InitialCatalog  = "northwind";
+            csb.UserID          = "northwind";
+            csb.Password        = "northwind";
+            csb.PortNumber      = 5432;
+            csb.Pooling         = false;
+
+            using (PgConnection connection = new PgConnection(csb.ToString()))
+            {
+                connection.Open();
+                connection.Close();
+                connection.Open();
+            }
         }
 
         static void pgsqlclient_test()
@@ -31,7 +51,8 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             using (var connection = new PgConnection(csb.ToString()))
             {
-                using (var command = new PgCommand("select * from pg_type a cross join pg_type b", connection))
+                // using (var command = new PgCommand("select * from pg_type a cross join pg_type b", connection))
+                using (var command = new PgCommand("select * from pg_attribute a cross join pg_attribute b", connection))
                 {
                     connection.Open();
 
@@ -42,7 +63,7 @@ namespace PostgreSql.Data.SqlClient.Sample
 
                     using (var reader = command.ExecuteReader())
                     {
-                        while (reader.Read()) { ++count; if (count % 10000 == 0) { Console.WriteLine(count); } }
+                        while (reader.Read()) { ++count; /*if (count % 10000 == 0) { Console.WriteLine(count); }*/ }
                     }
 
                     stopWatch.Stop();

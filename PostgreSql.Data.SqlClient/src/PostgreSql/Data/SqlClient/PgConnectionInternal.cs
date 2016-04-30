@@ -69,7 +69,7 @@ namespace PostgreSql.Data.SqlClient
 
             RetryOperation operation = new RetryOperation(_connectionOptions.ConnectRetryCount
                                                         , _connectionOptions.ConnectRetryInterval * 1000
-                                                        , true);
+                                                        , _applyTransientFaultHandling);
 
             operation.Execute(() => _connection.Open(), (ex) => IsTransient(ex));
         }
@@ -108,13 +108,13 @@ namespace PostgreSql.Data.SqlClient
         // }
 
         // This code added to correctly implement the disposable pattern.
-        // public void Dispose()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(true);
-        //     // TODO: uncomment the following line if the finalizer is overridden above.
-        //     // GC.SuppressFinalize(this);
-        // }
+        public override void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
         #endregion
 
         internal override void ChangeDatabase(string database)

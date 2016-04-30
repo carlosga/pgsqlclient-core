@@ -40,8 +40,6 @@ namespace PostgreSql.Data.Frontend
         private Stream        _stream;
         private byte[]        _buffer;
 
-        internal bool DataAvailable => _networkStream?.DataAvailable ?? false;
-
         internal Transport()
         {
             _buffer = new byte[4];

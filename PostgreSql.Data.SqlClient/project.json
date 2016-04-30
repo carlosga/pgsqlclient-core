@@ -28,6 +28,9 @@
     "frameworks": {
         "netstandard1.5": { }
     },
+    "runtimes": { 
+        "ubuntu.14.04-x64": { } 
+    },
     "configurations": {
         "Debug": {
             "compilationOptions": {

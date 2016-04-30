@@ -7,8 +7,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "justMyCode": false,
-            "program": "/usr/bin/dotnet",
-            "args": ["bin/Debug/netcoreapp1.0/PostgreSql.Data.SqlClient.Sample.dll"],
+            "program": "${workspaceRoot}/bin/Debug/netcoreapp1.0/PostgreSql.Data.SqlClient.Sample.dll",
             "cwd": "${workspaceRoot}",
             "stopAtEntry": true
         },
