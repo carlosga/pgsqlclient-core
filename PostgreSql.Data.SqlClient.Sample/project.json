@@ -1,6 +1,6 @@
 {
     "version": "0.0.1",
-    "compilationOptions": {
+    "buildOptions": {
         "emitEntryPoint"  : true,
         "languageVersion" : "csharp6",
         "platform"        : "x64"
@@ -21,7 +21,7 @@
     "runtimes": "ubuntu.14.04-x64",
     "configurations": {
         "Debug": {
-            "compilationOptions": {
+            "buildOptions": {
                 "define": [
                     "DEBUG",
                     "TRACE"
@@ -29,7 +29,7 @@
             }
         },
         "Release": {
-            "compilationOptions": {
+            "buildOptions": {
                 "define": [
                     "RELEASE",
                     "TRACE"

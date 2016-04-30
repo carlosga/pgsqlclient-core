@@ -1,7 +1,7 @@
 {
     "title": "postgresql data provider for .net core",
     "version": "0.0.1",
-    "compilationOptions": {
+    "buildOptions": {
         "languageVersion" : "csharp6",
         "platform"        : "x64"
     },
@@ -33,7 +33,7 @@
     },
     "configurations": {
         "Debug": {
-            "compilationOptions": {
+            "buildOptions": {
                 "define": [
                     "DEBUG",
                     "TRACE"
@@ -41,7 +41,7 @@
             }
         },
         "Release": {
-            "compilationOptions": {
+            "buildOptions": {
                 "define": [
                     "RELEASE",
                     "TRACE"
