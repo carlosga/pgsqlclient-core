@@ -42,6 +42,8 @@ namespace PostgreSql.Data.Frontend
         internal bool IsSuspended => _state == StatementState.Suspended;
         internal bool IsCancelled => _state == StatementState.Cancelled;
 
+        internal Connection Connection => _connection;
+
         internal CommandType CommandType
         {
             get { return _commandType; }
@@ -409,6 +411,12 @@ namespace PostgreSql.Data.Frontend
 
                 // Reset the row descriptor
                 _rowDescriptor.Resize(0);
+                
+                // Clear statement parameters
+                _parameters?.Clear();
+                
+                // Reset command type
+                _commandType = CommandType.Text;
 
                 // Update Status
                 ChangeState(StatementState.Default);
@@ -475,7 +483,8 @@ namespace PostgreSql.Data.Frontend
             // Parse statement text
             if (_commandType == CommandType.StoredProcedure)
             {
-                _parsedStatementText = _parsedStatementText.ToStoredProcedureCall(_parameters);
+                _parsedStatementText = _statementText.ToStoredProcedureCall(_parameters)
+                                                     .ParseCommandText(_parameters, ref _parameterIndices);
             }
             else
             {

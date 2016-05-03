@@ -18,15 +18,16 @@ namespace PostgreSql.Data.SqlClient
     {
         private const int STARTPOS = -1;
 
-        private bool            _open;
-        private int             _position;
-        private int             _recordsAffected;
-        private DataRecord      _row;
-        private CommandBehavior _behavior;
-        private PgCommand       _command;
-        private PgConnection    _connection;
-        private Statement       _statement;
-        private Queue<string>   _refCursors;
+        private bool             _open;
+        private int              _position;
+        private int              _recordsAffected;
+        private DataRecord       _row;
+        private CommandBehavior  _behavior;
+        private PgCommand        _command;
+        private PgConnection     _connection;
+        private Statement        _statement;
+        private Statement        _refCursor;
+        private Queue<Statement> _refCursors;
 
         private ReadOnlyCollection<DbColumn> _metadata;
 
@@ -79,7 +80,7 @@ namespace PostgreSql.Data.SqlClient
             _open            = true;
             _recordsAffected = -1;
             _position        = STARTPOS;
-            _refCursors      = new Queue<string>();
+            _refCursors      = new Queue<Statement>();
             _connection      = connection;
             _command         = command;
             _behavior        = _command.CommandBehavior;
@@ -130,8 +131,8 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_metadata == null)
             {
-                var internalConnection = _connection.InnerConnection as PgConnectionInternal;
-                var provider           = new DbColumnSchemaGenerator(internalConnection.Connection, _statement.RowDescriptor);
+                var descriptor = _refCursor?.RowDescriptor ?? _statement.RowDescriptor;
+                var provider   = new DbColumnSchemaGenerator(_statement.Connection, descriptor);
 
                 _metadata = provider.GetColumnSchema();
             }
@@ -147,13 +148,17 @@ namespace PostgreSql.Data.SqlClient
             }
 
             // Throw exception if the statement has been cancelled
-            _statement.ThrowIfCancelled();
+            if (_refCursor != null)
+            {
+                _refCursor?.ThrowIfCancelled();
+            }
+            else
+            {
+                _statement.ThrowIfCancelled();
+            }
 
             // Reset position
             _position = STARTPOS;
-
-            // Close the active statement
-            _statement.Close();
 
             // Clear current row data
             _row = null;
@@ -164,11 +169,17 @@ namespace PostgreSql.Data.SqlClient
             // Reset metadata information
             _metadata = null;
 
+            // Close the current ref cursor
+            _refCursor?.Close();
+
             // Query for next result
-            if (_refCursors.Count != 0 /*&& _connection.InnerConnection.HasActiveTransaction*/)
+            if (_refCursors.Count != 0)
             {
                 return NextResultFromRefCursor();
             }
+
+            // Close the active statement
+            _statement.Close();
 
             return NextResultFromMars();
         }
@@ -180,7 +191,14 @@ namespace PostgreSql.Data.SqlClient
                 return false;
             }
 
-            _row = _statement.FetchRow();
+            if (_refCursor != null)
+            {
+                _row = _refCursor.FetchRow();
+            }
+            else
+            {
+                _row = _statement.FetchRow();
+            }
 
             ++_position;
 
@@ -344,7 +362,6 @@ namespace PostgreSql.Data.SqlClient
             if (IsClosed)
             {
                 throw ADP.InvalidRead();
-                // throw new InvalidOperationException("Reader closed");
             }
 
             return _statement.RowDescriptor.IndexOf(name);
@@ -407,8 +424,11 @@ namespace PostgreSql.Data.SqlClient
                     _connection.Close();
                 }
 
+                // Clear ref cursors
+                _refCursor?.Close();
                 _refCursors.Clear();
 
+                // Reset state and position
                 _open     = false;
                 _position = STARTPOS;
             }
@@ -420,6 +440,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _command         = null;
                 _statement       = null;
+                _refCursor       = null;
                 _connection      = null;
                 _refCursors      = null;
                 _row             = null;
@@ -454,35 +475,36 @@ namespace PostgreSql.Data.SqlClient
                 _refCursors.Clear();
 
                 // Add refcusor's names to the queue
-                DataRecord row = null;
+                DataRecord row        = null;
+                Connection connection = _statement.Connection;
 
                 do
                 {
                     row = _statement.FetchRow();
-
                     if (row != null)
                     {
-                        _refCursors.Enqueue(row.GetString(0));
+                        var refcursor = connection.CreateStatement($"fetch all in \"{row.GetString(0)}\"");
+                        _refCursors.Enqueue(refcursor);
                     }
                 } while (row != null);
 
                 // Grab information of the first refcursor
-                NextResult();
+                NextResultFromRefCursor();
             }
         }
 
         private bool NextResultFromRefCursor()
         {
-#warning TODO: Rework
-            _statement.StatementText = $"fetch all in \"{_refCursors.Dequeue()}\""; 
-            _statement.ExecuteReader(_behavior);
+            _refCursor = _refCursors.Dequeue();
+            _refCursor.Prepare();
+            _refCursor.ExecuteReader(_behavior);
 
             return true;
         }
 
         private bool NextResultFromMars()
         {
-            return _command.NextResult();
+            return _command.NextResult(); 
         }
 
         private void UpdateRecordsAffected()

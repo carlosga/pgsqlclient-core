@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Data.Common;
+using System.Data;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Sample
 {
@@ -10,29 +8,41 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            simple_pooling_test();
+            function_call_test();
             // composite_type_test();
             // pgsqlclient_test();
 
             Console.WriteLine("Finished");
         }
 
-        static void simple_pooling_test()
+        static void function_call_test()
         {
             var csb = new PgConnectionStringBuilder();
 
             csb.DataSource      = "localhost";
-            csb.InitialCatalog  = "northwind";
-            csb.UserID          = "northwind";
-            csb.Password        = "northwind";
+            csb.InitialCatalog  = "pubs";
+            csb.UserID          = "pubs";
+            csb.Password        = "pubs";
             csb.PortNumber      = 5432;
             csb.Pooling         = false;
 
             using (PgConnection connection = new PgConnection(csb.ToString()))
             {
                 connection.Open();
-                connection.Close();
-                connection.Open();
+                
+                using (PgCommand command = new PgCommand("byroyalty", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@percentage", 40);
+                    
+                    using (PgDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            
+                        }
+                    }
+                }
             }
         }
 
