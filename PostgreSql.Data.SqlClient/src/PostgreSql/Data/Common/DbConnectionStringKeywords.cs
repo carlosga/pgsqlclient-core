@@ -13,7 +13,7 @@ namespace System.Data.Common
         internal const string ConnectionLifetime         = "connection lifetime";
         internal const string DataSource                 = "data source";
         internal const string DefaultTransactionReadOnly = "default transaction read only";
-        internal const string DefaultTablespace          = "default table space";
+        internal const string DefaultTablespace          = "default tablespace";
         internal const string Encrypt                    = "encrypt";
         internal const string InitialCatalog             = "initial catalog";
         internal const string LoadBalanceTimeout         = "load balance timeout";

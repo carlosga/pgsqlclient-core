@@ -31,23 +31,23 @@ namespace PostgreSql.Data.SqlClient.Sample
             csb.Pooling                  = false;
             csb.MultipleActiveResultSets = true;
 
-            using (PgConnection connection = new PgConnection(csb.ToString()))
+            using (PgConnection connection = new PgConnection(csb.ToString() + ";Max Pool Size=1"))
             {
                 connection.Open();
 
-                using (PgCommand command = new PgCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@1", expected[0]);
-                    command.Parameters.AddWithValue("@2", expected[1]);
-                    command.Parameters.AddWithValue("@3", expected[2]);
+                connection.ChangeDatabase("pubs");
 
+                using (PgCommand command = new PgCommand("byroyalty", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@percentage", 40);
+                    
                     using (PgDataReader reader = command.ExecuteReader())
                     {
-                        do 
+                        while (reader.Read())
                         {
-                            // Assert.True(reader.Read());
-                            // Assert.Equal(expected[index++], reader.GetInt32(0));
-                        } while (reader.NextResult());
+                            
+                        }
                     }
                 }
             }

@@ -94,7 +94,9 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                     PgDataReader gch = null;
                     if ((testType != ReaderTestType.ReaderGC) && (testType != ReaderTestType.ReaderGCConnectionClose))
+                    {
                         gch = cmd.ExecuteReader();
+                    }
 
                     switch (testType)
                     {

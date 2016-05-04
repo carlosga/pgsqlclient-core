@@ -21,6 +21,7 @@ namespace System.Data.Common
             synonyms.Add(DbConnectionStringSynonyms.ConnectRetryCount         , DbConnectionStringKeywords.ConnectRetryCount);
             synonyms.Add(DbConnectionStringSynonyms.ConnectRetryInterval      , DbConnectionStringKeywords.ConnectRetryInterval);
             synonyms.Add(DbConnectionStringSynonyms.ConnectTimeout            , DbConnectionStringKeywords.ConnectTimeout);
+            synonyms.Add(DbConnectionStringSynonyms.ConnectionTimeout         , DbConnectionStringKeywords.ConnectTimeout);
             synonyms.Add(DbConnectionStringSynonyms.DataSource                , DbConnectionStringKeywords.DataSource);
             synonyms.Add(DbConnectionStringSynonyms.Host                      , DbConnectionStringKeywords.DataSource);
             synonyms.Add(DbConnectionStringSynonyms.Server                    , DbConnectionStringKeywords.DataSource);
