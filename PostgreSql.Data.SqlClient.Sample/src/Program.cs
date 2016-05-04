@@ -8,11 +8,49 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            function_call_test();
+            test_repro();
+            // function_call_test();
             // composite_type_test();
             // pgsqlclient_test();
 
             Console.WriteLine("Finished");
+        }
+        
+        static void test_repro()
+        {
+            string sql      = "SELECT @1; SELECT @2; SELECT @3;";
+            int[]  expected = new int[] { 1, 2, 3 };
+            int    index    = 0;
+            var    csb      = new PgConnectionStringBuilder();
+
+            csb.DataSource               = "localhost";
+            csb.InitialCatalog           = "northwind";
+            csb.UserID                   = "northwind";
+            csb.Password                 = "northwind";
+            csb.PortNumber               = 5432;
+            csb.Pooling                  = false;
+            csb.MultipleActiveResultSets = true;
+
+            using (PgConnection connection = new PgConnection(csb.ToString()))
+            {
+                connection.Open();
+
+                using (PgCommand command = new PgCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@1", expected[0]);
+                    command.Parameters.AddWithValue("@2", expected[1]);
+                    command.Parameters.AddWithValue("@3", expected[2]);
+
+                    using (PgDataReader reader = command.ExecuteReader())
+                    {
+                        do 
+                        {
+                            // Assert.True(reader.Read());
+                            // Assert.Equal(expected[index++], reader.GetInt32(0));
+                        } while (reader.NextResult());
+                    }
+                }
+            }
         }
 
         static void function_call_test()

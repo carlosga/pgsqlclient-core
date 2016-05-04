@@ -91,7 +91,10 @@ namespace PostgreSql.Data.SqlClient
 
                 if (_connection != value)
                 {
-                    InternalClose();
+                    if (_connection != null)
+                    {
+                        InternalClose();
+                    }
                     _connection  = value;
                     _transaction = null;
                 }
@@ -320,6 +323,10 @@ namespace PostgreSql.Data.SqlClient
 
         internal void InternalClose()
         {
+            if (_disposed)
+            {
+                return;
+            }
             try
             {
                 if (_activeDataReader != null && _activeDataReader.IsAlive)
@@ -371,14 +378,14 @@ namespace PostgreSql.Data.SqlClient
 
             if (_statement == null)
             {
-                _statement            = internalConnection.CreateStatement();
-                _statement.Parameters = _parameters; 
+                _statement = internalConnection.CreateStatement();
             }
             else if (_statement.IsPrepared)
             {
                 return;
             }
 
+            _statement.Parameters    = _parameters;
             _statement.CommandType   = _commandType;
             _statement.StatementText = _commands[_commandIndex];
             _statement.FetchSize     = _fetchSize;

@@ -411,10 +411,10 @@ namespace PostgreSql.Data.Frontend
 
                 // Reset the row descriptor
                 _rowDescriptor.Resize(0);
-                
-                // Clear statement parameters
-                _parameters?.Clear();
-                
+
+                // Reset statement parameters
+                _parameters = null;
+
                 // Reset command type
                 _commandType = CommandType.Text;
 
@@ -477,9 +477,6 @@ namespace PostgreSql.Data.Frontend
             // Reset row descriptor information
             _rowDescriptor.Clear();
 
-            // Prepare parameters
-            PrepareParameters();
-
             // Parse statement text
             if (_commandType == CommandType.StoredProcedure)
             {
@@ -490,6 +487,9 @@ namespace PostgreSql.Data.Frontend
             {
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
             }
+
+            // Prepare parameters
+            PrepareParameters();
 
             // Parse the statement query
             var message = _connection.CreateMessage(FrontendMessages.Parse);
@@ -810,9 +810,9 @@ namespace PostgreSql.Data.Frontend
 
         private void PrepareParameters()
         {
-            for (int i = 0; i < _parameters.Count; ++i)
+            for (int i = 0; i < _parameterIndices.Count; ++i)
             {
-                var parameter = _parameters[i];
+                var parameter = _parameters[_parameterIndices[i]];
                 if (parameter.PgDbType == PgDbType.Composite)
                 {
                     // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
