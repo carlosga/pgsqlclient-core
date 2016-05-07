@@ -93,11 +93,12 @@ namespace PostgreSql.Data.Frontend
                         throw new PgException("Cannot open a secure connection against PostgreSQL server.");
                     }
 
-                    _stream = _secureStream;
+                    _stream = new BufferedStream(_secureStream, packetSize);
                 }
                 else
                 {
-                    _stream = _networkStream;
+                    // _stream = new BufferedStream(_networkStream, packetSize);
+                    _stream = new BufferedStream(_networkStream, packetSize);
                 }
             }
             catch (Exception)
@@ -158,11 +159,7 @@ namespace PostgreSql.Data.Frontend
             {
                 buffer = new byte[length];
 
-                int received = 0;
-                while (received < length)
-                {
-                    received += _stream.Read(buffer, received, length - received);
-                }
+                _stream.Read(buffer, 0, length);
             }
 
             return new MessageReader(type, buffer, sessionData);

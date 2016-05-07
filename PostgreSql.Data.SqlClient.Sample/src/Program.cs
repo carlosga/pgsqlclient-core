@@ -1,5 +1,4 @@
 ﻿using System;
-using Npgsql;
 using System.Diagnostics;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -8,93 +7,9 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            warning_test();
-
-            // npgsql_test();
-            // System.Threading.Thread.Sleep(10000);
-            // pgsqlclient_test();
+            pgsqlclient_test();
         }
 
-        static void warning_test()
-        {
-            var csb = new PgConnectionStringBuilder();
-
-            csb.DataSource      = "localhost";
-            csb.InitialCatalog  = "northwind";
-            csb.UserID          = "northwind";
-            csb.Password        = "northwind";
-            csb.Pooling         = false;
-            csb.PortNumber      = 5432;
-
-            using (var connection  = new PgConnection(csb.ToString()))
-            {
-                connection.Open();
-
-                PgCommand cmd = new PgCommand("SELECT * FROM pg_timezone_names()", connection);
-
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        for (int i = 0; i < reader.FieldCount; ++i)
-                        {
-                            Console.WriteLine(reader.GetValue(i));
-                        }
-                    }
-                }
-            }
-        }
-
-        static void npgsql_test()
-        {
-            var csb = new NpgsqlConnectionStringBuilder();
-
-            csb.Host         = "localhost";
-            csb.Database     = "northwind";
-            csb.Username     = "northwind";
-            csb.Password     = "northwind";
-            csb.Port         = 5432;
-            csb.Pooling      = false;
-            csb.SslMode      = SslMode.Disable;
-            csb.UseSslStream = false;
-
-            int count = 0;
-
-            using (var connection = new NpgsqlConnection(csb.ToString()))
-            {
-                using (var command = new NpgsqlCommand("select * from temp__8d37393f3f74564_720220", connection))
-                {
-                    connection.Open();
-
-                    Stopwatch stopWatch = new Stopwatch();
-                    stopWatch.Start();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read()) 
-                        {
-                            object v = null;
-                            for (int i = 0; i < reader.FieldCount; ++i) 
-                            {
-                                v = reader.GetValue(i);
-                            } 
-                            ++count; 
-                        }
-                    }
-
-                    stopWatch.Stop();
-                    // Get the elapsed time as a TimeSpan value.
-                    TimeSpan ts = stopWatch.Elapsed;
-
-                    // Format and display the TimeSpan value.
-                    string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                        ts.Hours, ts.Minutes, ts.Seconds,
-                        ts.Milliseconds / 10);
-                    Console.WriteLine("(Npgsql) RunTime "   + elapsedTime);
-                    Console.WriteLine("(Npgsql) Row count " + count);
-                }
-            }
-        }
         static void pgsqlclient_test()
         {
             var csb = new PgConnectionStringBuilder();
@@ -110,11 +25,11 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             using (var connection = new PgConnection(csb.ToString()))
             {
-                using (var command = new PgCommand("select * from temp__8d37393f3f74564_720220", connection))
+                using (var command = new PgCommand("select * from pg_attribute a cross join pg_attribute b limit 200000", connection))
                 {
                     connection.Open();
 
-                    command.FetchSize = 0;   // Fetch size
+                    command.FetchSize = 0;
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();
@@ -123,11 +38,10 @@ namespace PostgreSql.Data.SqlClient.Sample
                     {
                         while (reader.Read()) 
                         {
-                            object v = null;
-                            for (int i = 0; i < reader.FieldCount; ++i) 
-                            {
-                                v = reader.GetValue(i);
-                            } 
+                            // for (int i = 0; i < reader.FieldCount; ++i) 
+                            // {
+                            //     Console.WriteLine(reader.GetValue(i));
+                            // } 
                             ++count;
                         }
                     }
