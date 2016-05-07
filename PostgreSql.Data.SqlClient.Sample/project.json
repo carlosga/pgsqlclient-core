@@ -1,5 +1,5 @@
 {
-    "version": "0.0.1",
+    "version": "1.0.0-alpha1",
     "buildOptions": {
         "emitEntryPoint"  : true,
         "languageVersion" : "csharp6",
@@ -8,15 +8,15 @@
     "dependencies": {
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002611"
+            "version": "1.0.0-rc2-*"
         },
+        "Npgsql": "3.1.0-*",
         "PostgreSql.Data.SqlClient": {
-            "target"  : "project",
-            "version" : "0.0.1"
+            "target"  : "project"
         }
     },
     "frameworks": {
-        "netcoreapp1.0": { }
+        "netcoreapp1.0": { "imports": "dnxcore50" }
     },
     "runtimes": "ubuntu.14.04-x64",
     "configurations": {

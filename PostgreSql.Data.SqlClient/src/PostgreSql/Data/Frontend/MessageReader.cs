@@ -26,10 +26,10 @@ namespace PostgreSql.Data.Frontend
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
-        internal MessageReader(byte messageType, byte[] contents, SessionData sessionData)
+        internal MessageReader(byte messageType, byte[] buffer, SessionData sessionData)
         {
             _messageType = messageType;
-            _buffer      = contents;
+            _buffer      = buffer;
             _sessionData = sessionData;
             _position    = 0;
         }
@@ -77,12 +77,12 @@ namespace PostgreSql.Data.Frontend
 
         internal string ReadString()  => ReadString(ReadInt32());
         internal byte   ReadByte()    => _buffer[_position++];
-        internal bool   ReadBoolean() => Convert.ToBoolean(ReadByte());
+        internal bool   ReadBoolean() => (ReadByte() == 1);
 
         internal short ReadInt16()
         {
             short value = (short)((_buffer[_position + 1] & 0xFF)
-                                | (_buffer[_position + 0] & 0xFF) << 8);
+                                | (_buffer[_position]     & 0xFF) << 8);
 
             _position += 2;
 
@@ -117,7 +117,7 @@ namespace PostgreSql.Data.Frontend
         internal PgDate      ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
         internal TimeSpan    ReadTime()      => new TimeSpan(ReadInt64() * 10);
         internal DateTime    ReadTimestamp() => PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
-        internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadDouble(), ReadInt32());
+        internal PgInterval  ReadInterval()  => PgInterval.FromInterval(ReadInt64(), ReadInt32());
 
         internal DateTimeOffset ReadTimeWithTZ()
         {

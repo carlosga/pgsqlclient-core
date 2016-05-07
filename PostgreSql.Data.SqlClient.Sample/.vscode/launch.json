@@ -9,7 +9,7 @@
             "justMyCode": false,
             "program": "${workspaceRoot}/bin/Debug/netcoreapp1.0/PostgreSql.Data.SqlClient.Sample.dll",
             "cwd": "${workspaceRoot}",
-            "stopAtEntry": true
+            "stopAtEntry": false
         },
         {
             "name": ".NET Core Attach",

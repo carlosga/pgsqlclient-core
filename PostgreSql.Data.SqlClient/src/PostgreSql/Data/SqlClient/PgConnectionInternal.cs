@@ -67,6 +67,14 @@ namespace PostgreSql.Data.SqlClient
             _applyTransientFaultHandling = applyTransientFaultHandling;
             _connection                  = new Connection(_connectionOptions);
 
+            if (userConnectionOptions != null)
+            {
+                _connection.Notification              = userConnectionOptions.Notification; 
+                _connection.InfoMessage               = userConnectionOptions.InfoMessage;
+                _connection.UserCertificateValidation = userConnectionOptions.UserCertificateValidation;
+                _connection.UserCertificateSelection  = UserConnectionOptions.UserCertificateSelection;
+            }
+
             RetryOperation operation = new RetryOperation(_connectionOptions.ConnectRetryCount
                                                         , _connectionOptions.ConnectRetryInterval * 1000
                                                         , _applyTransientFaultHandling);
@@ -187,6 +195,10 @@ namespace PostgreSql.Data.SqlClient
                 {
                     referenceCollection.Deactivate();
                 }
+                _connection.InfoMessage               = null;
+                _connection.Notification              = null;
+                _connection.UserCertificateSelection  = null;
+                _connection.UserCertificateValidation = null;
             }
             catch (Exception e)
             {

@@ -18,7 +18,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private const string badServer               = "NotAServer";
         private const string sqlsvrBadConn           = "A network-related or instance-specific error occurred while establishing a connection to PostgreSQL. The server was not found or was not accessible. Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.";
         private const string logonFailedErrorMessage = "password authentication failed for user \"{0}\"";
-        private const string execReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is closed.";
+        private const string execReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is Closed.";
         private const string warningNoiseMessage     = "The full-text search condition contained noise word(s).";
         private const string warningInfoMessage      = "Test of info messages";
         private const string orderIdQuery            = "select orderid from orders where orderid < 10250";

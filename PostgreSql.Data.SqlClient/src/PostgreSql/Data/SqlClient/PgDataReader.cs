@@ -518,11 +518,7 @@ namespace PostgreSql.Data.SqlClient
 
         private void CheckPosition()
         {
-            if (IsClosed)
-            {
-                throw ADP.InvalidRead();
-            }
-            if (_position == STARTPOS)
+            if (IsClosed || _position == STARTPOS)
             {
                 throw ADP.InvalidRead();
             }

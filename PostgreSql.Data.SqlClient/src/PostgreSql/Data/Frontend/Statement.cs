@@ -684,6 +684,11 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case BackendMessages.EmptyQueryResponse:
+                ClosePortal();
+                _rows.Clear();
+                _hasRows = false;
+                break;
+
             case BackendMessages.NoData:
                 _rows.Clear();
                 _hasRows = false;

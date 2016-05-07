@@ -1,5 +1,5 @@
 {
-    "version": "0.0.1",
+    "version": "1.0.0-alpha1",
     "buildOptions": {
         "languageVersion": "csharp6",
         "platform"       : "x64"
@@ -7,7 +7,7 @@
     "dependencies": {
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002611"
+            "version": "1.0.0-rc2-*"
         },
         "Microsoft.CSharp": "4.0.1-rc2-*",
         "Microsoft.Extensions.DependencyModel": "1.0.0-*",
@@ -36,8 +36,7 @@
         "xunit": "2.2.0-*",
         "dotnet-test-xunit": "1.0.0-dev-*",
         "PostgreSql.Data.SqlClient": {
-            "target"  : "project",
-            "version" : "0.0.1"
+            "target"  : "project"
         }
     },
     "frameworks": {

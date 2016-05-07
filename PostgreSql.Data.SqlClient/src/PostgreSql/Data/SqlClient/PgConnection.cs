@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Frontend;
 using System;
 using System.Data;
 using System.Data.Common;
@@ -289,27 +290,32 @@ namespace PostgreSql.Data.SqlClient
 
         private bool TryOpen(TaskCompletionSource<DbConnectionInternal> retry)
         {
-            var connectionOptions        = ConnectionOptions;
+            var connectionOptions = ConnectionOptions;
             _applyTransientFaultHandling = (retry == null && connectionOptions != null && connectionOptions.ConnectRetryCount > 0);
 
-#warning TODO : Wire up SSL Callbacks
-            // if (_innerConnection.Encrypt)
-            // {
-            //     // Add SSL callback handlers
-            //     _innerConnection.Connection.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
-            //     _innerConnection.Connection.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
-            // }
+            if (_userConnectionOptions.Encrypt)
+            {
+                // Add SSL callback handlers
+                _userConnectionOptions.UserCertificateValidation = new RemoteCertificateValidationCallback(OnUserCertificateValidation);
+                _userConnectionOptions.UserCertificateSelection  = new LocalCertificateSelectionCallback(OnUserCertificateSelection);
+            }
+
+            // Add Info message event handler
+            _userConnectionOptions.InfoMessage = new InfoMessageCallback(OnInfoMessage);
+
+            // Add notification event handler
+            _userConnectionOptions.Notification = new NotificationCallback(OnNotification); 
 
             if (ForceNewConnection)
             {
-                if (!_innerConnection.TryReplaceConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                if (!_innerConnection.TryReplaceConnection(this, ConnectionFactory, retry, _userConnectionOptions))
                 {
                     return false;
                 }
             }
             else
             {
-                if (!_innerConnection.TryOpenConnection(this, ConnectionFactory, retry, UserConnectionOptions))
+                if (!_innerConnection.TryOpenConnection(this, ConnectionFactory, retry, _userConnectionOptions))
                 {
                     return false;
                 }

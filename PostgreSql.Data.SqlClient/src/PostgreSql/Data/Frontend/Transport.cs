@@ -351,3 +351,79 @@ namespace PostgreSql.Data.Frontend
         }
     }
 }
+
+/*
+        private byte _cachedMessage;
+
+        internal MessageReader ReadMessage(SessionData sessionData)
+        {
+            if (_cachedMessage != 0)
+            {
+                var mtype   = _cachedMessage;
+                int length = ReadInt32() - 4;
+                
+                _cachedMessage = 0;
+                
+                return new MessageReader(mtype, ReadBuffer(length), sessionData);
+            }
+            
+            byte type = (byte)_stream.ReadByte();
+
+            _cachedMessage = 0;
+
+            if (type == BackendMessages.DataRow)
+            {
+                var s        = new MemoryStream(8192);
+                var buffer   = new byte[8192];
+                int received = 0;
+                int length   = 0;
+
+                while (type == BackendMessages.DataRow)
+                {
+                    length = ReadInt32() - 4;
+
+                    if (length > buffer.Length)
+                    {
+                        Array.Resize<byte>(ref buffer, length);
+                    }
+
+                    received = 0;
+
+                    while (received < length)
+                    {
+                        received += _stream.Read(buffer, received, length - received);
+                    }
+
+                    s.Write(buffer, 0, length);
+
+                    type = (byte)_stream.ReadByte();
+                }
+
+                _cachedMessage = type;
+
+                return new MessageReader(BackendMessages.DataRow, s.ToArray(), sessionData);
+            }
+            else
+            {
+                int length = ReadInt32() - 4;
+                return new MessageReader(type, ReadBuffer(length), sessionData);
+            }
+        }
+
+        private byte[] ReadBuffer(int length)
+        {
+            if (length == 0)
+            {
+                return null;
+            }
+
+            var buffer   = new byte[length];
+            int received = 0;
+            while (received < length)
+            {
+                received += _stream.Read(buffer, received, length - received);
+            }
+
+            return buffer;
+        }
+*/

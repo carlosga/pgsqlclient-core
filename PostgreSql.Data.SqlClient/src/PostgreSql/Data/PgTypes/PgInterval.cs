@@ -19,9 +19,9 @@ namespace PostgreSql.Data.PgTypes
             return new PgInterval(TimeSpan.Parse(s));
         }
         
-        internal static PgInterval FromInterval(double seconds, double days)
+        internal static PgInterval FromInterval(long microseconds, double days)
         {
-            return new PgInterval(TimeSpan.FromSeconds(seconds).Add(TimeSpan.FromDays(days * 30)));
+            return new PgInterval(TimeSpan.FromMilliseconds(microseconds * 0.001).Add(TimeSpan.FromDays(days * 30)));
         }
 
         private readonly bool     _isNotNull;

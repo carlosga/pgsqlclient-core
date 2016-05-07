@@ -35,6 +35,18 @@
             // Use the standard MS compiler pattern to detect errors, warnings
             // and infos in the output.
             "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "test",
+            // Show the output window only if unrecognized errors occur.
+            "showOutput": "always",
+            "isBuildCommand": false,
+            "args": [
+                "test"
+            ],
+            // Use the standard MS compiler pattern to detect errors, warnings
+            // and infos in the output.
+            "problemMatcher": "$msCompile"
         }
     ]
 }

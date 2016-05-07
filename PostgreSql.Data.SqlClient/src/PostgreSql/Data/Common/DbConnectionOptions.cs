@@ -1,7 +1,9 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Net.Security;
 using System.Text.RegularExpressions;
+using PostgreSql.Data.Frontend;
 
 namespace System.Data.Common
 {
@@ -55,7 +57,31 @@ namespace System.Data.Common
         internal string SearchPath                 => _searchPath;
         internal string UserID                     => _userId;
 
-        internal bool IsEmpty => String.IsNullOrEmpty(_connectionString);  
+        internal bool IsEmpty => String.IsNullOrEmpty(_connectionString);
+
+        internal NotificationCallback Notification
+        {
+            get;
+            set;
+        }
+
+        internal InfoMessageCallback InfoMessage
+        {
+            get;
+            set;
+        }
+
+        internal RemoteCertificateValidationCallback UserCertificateValidation
+        {
+            get;
+            set;
+        }
+
+        internal LocalCertificateSelectionCallback UserCertificateSelection
+        {
+            get;
+            set;
+        }
 
         internal DbConnectionOptions(string connectionString)
         {
