@@ -783,13 +783,16 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessDataRow(MessageReader message)
         {
-            var count  = message.ReadInt16();
-            var values = new object[count];
-            for (int i = 0; i < count; ++i)
+            while (message.Position < message.Length)
             {
-                values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
+                int      count  = message.ReadInt16();
+                object[] values = new object[count];
+                for (int i = 0; i < count; ++i)
+                {
+                    values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
+                }
+                _rows.Enqueue(new DataRecord(_rowDescriptor, values));
             }
-            _rows.Enqueue(new DataRecord(_rowDescriptor, values));
             _hasRows = true;
         }
 

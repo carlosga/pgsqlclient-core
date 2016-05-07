@@ -19,7 +19,7 @@ namespace PostgreSql.Data.PgTypes
             return new PgInterval(TimeSpan.Parse(s));
         }
         
-        internal static PgInterval FromInterval(long microseconds, double days)
+        internal static PgInterval FromInterval(long microseconds, long days)
         {
             return new PgInterval(TimeSpan.FromMilliseconds(microseconds * 0.001).Add(TimeSpan.FromDays(days * 30)));
         }

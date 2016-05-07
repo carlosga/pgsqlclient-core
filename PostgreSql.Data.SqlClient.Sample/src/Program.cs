@@ -26,10 +26,11 @@ namespace PostgreSql.Data.SqlClient.Sample
             using (var connection = new PgConnection(csb.ToString()))
             {
                 using (var command = new PgCommand("select * from pg_attribute a cross join pg_attribute b limit 200000", connection))
+                // using (var command = new PgCommand("SELECT * FROM pg_timezone_names()", connection))
                 {
                     connection.Open();
 
-                    command.FetchSize = 0;
+                    command.FetchSize = 200;
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();
@@ -40,8 +41,9 @@ namespace PostgreSql.Data.SqlClient.Sample
                         {
                             // for (int i = 0; i < reader.FieldCount; ++i) 
                             // {
-                            //     Console.WriteLine(reader.GetValue(i));
-                            // } 
+                            //     Console.Write($"{reader.GetValue(i)}  |  ");
+                            // }
+                            // Console.WriteLine(String.Empty);
                             ++count;
                         }
                     }

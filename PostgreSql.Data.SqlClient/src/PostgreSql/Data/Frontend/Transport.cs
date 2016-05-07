@@ -4,7 +4,6 @@
 using PostgreSql.Data.SqlClient;
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -38,7 +37,10 @@ namespace PostgreSql.Data.Frontend
         private NetworkStream _networkStream;
         private SslStream     _secureStream;
         private Stream        _stream;
+        private MemoryStream  _dataRowStream;
         private byte[]        _buffer;
+        private byte          _pendingMessage;
+        private int           _packetSize;
 
         internal Transport()
         {
@@ -100,6 +102,9 @@ namespace PostgreSql.Data.Frontend
                     // _stream = new BufferedStream(_networkStream, packetSize);
                     _stream = new BufferedStream(_networkStream, packetSize);
                 }
+
+                _packetSize    = packetSize;
+                _dataRowStream = new MemoryStream(_packetSize);
             }
             catch (Exception)
             {
@@ -149,20 +154,72 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        // internal MessageReader ReadMessage(SessionData sessionData)
+        // {
+        //     byte[] buffer = null;
+        //     byte   type   = (byte)_stream.ReadByte();
+        //     int    length = ReadInt32() - 4;
+
+        //     if (length > 0)
+        //     {
+        //         buffer = new byte[length];
+
+        //         _stream.Read(buffer, 0, length);
+        //     }
+
+        //     return new MessageReader(type, buffer, sessionData);
+        // }
+
         internal MessageReader ReadMessage(SessionData sessionData)
         {
-            byte[] buffer = null;
-            byte   type   = (byte)_stream.ReadByte();
-            int    length = ReadInt32() - 4;
-
-            if (length > 0)
+            if (_pendingMessage != 0)
             {
-                buffer = new byte[length];
-
-                _stream.Read(buffer, 0, length);
+                var mtype  = _pendingMessage;
+                int length = ReadInt32() - 4;
+                
+                _pendingMessage = 0;
+                
+                return new MessageReader(mtype, ReadBuffer(length), sessionData);
             }
+            
+            byte type = (byte)_stream.ReadByte();
 
-            return new MessageReader(type, buffer, sessionData);
+            _pendingMessage = 0;
+
+            if (type == BackendMessages.DataRow)
+            {
+                var buffer = new byte[_packetSize];
+                int length = 0;
+
+                _dataRowStream.Seek(0, SeekOrigin.Begin);
+                _dataRowStream.SetLength(_packetSize);
+                _dataRowStream.Capacity = _packetSize;
+
+                while (type == BackendMessages.DataRow)
+                {
+                    length = ReadInt32() - 4;
+
+                    if (length > buffer.Length)
+                    {
+                        Array.Resize<byte>(ref buffer, length);
+                    }
+
+                    _stream.Read(buffer, 0, length);
+
+                    _dataRowStream.Write(buffer, 0, length);
+
+                    type = (byte)_stream.ReadByte();
+                }
+
+                _pendingMessage = type;
+
+                return new MessageReader(BackendMessages.DataRow, _dataRowStream.ToArray(), sessionData);
+            }
+            else
+            {
+                int length = ReadInt32() - 4;
+                return new MessageReader(type, ReadBuffer(length), sessionData);
+            }
         }
 
         internal void WriteMessage(byte type)
@@ -174,6 +231,20 @@ namespace PostgreSql.Data.Frontend
         internal void WriteMessage(MessageWriter message)
         {
             message.WriteTo(_stream);
+        }
+
+        private byte[] ReadBuffer(int length)
+        {
+            if (length == 0)
+            {
+                return null;
+            }
+
+            var buffer = new byte[length];
+
+            _stream.Read(buffer, 0, length);
+
+            return buffer;
         }
 
         private int ReadInt32()
@@ -315,6 +386,10 @@ namespace PostgreSql.Data.Frontend
 
         private void Detach()
         {
+            if (_dataRowStream != null)
+            {
+                _dataRowStream.Dispose();
+            }
             if (_stream != null)
             {
                 _stream.Dispose();
@@ -342,85 +417,10 @@ namespace PostgreSql.Data.Frontend
             _secureStream  = null;
             _networkStream = null;
             _socket        = null;
+            _dataRowStream = null;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;
         }
     }
 }
-
-/*
-        private byte _cachedMessage;
-
-        internal MessageReader ReadMessage(SessionData sessionData)
-        {
-            if (_cachedMessage != 0)
-            {
-                var mtype   = _cachedMessage;
-                int length = ReadInt32() - 4;
-                
-                _cachedMessage = 0;
-                
-                return new MessageReader(mtype, ReadBuffer(length), sessionData);
-            }
-            
-            byte type = (byte)_stream.ReadByte();
-
-            _cachedMessage = 0;
-
-            if (type == BackendMessages.DataRow)
-            {
-                var s        = new MemoryStream(8192);
-                var buffer   = new byte[8192];
-                int received = 0;
-                int length   = 0;
-
-                while (type == BackendMessages.DataRow)
-                {
-                    length = ReadInt32() - 4;
-
-                    if (length > buffer.Length)
-                    {
-                        Array.Resize<byte>(ref buffer, length);
-                    }
-
-                    received = 0;
-
-                    while (received < length)
-                    {
-                        received += _stream.Read(buffer, received, length - received);
-                    }
-
-                    s.Write(buffer, 0, length);
-
-                    type = (byte)_stream.ReadByte();
-                }
-
-                _cachedMessage = type;
-
-                return new MessageReader(BackendMessages.DataRow, s.ToArray(), sessionData);
-            }
-            else
-            {
-                int length = ReadInt32() - 4;
-                return new MessageReader(type, ReadBuffer(length), sessionData);
-            }
-        }
-
-        private byte[] ReadBuffer(int length)
-        {
-            if (length == 0)
-            {
-                return null;
-            }
-
-            var buffer   = new byte[length];
-            int received = 0;
-            while (received < length)
-            {
-                received += _stream.Read(buffer, received, length - received);
-            }
-
-            return buffer;
-        }
-*/
