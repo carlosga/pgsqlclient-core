@@ -22,8 +22,10 @@ connect:
   # northwind
   - export PGPASSWORD=$NORTHWIND_POSTGRES_PASSWORD
   - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -c "SELECT 'OK' AS status;"
+  - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
   # pubs
   - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
+  - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
   - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
 
 build:
@@ -36,4 +38,5 @@ test:
   stage: test
   script:
     - cd PostgreSql.Data.SqlClient.Tests
-    - dotnet --info
+    - mv ConnectionString.ci.xml ConnectionString.xml
+    - dotnet test

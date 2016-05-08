@@ -47,6 +47,7 @@ CMakeLists.txt.user
 .idea
 
 # Project files to be ignored
+ConnectionString.xml
 *.lock.json
 *.repro
 *.out
