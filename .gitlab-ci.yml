@@ -8,25 +8,22 @@ services:
   - postgres:latest
 
 variables:
-  NORTHWIND_DATABASE_URL: "postgres://postgres@postgres/northwind"
-  NORTHWIND_POSTGRES_USER: northwind
-  NORTHWIND_POSTGRES_PASSWORD: "northwind"
-
-  PUBS_DATABASE_URL: "postgres://postgres@postgres/pubs"
-  PUBS_POSTGRES_USER: pubs
-  PUBS_POSTGRES_PASSWORD: "pubs"
+  POSTGRES_DB: "postgres://postgres@postgres/northwind"
+  POSTGRES_USER: northwind
+  POSTGRES_PASSWORD: "northwind"
 
 connect:
+  stage: test
   image: postgres
   script:
   # northwind
-  - export PGPASSWORD=$NORTHWIND_POSTGRES_PASSWORD
-  - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -c "SELECT 'OK' AS status;"
-  - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+  - export PGPASSWORD=$POSTGRES_PASSWORD
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
   # pubs
-  - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
-  - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
-  - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
+  # - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
+  # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
+  # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
 
 build:
   stage: build
