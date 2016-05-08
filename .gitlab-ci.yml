@@ -1,4 +1,4 @@
-image: ubuntu:14.04
+image: microsoft/dotnet-preview
 
 stages:
   - build
@@ -27,11 +27,11 @@ connect:
   - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
 
 before_script:
-  - apt-get update -qq && apt-get install -y -qq wget gettext libcurl4-openssl-dev libicu-dev libssl-dev libunwind8 zlib1g clang-3.5 lldb-3.6 liblttng-ust0 
-  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-host-ubuntu-x64.latest.deb
-  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sharedframework-ubuntu-x64.latest.deb
-  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sdk-ubuntu-x64.latest.deb
-  - dpkg -i dotnet-host-ubuntu-x64.latest.deb dotnet-sharedframework-ubuntu-x64.latest.deb dotnet-sdk-ubuntu-x64.latest.deb
+#  - apt-get update -qq && apt-get install -y -qq wget gettext libcurl4-openssl-dev libicu-dev libssl-dev libunwind8 zlib1g clang-3.5 lldb-3.6 liblttng-ust0 
+#  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-host-ubuntu-x64.latest.deb
+#  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sharedframework-ubuntu-x64.latest.deb
+#  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sdk-ubuntu-x64.latest.deb
+#  - dpkg -i dotnet-host-ubuntu-x64.latest.deb dotnet-sharedframework-ubuntu-x64.latest.deb dotnet-sdk-ubuntu-x64.latest.deb
 
 build:
   stage: build
