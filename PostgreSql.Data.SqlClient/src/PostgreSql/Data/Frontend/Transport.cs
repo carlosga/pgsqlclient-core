@@ -99,7 +99,6 @@ namespace PostgreSql.Data.Frontend
                 }
                 else
                 {
-                    // _stream = new BufferedStream(_networkStream, packetSize);
                     _stream = new BufferedStream(_networkStream, packetSize);
                 }
 
