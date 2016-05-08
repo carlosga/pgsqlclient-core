@@ -2,7 +2,7 @@ image: ubuntu:14.04
 
 stages:
   - build
-  - test
+#  - test
 
 services:
   - postgres:latest
