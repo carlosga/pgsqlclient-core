@@ -19,10 +19,10 @@ variables:
 connect:
   image: postgres
   script:
-  # official way to provide password to psql: http://www.postgresql.org/docs/9.3/static/libpq-envars.html
+  # northwind
   - export PGPASSWORD=$NORTHWIND_POSTGRES_PASSWORD
   - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -c "SELECT 'OK' AS status;"
-
+  # pubs
   - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
   - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
 
