@@ -30,7 +30,7 @@ namespace PostgreSql.Data.SqlClient.Sample
                 {
                     connection.Open();
 
-                    command.FetchSize = 200;
+                    // command.FetchSize = 0;
 
                     Stopwatch stopWatch = new Stopwatch();
                     stopWatch.Start();

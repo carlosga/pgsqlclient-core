@@ -1,0 +1,44 @@
+stages:
+  - build
+  - test
+
+services:
+  - postgres:latest
+
+variables:
+  NORTHWIND_DATABASE_URL: "postgres://postgres@postgres/northwind"
+  NORTHWIND_POSTGRES_USER: northwind
+  NORTHWIND_POSTGRES_PASSWORD: "northwind"
+
+  PUBS_DATABASE_URL: "postgres://postgres@postgres/pubs"
+  PUBS_POSTGRES_USER: pubs
+  PUBS_POSTGRES_PASSWORD: "pubs"
+
+connect:
+  image: postgres
+  script:
+  # official way to provide password to psql: http://www.postgresql.org/docs/9.3/static/libpq-envars.html
+  - export PGPASSWORD=$NORTHWIND_POSTGRES_PASSWORD
+  - psql -h "postgres" -U "$NORTHWIND_POSTGRES_USER" -d "$NORTHWIND_DATABASE_URL" -c "SELECT 'OK' AS status;"
+
+  - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
+  - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq gettext libcurl4-openssl-dev libicu-dev libssl-dev libunwind8 zlib1g
+  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-host-ubuntu-x64.latest.deb
+  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sharedframework-ubuntu-x64.latest.deb
+  - wget https://dotnetcli.blob.core.windows.net/dotnet/beta/Installers/Latest/dotnet-sdk-ubuntu-x64.latest.deb
+  - dpkg -i dotnet-host-ubuntu-x64.latest.deb dotnet-sharedframework-ubuntu-x64.latest.deb dotnet-sdk-ubuntu-x64.latest.deb
+
+build:
+  stage: build
+  script:
+    - dotnet restore
+    - dotnet build PostgreSql.Data.SqlClient PostgreSql.Data.SqlClient.Tests
+
+test:
+  stage: test
+  script:
+    - cd PostgreSql.Data.SqlClient.Tests
+    - dotnet test
