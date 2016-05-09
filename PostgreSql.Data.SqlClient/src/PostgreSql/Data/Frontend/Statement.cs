@@ -30,6 +30,7 @@ namespace PostgreSql.Data.Frontend
         private PgParameterCollection _parameters;
         private CommandType           _commandType;
         private List<int>             _parameterIndices;
+        private MessageWriter         _executeMessage;
 
         internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
@@ -101,6 +102,7 @@ namespace PostgreSql.Data.Frontend
             _parameterIndices = new List<int>();
             _rowDescriptor    = new RowDescriptor();
             _hasRows          = false;
+            _executeMessage   = _connection.CreateMessage(FrontendMessages.Execute);
 
             StatementText     = statementText;
             FetchSize         = 200;
@@ -586,22 +588,21 @@ namespace PostgreSql.Data.Frontend
 
         private void Execute(CommandBehavior behavior)
         {
-            var message = _connection.CreateMessage(FrontendMessages.Execute);
-
-            message.WriteNullString(_portalName);
+            _executeMessage.Clear();
+            _executeMessage.WriteNullString(_portalName);
 
             // Rows to retrieve ( 0 = nolimit )
             if (behavior.HasBehavior(CommandBehavior.SingleResult)
              || behavior.HasBehavior(CommandBehavior.SingleRow))
             {
-                message.Write(1);
+                _executeMessage.Write(1);
             }
             else
             {
-                message.Write(_fetchSize);
+                _executeMessage.Write(_fetchSize);
             }
 
-            _connection.Send(message);
+            _connection.Send(_executeMessage);
             _connection.Flush();
 
             // Process response

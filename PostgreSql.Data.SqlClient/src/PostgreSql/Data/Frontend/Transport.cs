@@ -37,7 +37,6 @@ namespace PostgreSql.Data.Frontend
         private NetworkStream _networkStream;
         private SslStream     _secureStream;
         private Stream        _stream;
-        private MemoryStream  _dataRowStream;
         private byte[]        _buffer;
         private byte          _pendingMessage;
         private int           _packetSize;
@@ -81,7 +80,7 @@ namespace PostgreSql.Data.Frontend
             // GC.SuppressFinalize(this);
         }
         #endregion
-        
+
         internal void Open(string host, int port, int connectTimeout, int packetSize, bool secureChannel)
         {
             try
@@ -102,8 +101,7 @@ namespace PostgreSql.Data.Frontend
                     _stream = new BufferedStream(_networkStream, packetSize);
                 }
 
-                _packetSize    = packetSize;
-                _dataRowStream = new MemoryStream(_packetSize);
+                _packetSize = packetSize;
             }
             catch (Exception)
             {
@@ -153,72 +151,89 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        // internal MessageReader ReadMessage(SessionData sessionData)
-        // {
-        //     byte[] buffer = null;
-        //     byte   type   = (byte)_stream.ReadByte();
-        //     int    length = ReadInt32() - 4;
-
-        //     if (length > 0)
-        //     {
-        //         buffer = new byte[length];
-
-        //         _stream.Read(buffer, 0, length);
-        //     }
-
-        //     return new MessageReader(type, buffer, sessionData);
-        // }
-
         internal MessageReader ReadMessage(SessionData sessionData)
         {
             if (_pendingMessage != 0)
             {
-                var mtype  = _pendingMessage;
-                int length = ReadInt32() - 4;
-                
+                var mtype = _pendingMessage;
+
                 _pendingMessage = 0;
-                
-                return new MessageReader(mtype, ReadBuffer(length), sessionData);
+
+                return new MessageReader(mtype, ReadFrame(), sessionData);
             }
-            
+
             byte type = (byte)_stream.ReadByte();
 
             _pendingMessage = 0;
 
             if (type == BackendMessages.DataRow)
             {
-                var buffer = new byte[_packetSize];
-                int length = 0;
-
-                _dataRowStream.Seek(0, SeekOrigin.Begin);
-                _dataRowStream.SetLength(_packetSize);
-                _dataRowStream.Capacity = _packetSize;
+                var frame = new byte[_packetSize];
+                var count = 0;
 
                 while (type == BackendMessages.DataRow)
                 {
-                    length = ReadInt32() - 4;
+                    count += ReadFrame(ref frame, count, ReadFrameLength());
+                    type   = (byte)_stream.ReadByte();
+                }
 
-                    if (length > buffer.Length)
-                    {
-                        Array.Resize<byte>(ref buffer, length);
-                    }
-
-                    _stream.Read(buffer, 0, length);
-
-                    _dataRowStream.Write(buffer, 0, length);
-
-                    type = (byte)_stream.ReadByte();
+                if (count < frame.Length)
+                {
+                    Array.Resize<byte>(ref frame, count);
                 }
 
                 _pendingMessage = type;
 
-                return new MessageReader(BackendMessages.DataRow, _dataRowStream.ToArray(), sessionData);
+                return new MessageReader(BackendMessages.DataRow, frame, sessionData);
             }
-            else
+
+            return new MessageReader(type, ReadFrame(), sessionData);
+        }
+        
+        private int ReadFrameLength()
+        {
+            _stream.Read(_buffer, 0, 4);
+
+            return ((_buffer[3] & 0xFF)
+                  | (_buffer[2] & 0xFF) <<  8
+                  | (_buffer[1] & 0xFF) << 16
+                  | (_buffer[0] & 0xFF) << 24) - 4;
+        }
+
+        private byte[] ReadFrame()
+        {
+            int    count = ReadFrameLength();
+            byte[] frame = new byte[count];
+
+            ReadFrame(ref frame, 0, count);
+
+            return frame;
+        }
+
+        private int ReadFrame(ref byte[] frame, int offset, int count)
+        {
+            if (count == 0)
             {
-                int length = ReadInt32() - 4;
-                return new MessageReader(type, ReadBuffer(length), sessionData);
+                return 0;
             }
+            int read  = 0;
+            int total = 0;
+            if ((offset + count) > frame.Length)
+            {
+                Array.Resize<byte>(ref frame, (offset + count) * 2);
+            }
+            do
+            {
+                read = _stream.Read(frame, offset, count);
+                if (read == 0)
+                {
+                    break;
+                }
+                offset += read;
+                total  += read;
+                count  -= read;
+            } while (count > 0);
+            return total;
         }
 
         internal void WriteMessage(byte type)
@@ -230,30 +245,6 @@ namespace PostgreSql.Data.Frontend
         internal void WriteMessage(MessageWriter message)
         {
             message.WriteTo(_stream);
-        }
-
-        private byte[] ReadBuffer(int length)
-        {
-            if (length == 0)
-            {
-                return null;
-            }
-
-            var buffer = new byte[length];
-
-            _stream.Read(buffer, 0, length);
-
-            return buffer;
-        }
-
-        private int ReadInt32()
-        {
-            _stream.Read(_buffer, 0, 4);
-
-            return (_buffer[3] & 0xFF)
-                 | (_buffer[2] & 0xFF) <<  8
-                 | (_buffer[1] & 0xFF) << 16
-                 | (_buffer[0] & 0xFF) << 24;
         }
 
         private void Write(int value)
@@ -272,7 +263,7 @@ namespace PostgreSql.Data.Frontend
             var task = Task.Run<IPAddress[]>(async () => {
                 return await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
             });
-            
+
             var remoteAddresses = task.Result;
 
             // Try to connect on each IP address until one succeeds
@@ -283,13 +274,13 @@ namespace PostgreSql.Data.Frontend
                 {
                     _socket = TryConnect(remoteAddresses[i], port, connectTimeout, packetSize);
                 }
-                
+
                 if (_socket != null)
                 {
                     break;
                 }
             }
-            
+
             if (_socket == null)
             {
                 throw new PgException($"No valid IP addresses found for the given host {host}:{port}.");
@@ -298,7 +289,7 @@ namespace PostgreSql.Data.Frontend
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }
-        
+
         private Socket TryConnect(IPAddress address, int port, int connectTimeout, int packetSize)
         {
             IPEndPoint remoteEP = new IPEndPoint(address, port);
@@ -313,9 +304,6 @@ namespace PostgreSql.Data.Frontend
 
                 // Set Send Buffer size.
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, packetSize);
-
-                // Disables the Nagle algorithm.
-                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 
                 // Connect to the host
                 var complete = new ManualResetEvent(false);
@@ -336,8 +324,8 @@ namespace PostgreSql.Data.Frontend
                     complete.Reset();
                     Socket.CancelConnectAsync(args);
                     complete.WaitOne();
-                    
-                    throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");                 
+
+                    throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");
                 }
             }
             catch
@@ -346,7 +334,7 @@ namespace PostgreSql.Data.Frontend
                 socket.Dispose();
                 socket = null;
             }
-            
+
             return socket;
         }
 
@@ -385,10 +373,6 @@ namespace PostgreSql.Data.Frontend
 
         private void Detach()
         {
-            if (_dataRowStream != null)
-            {
-                _dataRowStream.Dispose();
-            }
             if (_stream != null)
             {
                 _stream.Dispose();
@@ -416,7 +400,6 @@ namespace PostgreSql.Data.Frontend
             _secureStream  = null;
             _networkStream = null;
             _socket        = null;
-            _dataRowStream = null;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

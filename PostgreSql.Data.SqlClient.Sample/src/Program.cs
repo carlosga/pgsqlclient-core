@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -8,6 +9,7 @@ namespace PostgreSql.Data.SqlClient.Sample
         public static void Main(string[] args)
         {
             pgsqlclient_test();
+            // bench();
         }
 
         static void pgsqlclient_test()

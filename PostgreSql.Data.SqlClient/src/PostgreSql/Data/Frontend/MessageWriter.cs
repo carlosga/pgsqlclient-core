@@ -31,10 +31,19 @@ namespace PostgreSql.Data.Frontend
             _initialCapacity = 4 + _offset;
             _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
             _position        = _initialCapacity;
-
             if (_messageType != FrontendMessages.Untyped)
             {
                 _buffer[0] = _messageType;
+            }
+        }
+
+        internal void Clear()
+        {
+            if (_position != _initialCapacity)
+            {
+                Array.Resize<byte>(ref _buffer, _initialCapacity);
+                Array.Clear(_buffer, 1, 4);
+                _position = _initialCapacity;
             }
         }
 
