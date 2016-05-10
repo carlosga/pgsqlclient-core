@@ -36,7 +36,8 @@ namespace PostgreSql.Data.Frontend
         private Socket        _socket;
         private NetworkStream _networkStream;
         private SslStream     _secureStream;
-        private Stream        _stream;
+        private Stream        _reader;
+        private Stream        _writer;
         private byte[]        _buffer;
         private byte          _pendingMessage;
         private int           _packetSize;
@@ -94,11 +95,13 @@ namespace PostgreSql.Data.Frontend
                         throw new PgException("Cannot open a secure connection against PostgreSQL server.");
                     }
 
-                    _stream = new BufferedStream(_secureStream, packetSize);
+                    _reader = new BufferedStream(_secureStream, packetSize);
+                    _writer = _secureStream;
                 }
                 else
                 {
-                    _stream = new BufferedStream(_networkStream, packetSize);
+                    _reader = new BufferedStream(_networkStream, packetSize);
+                    _writer = _networkStream;
                 }
 
                 _packetSize = packetSize;
@@ -115,11 +118,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Close()
         {
-            if (_stream == null)
-            {
-                return;
-            }
-
             try
             {
                 // Notify the server that we are closing the connection.
@@ -162,9 +160,7 @@ namespace PostgreSql.Data.Frontend
                 return new MessageReader(mtype, ReadFrame(), sessionData);
             }
 
-            byte type = (byte)_stream.ReadByte();
-
-            _pendingMessage = 0;
+            byte type = (byte)_reader.ReadByte();
 
             if (type == BackendMessages.DataRow)
             {
@@ -174,10 +170,10 @@ namespace PostgreSql.Data.Frontend
                 while (type == BackendMessages.DataRow)
                 {
                     count += ReadFrame(ref frame, count, ReadFrameLength());
-                    type   = (byte)_stream.ReadByte();
+                    type   = (byte)_reader.ReadByte();
                 }
 
-                if (count < frame.Length)
+                if (frame.Length > count)
                 {
                     Array.Resize<byte>(ref frame, count);
                 }
@@ -187,12 +183,14 @@ namespace PostgreSql.Data.Frontend
                 return new MessageReader(BackendMessages.DataRow, frame, sessionData);
             }
 
+            _pendingMessage = 0;
+
             return new MessageReader(type, ReadFrame(), sessionData);
         }
         
         private int ReadFrameLength()
         {
-            _stream.Read(_buffer, 0, 4);
+            _reader.Read(_buffer, 0, 4);
 
             return ((_buffer[3] & 0xFF)
                   | (_buffer[2] & 0xFF) <<  8
@@ -224,7 +222,7 @@ namespace PostgreSql.Data.Frontend
             }
             do
             {
-                read = _stream.Read(frame, offset, count);
+                read = _reader.Read(frame, offset, count);
                 if (read == 0)
                 {
                     break;
@@ -238,13 +236,13 @@ namespace PostgreSql.Data.Frontend
 
         internal void WriteMessage(byte type)
         {
-            _stream.WriteByte(type);
+            _writer.WriteByte(type);
             Write(4);
         }
 
         internal void WriteMessage(MessageWriter message)
         {
-            message.WriteTo(_stream);
+            message.WriteTo(_writer);
         }
 
         private void Write(int value)
@@ -254,7 +252,7 @@ namespace PostgreSql.Data.Frontend
             _buffer[2] = (byte)((value >>  8) & 0xFF);
             _buffer[3] = (byte)((value      ) & 0xFF);
 
-            _stream.Write(_buffer, 0, 4);
+            _writer.Write(_buffer, 0, 4);
         }
 
         private void Connect(string host, int port, int connectTimeout, int packetSize)
@@ -300,10 +298,13 @@ namespace PostgreSql.Data.Frontend
                 socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
                 // Set Receive Buffer size.
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, packetSize);
+                socket.ReceiveBufferSize = packetSize;
 
                 // Set Send Buffer size.
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, packetSize);
+                socket.SendBufferSize = packetSize;
+
+                // Nagle algorithm
+                socket.NoDelay = true;
 
                 // Connect to the host
                 var complete = new ManualResetEvent(false);
@@ -368,14 +369,18 @@ namespace PostgreSql.Data.Frontend
         {
             Write(SslRequest);
 
-            return ((char)_stream.ReadByte() == 'S');
+            return ((char)_reader.ReadByte() == 'S');
         }
 
         private void Detach()
         {
-            if (_stream != null)
+            if (_reader != null)
             {
-                _stream.Dispose();
+                _reader.Dispose();
+            }
+            if (_writer != null)
+            {
+                _writer.Dispose();
             }
             if (_secureStream != null)
             {
@@ -396,10 +401,12 @@ namespace PostgreSql.Data.Frontend
                 _socket.Dispose();
             }
 
-            _stream        = null;
+            _reader        = null;
+            _writer        = null;
             _secureStream  = null;
             _networkStream = null;
             _socket        = null;
+            _buffer        = null;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

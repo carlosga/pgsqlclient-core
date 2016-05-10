@@ -786,8 +786,8 @@ namespace PostgreSql.Data.Frontend
         {
             while (message.Position < message.Length)
             {
-                int      count  = message.ReadInt16();
-                object[] values = new object[count];
+                var count = message.ReadInt16();
+                var values = new object[count];
                 for (int i = 0; i < count; ++i)
                 {
                     values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
