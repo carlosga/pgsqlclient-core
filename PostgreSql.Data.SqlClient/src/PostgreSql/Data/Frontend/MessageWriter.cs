@@ -42,7 +42,10 @@ namespace PostgreSql.Data.Frontend
             if (_position != _initialCapacity)
             {
                 Array.Resize<byte>(ref _buffer, _initialCapacity);
-                Array.Clear(_buffer, 1, 4);
+                if (_initialCapacity > 4)
+                {
+                    Array.Clear(_buffer, 1, 4);
+                }
                 _position = _initialCapacity;
             }
         }
@@ -211,13 +214,13 @@ namespace PostgreSql.Data.Frontend
             Write(box.LowerLeft);
         }
 
-        internal void Write(PgPolygon polygon)
+        internal void Write(PgPolygon value)
         {
-            Write(polygon.Points.Length);
+            Write(value.Points.Length);
 
-            for (int i = 0; i < polygon.Points.Length; ++i)
+            for (int i = 0; i < value.Points.Length; ++i)
             {
-                Write(polygon.Points[i]);
+                Write(value.Points[i]);
             }
         }
 
@@ -382,6 +385,8 @@ namespace PostgreSql.Data.Frontend
             stream.Write(_buffer, 0, length);
 
             Seek(length);
+
+            Clear();
         }
 
         private void WriteArray(TypeInfo typeInfo, object value)

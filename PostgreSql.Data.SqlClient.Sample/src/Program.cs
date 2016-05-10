@@ -8,7 +8,10 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            pgsqlclient_test();
+            for (int i = 0; i < 20; ++i)
+            {
+                pgsqlclient_test();
+            }
             // bench();
         }
 

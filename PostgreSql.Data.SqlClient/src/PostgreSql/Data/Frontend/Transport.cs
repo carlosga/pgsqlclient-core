@@ -56,7 +56,7 @@ namespace PostgreSql.Data.Frontend
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    Detach();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -401,12 +401,14 @@ namespace PostgreSql.Data.Frontend
                 _socket.Dispose();
             }
 
-            _reader        = null;
-            _writer        = null;
-            _secureStream  = null;
-            _networkStream = null;
-            _socket        = null;
-            _buffer        = null;
+            _reader         = null;
+            _writer         = null;
+            _secureStream   = null;
+            _networkStream  = null;
+            _socket         = null;
+            _buffer         = null;
+            _pendingMessage = 0;
+            _packetSize     = 0;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

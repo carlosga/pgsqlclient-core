@@ -341,7 +341,7 @@ namespace PostgreSql.Data.Frontend
             var count  = ReadInt32();
             var values = new object[count];
 
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < values.Length; ++i)
             {
                 int oid   = ReadInt32();
                 var size  = ReadInt32();
