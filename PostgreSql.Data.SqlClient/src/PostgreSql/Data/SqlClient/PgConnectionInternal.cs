@@ -65,7 +65,7 @@ namespace PostgreSql.Data.SqlClient
             _providerInfo                = providerInfo;
             _userConnectionOptions       = userConnectionOptions;
             _applyTransientFaultHandling = applyTransientFaultHandling;
-            _connection                  = new Connection(_connectionOptions);
+            _connection                  = new Connection(userConnectionOptions);
 
             if (userConnectionOptions != null)
             {
@@ -189,6 +189,12 @@ namespace PostgreSql.Data.SqlClient
                 if (referenceCollection != null)
                 {
                     referenceCollection.Deactivate();
+                }
+                // This should be true only if PgConnection.ChangeDatabase has been called with a different database name
+                // In that case restore the connection to the original database
+                if (_connection.Database != _connectionOptions.InitialCatalog)
+                {
+                    _connection.ChangeDatabase(_connectionOptions.InitialCatalog);
                 }
                 _connection.InfoMessage               = null;
                 _connection.Notification              = null;

@@ -384,7 +384,7 @@ namespace PostgreSql.Data.SqlClient
                 flag = SetInnerConnectionFrom(DbConnectionClosedBusy.SingletonInstance, connectionInternal);
                 if (flag)
                 {
-                    _userConnectionOptions = connectionOptions;
+                    _userConnectionOptions = (connectionOptions == null) ? null : new DbConnectionOptions(connectionOptions.ConnectionString);
                     _poolGroup             = poolGroup;
                     _innerConnection       = DbConnectionClosedNeverOpened.SingletonInstance;
                 }

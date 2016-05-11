@@ -144,35 +144,34 @@ namespace PostgreSql.Data.SqlClient.Tests
                     cmd[i].Dispose();
                 }
 
-                PgCommand verificationCmd = con.CreateCommand();
-
-                switch (verificationType)
+                using (PgCommand verificationCmd = con.CreateCommand())
                 {
-                    case ReaderVerificationType.ExecuteReader:
-                        verificationCmd.CommandText = COMMAND_TEXT_2;
-                        using (PgDataReader rdr = verificationCmd.ExecuteReader())
-                        {
-                            rdr.Read();
-                            DataTestClass.AssertEqualsWithDescription(1, rdr.FieldCount, "Execute Reader should return expected Field count");
-                            DataTestClass.AssertEqualsWithDescription(COLUMN_NAME_2, rdr.GetName(0), "Execute Reader should return expected Field name");
-                        }
-                        break;
+                    switch (verificationType)
+                    {
+                        case ReaderVerificationType.ExecuteReader:
+                            verificationCmd.CommandText = COMMAND_TEXT_2;
+                            using (PgDataReader rdr = verificationCmd.ExecuteReader())
+                            {
+                                rdr.Read();
+                                DataTestClass.AssertEqualsWithDescription(1, rdr.FieldCount, "Execute Reader should return expected Field count");
+                                DataTestClass.AssertEqualsWithDescription(COLUMN_NAME_2, rdr.GetName(0), "Execute Reader should return expected Field name");
+                            }
+                            break;
 
-                    case ReaderVerificationType.ChangeDatabase:
-                        con.ChangeDatabase(DATABASE_NAME);
-                        DataTestClass.AssertEqualsWithDescription(DATABASE_NAME, con.Database, "Change Database should return expected Database Name");
-                        break;
+                        case ReaderVerificationType.ChangeDatabase:
+                            con.ChangeDatabase(DATABASE_NAME);
+                            DataTestClass.AssertEqualsWithDescription(DATABASE_NAME, con.Database, "Change Database should return expected Database Name");
+                            break;
 
-                    case ReaderVerificationType.BeginTransaction:
-#warning TODO: Port to PostgreSql
-                        // verificationCmd.Transaction = con.BeginTransaction();
-                        // verificationCmd.CommandText = "select @@trancount";
-                        // int tranCount = (int)verificationCmd.ExecuteScalar();
-                        // DataTestClass.AssertEqualsWithDescription(1, tranCount, "Begin Transaction should return expected Transaction count");
-                        break;
+                        case ReaderVerificationType.BeginTransaction:
+    #warning TODO: Port to PostgreSql
+                            // verificationCmd.Transaction = con.BeginTransaction();
+                            // verificationCmd.CommandText = "select @@trancount";
+                            // int tranCount = (int)verificationCmd.ExecuteScalar();
+                            // DataTestClass.AssertEqualsWithDescription(1, tranCount, "Begin Transaction should return expected Transaction count");
+                            break;
+                    }
                 }
-
-                verificationCmd.Dispose();
             }
         }
 
