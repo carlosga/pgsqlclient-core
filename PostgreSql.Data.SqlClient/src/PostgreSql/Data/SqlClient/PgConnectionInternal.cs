@@ -191,8 +191,8 @@ namespace PostgreSql.Data.SqlClient
                     referenceCollection.Deactivate();
                 }
                 // This should be true only if PgConnection.ChangeDatabase has been called with a different database name
-                // In that case restore the connection to the original database
-                if (_connection.Database != _connectionOptions.InitialCatalog)
+                // In that case restore the connection to the original database only for pooled connections.
+                if (_providerInfo.PoolGroup != null && _connection.Database != _connectionOptions.InitialCatalog)
                 {
                     _connection.ChangeDatabase(_connectionOptions.InitialCatalog);
                 }
