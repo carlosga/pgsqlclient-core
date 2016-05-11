@@ -1,13 +1,15 @@
 {
     "title": "postgresql data provider for .net core",
     "description": "postgresql data provider for .net core",
-    "tags": ["postgresql", "postgres", "adonet", "netcore", "netstandard15"],
-    "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient/blob/master/license.md",
-    "owners": [ "Carlos Guzmán Álvarez" ],
-    "authors": [ "Carlos Guzmán Álvarez" ],
-    "copyright": "2016. Carlos Guzmán Álvarez",
-    "projectUrl": "https://gitlab.com/carlosga/pgsqlclient",
     "version": "1.0.0-alpha1",
+    "packOptions":{
+        "projectUrl": "https://gitlab.com/carlosga/pgsqlclient",
+        "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient/blob/master/license.md",
+        "owners"    : [ "Carlos Guzmán Álvarez" ],
+        "authors"   : [ "Carlos Guzmán Álvarez" ],
+        "copyright" : ["2016. Carlos Guzmán Álvarez"],
+        "tags"      : ["postgresql", "postgres", "adonet", "netcore", "netstandard15"]
+    },
     "buildOptions": {
         "languageVersion" : "csharp6",
         "platform"        : "x64",
@@ -40,24 +42,5 @@
     },
     "runtimes": { 
         "ubuntu.14.04-x64": { } 
-    },
-    "configurations": {
-        "Debug": {
-            "buildOptions": {
-                "define": [
-                    "DEBUG",
-                    "TRACE"
-                ]
-            }
-        },
-        "Release": {
-            "buildOptions": {
-                "define": [
-                    "RELEASE",
-                    "TRACE"
-                ],
-                "optimize": true
-            }
-        }
     }
 }

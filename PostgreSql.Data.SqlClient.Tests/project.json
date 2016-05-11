@@ -2,7 +2,9 @@
     "version": "1.0.0-alpha1",
     "buildOptions": {
         "languageVersion": "csharp6",
-        "platform"       : "x64"
+        "platform"       : "x64",
+        "compile"        : "src/**/*.cs",
+        "contentFiles"   : ["ConnectionString.xml", "MultipleResultsTest.bsl"],
     },
     "dependencies": {
         "Microsoft.NETCore.App": {
@@ -34,7 +36,7 @@
         "System.Threading.ThreadPool": "4.0.10-rc2-*",
         "System.Xml.XmlDocument": "4.0.1-rc2-*",
         "xunit": "2.2.0-*",
-        "dotnet-test-xunit": "1.0.0-dev-*",
+        "dotnet-test-xunit": "1.0.0-rc2-*",
         "PostgreSql.Data.SqlClient": {
             "target"  : "project"
         }
@@ -47,26 +49,5 @@
             ]
         }
     },
-    "configurations": {
-        "Debug": {
-            "buildOptions": {
-                "define": [
-                    "DEBUG",
-                    "TRACE"
-                ]
-            }
-        },
-        "Release": {
-            "buildOptions": {
-                "define": [
-                    "RELEASE",
-                    "TRACE"
-                ],
-                "optimize": true
-            }
-        }
-    },
-    "compile"     : "src/**/*.cs",
-    "contentFiles": ["ConnectionString.xml", "MultipleResultsTest.bsl"],
     "testRunner"  :  "xunit"
 }

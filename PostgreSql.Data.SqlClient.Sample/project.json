@@ -3,7 +3,8 @@
     "buildOptions": {
         "emitEntryPoint"  : true,
         "languageVersion" : "csharp6",
-        "platform"        : "x64"
+        "platform"        : "x64",
+        "compile"         : "src/**/*.cs"
     },
     "dependencies": {
         "Microsoft.NETCore.App": {
@@ -17,25 +18,7 @@
     "frameworks": {
         "netcoreapp1.0": { "imports": "dnxcore50" }
     },
-    "runtimes": "ubuntu.14.04-x64",
-    "configurations": {
-        "Debug": {
-            "buildOptions": {
-                "define": [
-                    "DEBUG",
-                    "TRACE"
-                ]
-            }
-        },
-        "Release": {
-            "buildOptions": {
-                "define": [
-                    "RELEASE",
-                    "TRACE"
-                ],
-                "optimize": true
-            }
-        }
-    },
-    "compile": "src/**/*.cs"
+    "runtimes": {
+        "ubuntu.14.04-x64": {}
+    }
 }
