@@ -4,7 +4,7 @@
         "languageVersion": "csharp6",
         "platform"       : "x64",
         "compile"        : "src/**/*.cs",
-        "contentFiles"   : ["ConnectionString.xml", "MultipleResultsTest.bsl"],
+        "contentFiles"   : ["ConnectionString.xml", "MultipleResultsTest.bsl"]
     },
     "dependencies": {
         "Microsoft.NETCore.App": {
