@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class WeakRefExTest
+    public class WeakRefMarsTest
     {
         private const string COMMAND_TEXT_1      = "SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax from Customers";
         private const string COMMAND_TEXT_2      = "SELECT CompanyName from Customers";

@@ -316,9 +316,9 @@ namespace System.Data.Common
         {
             return InvalidOperation("The ConnectionString property has not been initialized.");
         }
-        internal static InvalidOperationException NullEmptyTransactionName()
+        internal static ArgumentException NullEmptyTransactionName()
         {
-            return InvalidOperation("Invalid transaction or invalid name for a point at which to save within the transaction.");
+            return Argument("Invalid transaction or invalid name for a point at which to save within the transaction.");
         }
 
         internal static Exception MethodNotImplemented([CallerMemberName] string methodName = "")

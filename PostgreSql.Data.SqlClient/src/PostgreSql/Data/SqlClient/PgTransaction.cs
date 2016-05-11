@@ -92,6 +92,10 @@ namespace PostgreSql.Data.SqlClient
 
         public void Save(string savePointName)
         {
+            if (savePointName == null || savePointName.Length == 0)
+            {
+                throw ADP.NullEmptyTransactionName();
+            }
             CheckTransaction();
 
             _innerTransaction.Save(savePointName);
@@ -99,6 +103,10 @@ namespace PostgreSql.Data.SqlClient
 
         public void Commit(string savePointName)
         {
+            if (savePointName == null || savePointName.Length == 0)
+            {
+                throw ADP.NullEmptyTransactionName();
+            }
             CheckTransaction();
 
             _innerTransaction.Commit(savePointName);
@@ -106,6 +114,10 @@ namespace PostgreSql.Data.SqlClient
 
         public void Rollback(string savePointName)
         {
+            if (savePointName == null || savePointName.Length == 0)
+            {
+                throw ADP.NullEmptyTransactionName();
+            }
             CheckTransaction();
 
             _innerTransaction.Rollback(savePointName);

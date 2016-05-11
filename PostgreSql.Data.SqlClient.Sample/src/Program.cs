@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace PostgreSql.Data.SqlClient.Sample
@@ -8,11 +7,62 @@ namespace PostgreSql.Data.SqlClient.Sample
     {
         public static void Main(string[] args)
         {
-            for (int i = 0; i < 20; ++i)
+            // for (int i = 0; i < 20; ++i)
+            // {
+            //     pgsqlclient_test();
+            // }
+            test();
+        }
+
+        static void test()
+        {
+            var csb = new PgConnectionStringBuilder();
+
+            csb.DataSource      = "localhost";
+            csb.InitialCatalog  = "northwind";
+            csb.UserID          = "pgsqlclient";
+            csb.Password        = "pgsqlclient";
+            csb.Pooling         = false;
+            csb.PortNumber      = 5432;
+
+            using (PgConnection connection = new PgConnection(csb.ToString()))
             {
-                pgsqlclient_test();
+                connection.Open();
+
+                connection.ChangeDatabase("pubs");
+                
+                using (var command = new PgCommand("select * from authors", connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            
+                        }
+                    }
+                }
             }
-            // bench();
+        }
+        
+        public static void AssertException<T>(Action action, string expectedErrorMessage) where T : Exception
+        {
+            bool throws = false;
+            try
+            {
+                action();
+            }
+            catch (Exception exception)
+            {
+                throws = true;
+                System.Diagnostics.Debug.Assert(exception.Message == expectedErrorMessage);
+            }
+            finally 
+            {
+                if (!throws)
+                {
+                    throw new Exception();
+                }
+            }
         }
 
         static void pgsqlclient_test()
@@ -21,8 +71,8 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             csb.DataSource      = "localhost";
             csb.InitialCatalog  = "northwind";
-            csb.UserID          = "northwind";
-            csb.Password        = "northwind";
+            csb.UserID          = "pgsqlclient";
+            csb.Password        = "pgsqlclient";
             csb.Pooling         = false;
             csb.PortNumber      = 5432;
 
@@ -73,8 +123,8 @@ namespace PostgreSql.Data.SqlClient.Sample
 
             csb.DataSource               = "localhost";
             csb.InitialCatalog           = "northwind";
-            csb.UserID                   = "northwind";
-            csb.Password                 = "northwind";
+            csb.UserID                   = "pgsqlclient";
+            csb.Password                 = "pgsqlclient";
             csb.PortNumber               = 5432;
             csb.Encrypt                  = false;
             csb.Pooling                  = false;

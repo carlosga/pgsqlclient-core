@@ -537,7 +537,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.OpenReaderExists();
             }
 
-            if (_transaction == null && ((PgConnectionInternal)_connection.InnerConnection).HasActiveTransaction)
+            if (_transaction == null && _connection.HasActiveTransaction)
             {
                 throw ADP.TransactionRequired(memberName);
             }

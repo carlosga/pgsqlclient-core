@@ -55,7 +55,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
 #warning TODO: Review and enable if possible
                 // ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
-                ResetTables();
+                // ResetTables();
             }
             finally
             {

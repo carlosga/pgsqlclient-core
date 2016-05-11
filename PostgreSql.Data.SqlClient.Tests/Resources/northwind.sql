@@ -56,7 +56,7 @@ end;
 $$;
 
 
-ALTER FUNCTION public.raise_error(error_message text) OWNER TO northwind;
+ALTER FUNCTION public.raise_error(error_message text) OWNER TO pgsqlclient;
 
 --
 -- TOC entry 220 (class 1255 OID 20729)
@@ -72,7 +72,7 @@ end;
 $$;
 
 
-ALTER FUNCTION public.raise_notice(error_message text) OWNER TO northwind;
+ALTER FUNCTION public.raise_notice(error_message text) OWNER TO pgsqlclient;
 
 SET default_tablespace = '';
 
@@ -91,7 +91,7 @@ CREATE TABLE categories (
 );
 
 
-ALTER TABLE public.categories OWNER TO northwind;
+ALTER TABLE public.categories OWNER TO pgsqlclient;
 
 --
 -- TOC entry 183 (class 1259 OID 20487)
@@ -116,7 +116,7 @@ CREATE TABLE products (
 );
 
 
-ALTER TABLE public.products OWNER TO northwind;
+ALTER TABLE public.products OWNER TO pgsqlclient;
 
 --
 -- TOC entry 186 (class 1259 OID 20552)
@@ -155,7 +155,7 @@ CREATE SEQUENCE categories_categoryid_seq
     CACHE 1;
 
 
-ALTER TABLE public.categories_categoryid_seq OWNER TO northwind;
+ALTER TABLE public.categories_categoryid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2234 (class 0 OID 0)
@@ -183,7 +183,7 @@ CREATE TABLE orderdetails (
 );
 
 
-ALTER TABLE public.orderdetails OWNER TO northwind;
+ALTER TABLE public.orderdetails OWNER TO pgsqlclient;
 
 --
 -- TOC entry 181 (class 1259 OID 20452)
@@ -208,7 +208,7 @@ CREATE TABLE orders (
 );
 
 
-ALTER TABLE public.orders OWNER TO northwind;
+ALTER TABLE public.orders OWNER TO pgsqlclient;
 
 --
 -- TOC entry 195 (class 1259 OID 20590)
@@ -277,7 +277,7 @@ CREATE TABLE customers (
 );
 
 
-ALTER TABLE public.customers OWNER TO northwind;
+ALTER TABLE public.customers OWNER TO pgsqlclient;
 
 --
 -- TOC entry 179 (class 1259 OID 20439)
@@ -300,7 +300,7 @@ CREATE TABLE suppliers (
 );
 
 
-ALTER TABLE public.suppliers OWNER TO northwind;
+ALTER TABLE public.suppliers OWNER TO pgsqlclient;
 
 --
 -- TOC entry 185 (class 1259 OID 20548)
@@ -334,7 +334,7 @@ CREATE TABLE customercustomerdemo (
 );
 
 
-ALTER TABLE public.customercustomerdemo OWNER TO northwind;
+ALTER TABLE public.customercustomerdemo OWNER TO pgsqlclient;
 
 --
 -- TOC entry 202 (class 1259 OID 20637)
@@ -347,7 +347,7 @@ CREATE TABLE customerdemographics (
 );
 
 
-ALTER TABLE public.customerdemographics OWNER TO northwind;
+ALTER TABLE public.customerdemographics OWNER TO pgsqlclient;
 
 --
 -- TOC entry 172 (class 1259 OID 20391)
@@ -377,7 +377,7 @@ CREATE TABLE employees (
 );
 
 
-ALTER TABLE public.employees OWNER TO northwind;
+ALTER TABLE public.employees OWNER TO pgsqlclient;
 
 --
 -- TOC entry 171 (class 1259 OID 20389)
@@ -392,7 +392,7 @@ CREATE SEQUENCE employees_employeeid_seq
     CACHE 1;
 
 
-ALTER TABLE public.employees_employeeid_seq OWNER TO northwind;
+ALTER TABLE public.employees_employeeid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2235 (class 0 OID 0)
@@ -414,7 +414,7 @@ CREATE TABLE employeeterritories (
 );
 
 
-ALTER TABLE public.employeeterritories OWNER TO northwind;
+ALTER TABLE public.employeeterritories OWNER TO pgsqlclient;
 
 --
 -- TOC entry 177 (class 1259 OID 20431)
@@ -428,7 +428,7 @@ CREATE TABLE shippers (
 );
 
 
-ALTER TABLE public.shippers OWNER TO northwind;
+ALTER TABLE public.shippers OWNER TO pgsqlclient;
 
 --
 -- TOC entry 192 (class 1259 OID 20577)
@@ -505,7 +505,7 @@ CREATE SEQUENCE orders_orderid_seq
     CACHE 1;
 
 
-ALTER TABLE public.orders_orderid_seq OWNER TO northwind;
+ALTER TABLE public.orders_orderid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2236 (class 0 OID 0)
@@ -575,7 +575,7 @@ CREATE SEQUENCE products_productid_seq
     CACHE 1;
 
 
-ALTER TABLE public.products_productid_seq OWNER TO northwind;
+ALTER TABLE public.products_productid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2237 (class 0 OID 0)
@@ -647,7 +647,7 @@ CREATE TABLE region (
 );
 
 
-ALTER TABLE public.region OWNER TO northwind;
+ALTER TABLE public.region OWNER TO pgsqlclient;
 
 --
 -- TOC entry 203 (class 1259 OID 20643)
@@ -662,7 +662,7 @@ CREATE SEQUENCE region_regionid_seq
     CACHE 1;
 
 
-ALTER TABLE public.region_regionid_seq OWNER TO northwind;
+ALTER TABLE public.region_regionid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2238 (class 0 OID 0)
@@ -724,7 +724,7 @@ CREATE SEQUENCE shippers_shipperid_seq
     CACHE 1;
 
 
-ALTER TABLE public.shippers_shipperid_seq OWNER TO northwind;
+ALTER TABLE public.shippers_shipperid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2239 (class 0 OID 0)
@@ -780,7 +780,7 @@ CREATE SEQUENCE suppliers_supplierid_seq
     CACHE 1;
 
 
-ALTER TABLE public.suppliers_supplierid_seq OWNER TO northwind;
+ALTER TABLE public.suppliers_supplierid_seq OWNER TO pgsqlclient;
 
 --
 -- TOC entry 2240 (class 0 OID 0)
@@ -803,7 +803,7 @@ CREATE TABLE territories (
 );
 
 
-ALTER TABLE public.territories OWNER TO northwind;
+ALTER TABLE public.territories OWNER TO pgsqlclient;
 
 --
 -- TOC entry 1996 (class 2604 OID 20413)
@@ -4791,7 +4791,7 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
-GRANT ALL ON SCHEMA public TO northwind;
+GRANT ALL ON SCHEMA public TO pgsqlclient;
 
 
 -- Completed on 2016-03-26 19:30:52 CET

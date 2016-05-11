@@ -83,11 +83,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Save(string savePointName)
         {
-            if (savePointName == null || savePointName.Length == 0)
-            {
-                throw ADP.NullEmptyTransactionName();
-            }
-
             using (var stmt = _connection.CreateStatement($"SAVEPOINT {savePointName}"))
             {
                 stmt.Query();
@@ -96,11 +91,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Commit(string savePointName)
         {
-            if (savePointName == null || savePointName.Length == 0)
-            {
-                throw ADP.NullEmptyTransactionName();
-            }
-
             using (var stmt = _connection.CreateStatement($"RELEASE SAVEPOINT {savePointName}"))
             {
                 stmt.Query();
@@ -109,11 +99,6 @@ namespace PostgreSql.Data.Frontend
 
         internal void Rollback(string savePointName)
         {
-            if (savePointName == null || savePointName.Length == 0)
-            {
-                throw ADP.NullEmptyTransactionName();
-            }
-
             using (var stmt = _connection.CreateStatement($"ROLLBACK WORK TO SAVEPOINT {savePointName}"))
             {
                 stmt.Query();

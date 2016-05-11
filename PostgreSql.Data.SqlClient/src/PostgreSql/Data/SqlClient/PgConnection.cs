@@ -73,6 +73,19 @@ namespace PostgreSql.Data.SqlClient
 
         internal bool ForceNewConnection { get; set; }
 
+        internal bool HasActiveTransaction
+        {
+            get 
+            {
+                var innerConnection = _innerConnection as PgConnectionInternal;
+                if (innerConnection == null)
+                {
+                    throw ADP.ClosedConnectionError();
+                }                
+                return innerConnection.HasActiveTransaction;
+            }
+        }
+
         internal DbConnectionPoolGroup PoolGroup
         { 
             get { return _poolGroup; }
@@ -160,6 +173,10 @@ namespace PostgreSql.Data.SqlClient
 
         public new PgTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
+            if (HasActiveTransaction)
+            {
+                throw ADP.ParallelTransactionsNotSupported(this);
+            }
             return _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
         }
 
@@ -167,11 +184,14 @@ namespace PostgreSql.Data.SqlClient
 
         public PgTransaction BeginTransaction(IsolationLevel isolationLevel, string transactionName)
         {
-            if (String.IsNullOrEmpty(transactionName))
+            if (HasActiveTransaction)
+            {
+                throw ADP.ParallelTransactionsNotSupported(this);
+            }
+            if (transactionName == null || transactionName.Length == 0)
             {
                 throw ADP.NullEmptyTransactionName();
             }
-
             var transaction = _innerConnection.BeginTransaction(isolationLevel) as PgTransaction;
             if (transaction != null)
             {

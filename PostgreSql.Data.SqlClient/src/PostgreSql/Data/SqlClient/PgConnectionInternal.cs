@@ -136,11 +136,6 @@ namespace PostgreSql.Data.SqlClient
 
         internal override DbTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
-            if (HasActiveTransaction)
-            {
-                throw ADP.ParallelTransactionsNotSupported(OwningConnection);
-            }
-
             var transaction = new PgTransaction(OwningConnection, _connection.CreateTransaction(isolationLevel));
 
             transaction.Begin();

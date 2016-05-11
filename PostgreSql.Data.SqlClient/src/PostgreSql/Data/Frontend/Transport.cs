@@ -61,6 +61,9 @@ namespace PostgreSql.Data.Frontend
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
+                _buffer         = null;
+                _pendingMessage = 0;
+                _packetSize     = 0;
 
                 _disposed = true;
             }
@@ -406,9 +409,6 @@ namespace PostgreSql.Data.Frontend
             _secureStream   = null;
             _networkStream  = null;
             _socket         = null;
-            _buffer         = null;
-            _pendingMessage = 0;
-            _packetSize     = 0;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

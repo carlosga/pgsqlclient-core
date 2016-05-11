@@ -209,10 +209,24 @@ namespace PostgreSql.Data.Frontend
 
                 // Reopen against the new database
                 OpenInternal();
+
+                ReleaseLock();
+            }
+            catch
+            {
+                ReleaseLock();
+
+                Close();
+
+                throw;
             }
             finally
             {
-                ReleaseLock();
+                if (_open)
+                {
+                    _typeInfoProvider             = TypeInfoProviderCache.GetOrAdd(this);
+                    _sessionData.TypeInfoProvider = _typeInfoProvider;
+                }
             }
         }
 
