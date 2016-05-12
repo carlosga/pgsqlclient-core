@@ -387,21 +387,15 @@ namespace System.Data.ProviderBase
                 // timer allocation has to be done out of CER block
                 Timer t = new Timer(new TimerCallback(this.ErrorCallback), null, Timeout.Infinite, Timeout.Infinite);
                 bool timerIsNotDisposed;
-#warning Empty Try ??
-                try 
-                {
-                }
-                finally
-                {
-                    _waitHandles.ErrorEvent.Set();
-                    _errorOccurred = true;
 
-                    // Enable the timer.
-                    // Note that the timer is created to allow periodic invocation. If ThreadAbort occurs in the middle of ErrorCallback,
-                    // the timer will restart. Otherwise, the timer callback (ErrorCallback) destroys the timer after resetting the error to avoid second callback.
-                    _errorTimer = t;
-                    timerIsNotDisposed = t.Change(_errorWait, _errorWait);
-                }
+                _waitHandles.ErrorEvent.Set();
+                _errorOccurred = true;
+
+                // Enable the timer.
+                // Note that the timer is created to allow periodic invocation. If ThreadAbort occurs in the middle of ErrorCallback,
+                // the timer will restart. Otherwise, the timer callback (ErrorCallback) destroys the timer after resetting the error to avoid second callback.
+                _errorTimer = t;
+                timerIsNotDisposed = t.Change(_errorWait, _errorWait);
 
                 Debug.Assert(timerIsNotDisposed, "ErrorCallback timer has been disposed");
 
@@ -507,10 +501,6 @@ namespace System.Data.ProviderBase
                 _totalObjects = _objectList.Count;
             }
 
-#warning TODO: Should the obj.Dispose call be inside the if block ??
-            if (removed)
-            {
-            }
             obj.Dispose();
         }
 
@@ -555,15 +545,7 @@ namespace System.Data.ProviderBase
 
                 try
                 {
-#warning Empty Try
-                    try 
-                    {
-                    }
-                    finally
-                    {
-                        started = Interlocked.CompareExchange(ref _pendingOpensWaiting, 1, 0) == 0;
-                    }
-
+                    started = Interlocked.CompareExchange(ref _pendingOpensWaiting, 1, 0) == 0;
                     if (!started)
                     {
                         return;
@@ -702,14 +684,7 @@ namespace System.Data.ProviderBase
                     int waitResult = BOGUS_HANDLE;
                     try
                     {
-#warning TODO: Empty try
-                        try
-                        {
-                        }
-                        finally
-                        {
-                            waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(allowCreate), unchecked((int)waitForMultipleObjectsTimeout));
-                        }
+                        waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(allowCreate), unchecked((int)waitForMultipleObjectsTimeout));
 
                         // From the WaitAny docs: "If more than one object became signaled during
                         // the call, this is the array index of the signaled object with the
@@ -892,17 +867,7 @@ namespace System.Data.ProviderBase
                 Debug.Assert(obj != null, "null connection is not expected");
             }
 
-            // When another thread is clearing this pool,  
-            // it will remove all connections in this pool which causes the 
-            // following assert to fire, which really mucks up stress against
-            //  checked bits.
-
-#warning Empty if
-            if (null != obj)
-            {
-            }
-
-            return (obj);
+            return obj;
         }
 
         private void PoolCreateRequest(object state)
@@ -932,14 +897,7 @@ namespace System.Data.ProviderBase
                         int waitResult = BOGUS_HANDLE;
                         try
                         {
-#warning Empty try
-                            try 
-                            {
-                            }
-                            finally
-                            {
-                                waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(withCreate: true), CreationTimeout);
-                            }
+                            waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(withCreate: true), CreationTimeout);
                             if (CREATION_HANDLE == waitResult)
                             {
                                 DbConnectionInternal newObj;
