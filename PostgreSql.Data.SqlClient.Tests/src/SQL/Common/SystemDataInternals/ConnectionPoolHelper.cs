@@ -20,7 +20,7 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         private static Type s_dbConnectionPoolGroup = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionPoolGroup");
         private static Type s_dbConnectionPoolIdentity = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionPoolIdentity");
         private static Type s_dbConnectionFactory = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionFactory");
-        private static Type s_sqlConnectionFactory = s_systemDotData.GetType("System.Data.SqlClient.SqlConnectionFactory");
+        private static Type s_sqlConnectionFactory = s_systemDotData.GetType("PostgreSql.Data.SqlClient.PgConnectionFactory");
         private static Type s_dbConnectionPoolKey = s_systemDotData.GetType("System.Data.Common.DbConnectionPoolKey");
         private static Type s_dictStringPoolGroup = typeof(Dictionary<,>).MakeGenericType(s_dbConnectionPoolKey, s_dbConnectionPoolGroup);
         private static Type s_dictPoolIdentityPool = typeof(ConcurrentDictionary<,>).MakeGenericType(s_dbConnectionPoolIdentity, s_dbConnectionPool);
@@ -51,18 +51,20 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         /// <returns></returns>
         public static List<Tuple<object, object>> AllConnectionPools()
         {
-            List<Tuple<object, object>> connectionPools = new List<Tuple<object, object>>();
-            object factorySingleton = s_sqlConnectionFactorySingleton.GetValue(null);
-            object AllPoolGroups = s_dbConnectionFactoryPoolGroupList.GetValue(factorySingleton);
-            ICollection connectionPoolKeys = (ICollection)s_dictStringPoolGroupGetKeys.GetValue(AllPoolGroups, null);
+            var connectionPools    = new List<Tuple<object, object>>();
+            var factorySingleton   = s_sqlConnectionFactorySingleton.GetValue(null);
+            var AllPoolGroups      = s_dbConnectionFactoryPoolGroupList.GetValue(factorySingleton);
+            var connectionPoolKeys = (ICollection)s_dictStringPoolGroupGetKeys.GetValue(AllPoolGroups, null);
+            
             foreach (var item in connectionPoolKeys)
             {
                 object[] args = new object[] { item, null };
+                
                 s_dictStringPoolGroupTryGetValue.Invoke(AllPoolGroups, args);
                 if (args[1] != null)
                 {
-                    object poolCollection = s_dbConnectionPoolGroupPoolCollection.GetValue(args[1]);
-                    IEnumerable poolList = (IEnumerable)(s_dictPoolIdentityPoolValues.GetValue(poolCollection));
+                    var poolCollection = s_dbConnectionPoolGroupPoolCollection.GetValue(args[1]);
+                    var poolList       = (IEnumerable)(s_dictPoolIdentityPoolValues.GetValue(poolCollection));
                     foreach (object pool in poolList)
                     {
                         connectionPools.Add(new Tuple<object, object>(pool, item));
@@ -81,13 +83,16 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         public static object ConnectionPoolFromString(string connectionString)
         {
             if (connectionString == null)
+            {
                 throw new ArgumentNullException("connectionString");
+            }
 
-            object pool = null;
+            object pool             = null;
             object factorySingleton = s_sqlConnectionFactorySingleton.GetValue(null);
-            object AllPoolGroups = s_dbConnectionFactoryPoolGroupList.GetValue(factorySingleton);
-            object[] args = new object[] { connectionString, null };
-            bool found = (bool)s_dictStringPoolGroupTryGetValue.Invoke(AllPoolGroups, args);
+            object allPoolGroups    = s_dbConnectionFactoryPoolGroupList.GetValue(factorySingleton);
+            var    args             = new object[] { connectionString, null };
+            bool   found            = (bool)s_dictStringPoolGroupTryGetValue.Invoke(allPoolGroups, args);
+            
             if ((found) && (args[1] != null))
             {
                 ICollection poolList = (ICollection)s_dictPoolIdentityPoolValues.GetValue(args[1]);
@@ -129,9 +134,13 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         private static void VerifyObjectIsPool(object pool)
         {
             if (pool == null)
+            {
                 throw new ArgumentNullException("pool");
+            }
             if (!s_dbConnectionPool.IsInstanceOfType(pool))
+            {
                 throw new ArgumentException("Object provided was not a DbConnectionPool", "pool");
+            }
         }
     }
 }

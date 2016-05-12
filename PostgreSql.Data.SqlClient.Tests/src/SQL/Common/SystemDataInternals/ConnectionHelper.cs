@@ -14,13 +14,11 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
     {
         private static Assembly     s_systemDotData                         = Assembly.Load(new AssemblyName(typeof(PgConnection).GetTypeInfo().Assembly.FullName));
         private static Type         s_sqlConnection                         = s_systemDotData.GetType("PostgreSql.Data.SqlClient.PgConnection");
-        private static Type         s_sqlInternalConnection                 = s_systemDotData.GetType("PostgreSql.Data.SqlClient.PgInternalConnection");
-        private static Type         s_sqlInternalConnectionTds              = s_systemDotData.GetType("PostgreSql.Data.SqlClient.PgInternalConnectionTds");
+        private static Type         s_sqlInternalConnection                 = s_systemDotData.GetType("PostgreSql.Data.SqlClient.PgConnectionInternal");
         private static Type         s_dbConnectionInternal                  = s_systemDotData.GetType("System.Data.ProviderBase.DbConnectionInternal");
         private static PropertyInfo s_sqlConnectionInternalConnection       = s_sqlConnection.GetProperty("InnerConnection", BindingFlags.Instance | BindingFlags.NonPublic);
         private static PropertyInfo s_dbConnectionInternalPool              = s_dbConnectionInternal.GetProperty("Pool", BindingFlags.Instance | BindingFlags.NonPublic);
         private static MethodInfo   s_dbConnectionInternalIsConnectionAlive = s_dbConnectionInternal.GetMethod("IsConnectionAlive", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static FieldInfo    s_sqlInternalConnectionTdsParser        = s_sqlInternalConnectionTds.GetField("_parser", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public static object GetConnectionPool(object internalConnection)
         {
@@ -44,9 +42,13 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         private static void VerifyObjectIsInternalConnection(object internalConnection)
         {
             if (internalConnection == null)
+            {
                 throw new ArgumentNullException("internalConnection");
+            }
             if (!s_dbConnectionInternal.IsInstanceOfType(internalConnection))
+            {
                 throw new ArgumentException("Object provided was not a DbConnectionInternal", "internalConnection");
+            }
         }
     }
 }

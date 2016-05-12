@@ -10,7 +10,7 @@ using PostgreSql.Data.SqlClient.Tests.SystemDataInternals;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class ConnectionPoolWrapper
+    public sealed class ConnectionPoolWrapper
     {
         private object _connectionPool = null;
 
@@ -22,13 +22,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         public ConnectionPoolWrapper(PgConnection connection)
         {
             if (connection == null)
+            {
                 throw new ArgumentNullException("connection");
+            }
 
             _connectionPool = ConnectionHelper.GetConnectionPool(connection.GetInternalConnection());
             ConnectionString = connection.ConnectionString;
 
             if (_connectionPool == null)
+            {
                 throw new ArgumentException("Provided connection does not have a connection pool", "connection");
+            }
         }
 
         /// <summary>
@@ -39,12 +43,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         public ConnectionPoolWrapper(string connectionString)
         {
             if (connectionString == null)
+            {
                 throw new ArgumentNullException("connectionString");
+            }
 
             ConnectionString = connectionString;
             _connectionPool = ConnectionPoolHelper.ConnectionPoolFromString(connectionString);
+
             if (_connectionPool == null)
+            {
                 throw new ArgumentException("No pool exists for the provided connection string", "connectionString");
+            }
         }
 
         /// <summary>
@@ -57,23 +66,24 @@ namespace PostgreSql.Data.SqlClient.Tests
             ConnectionString = connectionString;
 
             if (_connectionPool == null)
+            {
                 throw new ArgumentException("Provided internal connection does not have a connection pool", "internalConnection");
+            }
         }
 
         private ConnectionPoolWrapper()
-        { }
+        { 
+        }
 
         /// <summary>
         /// The number of connections in this connection pool (free + non-free; including transaction pools)
         /// </summary>
-        public int ConnectionCount
-        { get { return ConnectionPoolHelper.CountConnectionsInPool(_connectionPool); } }
+        public int ConnectionCount => ConnectionPoolHelper.CountConnectionsInPool(_connectionPool); 
 
         /// <summary>
         /// Counts the number of free connection in the pool (excluding any transaction pools)
         /// </summary>
-        public int FreeConnectionCount
-        { get { return ConnectionPoolHelper.CountFreeConnections(_connectionPool); } }
+        public int FreeConnectionCount => ConnectionPoolHelper.CountFreeConnections(_connectionPool);
 
         /// <summary>
         /// The connection string associated with this connection pool
@@ -106,7 +116,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         public bool ContainsConnection(PgConnection connection)
         {
             if (connection == null)
+            {
                 throw new ArgumentNullException("connection");
+            }
 
             return (_connectionPool == ConnectionHelper.GetConnectionPool(connection.GetInternalConnection()));
         }

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class DataSourceBuilder
+    public sealed class DataSourceBuilder
     {
         public DataSourceBuilder(string dataSource)
         {
