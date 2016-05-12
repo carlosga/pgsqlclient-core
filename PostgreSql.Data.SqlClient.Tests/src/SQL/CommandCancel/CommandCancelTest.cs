@@ -6,7 +6,6 @@
 
 using Xunit;
 using System.Threading;
-using System.Data.Common;
 using System.Data;
 using System;
 
@@ -17,7 +16,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         // Shrink the packet size - this should make timeouts more likely
         private static string s_constr = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { PacketSize = 512 }).ConnectionString;
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public void MultiThreadedCancel_NonAsync()
         {
             MultiThreadedCancel(s_constr, false);
@@ -43,7 +42,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public void MultiThreadedCancel(string constr, bool async)
         {
-            using (PgConnection con = new PgConnection(constr))
+            using (var con = new PgConnection(constr))
             {
                 con.Open();
                 var command = con.CreateCommand();
@@ -65,7 +64,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private void TimeoutCancel(string constr)
         {
-            using (PgConnection con = new PgConnection(constr + ";Command Timeout=1"))
+            using (var con = new PgConnection(constr + ";Command Timeout=1"))
             {
                 con.Open();
                 PgCommand cmd = con.CreateCommand();
@@ -165,7 +164,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             try
             {
-                using (PgConnection conn = new PgConnection(constr))
+                using (var conn = new PgConnection(constr))
                 {
                     // Start the command
                     conn.Open();

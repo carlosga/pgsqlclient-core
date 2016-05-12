@@ -5,7 +5,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
-using System.Data;
 using System.Collections;
 using System.Globalization;
 using System;

@@ -6,7 +6,6 @@
 
 using Xunit;
 using System.Data.Common;
-using System.IO;
 using System.Text;
 
 namespace PostgreSql.Data.SqlClient.Tests
@@ -23,15 +22,14 @@ namespace PostgreSql.Data.SqlClient.Tests
             var provider = PostgreSqlClientFactory.Instance;
             try
             {
-                using (DbConnection con = provider.CreateConnection())
+                using (var con = provider.CreateConnection())
                 {
                     con.ConnectionString = connectionString;
                     con.Open();
 
-                    using (DbCommand cmd = provider.CreateCommand())
+                    using (var cmd = provider.CreateCommand())
                     {
                         cmd.Connection = con;
-                        DbTransaction tx;
 
                         #region <<Create temp table>>
                         cmd.CommandText = $"SELECT au_id, au_lname, au_fname, phone, address, city, state, zip, contract into {tempTable} from authors where au_id='UNKNOWN-ID'";
@@ -42,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                         #endregion
 
-                        tx = con.BeginTransaction();
+                        var tx = con.BeginTransaction();
                         cmd.Transaction = tx;
 
                         cmd.CommandText = $"insert into {tempTable} (au_id, au_lname, au_fname, phone, address, city, state, zip, contract) values ('876-54-3210', 'Doe', 'Jane' , '882-8080', 'One Microsoft Way', 'Redmond', 'WA', '98052', false)";
@@ -56,7 +54,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         cmd.Transaction = null;
                         
                         string parameterName = "@p1";
-                        DbParameter p1 = cmd.CreateParameter();
+                        var p1 = cmd.CreateParameter();
                         p1.ParameterName = parameterName;
                         p1.Value = "876-54-3210";
                         cmd.Parameters.Add(p1);
@@ -64,9 +62,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                         cmd.CommandText = $"select * from {tempTable} where au_id >= {parameterName}";
 
                         // Test GetValue + IsDBNull
-                        using (DbDataReader rdr = cmd.ExecuteReader())
+                        using (var rdr = cmd.ExecuteReader())
                         {
-                            StringBuilder actualResult = new StringBuilder();
+                            var actualResult = new StringBuilder();
                             int currentValue = 0;
                             string[] expectedValues =
                             {
@@ -100,7 +98,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         }
 
                         // Test GetFieldValue<T> + IsDBNull
-                        using (DbDataReader rdr = cmd.ExecuteReader())
+                        using (var rdr = cmd.ExecuteReader())
                         {
                             var      actualResult   = new StringBuilder();
                             int      currentValue   = 0;
@@ -147,7 +145,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         }
 
                         // Test GetFieldValueAsync<T> + IsDBNullAsync
-                        using (DbDataReader rdr = cmd.ExecuteReaderAsync().Result)
+                        using (var rdr = cmd.ExecuteReaderAsync().Result)
                         {
                             var      actualResult   = new StringBuilder();
                             int      currentValue   = 0;
@@ -251,12 +249,12 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
             finally
             {
-                using (DbConnection con = provider.CreateConnection())
+                using (var con = provider.CreateConnection())
                 {
                     con.ConnectionString = connectionString;
                     con.Open();
 
-                    using (DbCommand cmd = provider.CreateCommand())
+                    using (var cmd = provider.CreateCommand())
                     {
                         cmd.Connection  = con;
                         cmd.CommandText = $"DROP TABLE {tempTable}";

@@ -7,7 +7,6 @@
 using PostgreSql.Data.PgTypes;
 using System.Collections;
 using System.Diagnostics;
-using System.Globalization;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests

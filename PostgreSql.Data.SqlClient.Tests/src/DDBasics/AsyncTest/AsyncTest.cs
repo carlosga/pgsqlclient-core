@@ -5,14 +5,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Data;
 using System.Threading.Tasks;
 using System;
 using Xunit;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class DDAsyncTest
+    public sealed class DDAsyncTest
     {
         [Fact(Skip="disabled")]
         public void OpenConnection_WithAsyncTrue_ThrowsNotSupportedException()
@@ -91,7 +90,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             var cmd = new PgCommand(cmdText, conn);
 
-            using (PgDataReader reader = (PgDataReader)await cmd.ExecuteReaderAsync())
+            using (var reader = (PgDataReader)await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {

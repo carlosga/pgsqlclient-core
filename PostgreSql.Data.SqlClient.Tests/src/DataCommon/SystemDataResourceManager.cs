@@ -5,7 +5,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -13,7 +12,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     /// Allows user to get resource messages from system.data.sqlclient.dll using dynamic properties/methods.
     /// Refer to comments inside AssemblyResourceManager.cs for more details.
     /// </summary>
-    public class SystemDataResourceManager
+    public sealed class SystemDataResourceManager
         : AssemblyResourceManager
     {
         private static SystemDataResourceManager s_instance = new SystemDataResourceManager();
@@ -24,7 +23,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
         
         private SystemDataResourceManager() 
-            : base(typeof(PostgreSql.Data.SqlClient.PgConnection).GetTypeInfo().Assembly)
+            : base(typeof(PgConnection).GetTypeInfo().Assembly)
         {
         }
     }

@@ -33,15 +33,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             get
             {
                 if (_eventLog == null)
+                {
                     _eventLog = new StringBuilder();
+                }
                 if (_eventLog.Length == 0)
+                {
                     _eventLog.Append(s_logHeader);
+                }
                 return _eventLog;
             }
-            set
-            {
-                _eventLog = value;
-            }
+            set { _eventLog = value; }
         }
 
         /// <summary>
@@ -112,16 +113,20 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// Default constructor
         /// </summary>
-        public ProxyServer(int simulatedNetworkDelay = 0, int simulatedPacketDelay = 0, bool simulatedInDelay = false, bool simulatedOutDelay = false, int bufferSize = 8192)
+        public ProxyServer(int  simulatedNetworkDelay = 0
+                         , int  simulatedPacketDelay  = 0
+                         , bool simulatedInDelay      = false
+                         , bool simulatedOutDelay     = false
+                         , int  bufferSize            = 8192)
         {
-            SyncRoot = new object();
-            Connections = new List<ProxyServerConnection>();
+            SyncRoot              = new object();
+            Connections           = new List<ProxyServerConnection>();
             SimulatedNetworkDelay = simulatedNetworkDelay;
-            SimulatedPacketDelay = simulatedPacketDelay;
-            SimulatedInDelay = simulatedInDelay;
-            SimulatedOutDelay = simulatedOutDelay;
-            BufferSize = bufferSize;
-            PermitCopying = new ManualResetEventSlim(true);
+            SimulatedPacketDelay  = simulatedPacketDelay;
+            SimulatedInDelay      = simulatedInDelay;
+            SimulatedOutDelay     = simulatedOutDelay;
+            BufferSize            = bufferSize;
+            PermitCopying         = new ManualResetEventSlim(true);
         }
 
         /// <summary>
@@ -315,22 +320,22 @@ namespace PostgreSql.Data.SqlClient.Tests
         public static ProxyServer CreateAndStartProxy(string connectionString, out string newConnectionString)
         {
             // Build builders
-            PgConnectionStringBuilder connStringbuilder = new PgConnectionStringBuilder(connectionString);
-            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder(connStringbuilder.DataSource);
+            var connStringbuilder = new PgConnectionStringBuilder(connectionString);
+            var dataSourceBuilder = new DataSourceBuilder(connStringbuilder.DataSource);
 
             // Setup proxy
             Task<System.Net.IPHostEntry> ipEntryTask = Dns.GetHostEntryAsync(dataSourceBuilder.ServerName);
             ipEntryTask.Wait();
             System.Net.IPHostEntry serverIpEntry = ipEntryTask.Result;
 
-            ProxyServer proxy = new ProxyServer();
+            var proxy = new ProxyServer();
             proxy.RemoteEndpoint = new IPEndPoint(serverIpEntry.AddressList[0], dataSourceBuilder.Port ?? 1433);
             proxy.Start();
 
             // Switch connection over
-            dataSourceBuilder.Protocol = "tcp";
+            dataSourceBuilder.Protocol   = "tcp";
             dataSourceBuilder.ServerName = "127.0.0.1";
-            dataSourceBuilder.Port = proxy.LocalPort;
+            dataSourceBuilder.Port       = proxy.LocalPort;
             connStringbuilder.DataSource = dataSourceBuilder.ToString();
             connStringbuilder.Remove("Network Library");
 
@@ -370,7 +375,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         public ProxyServerConnection(Socket incomingConnection, ProxyServer server)
         {
             IncomingConnection = incomingConnection;
-            Server = server;
+            Server             = server;
         }
 
         /// <summary>
@@ -435,9 +440,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                     if (DataAvailable)
                     {
                         // Poll the sockets
-                        if ((IncomingConnection.Poll(100, SelectMode.SelectRead) && !inStream.DataAvailable) ||
-                            (OutgoingConnection.Poll(100, SelectMode.SelectRead) && !outStream.DataAvailable))
-                            break;
+                        if ((IncomingConnection.Poll(100, SelectMode.SelectRead) && !inStream.DataAvailable) 
+                         || (OutgoingConnection.Poll(100, SelectMode.SelectRead) && !outStream.DataAvailable))
+                        {
+                             break;
+                        }
 
                         Thread.Sleep(10);
                     }
@@ -461,7 +468,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                 IncomingConnection.Dispose();
                 OutgoingConnection.Dispose();
             }
-            catch (Exception) { }
+            catch (Exception) 
+            {
+            }
 
             // Logging disconnection message
             Server.Log("Connection closed");
@@ -480,8 +489,8 @@ namespace PostgreSql.Data.SqlClient.Tests
             var outBytes = new List<Tuple<byte[], int>>();
             while (readStream.DataAvailable)
             {
-                byte[] buffer = new byte[Server.BufferSize];
-                int numBytes = readStream.Read(buffer, 0, buffer.Length);
+                byte[] buffer   = new byte[Server.BufferSize];
+                int    numBytes = readStream.Read(buffer, 0, buffer.Length);
                 outBytes.Add(new Tuple<byte[], int>(buffer, numBytes));
                 Server.Log("\tRead {0} bytes from {1}", numBytes, readStreamName);
             }

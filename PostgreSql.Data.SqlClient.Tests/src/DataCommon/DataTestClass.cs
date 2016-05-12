@@ -17,6 +17,7 @@ using System.Xml;
 using System.Threading.Tasks;
 using System;
 using Xunit;
+using PostgreSql.Data.PgTypes;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -24,8 +25,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     {
         protected static StringBuilder globalBuilder = new StringBuilder();
         public static readonly string BinariesDropPath = (Environment.GetEnvironmentVariable("BVT_BinariesDropPath") ?? Environment.GetEnvironmentVariable("_NTPOSTBLD")) ?? Environment.GetEnvironmentVariable("DD_BuiltTarget");
-        public static readonly string SuiteBinPath = (BinariesDropPath == null) ? string.Empty : System.IO.Path.Combine(BinariesDropPath, "SuiteBin");
-
+        
         private static Dictionary<string, string> s_xmlConnectionStringMap = null;
         private static readonly object s_connStringMapLock = new object();
 
@@ -98,12 +98,12 @@ namespace PostgreSql.Data.SqlClient.Tests
                             var connectionStringKey   = node.Attributes["id"].Value;
                             var connectionStringXml   = node.FirstChild as XmlText;
                             var connectionStringValue = connectionStringXml.Data;
-                                                        
+
                             s_xmlConnectionStringMap[connectionStringKey] = connectionStringValue;
                         }
                     }
-                }                
-            }            
+                }
+            }
         }
 
         public static string PostgreSql9_Northwind { get { return GetConnectionString("PostgreSql9_Northwind"); } }
@@ -141,7 +141,6 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         // creates temporary table name for PostgreSql Server
-        // public static string UniqueTempTableName => GetUniqueNameForSqlServer("#T");
         public static string UniqueTempTableName => GetUniqueNameForPostgreSql("#T");
 
         public static void PrintException(Type expected, Exception e, params string[] values)
@@ -240,7 +239,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         public static void AssemblyFilter(StringBuilder builder)
         {
             string[] filter = s_outputFilter;
-            if (null == filter)
+            if (filter == null)
             {
                 filter = new string[5];
                 string tmp = typeof(System.Guid).AssemblyQualifiedName;
@@ -262,12 +261,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             return (
                 (value is DateTime) ? ((DateTime)value).ToString("MM/dd/yyyy HH:mm:ss", DateTimeFormatInfo.InvariantInfo) :
-                (value is decimal) ? ((decimal)value).ToString(NumberFormatInfo.InvariantInfo) :
-                (value is double) ? ((double)value).ToString(NumberFormatInfo.InvariantInfo) :
-                (value is float) ? ((float)value).ToString(NumberFormatInfo.InvariantInfo) :
-                (value is short) ? ((short)value).ToString(NumberFormatInfo.InvariantInfo) :
-                (value is int) ? ((int)value).ToString(NumberFormatInfo.InvariantInfo) :
-                (value is long) ? ((Int64)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is decimal)  ? ((decimal)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is double)   ? ((double)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is float)    ? ((float)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is short)    ? ((short)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is int)      ? ((int)value).ToString(NumberFormatInfo.InvariantInfo) :
+                (value is long)     ? ((Int64)value).ToString(NumberFormatInfo.InvariantInfo) :
                 /*default: */ value.ToString()
             );
         }
@@ -412,7 +411,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 return;
             }
-            if (null == value)
+            if (value == null)
             {
                 textWriter.Write("DEFAULT");
             }
@@ -468,11 +467,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                     textWriter.Write(((decimal)value).ToString(cultureInfo));
                     textWriter.Write(">");
                 }
-                // else if (value is INullable && ((INullable)value).IsNull)
-                // {
-                //     textWriter.Write(valuetype.Name);
-                //     textWriter.Write(" ISNULL");
-                // }
+                else if (value is INullable && ((INullable)value).IsNull)
+                {
+                    textWriter.Write(valuetype.Name);
+                    textWriter.Write(" ISNULL");
+                }
                 else if (valuetype.IsArray)
                 {
                     textWriter.Write(valuetype.Name);
@@ -642,7 +641,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             textWriter.Write(buf, 0, indent * 4);
         }
 
-        private class FieldInfoCompare : IComparer
+        private sealed class FieldInfoCompare : IComparer
         {
             internal static FieldInfoCompare Default = new FieldInfoCompare();
 
@@ -659,7 +658,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        private class PropertyInfoCompare : IComparer
+        private sealed class PropertyInfoCompare : IComparer
         {
             internal static PropertyInfoCompare Default = new PropertyInfoCompare();
 
@@ -679,9 +678,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         private static bool CheckException<TException>(Exception ex, string exceptionMessage, bool innerExceptionMustBeNull) 
             where TException : Exception
         {
-            return ((ex != null) && (ex is TException) &&
-                ((string.IsNullOrEmpty(exceptionMessage)) || (ex.Message.Contains(exceptionMessage))) &&
-                ((!innerExceptionMustBeNull) || (ex.InnerException == null)));
+            return ((ex != null) 
+                 && (ex is TException) 
+                 && ((string.IsNullOrEmpty(exceptionMessage)) || (ex.Message.Contains(exceptionMessage))) 
+                 && ((!innerExceptionMustBeNull) || (ex.InnerException == null)));
         }
 
         public static void AssertEqualsWithDescription(object expectedValue, object actualValue, string failMessage)
@@ -923,7 +923,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
 
             var startIndex = findDiffLength - 1;
-            if (startIndex < 0) startIndex = 0;
+            if (startIndex < 0)
+            {
+                startIndex = 0;
+            }
 
             if (findDiffLength < expectedLength)
             {

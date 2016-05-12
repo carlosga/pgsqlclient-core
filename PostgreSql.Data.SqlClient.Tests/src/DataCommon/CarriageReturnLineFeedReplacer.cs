@@ -24,8 +24,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         internal CarriageReturnLineFeedReplacer(TextWriter output)
         {
             if (output == null)
+            {
                 throw new ArgumentNullException("output");
-
+            }
             _output = output;
         }
 

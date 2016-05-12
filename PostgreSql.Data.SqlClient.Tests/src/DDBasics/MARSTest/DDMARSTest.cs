@@ -18,17 +18,17 @@ namespace PostgreSql.Data.SqlClient.Tests
             int[]  expected = new int[] { 1, 2, 3 };
             int    index    = 0;
             
-            using (PgConnection connection = new PgConnection(connstr))
+            using (var connection = new PgConnection(connstr))
             {
                 connection.Open();
 
-                using (PgCommand command = new PgCommand(sql, connection))
+                using (var command = new PgCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@1", expected[0]);
                     command.Parameters.AddWithValue("@2", expected[1]);
                     command.Parameters.AddWithValue("@3", expected[2]);
 
-                    using (PgDataReader reader = command.ExecuteReader())
+                    using (var reader = command.ExecuteReader())
                     {
                         do 
                         {
@@ -51,19 +51,19 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 conn.Open();
 
-                using (PgTransaction tran = conn.BeginTransaction())
+                using (var tran = conn.BeginTransaction())
                 {
-                    PgCommand cmd1   = conn.CreateCommand();
+                    var cmd1 = conn.CreateCommand();
                     cmd1.Transaction = tran;
                     cmd1.CommandText = cmdText1;
 
-                    using (PgDataReader reader1 = cmd1.ExecuteReader())
+                    using (var reader1 = cmd1.ExecuteReader())
                     {
-                        PgCommand cmd2 = conn.CreateCommand();
+                        var cmd2 = conn.CreateCommand();
                         cmd2.Transaction = tran;
                         cmd2.CommandText = cmdText2;
 
-                        using (PgDataReader reader2 = cmd2.ExecuteReader())
+                        using (var reader2 = cmd2.ExecuteReader())
                         {
                             long actualOrderCount = 0;
                             while (reader1.Read())

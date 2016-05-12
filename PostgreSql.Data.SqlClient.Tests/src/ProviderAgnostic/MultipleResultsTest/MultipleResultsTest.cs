@@ -38,7 +38,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 connection.Open();
 
-                using (DbCommand command = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
                     command.CommandText =
                         "SELECT raise_notice('0');"
@@ -86,7 +86,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     try
                     {
                         Console.WriteLine("**** ExecuteReader ****");
-                        using (DbDataReader reader = command.ExecuteReader())
+                        using (var reader = command.ExecuteReader())
                         {
                             bool moreResults = true;
                             do

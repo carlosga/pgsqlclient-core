@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
-using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -52,7 +51,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             var resourceName = binder.Name;
             if (resourceName.StartsWith("Get_"))
             {
-                resourceName = resourceName.Remove(0, 4);   
+                resourceName = resourceName.Remove(0, 4);
             }
 
             return TryGetResourceValue(resourceName, args, out result);

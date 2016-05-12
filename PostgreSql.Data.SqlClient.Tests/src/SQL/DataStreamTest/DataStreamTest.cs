@@ -8,11 +8,8 @@ using PostgreSql.Data.PgTypes;
 using Xunit;
 using System.Data;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
@@ -22,7 +19,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void MultipleResults()
         {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string query =
@@ -54,10 +51,10 @@ namespace PostgreSql.Data.SqlClient.Tests
                     new string[] { "Buchanan", "Callahan", "Davolio", "Dodsworth", "Fuller", "King", "Leverling", "Peacock", "Suyama" } // All separate rows
                 };
 
-                using (PgCommand cmd = new PgCommand(query, conn))
+                using (var cmd = new PgCommand(query, conn))
                 {
                     cmd.Parameters.Add(new PgParameter("@id", PgDbType.Integer)).Value = 10255;
-                    using (PgDataReader r1 = cmd.ExecuteReader())
+                    using (var r1 = cmd.ExecuteReader())
                     {
                         int numBatches = 0;
                         do
@@ -90,15 +87,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void InvalidRead()
         {
-            using (PgConnection c = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var c = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 c.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
-                using (PgCommand cmd = new PgCommand(sqlBatch, c))
-                using (PgDataReader reader = cmd.ExecuteReader())
+                using (var cmd = new PgCommand(sqlBatch, c))
                 {
-                    string errorMessage = "Invalid attempt to read when no data is present.";
-                    DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(0), errorMessage);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        string errorMessage = "Invalid attempt to read when no data is present.";
+                        DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetInt32(0), errorMessage);
+                    }
                 }
             }
         }
@@ -106,38 +105,40 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void VariantRead()
         {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
-                using (PgCommand cmd = new PgCommand(sqlBatch, conn))
-                using (PgDataReader rdr = cmd.ExecuteReader())
+                using (var cmd = new PgCommand(sqlBatch, conn))
                 {
-                    rdr.Read();
-                    
-                    object  v = null;
-                    PgDate  d;
-                    decimal m = 0.0M;
-                    string  s = null;
-                    int     i = 0;
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+                        rdr.Read();
+                        
+                        object  v = null;
+                        PgDate  d;
+                        decimal m = 0.0M;
+                        string  s = null;
+                        int     i = 0;
 
-                    // read data out of buffer
-                    v = rdr.GetValue( 0); i = (int)v;
-                    v = rdr.GetValue( 1); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue( 2); i = (int)v;
-                    v = rdr.GetValue( 3); d = (PgDate)v;
-                    v = rdr.GetValue( 4); d = (PgDate)v;
-                    v = rdr.GetValue( 5); d = (PgDate)v;
-                    v = rdr.GetValue( 6); i = (int)v;
-                    v = rdr.GetValue( 7); m = (decimal)v;
-                    v = rdr.GetValue( 8); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue( 9); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue(10); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue(11); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue(12); s = v is DBNull ? null : (string)v;
-                    v = rdr.GetValue(13); s = v is DBNull ? null : (string)v;
+                        // read data out of buffer
+                        v = rdr.GetValue( 0); i = (int)v;
+                        v = rdr.GetValue( 1); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue( 2); i = (int)v;
+                        v = rdr.GetValue( 3); d = (PgDate)v;
+                        v = rdr.GetValue( 4); d = (PgDate)v;
+                        v = rdr.GetValue( 5); d = (PgDate)v;
+                        v = rdr.GetValue( 6); i = (int)v;
+                        v = rdr.GetValue( 7); m = (decimal)v;
+                        v = rdr.GetValue( 8); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue( 9); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue(10); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue(11); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue(12); s = v is DBNull ? null : (string)v;
+                        v = rdr.GetValue(13); s = v is DBNull ? null : (string)v;
 
-                    DataTestClass.AssertEqualsWithDescription("France", s.ToString(), "FAILED: Received incorrect last value.");
+                        DataTestClass.AssertEqualsWithDescription("France", s.ToString(), "FAILED: Received incorrect last value.");
+                    }
                 }
             }
         }
@@ -145,40 +146,42 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TypeRead()
         {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253";
-                using (PgCommand cmd = new PgCommand(sqlBatch, conn))
-                using (PgDataReader rdr = cmd.ExecuteReader())
+                using (var cmd = new PgCommand(sqlBatch, conn))
                 {
-                    rdr.Read();
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+                        rdr.Read();
 
-                    DateTime d;
-                    decimal  m;
-                    string   s = null;
-                    int      i;
+                        DateTime d;
+                        decimal  m;
+                        string   s = null;
+                        int      i;
 
-                    // read data out of buffer
-                    i = rdr.GetInt32(0);    // order id
-                    s = rdr.GetString(1);   // customer id
-                    i = rdr.GetInt32(2);    // employee id
-                    d = rdr.GetDateTime(3); // OrderDate
-                    d = rdr.GetDateTime(4); // RequiredDate
-                    d = rdr.GetDateTime(5); // ShippedDate;
-                    i = rdr.GetInt32(6);    // ShipVia
-                    m = rdr.GetDecimal(7);  // Freight
-                    s = rdr.GetString(8);   // ShipName
-                    s = rdr.GetString(9);   // ShipAddres
-                    s = rdr.GetString(10);  // ShipCity
-    
-                    // should get an exception here
-                    string errorMessage = "Data is Null. This method or property cannot be called on Null values.";
-                    DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetString(11), errorMessage);
+                        // read data out of buffer
+                        i = rdr.GetInt32(0);    // order id
+                        s = rdr.GetString(1);   // customer id
+                        i = rdr.GetInt32(2);    // employee id
+                        d = rdr.GetDateTime(3); // OrderDate
+                        d = rdr.GetDateTime(4); // RequiredDate
+                        d = rdr.GetDateTime(5); // ShippedDate;
+                        i = rdr.GetInt32(6);    // ShipVia
+                        m = rdr.GetDecimal(7);  // Freight
+                        s = rdr.GetString(8);   // ShipName
+                        s = rdr.GetString(9);   // ShipAddres
+                        s = rdr.GetString(10);  // ShipCity
+        
+                        // should get an exception here
+                        string errorMessage = "Data is Null. This method or property cannot be called on Null values.";
+                        DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetString(11), errorMessage);
 
-                    s = rdr.GetString(12); //ShipPostalCode;
-                    s = rdr.GetString(13); //ShipCountry;
-                    DataTestClass.AssertEqualsWithDescription("France", s.ToString(), "FAILED: Received incorrect last value.");
+                        s = rdr.GetString(12); //ShipPostalCode;
+                        s = rdr.GetString(13); //ShipCountry;
+                        DataTestClass.AssertEqualsWithDescription("France", s.ToString(), "FAILED: Received incorrect last value.");
+                    }
                 }
             }
         }
@@ -186,12 +189,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact(Skip="disabled")]
         public static void GetValueOfTRead()
         {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
                 conn.Open();
                 string sqlBatch = "select * from orders where orderid < 10253 and shipregion is null";
-                using (PgCommand cmd = new PgCommand(sqlBatch, conn))
-                using (PgDataReader rdr = cmd.ExecuteReader())
+                using (var cmd = new PgCommand(sqlBatch, conn))
+                using (var rdr = cmd.ExecuteReader())
                 {
                     string errorMessage = "Data is Null. This method or property cannot be called on Null values.";
 

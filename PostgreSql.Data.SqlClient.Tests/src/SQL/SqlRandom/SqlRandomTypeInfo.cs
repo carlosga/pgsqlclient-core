@@ -7,7 +7,6 @@
 using PostgreSql.Data.PgTypes;
 using System.Collections.Generic;
 using System.Text;
-using System.Data.Common;
 using System.Globalization;
 using System;
 

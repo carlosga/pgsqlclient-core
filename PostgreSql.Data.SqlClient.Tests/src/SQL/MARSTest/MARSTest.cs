@@ -8,7 +8,6 @@ using Xunit;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests

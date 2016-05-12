@@ -5,8 +5,6 @@
 // See the LICENSE file in the project root for more information.
 
 using PostgreSql.Data.PgTypes;
-using System.Data.Common;
-using System.Diagnostics;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
