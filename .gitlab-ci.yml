@@ -5,12 +5,12 @@ stages:
 #   - test
 
 services:
-  - postgres: latest
+  - postgres:latest
 
 variables:
   POSTGRES_DB: "postgres://postgres@postgres/northwind"
-  POSTGRES_USER: northwind
-  POSTGRES_PASSWORD: "northwind"
+  POSTGRES_USER: "pgsqlclient"
+  POSTGRES_PASSWORD: "pgsqlclient"
 
 build:
   stage: build
