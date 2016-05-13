@@ -11,7 +11,7 @@ services:
 variables:
   POSTGRES_USER: "pgsqlclient"
   POSTGRES_PASSWORD: "pgsqlclient"
-  POSTGRES_DB: "northwind"
+  POSTGRES_NORTHWIND_DB: "northwind"
   POSTGRES_PUBS_DB: "pubs"
 
 connect:
@@ -19,12 +19,11 @@ connect:
   script:
   # northwind
   - export PGPASSWORD=$POSTGRES_PASSWORD
-  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-  #- psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -c "CREATE DATABASE $POSTGRES_NORTHWIND_DB OWNER $POSTGRES_USER;"
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
   # pubs
-  # - export PGPASSWORD=$PUBS_POSTGRES_PASSWORD
-  # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
-  # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -c "CREATE DATABASE $POSTGRES_PUBS_DB OWNER $POSTGRES_USER;"
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
 
 build:
   stage: build
