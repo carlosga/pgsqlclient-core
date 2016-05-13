@@ -1,4 +1,4 @@
-image: microsoft/dotnet:1.0.0-rc2-core
+image: microsoft/dotnet:1.0.0-rc2-core-deps
 
 stages:
   - build
