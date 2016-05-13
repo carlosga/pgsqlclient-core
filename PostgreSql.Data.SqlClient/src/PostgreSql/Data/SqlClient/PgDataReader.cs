@@ -86,6 +86,8 @@ namespace PostgreSql.Data.SqlClient
             _behavior        = _command.CommandBehavior;
             _statement       = _command.Statement;
 
+            _connection.AddWeakReference(this, PgReferenceCollection.DataReaderTag);
+
             InitializeRefCursors();
         }
 
@@ -100,8 +102,6 @@ namespace PostgreSql.Data.SqlClient
                 {
                     // TODO: dispose managed state (managed objects).
                     Close();
-
-                    base.Dispose(disposing);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -398,12 +398,17 @@ namespace PostgreSql.Data.SqlClient
 
         internal void CloseReaderFromConnection()
         {
+            Close(true);
+        }
+        
+        internal void CloseReaderFromCommand()
+        {
             Close();
         }
 
-        internal void Close()
+        private void Close(bool fromConnection = false)
         {
-            if (!_open)
+            if (!_open || _disposed) 
             {
                 return;
             }
@@ -413,15 +418,10 @@ namespace PostgreSql.Data.SqlClient
                 // This will update RecordsAffected property
                 UpdateRecordsAffected();
 
+                // Set values of output parameters
                 if (_command != null && !_command.IsDisposed)
                 {
-                    // Set values of output parameters
                     _command.InternalSetOutputParameters();
-                }
-
-                if (_behavior.HasBehavior(CommandBehavior.CloseConnection) && _connection != null)
-                {
-                    _connection.Close();
                 }
 
                 // Clear ref cursors
@@ -431,8 +431,17 @@ namespace PostgreSql.Data.SqlClient
                 // Reset state and position
                 _open     = false;
                 _position = STARTPOS;
+
+                // Remove the weak reference hold by the connection
+                _connection.RemoveWeakReference(this);
+
+                // Checck if the connection should be closed
+                if (!fromConnection && _behavior.HasBehavior(CommandBehavior.CloseConnection))
+                {
+                    _connection?.Close();
+                }
             }
-            catch (System.Exception)
+            catch
             {
                 throw;
             }

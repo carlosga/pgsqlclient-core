@@ -17,7 +17,6 @@ namespace PostgreSql.Data.SqlClient
         private PgParameterCollection _parameters;
         private UpdateRowSource       _updatedRowSource;
         private Statement             _statement;
-        private WeakReference         _activeDataReader;
         private CommandBehavior       _commandBehavior;
         private CommandType           _commandType;
         private List<string>          _commands;
@@ -84,9 +83,9 @@ namespace PostgreSql.Data.SqlClient
             get { return _connection; }
             set
             {
-                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
+                if (HasLiveReader)
                 {
-                    throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
+                    throw ADP.OpenReaderExists();
                 }
 
                 if (_connection != value)
@@ -106,9 +105,9 @@ namespace PostgreSql.Data.SqlClient
             get { return _transaction; }
             set
             {
-                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
+                if (HasLiveReader)
                 {
-                    throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
+                    throw ADP.OpenReaderExists();
                 }
                 
                 if (value != _transaction)
@@ -127,9 +126,9 @@ namespace PostgreSql.Data.SqlClient
                 {
                     throw new ArgumentException("The property value assigned is less than 0.");
                 }
-                if (_connection != null && _activeDataReader != null && _activeDataReader.IsAlive)
+                if (HasLiveReader)
                 {
-                    throw new InvalidOperationException("There is already an open DataReader associated with this Connection which must be closed first.");
+                    throw ADP.OpenReaderExists();
                 }
                 _fetchSize = value; 
             }
@@ -153,6 +152,8 @@ namespace PostgreSql.Data.SqlClient
         internal Statement       Statement       => _statement;
         internal int             RecordsAffected => (_statement?.RecordsAffected ?? -1);
         internal bool            IsDisposed      => _disposed;
+
+        private bool HasLiveReader => (FindLiveReader() != null);
 
         public PgCommand()
             : base()
@@ -271,9 +272,7 @@ namespace PostgreSql.Data.SqlClient
 
             InternalExecuteReader(behavior);
 
-            _activeDataReader = new WeakReference(new PgDataReader(_connection, this));
-
-            return _activeDataReader.Target as PgDataReader;
+            return new PgDataReader(_connection, this);
         }
 
         public override object ExecuteScalar()
@@ -329,14 +328,9 @@ namespace PostgreSql.Data.SqlClient
             }
             try
             {
-                if (_activeDataReader != null && _activeDataReader.IsAlive)
-                {
-                    var reader = _activeDataReader.Target as PgDataReader;
-                    if (!reader.IsClosed)
-                    {
-                        reader.Close();
-                    }
-                }
+                var reader = FindLiveReader();
+                
+                reader?.CloseReaderFromCommand();
 
                 _connection.RemoveWeakReference(this);
                 _statement.Dispose();
@@ -347,15 +341,12 @@ namespace PostgreSql.Data.SqlClient
             finally
             {
                 _statement        = null;
-                _activeDataReader = null;
                 _commandIndex     = 0;
            }
         }
 
         internal void InternalSetOutputParameters()
         {
-            _activeDataReader = null;
-            
             if (CommandType != CommandType.StoredProcedure || _parameters.Count == 0 || !_statement.HasRows)
             {
                 return;
@@ -532,7 +523,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.OpenConnectionRequired(memberName, _connection.State);
             }
-            if (_activeDataReader != null && _activeDataReader.IsAlive)
+            if (HasLiveReader)
             {
                 throw ADP.OpenReaderExists();
             }
@@ -550,6 +541,20 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.CommandTextRequired(memberName);
             }
+        }
+        
+        private PgDataReader FindLiveReader()
+        {
+            var innerConnection = _connection?.InnerConnection as PgConnectionInternal;
+            
+            if (innerConnection?.ReferenceCollection != null)
+            {
+                var references = innerConnection.ReferenceCollection as PgReferenceCollection;
+
+                return references?.FindLiveReader(this);
+            }
+
+            return null;
         }
     }
 }
