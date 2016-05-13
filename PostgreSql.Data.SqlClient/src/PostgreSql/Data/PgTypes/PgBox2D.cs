@@ -98,11 +98,6 @@ namespace PostgreSql.Data.PgTypes
             return (left.UpperRight != right.UpperRight || left.LowerLeft != right.LowerLeft);
         }
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             if (IsNull)

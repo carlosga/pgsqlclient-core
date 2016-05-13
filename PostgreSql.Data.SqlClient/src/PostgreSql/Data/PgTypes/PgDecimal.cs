@@ -160,11 +160,6 @@ namespace PostgreSql.Data.PgTypes
             throw new NotImplementedException();
         }
 
-        public static explicit operator PgDecimal(PgString x)
-        {
-            throw new NotImplementedException();
-        }
-
         public static implicit operator PgDecimal(decimal x)
         {
             throw new NotImplementedException();
@@ -398,11 +393,6 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public PgReal ToPgReal()
-        {
-            throw new NotImplementedException();
-        }
-
-        public PgString ToPgString()
         {
             throw new NotImplementedException();
         }

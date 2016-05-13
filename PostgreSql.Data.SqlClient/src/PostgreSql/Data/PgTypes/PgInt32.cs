@@ -295,15 +295,6 @@ namespace PostgreSql.Data.PgTypes
             return (PgInt32)x;
         }
 
-        public static explicit operator PgInt32(PgString x)
-        {
-            if (x.IsNull)
-            {
-                return Null;
-            }
-            return Parse(x.Value);
-        }
-
         public static implicit operator PgInt32(int x) => new PgInt32(x);
 
         public static implicit operator PgInt32(PgByte x)
@@ -433,7 +424,6 @@ namespace PostgreSql.Data.PgTypes
         public PgInt64   ToPgInt64()   => (PgInt64)this;
         public PgMoney   ToPgMoney()   => (PgMoney)this;
         public PgReal    ToPgReal()    => (PgReal)this;
-        public PgString  ToPgString()  => (PgString)this;
 
         public override string ToString()
         {

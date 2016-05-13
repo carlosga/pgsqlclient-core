@@ -87,11 +87,6 @@ namespace PostgreSql.Data.PgTypes
             return notequals;
         }
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             if (IsNull)

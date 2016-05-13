@@ -329,15 +329,6 @@ namespace PostgreSql.Data.PgTypes
             return new PgBit((byte)x.Value);
         }
 
-        public static explicit operator PgBit(PgString x)
-        {
-            if (x.IsNull)
-            {
-                return Null;
-            }
-            return Parse(x.Value);
-        }
-
         public static implicit operator PgBit(byte x)
         {
             return (PgBit)x;
@@ -452,7 +443,6 @@ namespace PostgreSql.Data.PgTypes
         public PgInt64   ToPgInt64()    => (PgInt64)this;
         public PgMoney   ToPgMoney()    => (PgMoney)this;
         public PgReal    ToPgReal()     => (PgReal)this;
-        public PgString  ToPgString()   => (PgString)this;
 
         public override string ToString()
         {

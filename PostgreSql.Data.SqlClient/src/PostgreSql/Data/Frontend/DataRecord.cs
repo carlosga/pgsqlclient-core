@@ -191,7 +191,6 @@ namespace PostgreSql.Data.Frontend
         internal PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
         internal PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
         internal PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
-        internal PgString    GetPgString(int i)    => GetValue<PgString>(i);
 
         internal object GetValue(string name)
         {

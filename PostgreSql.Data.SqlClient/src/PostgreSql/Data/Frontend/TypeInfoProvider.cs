@@ -60,17 +60,17 @@ namespace PostgreSql.Data.Frontend
 
             // character varying(n), varchar(n) | variable-length with limit
 
-            types[1043] = new TypeInfo(1043, "varchar"  , "varchar" , PgDbType.VarChar, TypeFormat.Text, typeof(string), typeof(PgString));
-            types[1015] = new TypeInfo(1015, "varchar[]", "_varchar", PgDbType.Array  , types[1043], typeof(string[]), typeof(PgString[]));
+            types[1043] = new TypeInfo(1043, "varchar"  , "varchar" , PgDbType.VarChar, TypeFormat.Text, typeof(string), typeof(string));
+            types[1015] = new TypeInfo(1015, "varchar[]", "_varchar", PgDbType.Array  , types[1043], typeof(string[]), typeof(string[]));
 
             // character(n), char(n) | fixed-length, blank padded
 
-            types[1002] = new TypeInfo(1002, "char", "_char", PgDbType.Array, types[18], typeof(char[]), typeof(PgString));
+            types[1002] = new TypeInfo(1002, "char", "_char", PgDbType.Array, types[18], typeof(char[]), typeof(string));
 
             // text	variable unlimited length
 
-            types[  25] = new TypeInfo(  25, "text"  , "text" , PgDbType.Text , TypeFormat.Text, typeof(string), typeof(PgString));
-            types[1009] = new TypeInfo(1009, "text[]", "_text", PgDbType.Array, types[25], typeof(string[]), typeof(PgString[]));
+            types[  25] = new TypeInfo(  25, "text"  , "text" , PgDbType.Text , TypeFormat.Text, typeof(string), typeof(string));
+            types[1009] = new TypeInfo(1009, "text[]", "_text", PgDbType.Array, types[25], typeof(string[]), typeof(string[]));
 
             //
             // DATE/TIME TYPES
@@ -155,9 +155,9 @@ namespace PostgreSql.Data.Frontend
             // SPECIAL CHARACTER TYPES
             //
 
-            types[  19] = new TypeInfo(  19, "name"    , "name"   , PgDbType.VarChar, TypeFormat.Text, typeof(string), typeof(PgString));
-            types[1042] = new TypeInfo(1042, "bpchar"  , "bpchar" , PgDbType.Char, TypeFormat.Text, typeof(string), typeof(PgString));
-            types[1014] = new TypeInfo(1014, "bpchar[]", "_bpchar", PgDbType.Char, types[1042], typeof(string[]), typeof(PgString[]));
+            types[  19] = new TypeInfo(  19, "name"    , "name"   , PgDbType.VarChar, TypeFormat.Text, typeof(string), typeof(string));
+            types[1042] = new TypeInfo(1042, "bpchar"  , "bpchar" , PgDbType.Char, TypeFormat.Text, typeof(string), typeof(string));
+            types[1014] = new TypeInfo(1014, "bpchar[]", "_bpchar", PgDbType.Char, types[1042], typeof(string[]), typeof(string[]));
 
             //
             // GEOMETRIC TYPES

@@ -83,11 +83,6 @@ namespace PostgreSql.Data.PgTypes
             return (lhs.X != rhs.X || lhs.Y != rhs.Y);
         }
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             if (IsNull)

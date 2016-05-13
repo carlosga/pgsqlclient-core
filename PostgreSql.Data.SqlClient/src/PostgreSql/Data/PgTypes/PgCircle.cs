@@ -87,11 +87,6 @@ namespace PostgreSql.Data.PgTypes
             return (left.Center != right.Center || left.Radius != right.Radius);
         }
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             if (IsNull)

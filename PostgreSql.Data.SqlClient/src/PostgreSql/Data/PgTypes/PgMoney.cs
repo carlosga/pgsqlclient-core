@@ -243,15 +243,6 @@ namespace PostgreSql.Data.PgTypes
             return (PgMoney)x.Value;
         }
 
-        public static explicit operator PgMoney(PgString x)
-        {
-            if (x.IsNull)
-            {
-                return Null;
-            }
-            return Parse(x.Value);
-        }
-
         public static implicit operator PgMoney(decimal x)
         {
             return new PgMoney(x);
@@ -509,11 +500,6 @@ namespace PostgreSql.Data.PgTypes
         public PgReal ToPgReal()
         {
             return (PgReal)this;
-        }
-
-        public PgString ToPgString()
-        {
-            return (PgString)this;
         }
 
         public override string ToString()

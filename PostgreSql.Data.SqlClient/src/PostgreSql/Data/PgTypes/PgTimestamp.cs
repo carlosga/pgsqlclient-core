@@ -177,15 +177,6 @@ namespace PostgreSql.Data.PgTypes
             return x._value.TimeOfDay;
         }
 
-        public static explicit operator PgTimestamp(PgString x)
-        {
-            if (x.IsNull)
-            {
-                throw new PgNullValueException();
-            }
-            return Parse(x.Value);
-        }
-
         public static implicit operator PgTimestamp(DateTime value)
         {
             return new PgTimestamp(value);
@@ -343,11 +334,6 @@ namespace PostgreSql.Data.PgTypes
         public static PgTimestamp Subtract(PgTimestamp x, TimeSpan t)
         {
             return (x - t);
-        }
-
-        public PgString ToPgString()
-        {
-            return ToString();
         }
 
         public override string ToString()

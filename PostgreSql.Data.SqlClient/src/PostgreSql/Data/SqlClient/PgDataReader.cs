@@ -329,7 +329,6 @@ namespace PostgreSql.Data.SqlClient
         public PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
         public PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
         public PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
-        public PgString    GetPgString(int i)    => GetValue<PgString>(i);
 
         public override Guid GetGuid(int i)
         {

@@ -3,7 +3,7 @@
 
 namespace PostgreSql.Data.PgTypes
 {
-    public enum Oid : int
+    internal enum Oid : int
     {
         Byte        = 18
       , Bytea       = 17

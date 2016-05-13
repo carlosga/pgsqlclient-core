@@ -77,11 +77,6 @@ namespace PostgreSql.Data.PgTypes
             return (left.StartPoint != right.StartPoint || left.EndPoint != right.EndPoint);
         }
 
-        public PgString ToPgString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             if (IsNull)

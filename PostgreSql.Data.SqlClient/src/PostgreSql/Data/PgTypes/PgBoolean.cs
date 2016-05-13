@@ -225,15 +225,6 @@ namespace PostgreSql.Data.PgTypes
             return new PgBoolean(x.Value != 0);
         }
 
-        public static explicit operator PgBoolean(PgString x)
-        {
-            if (x.IsNull)
-            {
-                throw new PgNullValueException();
-            }
-            return Parse(x.Value);
-        }
-
         public static bool operator false(PgBoolean x)    => (x.Value == false);
         public static implicit operator PgBoolean(bool x) => new PgBoolean(x);
         public static bool operator true(PgBoolean x)     => (x.Value == true);
@@ -396,7 +387,6 @@ namespace PostgreSql.Data.PgTypes
         public PgInt64   ToPgInt64()   => (PgInt64)this;
         public PgMoney   ToPgMoney()   => (PgMoney)this;
         public PgReal    ToPgReal()    => (PgReal)this;
-        public PgString  ToPgString()  => (PgString)this;
 
         public override string ToString()
         {

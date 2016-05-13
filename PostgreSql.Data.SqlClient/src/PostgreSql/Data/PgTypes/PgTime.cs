@@ -132,15 +132,6 @@ namespace PostgreSql.Data.PgTypes
             return x._value;
         }
 
-        public static explicit operator PgTime(PgString x)
-        {
-            if (x.IsNull)
-            {
-                return Null;
-            }
-            return Parse(x.Value);
-        }
-
         public static implicit operator PgTime(TimeSpan value) => new PgTime(value);
 
         public int  Hours             => Value.Hours;
@@ -230,8 +221,6 @@ namespace PostgreSql.Data.PgTypes
         }
 
         public static PgTime Subtract(PgTime x, PgTime t) => (x - t);
-
-        public PgString ToPgString() => ToString();
 
         public override string ToString()
         {
