@@ -31,9 +31,9 @@ connect:
   # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
   # - psql -h "postgres" -U "$PUBS_POSTGRES_USER" -d "$PUBS_DATABASE_URL" -c "SELECT 'OK' AS status;"
 
-# test:
-#   stage: test
-#   script:
-#     - cd PostgreSql.Data.SqlClient.Tests
-#     - mv ConnectionString.ci.xml ConnectionString.xml
-#     - dotnet test
+test:
+  stage: test
+  script:
+    - cd PostgreSql.Data.SqlClient.Tests
+    - mv ConnectionString.ci.xml ConnectionString.xml
+    - dotnet test
