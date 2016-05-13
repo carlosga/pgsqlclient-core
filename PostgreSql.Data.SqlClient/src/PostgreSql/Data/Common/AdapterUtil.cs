@@ -118,14 +118,13 @@ namespace System.Data.Common
 //             IndexOutOfRangeException e = new IndexOutOfRangeException();
 //             return e;
 //         }
-        internal static InvalidCastException InvalidCast(string error)
-        {
-            return InvalidCast(error, null);
-        }
+
+        internal static InvalidCastException InvalidCast(string error) => InvalidCast(error, null);
         internal static InvalidCastException InvalidCast(string error, Exception inner)
         {
             return new InvalidCastException(error, inner);
         }
+
         internal static InvalidOperationException InvalidOperation(string error) => new InvalidOperationException(error);
         internal static InvalidOperationException InvalidOperation(string error, Exception inner)
         {
@@ -167,14 +166,9 @@ namespace System.Data.Common
 //             IOException e = new IOException(error, inner);
 //             return e;
 //         }
-//         internal static InvalidOperationException DataAdapter(string error)
-//         {
-//             return InvalidOperation(error);
-//         }
-        private static InvalidOperationException Provider(string error)
-        {
-            return InvalidOperation(error);
-        }
+
+        private static InvalidOperationException Provider(string error) => InvalidOperation(error);
+
 //         internal static ObjectDisposedException ObjectDisposed(object instance)
 //         {
 //             ObjectDisposedException e = new ObjectDisposedException(instance.GetType().Name);
@@ -275,7 +269,6 @@ namespace System.Data.Common
         internal static ArgumentException InvalidMinMaxPoolSizeValues()
         {
             return ADP.Argument("Invalid min or max pool size values, min pool size cannot be greater than the max pool size.");
-            // return ADP.Argument(Res.GetString(Res.ADP_InvalidMinMaxPoolSizeValues));
         }
 
 //         internal static ArgumentException KeywordNotSupported(string keyword)
@@ -306,7 +299,6 @@ namespace System.Data.Common
         internal static Exception WrongType(Type got, Type expected)
         {
             return Argument($"Expecting argument of type {got.ToString()}, but received type {expected.ToString()}.");
-            // return Argument(Res.GetString(Res.SQL_WrongType, got.ToString(), expected.ToString()));
         }
 
         //
@@ -324,7 +316,6 @@ namespace System.Data.Common
         internal static Exception MethodNotImplemented([CallerMemberName] string methodName = "")
         {
             return new NotImplementedException();
-            // NotImplemented.ByDesignWithMessage(methodName);
         }
 
         static private string ConnectionStateMsg(ConnectionState state)
@@ -334,27 +325,16 @@ namespace System.Data.Common
             case ConnectionState.Closed:
             case ConnectionState.Connecting | ConnectionState.Broken:
                 return "The connection's current state is closed."; 
-                // return Res.GetString(Res.ADP_ConnectionStateMsg_Closed);
-
             case ConnectionState.Connecting:
                 return "The connection's current state is connecting.";
-                // return Res.GetString(Res.ADP_ConnectionStateMsg_Connecting);
-                
             case ConnectionState.Open:
                 return "The connection's current state is open.";
-                // return Res.GetString(Res.ADP_ConnectionStateMsg_Open);
-
             case ConnectionState.Open | ConnectionState.Executing:
                 return "The connection's current state is executing."; 
-                // return Res.GetString(Res.ADP_ConnectionStateMsg_OpenExecuting);
-
             case ConnectionState.Open | ConnectionState.Fetching:
                 return "The connection's current state is fetching.";
-                // return Res.GetString(Res.ADP_ConnectionStateMsg_OpenFetching);
-
             default:
                 return String.Format("The connection's current state: {0}.", state.ToString());
-                // return Res.GetString(Res.ADP_ConnectionStateMsg, state.ToString());
             }
         }
 
@@ -364,13 +344,11 @@ namespace System.Data.Common
         internal static Exception PooledOpenTimeout()
         {
             return InvalidOperation("Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.");
-            // return ADP.InvalidOperation(Res.GetString(Res.ADP_PooledOpenTimeout));
         }
 
         internal static Exception NonPooledOpenTimeout()
         {
             return TimeoutException("Timeout attempting to open the connection.  The time period elapsed prior to attempting to open the connection has been exceeded.  This may have occurred because of too many simultaneous non-pooled connection attempts.");
-            // return ADP.InvalidOperation(Res.GetString(Res.ADP_NonPooledOpenTimeout));
         }
 
         //
@@ -411,28 +389,23 @@ namespace System.Data.Common
         internal static InvalidOperationException TransactionConnectionMismatch()
         {
             return Provider("The transaction is either not associated with the current connection or has been completed.");
-            // return Provider(Res.GetString(Res.ADP_TransactionConnectionMismatch));
         }
         internal static InvalidOperationException TransactionRequired(string method)
         {
             return Provider($"{method} requires the command to have a transaction when the connection assigned to the command is in a pending local transaction. The Transaction property of the command has not been initialized.");
-            // return Provider(Res.GetString(Res.ADP_TransactionRequired, method));
         }
 
         internal static Exception CommandTextRequired(string method)
         {
             return InvalidOperation("The command text for this Command has not been set.");
-            // return InvalidOperation(Res.GetString(Res.ADP_CommandTextRequired, method));
         }
         internal static InvalidOperationException ConnectionRequired(string method)
         {
             return InvalidOperation($"{method} requires an available Connection.");
-            // return InvalidOperation(Res.GetString(Res.ADP_ConnectionRequired, method));
         }
         internal static InvalidOperationException OpenConnectionRequired(string method, ConnectionState state)
         {
             return InvalidOperation($"{method} requires an open and available Connection. The connection's current state is {state}.");
-            // return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionRequired, method, ADP.ConnectionStateMsg(state)));
         }
 
         internal static Exception OpenReaderExists()
@@ -442,19 +415,16 @@ namespace System.Data.Common
         internal static Exception OpenReaderExists(Exception e)
         {
             return InvalidOperation("There is already an open DataReader associated with this Command which must be closed first.");
-            // return InvalidOperation(Res.GetString(Res.ADP_OpenReaderExists), e);
         }
 
         internal static Exception InvalidCommandTimeout(int value, [CallerMemberName] string property = "")
         {
             return Argument($"Invalid CommandTimeout value {value}; the value must be >= 0.");
-            // return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
         }
 
         internal static Exception InvalidFetchSize(int value, [CallerMemberName] string property = "")
         {
             return Argument($"Invalid FetchSize value {value}; the value must be >= 0.");
-            // return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
         }
 //         internal static Exception UninitializedParameterSize(int index, Type dataType)
 //         {
@@ -488,64 +458,58 @@ namespace System.Data.Common
         internal static Exception ClosedConnectionError()
         {
             return InvalidOperation("Invalid operation. The connection is closed.");
-            // return InvalidOperation(Res.GetString(Res.ADP_ClosedConnectionError));
         }
 
         internal static Exception ConnectionAlreadyOpen(ConnectionState state)
         {
             return InvalidOperation("Connection already open, or is broken.");
-            //return InvalidOperation(Res.GetString(Res.ADP_ConnectionAlreadyOpen, ADP.ConnectionStateMsg(state)));
         }
 
         internal static Exception OpenConnectionPropertySet(string property, ConnectionState state)
         {
             return InvalidOperation(String.Format("Not allowed to change the '{0}' property. {1}", property, ConnectionStateMsg(state)));
-            // return InvalidOperation(Res.GetString(Res.ADP_OpenConnectionPropertySet, property, ADP.ConnectionStateMsg(state)));
         }
 
         internal static Exception EmptyDatabaseName()
         {
             return Argument("Database name is not valid.");
-            // return Argument(Res.GetString(Res.ADP_EmptyDatabaseName));
         }
 
         internal enum ConnectionError
         {
-            BeginGetConnectionReturnsNull,
-            GetConnectionReturnsNull,
-            ConnectionOptionsMissing,
-            CouldNotSwitchToClosedPreviouslyOpenedState,
+            BeginGetConnectionReturnsNull
+          , GetConnectionReturnsNull
+          , ConnectionOptionsMissing
+          , CouldNotSwitchToClosedPreviouslyOpenedState
         }
 
         internal enum InternalErrorCode
         {
-            UnpooledObjectHasOwner                                 =  0,
-            UnpooledObjectHasWrongOwner                            =  1,
-            PushingObjectSecondTime                                =  2,
-            PooledObjectHasOwner                                   =  3,
-            PooledObjectInPoolMoreThanOnce                         =  4,
-            CreateObjectReturnedNull                               =  5,
-            NewObjectCannotBePooled                                =  6,
-            NonPooledObjectUsedMoreThanOnce                        =  7,
-            AttemptingToPoolOnRestrictedToken                      =  8,
-            AttemptingToConstructReferenceCollectionOnStaticObject = 12,
-            CreateReferenceCollectionReturnedNull                  = 14,
-            PooledObjectWithoutPool                                = 15,
-            UnexpectedWaitAnyResult                                = 16,
-            SynchronousConnectReturnedPending                      = 17,
-            CompletedConnectReturnedPending                        = 18
+            UnpooledObjectHasOwner                                 =  0
+          , UnpooledObjectHasWrongOwner                            =  1
+          , PushingObjectSecondTime                                =  2
+          , PooledObjectHasOwner                                   =  3
+          , PooledObjectInPoolMoreThanOnce                         =  4
+          , CreateObjectReturnedNull                               =  5
+          , NewObjectCannotBePooled                                =  6
+          , NonPooledObjectUsedMoreThanOnce                        =  7
+          , AttemptingToPoolOnRestrictedToken                      =  8
+          , AttemptingToConstructReferenceCollectionOnStaticObject = 12
+          , CreateReferenceCollectionReturnedNull                  = 14
+          , PooledObjectWithoutPool                                = 15
+          , UnexpectedWaitAnyResult                                = 16
+          , SynchronousConnectReturnedPending                      = 17
+          , CompletedConnectReturnedPending                        = 18
         }
 
         internal static Exception InternalConnectionError(ConnectionError internalError)
         {
             return InvalidOperation("Internal DbConnection Error: {(int)internalError}");
-            // return InvalidOperation(Res.GetString(Res.ADP_InternalConnectionError, (int)internalError));
         }
 
         internal static Exception InternalError(InternalErrorCode internalError)
         {
             return InvalidOperation($"Internal .Net Framework Data Provider error {(int)internalError}.");
-            // return InvalidOperation(Res.GetString(Res.ADP_InternalProviderError, (int)internalError));
         }
 
         //
@@ -572,7 +536,6 @@ namespace System.Data.Common
         internal static Exception DataReaderClosed([CallerMemberName] string method = "")
         {
             return InvalidOperation($"Invalid attempt to call {method} when reader is closed.");
-            // return InvalidOperation(Res.GetString(Res.ADP_DataReaderClosed, method));
         }
 //         internal static ArgumentOutOfRangeException InvalidSourceBufferIndex(int maxLen, long srcOffset, string parameterName)
 //         {
@@ -774,7 +737,7 @@ namespace System.Data.Common
 
         internal static bool IsNull(object value)
         {
-            if ((value == null) || (DBNull.Value == value))
+            if (value == null || DBNull.Value == value)
             {
                 return true;
             }

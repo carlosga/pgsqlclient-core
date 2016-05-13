@@ -29,7 +29,8 @@ build:
   stage: build
   script:
     - dotnet restore
-    - dotnet build PostgreSql.Data.SqlClient PostgreSql.Data.SqlClient.Tests
+    - dotnet build -c Debug PostgreSql.Data.SqlClient PostgreSql.Data.SqlClient.Tests
+    - dotnet build -c Release PostgreSql.Data.SqlClient PostgreSql.Data.SqlClient.Tests
 
 test:
   stage: test
