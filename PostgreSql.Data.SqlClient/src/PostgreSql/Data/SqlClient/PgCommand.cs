@@ -57,7 +57,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (value < 0)
                 {
-                    throw new ArgumentException("The property value assigned is less than 0.");
+                    throw ADP.InvalidCommandTimeout(value);
                 }
 
                 _commandTimeout = value;
@@ -122,9 +122,9 @@ namespace PostgreSql.Data.SqlClient
             get { return _fetchSize; }
             set
             {
-                if (_fetchSize < 0)
+                if (value < 0)
                 {
-                    throw new ArgumentException("The property value assigned is less than 0.");
+                    throw ADP.InvalidFetchSize(value);
                 }
                 if (HasLiveReader)
                 {

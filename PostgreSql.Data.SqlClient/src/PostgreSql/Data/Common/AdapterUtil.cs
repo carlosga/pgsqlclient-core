@@ -445,10 +445,17 @@ namespace System.Data.Common
             // return InvalidOperation(Res.GetString(Res.ADP_OpenReaderExists), e);
         }
 
-//         internal static Exception InvalidCommandTimeout(int value, [CallerMemberName] string property = "")
-//         {
-//             return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
-//         }
+        internal static Exception InvalidCommandTimeout(int value, [CallerMemberName] string property = "")
+        {
+            return Argument($"Invalid CommandTimeout value {value}; the value must be >= 0.");
+            // return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
+        }
+
+        internal static Exception InvalidFetchSize(int value, [CallerMemberName] string property = "")
+        {
+            return Argument($"Invalid FetchSize value {value}; the value must be >= 0.");
+            // return Argument(Res.GetString(Res.ADP_InvalidCommandTimeout, value.ToString(CultureInfo.InvariantCulture)), property);
+        }
 //         internal static Exception UninitializedParameterSize(int index, Type dataType)
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_UninitializedParameterSize, index.ToString(CultureInfo.InvariantCulture), dataType.Name));
@@ -562,10 +569,11 @@ namespace System.Data.Common
 //             return ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidSeekOrigin), parameterName);
 //         }
 
-//         internal static Exception DataReaderClosed([CallerMemberName] string method = "")
-//         {
-//             return InvalidOperation(Res.GetString(Res.ADP_DataReaderClosed, method));
-//         }
+        internal static Exception DataReaderClosed([CallerMemberName] string method = "")
+        {
+            return InvalidOperation($"Invalid attempt to call {method} when reader is closed.");
+            // return InvalidOperation(Res.GetString(Res.ADP_DataReaderClosed, method));
+        }
 //         internal static ArgumentOutOfRangeException InvalidSourceBufferIndex(int maxLen, long srcOffset, string parameterName)
 //         {
 //             return ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidSourceBufferIndex, maxLen.ToString(CultureInfo.InvariantCulture), srcOffset.ToString(CultureInfo.InvariantCulture)), parameterName);

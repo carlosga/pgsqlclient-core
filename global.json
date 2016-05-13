@@ -1,7 +1,6 @@
 {
     "projects": [
         "PostgreSql.Data.SqlClient",
-        "PostgreSql.Data.SqlClient.Tests",
-        "PostgreSql.Data.SqlClient.Sample"
+        "PostgreSql.Data.SqlClient.Tests"
     ]
 }
