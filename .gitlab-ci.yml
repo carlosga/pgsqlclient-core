@@ -19,10 +19,10 @@ connect:
   script:
   # northwind
   - export PGPASSWORD=$POSTGRES_PASSWORD
-  - createdb -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
+  - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
   - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
   # pubs
-  - createdb -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -U "$POSTGRES_USER" $POSTGRES_PUBS_DB
+  - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
   - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
 
 build:
