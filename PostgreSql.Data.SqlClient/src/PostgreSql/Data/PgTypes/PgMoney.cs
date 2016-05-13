@@ -243,15 +243,8 @@ namespace PostgreSql.Data.PgTypes
             return (PgMoney)x.Value;
         }
 
-        public static implicit operator PgMoney(decimal x)
-        {
-            return new PgMoney(x);
-        }
-
-        public static implicit operator PgMoney(long x)
-        {
-            return new PgMoney(x);
-        }
+        public static implicit operator PgMoney(decimal x) => new PgMoney(x);
+        public static implicit operator PgMoney(long x)    => new PgMoney(x);
 
         public static implicit operator PgMoney(PgByte x)
         {
@@ -303,15 +296,6 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgMoney Add(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return Null;
-            }
-            return (x + y);
-        }
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgReal))
@@ -344,15 +328,6 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgMoney Divide(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return Null;
-            }
-            return (x / y);
-        }
-
         public bool Equals(PgMoney other) =>  (bool)(this == other);
 
         public override bool Equals(object obj)
@@ -368,57 +343,19 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgMoney)obj);
         }
 
-        public static PgBoolean Equals(PgMoney x, PgMoney y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
-        public static PgBoolean GreaterThan(PgMoney x, PgMoney y) => (x > y);
-
-        public static PgBoolean GreaterThanOrEqual(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEqual(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x <= y);
-        }
-
-        public static PgMoney Multiply(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return Null;
-            }
-            return (x * y);
-        }
-
-        public static PgBoolean NotEquals(PgMoney x, PgMoney y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x != y);
-        }
-
+        public static PgMoney   Add(PgMoney x, PgMoney y)                => (x + y);
+        public static PgMoney   Divide(PgMoney x, PgMoney y)             => (x / y);
+        public static PgBoolean Equals(PgMoney x, PgMoney y)             => (x == y);
+        public static PgBoolean GreaterThan(PgMoney x, PgMoney y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgMoney x, PgMoney y) => (x >= y);
+        public static PgBoolean LessThan(PgMoney x, PgMoney y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgMoney x, PgMoney y)    => (x <= y);
+        public static PgMoney   Multiply(PgMoney x, PgMoney y)           => (x * y);
+        public static PgBoolean NotEquals(PgMoney x, PgMoney y)          => (x != y);
+        public static PgMoney   Subtract(PgMoney x, PgMoney y)           => (x - y);
+  
         public static PgMoney Parse(string s)
         {
             if (TypeInfoProvider.IsNullString(s))
@@ -427,8 +364,6 @@ namespace PostgreSql.Data.PgTypes
             }
             return Decimal.Parse(s, TypeInfoProvider.InvariantCulture);
         }
-
-        public static PgMoney Subtract(PgMoney x, PgMoney y) => (x - y);
 
         public decimal ToDecimal()
         {

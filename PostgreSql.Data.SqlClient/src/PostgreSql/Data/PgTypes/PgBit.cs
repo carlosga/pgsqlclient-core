@@ -345,10 +345,6 @@ namespace PostgreSql.Data.PgTypes
             } 
         }
 
-        public static PgBit Add(PgBit x, PgBit y)        => (x + y);
-        public static PgBit BitwiseAnd(PgBit x, PgBit y) => (x & y);
-        public static PgBit BitwiseOr(PgBit x, PgBit y)  => (x | y);
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgBit))
@@ -381,8 +377,6 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgBit Divide(PgBit x, PgBit y) => (x / y);
-
         public bool Equals(PgBit other) => (this == other).Value;
 
         public override bool Equals(object obj)
@@ -399,10 +393,13 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgBit)obj);
         }
 
-        public static PgBoolean Equals(PgBit x, PgBit y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
+        public static PgBit     Add(PgBit x, PgBit y)                => (x + y);
+        public static PgBit     BitwiseAnd(PgBit x, PgBit y)         => (x & y);
+        public static PgBit     BitwiseOr(PgBit x, PgBit y)          => (x | y);
+        public static PgBit     Divide(PgBit x, PgBit y)             => (x / y);
+        public static PgBoolean Equals(PgBit x, PgBit y)             => (x == y);
         public static PgBoolean GreaterThan(PgBit x, PgBit y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgBit x, PgBit y) => (x >= y);
         public static PgBoolean LessThan(PgBit x, PgBit y)           => (x < y);
@@ -412,6 +409,8 @@ namespace PostgreSql.Data.PgTypes
         public static PgBit     Multiply(PgBit x, PgBit y)           => (x * y);
         public static PgBoolean NotEquals(PgBit x, PgBit y)          => (x != y);
         public static PgBit     OnesComplement(PgBit x)              => ~x;
+        public static PgBit     Subtract(PgBit x, PgBit y)           => (x - y);
+        public static PgBit     Xor(PgBit x, PgBit y)                => (x ^ y);
 
         public static PgBit Parse(string s)
         {
@@ -421,8 +420,6 @@ namespace PostgreSql.Data.PgTypes
             }
             return Byte.Parse(s, TypeInfoProvider.InvariantCulture);
         }
-
-        public static PgBit Subtract(PgBit x, PgBit y)  => (x - y);
 
         public PgBoolean ToPgBoolean()  => (PgBoolean)this;
         public PgByte    ToPgByte()     => (PgByte)this;
@@ -442,7 +439,5 @@ namespace PostgreSql.Data.PgTypes
             }
             return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
-        
-        public static PgBit Xor(PgBit x, PgBit y) => (x ^ y);
     }
 }

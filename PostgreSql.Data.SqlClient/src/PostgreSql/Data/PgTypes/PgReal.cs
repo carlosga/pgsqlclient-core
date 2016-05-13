@@ -290,8 +290,6 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgReal Add(PgReal x, PgReal y) => (x + y);
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgReal))
@@ -324,8 +322,6 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgReal Divide(PgReal x, PgReal y) => (x / y);
-
         public bool Equals(PgReal other) => (bool)(this == other);
 
         public override bool Equals(object obj)
@@ -341,16 +337,18 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgReal)obj);
         }
 
-        public static PgBoolean Equals(PgReal x, PgReal y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
+        public static PgReal    Add(PgReal x, PgReal y)                => (x + y);
+        public static PgReal    Divide(PgReal x, PgReal y)             => (x / y);
+        public static PgBoolean Equals(PgReal x, PgReal y)             => (x == y);
         public static PgBoolean GreaterThan(PgReal x, PgReal y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgReal x, PgReal y) => (x >= y);
         public static PgBoolean LessThan(PgReal x, PgReal y)           => (x < y);
         public static PgBoolean LessThanOrEqual(PgReal x, PgReal y)    => (x <= y);
-        public static PgReal Multiply(PgReal x, PgReal y)              => (x * y);
+        public static PgReal    Multiply(PgReal x, PgReal y)           => (x * y);
         public static PgBoolean NotEquals(PgReal x, PgReal y)          => (x != y);
+        public static PgReal    Subtract(PgReal x, PgReal y)           => (x - y);
 
         public static PgReal Parse(string s)
         {
@@ -360,8 +358,6 @@ namespace PostgreSql.Data.PgTypes
             }
             return Single.Parse(s, TypeInfoProvider.InvariantCulture);
         }
-
-        public static PgReal Subtract(PgReal x, PgReal y) => (x - y);
 
         public PgBit ToPgBit()         => (PgBit)this;
         public PgBoolean ToPgBoolean() => (PgBoolean)this;

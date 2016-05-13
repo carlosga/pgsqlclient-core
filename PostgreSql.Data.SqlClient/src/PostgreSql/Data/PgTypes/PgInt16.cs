@@ -346,10 +346,6 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgInt16 Add(PgInt16 x, PgInt16 y)        => (x + y);
-        public static PgInt16 BitwiseAnd(PgInt16 x, PgInt16 y) => (x & y);
-        public static PgInt16 BitwiseOr(PgInt16 x, PgInt16 y)  => (x | y);
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgInt16))
@@ -382,8 +378,6 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgInt16 Divide(PgInt16 x, PgInt16 y) => (x / y);
-
         public bool Equals(PgInt16 other) => (this == other).Value;
 
         public override bool Equals(object obj)
@@ -399,10 +393,13 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgInt16)obj);
         }
 
-        public static PgBoolean Equals(PgInt16 x, PgInt16 y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
+        public static PgInt16   Add(PgInt16 x, PgInt16 y)                => (x + y);
+        public static PgInt16   BitwiseAnd(PgInt16 x, PgInt16 y)         => (x & y);
+        public static PgInt16   BitwiseOr(PgInt16 x, PgInt16 y)          => (x | y);
+        public static PgInt16   Divide(PgInt16 x, PgInt16 y)             => (x / y);
+        public static PgBoolean Equals(PgInt16 x, PgInt16 y)             => (x == y);
         public static PgBoolean GreaterThan(PgInt16 x, PgInt16 y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgInt16 x, PgInt16 y) => (x >= y);
         public static PgBoolean LessThan(PgInt16 x, PgInt16 y)           => (x < y);
@@ -412,6 +409,8 @@ namespace PostgreSql.Data.PgTypes
         public static PgInt16   Multiply(PgInt16 x, PgInt16 y)           => (x * y);
         public static PgBoolean NotEquals(PgInt16 x, PgInt16 y)          => (x != y);
         public static PgInt16   OnesComplement(PgInt16 x)                => ~x;
+        public static PgInt16   Subtract(PgInt16 x, PgInt16 y)           => (x - y);
+        public static PgInt16   Xor(PgInt16 x, PgInt16 y)                => (x ^ y);
 
         public static PgInt16 Parse(string s)
         {
@@ -421,8 +420,6 @@ namespace PostgreSql.Data.PgTypes
             }
             return Int16.Parse(s, TypeInfoProvider.InvariantCulture);
         }
-
-        public static PgInt16 Subtract(PgInt16 x, PgInt16 y) => (x - y);
 
         public PgBit     ToPgBit()     => (PgBit)this;
         public PgBoolean ToPgBoolean() => (PgBoolean)this;
@@ -442,7 +439,5 @@ namespace PostgreSql.Data.PgTypes
             }
             return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
-
-        public static PgInt16 Xor(PgInt16 x, PgInt16 y) => (x ^ y);
     }
 }

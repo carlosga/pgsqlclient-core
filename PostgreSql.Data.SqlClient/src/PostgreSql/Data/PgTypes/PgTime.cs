@@ -153,8 +153,6 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgTime Add(PgTime x, PgTime t) => (x + t);
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgTime))
@@ -194,15 +192,16 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgTime)obj);
         }
 
-        public static PgBoolean Equals(PgTime x, PgTime y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
+        public static PgTime    Add(PgTime x, PgTime t)                 => (x + t);
+        public static PgBoolean Equals(PgTime x, PgTime y)              => (x == y);
         public static PgBoolean GreatherThan(PgTime x, PgTime y)        => (x > y);
         public static PgBoolean GreatherThanOrEqual(PgTime x, PgTime y) => (x >= y);
         public static PgBoolean LessThan(PgTime x, PgTime y)            => (x < y);
         public static PgBoolean LessThanOrEqual(PgTime x, PgTime y)     => (x <= y);
         public static PgBoolean NotEquals(PgTime x, PgTime y)           => (x != y);
+        public static PgTime    Subtract(PgTime x, PgTime t)            => (x - t);
 
         public static PgTime Parse(string s)
         {
@@ -212,8 +211,6 @@ namespace PostgreSql.Data.PgTypes
             }
             return new PgTime(TimeSpan.Parse(s));
         }
-
-        public static PgTime Subtract(PgTime x, PgTime t) => (x - t);
 
         public override string ToString()
         {

@@ -279,8 +279,6 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgBoolean And(PgBoolean x, PgBoolean y) => (x & y);
-
         public int CompareTo(object obj)
         {
             if (obj == null || !(obj is PgBoolean))
@@ -329,10 +327,10 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgBoolean)obj);
         }
 
-        public static PgBoolean Equals(PgBoolean x, PgBoolean y) => (x == y);
-
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode()); 
-        
+
+        public static PgBoolean And(PgBoolean x, PgBoolean y)                 => (x & y);
+        public static PgBoolean Equals(PgBoolean x, PgBoolean y)              => (x == y);
         public static PgBoolean GreaterThan(PgBoolean x, PgBoolean y)         => (x > y);
         public static PgBoolean GreaterThanOrEquals(PgBoolean x, PgBoolean y) => (x >= y);
         public static PgBoolean LessThan(PgBoolean x, PgBoolean y)            => (x < y);
@@ -340,6 +338,7 @@ namespace PostgreSql.Data.PgTypes
         public static PgBoolean NotEquals(PgBoolean x, PgBoolean y)           => (x != y);
         public static PgBoolean OnesComplement(PgBoolean x)                   => (~x);
         public static PgBoolean Or(PgBoolean x, PgBoolean y)                  => (x | y);
+        public static PgBoolean Xor(PgBoolean x, PgBoolean y)                 => (x ^ y);
 
         public static PgBoolean Parse(string s)
         {
@@ -389,7 +388,5 @@ namespace PostgreSql.Data.PgTypes
             }
             return _value.ToString();
         }
-        
-        public static PgBoolean Xor(PgBoolean x, PgBoolean y) => (x ^ y);
     }
 }
