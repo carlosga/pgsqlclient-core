@@ -96,19 +96,9 @@ namespace PostgreSql.Data.PgTypes
             return $"<{_center},{_radius}>";
         }
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _center.GetHashCode() ^ _radius.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _center.GetHashCode() ^ _radius.GetHashCode());
 
-        public bool Equals(PgCircle other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgCircle other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {

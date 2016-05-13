@@ -196,14 +196,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgTime x, PgTime y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
         public static PgBoolean GreatherThan(PgTime x, PgTime y)        => (x > y);
         public static PgBoolean GreatherThanOrEqual(PgTime x, PgTime y) => (x >= y);

@@ -6,6 +6,7 @@
 // Portions Copyright (c) 1994, Regents of the University of California
 
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace PostgreSql.Data.PgTypes
@@ -251,15 +252,9 @@ namespace PostgreSql.Data.PgTypes
 
         //public PgString ToPgString() => ToString();
         
-        public DateTime ToDateTime()
-        {
-            return (DateTime)this;
-        }
+        public DateTime ToDateTime() => (DateTime)this;
 
-        public override string ToString()
-        {
-            return ToString(null, System.Globalization.CultureInfo.CurrentCulture);
-        }
+        public override string ToString() => ToString(null, CultureInfo.CurrentCulture);
 
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -276,10 +271,11 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDate AddMonths(int value)
         {
-            int year = GetDatePart(_days, DatePart.Year);
-            int month = GetDatePart(_days, DatePart.Month);
-            int day = GetDatePart(_days, DatePart.Day);
+            int year   = GetDatePart(_days, DatePart.Year);
+            int month  = GetDatePart(_days, DatePart.Month);
+            int day    = GetDatePart(_days, DatePart.Day);
             int zmonth = month - 1 + value;
+            
             if (zmonth >= 0)
             {
                 month = zmonth % 12 + 1;

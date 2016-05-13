@@ -287,14 +287,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgDouble x, PgDouble y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
         public static PgBoolean GreaterThan(PgDouble x, PgDouble y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgDouble x, PgDouble y) => (x >= y);
@@ -303,7 +296,7 @@ namespace PostgreSql.Data.PgTypes
         public static PgDouble  Multiply(PgDouble x, PgDouble y)           => (x * y);
         public static PgBoolean NotEquals(PgDouble x, PgDouble y)          => (x != y);
 
-        public static PgDouble Parse(string s)      
+        public static PgDouble Parse(string s)
         {
             if (TypeInfoProvider.IsNullString(s))
             {

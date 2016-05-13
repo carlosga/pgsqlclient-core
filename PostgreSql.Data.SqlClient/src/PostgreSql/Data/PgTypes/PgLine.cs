@@ -100,10 +100,7 @@ namespace PostgreSql.Data.PgTypes
             return _startPoint.GetHashCode() ^ _endPoint.GetHashCode();
         }
 
-        public bool Equals(PgLine other)
-        {
-            return (this == other);
-        }
+        public bool Equals(PgLine other) =>  (this == other);
 
         public override bool Equals(object obj)
         {

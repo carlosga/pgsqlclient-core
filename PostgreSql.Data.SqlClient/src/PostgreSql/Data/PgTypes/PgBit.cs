@@ -329,10 +329,7 @@ namespace PostgreSql.Data.PgTypes
             return new PgBit((byte)x.Value);
         }
 
-        public static implicit operator PgBit(byte x)
-        {
-            return (PgBit)x;
-        }
+        public static implicit operator PgBit(byte x) => (PgBit)x;
 
         public bool IsNull => !_isNotNull;
 
@@ -404,14 +401,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgBit x, PgBit y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return (_value.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
         public static PgBoolean GreaterThan(PgBit x, PgBit y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgBit x, PgBit y) => (x >= y);

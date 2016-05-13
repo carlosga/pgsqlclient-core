@@ -208,10 +208,7 @@ namespace PostgreSql.Data.PgTypes
             return x._value;
         }
 
-        public static implicit operator PgReal(float x)
-        {
-            return new PgReal(x);
-        }
+        public static implicit operator PgReal(float x) => new PgReal(x);
 
         public static implicit operator PgReal(PgByte x)
         {
@@ -293,10 +290,7 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgReal Add(PgReal x, PgReal y)
-        {
-            return (x + y);
-        }
+        public static PgReal Add(PgReal x, PgReal y) => (x + y);
 
         public int CompareTo(object obj)
         {
@@ -330,15 +324,9 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgReal Divide(PgReal x, PgReal y)
-        {
-            return (x / y);
-        }
+        public static PgReal Divide(PgReal x, PgReal y) => (x / y);
 
-        public bool Equals(PgReal other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgReal other) => (bool)(this == other);
 
         public override bool Equals(object obj)
         {
@@ -353,49 +341,16 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgReal)obj);
         }
 
-        public static PgBoolean Equals(PgReal x, PgReal y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgReal x, PgReal y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
-        public static PgBoolean GreaterThan(PgReal x, PgReal y)
-        {
-            return (x > y);
-        }
-
-        public static PgBoolean GreaterThanOrEqual(PgReal x, PgReal y)
-        {
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgReal x, PgReal y)
-        {
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEqual(PgReal x, PgReal y)
-        {
-            return (x <= y);
-        }
-
-        public static PgReal Multiply(PgReal x, PgReal y)
-        {
-            return (x * y);
-        }
-
-        public static PgBoolean NotEquals(PgReal x, PgReal y)
-        {
-            return (x != y);
-        }
+        public static PgBoolean GreaterThan(PgReal x, PgReal y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgReal x, PgReal y) => (x >= y);
+        public static PgBoolean LessThan(PgReal x, PgReal y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgReal x, PgReal y)    => (x <= y);
+        public static PgReal Multiply(PgReal x, PgReal y)              => (x * y);
+        public static PgBoolean NotEquals(PgReal x, PgReal y)          => (x != y);
 
         public static PgReal Parse(string s)
         {
@@ -406,55 +361,17 @@ namespace PostgreSql.Data.PgTypes
             return Single.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
-        public static PgReal Subtract(PgReal x, PgReal y)
-        {
-            return (x - y);
-        }
+        public static PgReal Subtract(PgReal x, PgReal y) => (x - y);
 
-        public PgBit ToPgBit()
-        {
-            return (PgBit)this;
-        }
-
-        public PgBoolean ToPgBoolean()
-        {
-            return (PgBoolean)this;
-        }
-
-        public PgByte ToPgByte()
-        {
-            return (PgByte)this;
-        }
-
-        public PgDecimal ToPgDecimal()
-        {
-            return (PgDecimal)this;
-        }
-
-        public PgDouble ToPgDouble()
-        {
-            return (PgDouble)this;
-        }
-
-        public PgInt16 ToPgInt16()
-        {
-            return (PgInt16)this;
-        }
-
-        public PgInt32 ToPgInt32()
-        {
-            return (PgInt32)this;
-        }
-
-        public PgInt64 ToPgInt64()
-        {
-            return (PgInt64)this;
-        }
-
-        public PgMoney ToPgMoney()
-        {
-            return (PgMoney)this;
-        }
+        public PgBit ToPgBit()         => (PgBit)this;
+        public PgBoolean ToPgBoolean() => (PgBoolean)this;
+        public PgByte ToPgByte()       => (PgByte)this;
+        public PgDecimal ToPgDecimal() => (PgDecimal)this;
+        public PgDouble ToPgDouble()   => (PgDouble)this;
+        public PgInt16 ToPgInt16()     => (PgInt16)this;
+        public PgInt32 ToPgInt32()     => (PgInt32)this;
+        public PgInt64 ToPgInt64()     => (PgInt64)this;
+        public PgMoney ToPgMoney()     => (PgMoney)this;
 
         public override string ToString()
         {

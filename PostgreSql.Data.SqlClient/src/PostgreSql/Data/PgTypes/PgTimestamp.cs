@@ -232,10 +232,7 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgTimestamp Add(PgTimestamp x, TimeSpan t)
-        {
-            return (x + t);
-        }
+        public static PgTimestamp Add(PgTimestamp x, TimeSpan t) => (x + t);
 
         public int CompareTo(object obj)
         {
@@ -269,10 +266,7 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public bool Equals(PgTimestamp other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgTimestamp other) => (bool)(this == other);
 
         public override bool Equals(object obj)
         {
@@ -287,54 +281,19 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgDate)obj);
         }
 
-        public static PgBoolean Equals(PgTimestamp x, PgTimestamp y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgTimestamp x, PgTimestamp y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
-        public static PgBoolean GreaterThan(PgTimestamp x, PgTimestamp y)
-        {
-            return (x > y);
-        }
+        public static PgBoolean GreaterThan(PgTimestamp x, PgTimestamp y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgTimestamp x, PgTimestamp y) => (x >= y);
+        public static PgBoolean LessThan(PgTimestamp x, PgTimestamp y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgTimestamp x, PgTimestamp y)    => (x <= y);
+        public static PgBoolean NotEquals(PgTimestamp x, PgTimestamp y)          => (x != y);
 
-        public static PgBoolean GreaterThanOrEqual(PgTimestamp x, PgTimestamp y)
-        {
-            return (x >= y);
-        }
-
-        public static PgBoolean LessThan(PgTimestamp x, PgTimestamp y)
-        {
-            return (x < y);
-        }
-
-        public static PgBoolean LessThanOrEqual(PgTimestamp x, PgTimestamp y)
-        {
-            return (x <= y);
-        }
-
-        public static PgBoolean NotEquals(PgTimestamp x, PgTimestamp y)
-        {
-            return (x != y);
-        }
-
-        public static PgTimestamp Parse(string s)
-        {
-            return DateTime.Parse(s);
-        }
-
-        public static PgTimestamp Subtract(PgTimestamp x, TimeSpan t)
-        {
-            return (x - t);
-        }
+        public static PgTimestamp Parse(string s) => DateTime.Parse(s);
+        
+        public static PgTimestamp Subtract(PgTimestamp x, TimeSpan t) => (x - t);
 
         public override string ToString()
         {

@@ -331,14 +331,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgBoolean x, PgBoolean y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode()); 
         
         public static PgBoolean GreaterThan(PgBoolean x, PgBoolean y)         => (x > y);
         public static PgBoolean GreaterThanOrEquals(PgBoolean x, PgBoolean y) => (x >= y);

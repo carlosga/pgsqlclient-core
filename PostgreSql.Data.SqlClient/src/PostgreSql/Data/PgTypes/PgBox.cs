@@ -87,10 +87,7 @@ namespace PostgreSql.Data.PgTypes
             return (x.UpperRight == y.UpperRight && x.LowerLeft == y.LowerLeft);
         }
 
-        public static PgBoolean operator !=(PgBox x, PgBox y)
-        {
-            return !(x == y);
-        }
+        public static PgBoolean operator !=(PgBox x, PgBox y) => !(x == y);
 
         public override string ToString()
         {
@@ -106,19 +103,9 @@ namespace PostgreSql.Data.PgTypes
                                , _lowerLeft.Y);
         }
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
 
-        public bool Equals(PgBox other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgBox other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {

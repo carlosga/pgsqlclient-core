@@ -113,20 +113,9 @@ namespace PostgreSql.Data.PgTypes
             return b.ToString();
         }
 
-        public override int GetHashCode() 
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            
-            return (_points.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _points.GetHashCode());
 
-        public bool Equals(PgPolygon other)
-        {
-            return (this == other);
-        }
+        public bool Equals(PgPolygon other) => (this == other);
 
         public override bool Equals(object obj)
         {

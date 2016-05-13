@@ -86,10 +86,7 @@ namespace PostgreSql.Data.PgTypes
             return equals;
         }
 
-        public static PgBoolean operator !=(PgPath x, PgPath y)
-        {
-            return !(x == y);
-        }
+        public static PgBoolean operator !=(PgPath x, PgPath y) => (x != y);
 
         public override string ToString()
         {
@@ -117,19 +114,9 @@ namespace PostgreSql.Data.PgTypes
             return b.ToString();
         }
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return (_points.GetHashCode() ^ _isClosedPath.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : (_points.GetHashCode() ^ _isClosedPath.GetHashCode()));
 
-        public bool Equals(PgPath other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgPath other) => (bool)(this == other);
 
         public override bool Equals(object obj)
         {

@@ -301,7 +301,7 @@ namespace PostgreSql.Data.PgTypes
             }
             return (PgInt16)x.Value;
         }
-        
+
         public static explicit operator PgInt16(PgMoney x)
         {
             if (x.IsNull)
@@ -314,7 +314,7 @@ namespace PostgreSql.Data.PgTypes
             }
             return (PgInt16)x.Value;
         }
-        
+
         public static explicit operator PgInt16(PgReal x)
         {
             if (x.IsNull)
@@ -328,15 +328,9 @@ namespace PostgreSql.Data.PgTypes
             return (PgInt16)x.Value;
         }
 
-        public static implicit operator PgInt16(short x)
-        {
-            return new PgInt16(x);
-        }
+        public static implicit operator PgInt16(short x)  => new PgInt16(x);
 
-        public static implicit operator PgInt16(PgByte x)
-        {
-            return new PgInt16(x.Value);
-        }
+        public static implicit operator PgInt16(PgByte x) => new PgInt16(x.Value);
 
         public bool IsNull => !_isNotNull;
 
@@ -407,14 +401,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean Equals(PgInt16 x, PgInt16 y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
         public static PgBoolean GreaterThan(PgInt16 x, PgInt16 y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgInt16 x, PgInt16 y) => (x >= y);

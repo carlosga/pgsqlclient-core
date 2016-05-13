@@ -92,19 +92,9 @@ namespace PostgreSql.Data.PgTypes
             return String.Format(TypeInfoProvider.InvariantCulture, "({0},{1})", _x, _y);
         }
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return (_x.GetHashCode() ^ _y.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _x.GetHashCode() ^ _y.GetHashCode()); 
 
-        public bool Equals(PgPoint other)
-        {
-            return (this == other);
-        }
+        public bool Equals(PgPoint other) => (this == other);
 
         public override bool Equals(object obj)
         {

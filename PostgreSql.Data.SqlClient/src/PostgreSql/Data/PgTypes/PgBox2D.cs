@@ -107,19 +107,9 @@ namespace PostgreSql.Data.PgTypes
             return $"BOX({_lowerLeft},{_upperRight})";
         }
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return (UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : UpperRight.GetHashCode() ^ LowerLeft.GetHashCode());
 
-        public bool Equals(PgBox2D other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgBox2D other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {

@@ -130,28 +130,48 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBoolean operator <(PgInt64 x, PgInt64 y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (x._value < y._value);
         }
 
         public static PgBoolean operator <=(PgInt64 x, PgInt64 y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (x._value <= y._value);
         }
-
+ 
         public static PgBoolean operator ==(PgInt64 x, PgInt64 y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (x._value == y._value);
         }
 
         public static PgBoolean operator >(PgInt64 x, PgInt64 y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (x._value > y._value);
         }
 
         public static PgBoolean operator >=(PgInt64 x, PgInt64 y)
         {
+            if (x.IsNull || y.IsNull)
+            {
+                return PgBoolean.Null;
+            }
             return (x._value >= y._value);
-        }
+        } 
 
         public static explicit operator PgInt64(PgBit x)
         {
@@ -262,20 +282,9 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgInt64 Add(PgInt64 x, PgInt64 y)
-        {
-            return (x + y);
-        }
-
-        public static PgInt64 BitwiseAnd(PgInt64 x, PgInt64 y)
-        {
-            return (x & y);
-        }
-
-        public static PgInt64 BitwiseOr(PgInt64 x, PgInt64 y)
-        {
-            return (x | y);
-        }
+        public static PgInt64 Add(PgInt64 x, PgInt64 y)        => (x + y);
+        public static PgInt64 BitwiseAnd(PgInt64 x, PgInt64 y) => (x & y);
+        public static PgInt64 BitwiseOr(PgInt64 x, PgInt64 y)  => (x | y);
 
         public int CompareTo(object obj)
         {
@@ -309,15 +318,9 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgInt64 Divide(PgInt64 x, PgInt64 y)
-        {
-            return (x / y);
-        }
+        public static PgInt64 Divide(PgInt64 x, PgInt64 y) => (x / y);
 
-        public bool Equals(PgInt64 other)
-        {
-            return (this == other).Value;
-        }
+        public bool Equals(PgInt64 other) => (bool)(this == other);
 
         public override bool Equals(object obj)
         {
@@ -333,35 +336,18 @@ namespace PostgreSql.Data.PgTypes
             return Equals((PgInt64)obj);
         }
 
-        public static PgBoolean Equals(PgInt64 x, PgInt64 y)
-        {
-            return (x == y);
-        }
+        public static PgBoolean Equals(PgInt64 x, PgInt64 y) => (x == y);
 
-        public override int GetHashCode()
-        {
-            if (IsNull)
-            {
-                return 0;
-            }
-            return _value.GetHashCode();
-        }
+        public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
-        public static PgBoolean GreaterThan(PgInt64 x, PgInt64 y) => (x > y);
-
+        public static PgBoolean GreaterThan(PgInt64 x, PgInt64 y)        => (x > y);
         public static PgBoolean GreaterThanOrEqual(PgInt64 x, PgInt64 y) => (x >= y);
-
-        public static PgBoolean LessThan(PgInt64 x, PgInt64 y) => (x < y);
-
-        public static PgBoolean LessThanOrEqual(PgInt64 x, PgInt64 y) => (x <= y);
-
-        public static PgInt64 Mod(PgInt64 x, PgInt64 y) => (x % y);
-
-        public static PgInt64 Modulus(PgInt64 x, PgInt64 y) => (x % y);
-
-        public static PgInt64 Multiply(PgInt64 x, PgInt64 y) => (x * y);
-
-        public static PgBoolean NotEquals(PgInt64 x, PgInt64 y) => (x != y);
+        public static PgBoolean LessThan(PgInt64 x, PgInt64 y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgInt64 x, PgInt64 y)    => (x <= y);
+        public static PgInt64 Mod(PgInt64 x, PgInt64 y)                  => (x % y);
+        public static PgInt64 Modulus(PgInt64 x, PgInt64 y)              => (x % y);
+        public static PgInt64 Multiply(PgInt64 x, PgInt64 y)             => (x * y);
+        public static PgBoolean NotEquals(PgInt64 x, PgInt64 y)          => (x != y);
 
         public static PgInt64 OnesComplement(PgInt64 x) => ~x;
 
