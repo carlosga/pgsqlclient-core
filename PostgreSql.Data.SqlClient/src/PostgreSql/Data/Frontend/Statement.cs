@@ -233,10 +233,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ExecuteReader()
-        {
-            ExecuteReader(CommandBehavior.Default);
-        }
+        internal void ExecuteReader() => ExecuteReader(CommandBehavior.Default);
 
         internal void ExecuteReader(CommandBehavior behavior)
         {
@@ -274,7 +271,7 @@ namespace PostgreSql.Data.Frontend
                 Bind();
                 Execute(CommandBehavior.SingleResult);
 
-                if (!_rows.IsEmpty())
+                if (_rows.Count > 0)
                 {
                     return _rows.Dequeue()[0];
                 }
@@ -381,7 +378,7 @@ namespace PostgreSql.Data.Frontend
 
         internal DataRecord FetchRow()
         {
-            if (IsCancelled && _rows.IsEmpty())
+            if (IsCancelled && _rows.Count == 0)
             {
                 return null;
             }
@@ -604,10 +601,7 @@ namespace PostgreSql.Data.Frontend
             _connection.Send(_bindMessage);
         }
 
-        private void Execute()
-        {
-            Execute(CommandBehavior.Default);
-        }
+        private void Execute() => Execute(CommandBehavior.Default);
 
         private void Execute(CommandBehavior behavior)
         {

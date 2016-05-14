@@ -143,9 +143,6 @@ namespace PostgreSql.Data.Frontend
             _attributes   = attributes;
         }
 
-        public override string ToString()
-        {
-            return _name;
-        }
+        public override string ToString() => _name;
     }
 }

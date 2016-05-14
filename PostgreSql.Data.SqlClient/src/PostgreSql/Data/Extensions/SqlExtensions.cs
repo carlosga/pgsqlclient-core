@@ -14,7 +14,7 @@ namespace System
         {
             var commands = new List<string>();
 
-            if (commandText != null && commandText.Length > 0 && commandText.IndexOf(';') != -1)
+            if (commandText != null && commandText.IndexOf(';') != -1)
             {
                 var  inLiteral = false;
                 int  from      = 0;
@@ -62,11 +62,10 @@ namespace System
                return commandText;
            }
 
-           var paramsText = new StringBuilder();
+           var spCall    = new StringBuilder();
+           var lastIndex = parameters.Count - 1;
 
-           // Append the stored proc parameter name
-           paramsText.Append(commandText);
-           paramsText.Append("(");
+           spCall.AppendFormat("SELECT * FROM {0}(", commandText);
 
            for (int i = 0; i < parameters.Count; ++i)
            {
@@ -75,40 +74,38 @@ namespace System
                if (parameter.Direction == ParameterDirection.Input
                 || parameter.Direction == ParameterDirection.InputOutput)
                {
-                   // Append parameter name to parameter list
-                   paramsText.Append(parameters[i].ParameterName);
+                   spCall.Append(parameters[i].ParameterName);
 
-                   if (i != parameters.Count - 1)
+                   if (i != lastIndex)
                    {
-                       paramsText.Append(",");
+                       spCall.Append(",");
                    }
                }
            }
 
-           paramsText.Append(")");
-           paramsText.Replace(",)", ")");
+           spCall.Append(")");
 
-           return $"SELECT * FROM {paramsText.ToString()}";
+           return spCall.ToString();
         }
 
         internal static string ParseCommandText(this string           commandText
                                               , PgParameterCollection parameters
                                               , ref List<int>         parameterIndices)
         {
-            var builder         = new StringBuilder();
-            var paramBuilder    = new StringBuilder();
-            var inLiteral       = false;
-            var inParam         = false;
-            int paramIndex      = 0;
-
-            parameterIndices.Clear();
-
             if (commandText.IndexOf('@') == -1)
             {
                 return commandText;
             }
 
+            var  builder      = new StringBuilder(commandText.Length);
+            var  paramBuilder = new StringBuilder(15);
+            var  inLiteral    = false;
+            var  inParam      = false;
+            int  paramIndex   = 0;
             char sym;
+
+            parameterIndices.Clear();
+            parameterIndices.Capacity = parameters.Count;
 
             for (int i = 0; i < commandText.Length; ++i)
             {

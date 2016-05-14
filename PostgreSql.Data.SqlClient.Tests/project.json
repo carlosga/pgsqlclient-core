@@ -1,6 +1,6 @@
 {
     "title": "postgresql data provider for .net core. unit tests.",
-    "version": "1.0.0-alpha1",
+    "version": "0.1.0",
     "buildOptions": {
         "languageVersion": "csharp6",
         "platform"       : "x64",

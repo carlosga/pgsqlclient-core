@@ -14,12 +14,10 @@ namespace PostgreSql.Data.Authentication
 
         internal static string EncryptPassword(byte[] salt,string userId, string password)
         {
-            // MD5-encrypted password is required
-
             string userHash = GetMD5Hash(Encoding.UTF8.GetBytes(userId), password);
             string hash     = GetMD5Hash(salt, userHash);
 
-            return $"{Prefix}{hash}";
+            return Prefix + hash;
         }
 
         private static string GetMD5Hash(byte[] salt, string password)
@@ -32,7 +30,7 @@ namespace PostgreSql.Data.Authentication
 
                 if (length > 0)
                 {
-                    Encoding.UTF8.GetBytes(password, 0, length, data, 0);   
+                    Encoding.UTF8.GetBytes(password, 0, length, data, 0);
                 }
 
                 salt.CopyTo(data, length);

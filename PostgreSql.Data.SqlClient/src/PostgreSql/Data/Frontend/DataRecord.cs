@@ -22,10 +22,7 @@ namespace PostgreSql.Data.Frontend
             _values     = values;
         }
 
-        internal int GetOrdinal(string name)
-        {
-            return _descriptor.IndexOf(name);
-        }
+        internal int GetOrdinal(string name) => _descriptor.IndexOf(name);
 
         internal string GetName(int i)
         {
@@ -192,10 +189,7 @@ namespace PostgreSql.Data.Frontend
         internal PgPoint3D   GetPgPoint3D(int i)   => GetFieldValue<PgPoint3D>(i);
         internal PgPolygon   GetPgPolygon(int i)   => GetFieldValue<PgPolygon>(i);
 
-        internal object GetValue(string name)
-        {
-            return GetValue(GetOrdinal(name));
-        }
+        internal object GetValue(string name) => GetValue(GetOrdinal(name));
 
         internal object GetValue(int i)
         {

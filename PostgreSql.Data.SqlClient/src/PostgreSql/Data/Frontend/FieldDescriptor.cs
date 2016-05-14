@@ -41,9 +41,6 @@ namespace PostgreSql.Data.Frontend
             _typeInfo     = typeInfo;
         }
 
-        public override string ToString()
-        {
-            return _name;
-        }
+        public override string ToString() => _name;
     }
 }

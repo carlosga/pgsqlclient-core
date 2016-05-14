@@ -392,7 +392,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == null || value == DBNull.Value)
             {
-                return s_types[1043];   // Varchar by default
+                return s_types[Oid.Varchar];   // Varchar by default
             }
             if (value is INullable)
             {
