@@ -261,9 +261,8 @@ namespace PostgreSql.Data.Frontend
         private void Connect(string host, int port, int connectTimeout, int packetSize)
         {
             // Obtain the IP addresses for the specified host
-            var task = Task.Run<IPAddress[]>(async () => {
-                return await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            });
+            var task = Dns.GetHostAddressesAsync(host);
+            task.Wait();
 
             var remoteAddresses = task.Result;
 
