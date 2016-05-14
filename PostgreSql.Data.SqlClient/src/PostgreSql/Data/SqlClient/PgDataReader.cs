@@ -303,32 +303,32 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetString(i);
         }
 
-        public PgBinary    GetPgBinary(int i)    => GetValue<PgBinary>(i);
-        public PgBit       GetPgBit(int i)       => GetValue<PgBit>(i);
-        public PgBoolean   GetPgBoolean(int i)   => GetValue<PgBoolean>(i);
-        public PgBox       GetPgBox(int i)       => GetValue<PgBox>(i);
-        public PgBox2D     GetPgBox2D(int i)     => GetValue<PgBox2D>(i);
-        public PgBox3D     GetPgBox3D(int i)     => GetValue<PgBox3D>(i);
-        public PgByte      GetPgByte(int i)      => GetValue<PgByte>(i);
-        public PgCircle    GetPgCircle(int i)    => GetValue<PgCircle>(i);
-        public PgDouble    GetPgDouble(int i)    => GetValue<PgDouble>(i);
-        public PgInt16     GetPgInt16(int i)     => GetValue<PgInt16>(i);
-        public PgInt32     GetPgInt32(int i)     => GetValue<PgInt32>(i);
-        public PgInt64     GetPgInt64(int i)     => GetValue<PgInt64>(i);
-        public PgDecimal   GetPgDecimal(int i)   => GetValue<PgDecimal>(i);
-        public PgMoney     GetPgMoney(int i)     => GetValue<PgMoney>(i);
-        public PgReal      GetPgReal(int i)      => GetValue<PgReal>(i);
-        public PgDate      GetPgDate(int i)      => GetValue<PgDate>(i);
-        public PgTime      GetPgTime(int i)      => GetValue<PgTime>(i);
-        public PgTimestamp GetPgTimestamp(int i) => GetValue<PgTimestamp>(i);
-        public PgInterval  GetPgInterval(int i)  => GetValue<PgInterval>(i);
-        public PgLine      GetPgLine(int i)      => GetValue<PgLine>(i);
-        public PgLSeg      GetPgLSeg(int i)      => GetValue<PgLSeg>(i);
-        public PgPath      GetPgPath(int i)      => GetValue<PgPath>(i);
-        public PgPoint     GetPgPoint(int i)     => GetValue<PgPoint>(i);
-        public PgPoint2D   GetPgPoint2D(int i)   => GetValue<PgPoint2D>(i);
-        public PgPoint3D   GetPgPoint3D(int i)   => GetValue<PgPoint3D>(i);
-        public PgPolygon   GetPgPolygon(int i)   => GetValue<PgPolygon>(i);
+        public PgBinary    GetPgBinary(int i)    => GetFieldValue<PgBinary>(i);
+        public PgBit       GetPgBit(int i)       => GetFieldValue<PgBit>(i);
+        public PgBoolean   GetPgBoolean(int i)   => GetFieldValue<PgBoolean>(i);
+        public PgBox       GetPgBox(int i)       => GetFieldValue<PgBox>(i);
+        public PgBox2D     GetPgBox2D(int i)     => GetFieldValue<PgBox2D>(i);
+        public PgBox3D     GetPgBox3D(int i)     => GetFieldValue<PgBox3D>(i);
+        public PgByte      GetPgByte(int i)      => GetFieldValue<PgByte>(i);
+        public PgCircle    GetPgCircle(int i)    => GetFieldValue<PgCircle>(i);
+        public PgDouble    GetPgDouble(int i)    => GetFieldValue<PgDouble>(i);
+        public PgInt16     GetPgInt16(int i)     => GetFieldValue<PgInt16>(i);
+        public PgInt32     GetPgInt32(int i)     => GetFieldValue<PgInt32>(i);
+        public PgInt64     GetPgInt64(int i)     => GetFieldValue<PgInt64>(i);
+        public PgDecimal   GetPgDecimal(int i)   => GetFieldValue<PgDecimal>(i);
+        public PgMoney     GetPgMoney(int i)     => GetFieldValue<PgMoney>(i);
+        public PgReal      GetPgReal(int i)      => GetFieldValue<PgReal>(i);
+        public PgDate      GetPgDate(int i)      => GetFieldValue<PgDate>(i);
+        public PgTime      GetPgTime(int i)      => GetFieldValue<PgTime>(i);
+        public PgTimestamp GetPgTimestamp(int i) => GetFieldValue<PgTimestamp>(i);
+        public PgInterval  GetPgInterval(int i)  => GetFieldValue<PgInterval>(i);
+        public PgLine      GetPgLine(int i)      => GetFieldValue<PgLine>(i);
+        public PgLSeg      GetPgLSeg(int i)      => GetFieldValue<PgLSeg>(i);
+        public PgPath      GetPgPath(int i)      => GetFieldValue<PgPath>(i);
+        public PgPoint     GetPgPoint(int i)     => GetFieldValue<PgPoint>(i);
+        public PgPoint2D   GetPgPoint2D(int i)   => GetFieldValue<PgPoint2D>(i);
+        public PgPoint3D   GetPgPoint3D(int i)   => GetFieldValue<PgPoint3D>(i);
+        public PgPolygon   GetPgPolygon(int i)   => GetFieldValue<PgPolygon>(i);
 
         public override Guid GetGuid(int i)
         {
@@ -373,6 +373,13 @@ namespace PostgreSql.Data.SqlClient
             return _row[i];
         }
 
+        public override T GetFieldValue<T>(int i)
+        {
+            CheckPosition();
+
+            return _row.GetFieldValue<T>(i);
+        }
+
         public override int GetValues(object[] values)
         {
             CheckPosition();
@@ -387,9 +394,26 @@ namespace PostgreSql.Data.SqlClient
             return _row.IsDBNull(i);
         }
 
-        public override Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
-        public override object GetProviderSpecificValue(int i)            => GetValue(i);
-        public override int    GetProviderSpecificValues(object[] values) => GetValues(values);
+        public override Type GetProviderSpecificFieldType(int i)
+        {
+            CheckIndex(i);
+
+            return _statement.RowDescriptor[i].TypeInfo.PgType;
+        }
+
+        public override object GetProviderSpecificValue(int i)
+        {
+            CheckPosition();
+
+            return _row.GetProviderSpecificValue(i);
+        }
+
+        public override int GetProviderSpecificValues(object[] values)
+        {
+            CheckPosition();
+
+            return _row.GetProviderSpecificValues(values);
+        }
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
@@ -463,13 +487,6 @@ namespace PostgreSql.Data.SqlClient
             CheckPosition();
 
             return _row[name];
-        }
-
-        private T GetValue<T>(int i)
-        {
-            CheckPosition();
-
-            return _row.GetValue<T>(i);
         }
 
         private void InitializeRefCursors()
