@@ -336,7 +336,7 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        private object ReadComposite(TypeInfo typeInfo, int length)
+        private object[] ReadComposite(TypeInfo typeInfo, int length)
         {
             var count  = ReadInt32();
             var values = new object[count];
@@ -347,14 +347,7 @@ namespace PostgreSql.Data.Frontend
                 var size  = ReadInt32();
                 var tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid); 
 
-                if (size == -1 || tinfo.PgDbType == PgDbType.Void)
-                {
-                    values[i] = DBNull.Value;
-                }
-                else
-                {
-                    values[i] = ReadValue(tinfo, size);
-                }
+                values[i] = ReadValue(tinfo, size);
             }
 
             return values;

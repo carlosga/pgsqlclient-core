@@ -51,17 +51,17 @@ namespace PostgreSql.Data.Frontend
         private string           _standardConformingStrings;
         private TypeInfoProvider _typeInfoProvider;
 
-        internal string           ServerVersion             => _serverVersion;
-        internal Encoding         ServerEncoding            => _serverEncoding;
-        internal Encoding         ClientEncoding            => _clientEncoding;
-        internal string           ApplicationName           => _applicationName;
-        internal bool             IsSuperUser               => _isSuperUser;
-        internal string           SessionAuthorization      => _sessionAuthorization;
-        internal string           DateStyle                 => _dateStyle;
-        internal string           IntervalStyle             => _intervalStyle;
-        internal TimeZoneInfo     TimeZoneInfo              => _timeZoneInfo;
-        internal bool             IntegerDateTimes          => _integerDateTimes;
-        internal string           StandardConformingStrings => _standardConformingStrings;
+        internal string       ServerVersion             => _serverVersion;
+        internal Encoding     ServerEncoding            => _serverEncoding;
+        internal Encoding     ClientEncoding            => _clientEncoding;
+        internal string       ApplicationName           => _applicationName;
+        internal bool         IsSuperUser               => _isSuperUser;
+        internal string       SessionAuthorization      => _sessionAuthorization;
+        internal string       DateStyle                 => _dateStyle;
+        internal string       IntervalStyle             => _intervalStyle;
+        internal TimeZoneInfo TimeZoneInfo              => _timeZoneInfo;
+        internal bool         IntegerDateTimes          => _integerDateTimes;
+        internal string       StandardConformingStrings => _standardConformingStrings;
         
         internal TypeInfoProvider TypeInfoProvider
         {
@@ -71,7 +71,7 @@ namespace PostgreSql.Data.Frontend
 
         internal SessionData()
         {
-            _clientEncoding   = Encoding.UTF8;
+            _clientEncoding = Encoding.UTF8;
         }
 
         internal void SetValue(string name, string value)

@@ -150,7 +150,7 @@ namespace PostgreSql.Data.SqlClient
             // Throw exception if the statement has been cancelled
             if (_refCursor != null)
             {
-                _refCursor?.ThrowIfCancelled();
+                _refCursor.ThrowIfCancelled();
             }
             else
             {

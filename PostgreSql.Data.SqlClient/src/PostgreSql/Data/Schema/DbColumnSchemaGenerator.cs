@@ -54,7 +54,7 @@ namespace PostgreSql.Data.Schema
 
                 command.Prepare();
 
-                for (int i = 0; i < columns.Length; i++)
+                for (int i = 0; i < columns.Length; ++i)
                 {
                     var schema = new PgDbColumn(_descriptor[i]);
 

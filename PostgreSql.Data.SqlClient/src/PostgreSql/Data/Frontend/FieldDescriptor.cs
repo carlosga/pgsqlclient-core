@@ -40,5 +40,10 @@ namespace PostgreSql.Data.Frontend
             _typeModifier = typeModifier;
             _typeInfo     = typeInfo;
         }
+
+        public override string ToString()
+        {
+            return _name;
+        }
     }
 }
