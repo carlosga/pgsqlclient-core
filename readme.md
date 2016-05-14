@@ -1,4 +1,4 @@
-# pgsqlclient
+# pgsqlclient core
 
 .net core (*netstandard1.5*) data provider for postgresql. Licensed under the MIT License.
 
