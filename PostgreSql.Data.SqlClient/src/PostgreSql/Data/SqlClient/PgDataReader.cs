@@ -466,7 +466,6 @@ namespace PostgreSql.Data.SqlClient
             }
             catch
             {
-                throw;
             }
             finally
             {

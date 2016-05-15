@@ -197,30 +197,19 @@ namespace PostgreSql.Data.SqlClient
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    try
-                    {
-                        InternalClose();
-                    }
-                    catch
-                    {
-                    }
-                    finally
-                    {
-                        _connection   = null;
-                        _transaction  = null;
-                        _parameters   = null;
-                        _commandText  = null;
-                        _commands     = null;
-                        _commandIndex = -1;
-                    }
-
-                    base.Dispose(disposing);
+                    InternalClose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 
-                _disposed = true;
+                _disposed     = true;
+                _connection   = null;
+                _transaction  = null;
+                _parameters   = null;
+                _commandText  = null;
+                _commands     = null;
+                _commandIndex = -1;
             }
         }
 
