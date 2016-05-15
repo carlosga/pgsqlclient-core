@@ -54,5 +54,25 @@ namespace System.Data.Common
         {
             return _hashValue;
         }
+
+        public static bool operator ==(DbConnectionPoolKey lhs, DbConnectionPoolKey rhs)
+        {
+            if ((lhs as object) == null || (rhs as object) == null)
+            {
+                return Object.Equals(lhs, rhs);
+            }
+
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(DbConnectionPoolKey lhs, DbConnectionPoolKey rhs)
+        {
+            if ((lhs as object) == null || (rhs as object) == null)
+            {
+                return !Object.Equals(lhs, rhs);
+            }
+
+            return !lhs.Equals(rhs);
+        }
     }
 }

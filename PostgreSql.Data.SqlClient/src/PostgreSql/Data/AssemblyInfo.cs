@@ -7,5 +7,5 @@ using System.Reflection;
 [assembly: AssemblyDescription(".net core data provider for postgresql")]
 [assembly: AssemblyProduct("pgsqlclient core")]
 [assembly: AssemblyCopyright("Carlos Guzm\u00E1n \u00C1lvarez")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]

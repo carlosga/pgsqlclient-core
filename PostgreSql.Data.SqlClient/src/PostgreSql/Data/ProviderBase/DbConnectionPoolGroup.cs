@@ -206,7 +206,7 @@ namespace System.Data.ProviderBase
                             // Empty pool during pruning indicates zero or low activity, but
                             //  an error state indicates the pool needs to stay around to
                             //  throttle new connection attempts.
-                            if ((!pool.ErrorOccurred) && (0 == pool.Count))
+                            if ((!pool.ErrorOccurred) && (pool.Count == 0))
                             {
                                 // Order is important here.  First we remove the pool
                                 // from the collection of pools so no one will try

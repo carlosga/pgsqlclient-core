@@ -66,7 +66,7 @@ namespace System.Data.ProviderBase
 
             internal WaitHandle[] GetHandles(bool withCreate)
             {
-                return withCreate ? _handlesWithCreate : _handlesWithoutCreate;
+                return ((withCreate) ? _handlesWithCreate : _handlesWithoutCreate);
             }
         }
 
