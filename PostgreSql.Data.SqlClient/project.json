@@ -13,14 +13,16 @@
     "buildOptions": {
         "languageVersion" : "csharp6",
         "platform"        : "x64",
+        "allowUnsafe"     : true,
         "compile"         : "src/**/*.cs",
-        "resource"        : "src/**/*.xml"
+        "resource"        : "src/**/*.xml",
     },
     "dependencies": {
         "NETStandard.Library": "1.5.0-rc2-*",
         "System.Collections": "4.0.11-rc2-*",
         "System.Collections.Concurrent": "4.0.12-rc2-*",
         "System.Data.Common": "4.0.1-rc2-*",
+        "System.Diagnostics.Contracts": "4.0.1-rc2-*",
         "System.Globalization": "4.0.11-rc2-*",
         "System.IO": "4.1.0-rc2-*",
         "System.Linq": "4.1.0-rc2-*",

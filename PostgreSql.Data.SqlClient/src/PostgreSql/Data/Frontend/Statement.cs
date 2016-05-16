@@ -12,8 +12,9 @@ namespace PostgreSql.Data.Frontend
     internal sealed class Statement
         : IDisposable
     {
-        private const byte STATEMENT = (byte)'S';
-        private const byte PORTAL    = (byte)'P'; 
+        private static readonly byte   STATEMENT     = (byte)'S';
+        private static readonly byte   PORTAL        = (byte)'P';
+        private static readonly char[] TAG_SEPARATOR = new char[] { ' ' }; 
 
         private Connection            _connection;
         private string                _statementText;
@@ -737,7 +738,7 @@ namespace PostgreSql.Data.Frontend
         {
             _tag = message.ReadNullString();
 
-            string[] elements = _tag.Split(' ');
+            string[] elements = _tag.Split(TAG_SEPARATOR);
 
             switch (elements[0])
             {
@@ -852,7 +853,7 @@ namespace PostgreSql.Data.Frontend
         //     _parameters.Clear();
         //     _parameters.Capacity = count;
 
-        //     for (int i = 0; i < count; i++)
+        //     for (int i = 0; i < count; ++i)
         //     {
         //         oid = packet.ReadInt32();
 

@@ -6,6 +6,7 @@ using PostgreSql.Data.SqlClient;
 using System;
 using System.Data.Common;
 using System.IO;
+using System.Diagnostics.Contracts;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -483,7 +484,7 @@ namespace PostgreSql.Data.Frontend
         /// FoundationDB client (BSD License)
         private void EnsureCapacity(int count)
         {
-            // Contract.Requires(count >= 0);
+            Contract.Requires(count >= 0);
 
             if (_buffer == null || (_position + count) > _buffer.Length)
             {
@@ -502,7 +503,7 @@ namespace PostgreSql.Data.Frontend
                 Array.Resize(ref _buffer, size);
             }
 
-            // Contract.Ensures(_buffer != null && _buffer.Length >= _position + count);
+            Contract.Ensures(_buffer != null && _buffer.Length >= _position + count);
         }
 
         /// FoundationDB client (BSD License)

@@ -98,7 +98,7 @@ namespace PostgreSql.Data.PgTypes
 
             b.Append("(");
 
-            for (int i = 0; i < _points.Length; i++)
+            for (int i = 0; i < _points.Length; ++i)
             {
                 if (b.Length > 1)
                 {

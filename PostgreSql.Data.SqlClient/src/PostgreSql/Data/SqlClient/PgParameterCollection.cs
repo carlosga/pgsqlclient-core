@@ -149,7 +149,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override int IndexOf(string parameterName)
         {
-            for (int i = 0; i < _parameters.Count; i++)
+            for (int i = 0; i < _parameters.Count; ++i)
             {
                 if (_parameters[i].ParameterName == parameterName)
                 {

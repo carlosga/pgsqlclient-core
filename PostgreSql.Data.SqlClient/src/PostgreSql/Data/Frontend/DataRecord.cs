@@ -45,7 +45,13 @@ namespace PostgreSql.Data.Frontend
             return _descriptor[i].TypeInfo.Name;
         }
 
-        internal Type   GetProviderSpecificFieldType(int i)        => GetFieldType(i);
+        internal Type GetProviderSpecificFieldType(int i)
+        {
+            CheckIndex(i);
+
+            return _descriptor[i].TypeInfo.PgType;
+        }
+
         internal object GetProviderSpecificValue(int i)            => GetValue(i);
         internal int    GetProviderSpecificValues(object[] values) => GetValues(values);
 

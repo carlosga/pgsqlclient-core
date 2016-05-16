@@ -207,21 +207,14 @@ namespace PostgreSql.Data.SqlClient
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
-            if (IsClosed)
-            {
-                throw ADP.InvalidRead();
-            }
+            CheckPosition();
 
             return _row.GetBytes(i, dataIndex, buffer, bufferIndex, length);
         }
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
-            if (IsClosed)
-            {
-                throw ADP.InvalidRead();
-            }
-
+            CheckPosition();
             return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
         }
 

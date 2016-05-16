@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Diagnostics.Contracts;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -53,14 +54,14 @@ namespace PostgreSql.Data.Frontend
 
             while (_position < _buffer.Length && _buffer[_position] != 0) 
             { 
-                _position++;
+                ++_position;
             }
 
             int count = _position - start;
 
             if (_position < _buffer.Length)
             {
-                _position++;
+                ++_position;
             }
 
             return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_buffer, start, count);
@@ -79,26 +80,26 @@ namespace PostgreSql.Data.Frontend
         internal byte   ReadByte()    => _buffer[_position++];
         internal bool   ReadBoolean() => (ReadByte() == 1);
 
-        internal short ReadInt16()
+        internal unsafe short ReadInt16()
         {
-            short value = (short)((_buffer[_position + 1] & 0xFF)
-                                | (_buffer[_position]     & 0xFF) << 8);
-
-            _position += 2;
-
-            return value;
+            fixed (byte* pbuffer = &_buffer[_position])
+            {
+                _position += 2;
+                return (short)((*(pbuffer + 1) & 0xFF)
+                             | (*(pbuffer)     & 0xFF) <<  8);
+            }
         }
 
-        internal int ReadInt32()
+        internal unsafe int ReadInt32()
         {
-            int value = (_buffer[_position + 3] & 0xFF)
-                      | (_buffer[_position + 2] & 0xFF) <<  8
-                      | (_buffer[_position + 1] & 0xFF) << 16
-                      | (_buffer[_position    ] & 0xFF) << 24;
-
-            _position += 4;
-
-            return value;
+            fixed (byte* pbuffer = &_buffer[_position])
+            {
+                _position += 4;
+                return (*(pbuffer + 3) & 0xFF)
+                     | (*(pbuffer + 2) & 0xFF) <<  8
+                     | (*(pbuffer + 1) & 0xFF) << 16
+                     | (*(pbuffer    ) & 0xFF) << 24;
+            }
         }
 
         internal long ReadInt64()
@@ -111,9 +112,18 @@ namespace PostgreSql.Data.Frontend
 
         internal decimal ReadNumeric(int length) => Decimal.Parse(ReadString(length), TypeInfoProvider.InvariantCulture);
 
-        internal float      ReadSingle()    => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
-        internal decimal    ReadMoney()     => ((decimal)ReadInt64() / 100);
+        internal unsafe float ReadSingle()
+        {
+            // BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
+            fixed (byte* pbuffer = &_buffer[_position])
+            {
+                int val = ReadInt32();
+                return *((float*)&val);
+            }
+        }
+
         internal double     ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
+        internal decimal    ReadMoney()     => ((decimal)ReadInt64() / 100);
         internal PgDate     ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
         internal TimeSpan   ReadTime()      => new TimeSpan(ReadInt64() * 10);
         internal DateTime   ReadTimestamp() => PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
@@ -140,7 +150,7 @@ namespace PostgreSql.Data.Frontend
         {
             PgPoint[] points = new PgPoint[ReadInt32()];
 
-            for (int i = 0; i < points.Length; i++)
+            for (int i = 0; i < points.Length; ++i)
             {
                 points[i] = ReadPoint();
             }
@@ -153,7 +163,7 @@ namespace PostgreSql.Data.Frontend
             bool isClosedPath = ReadBoolean();
             var  points       = new PgPoint[ReadInt32()];
 
-            for (int i = 0; i < points.Length; i++)
+            for (int i = 0; i < points.Length; ++i)
             {
                 points[i] = ReadPoint();
             }
@@ -167,6 +177,8 @@ namespace PostgreSql.Data.Frontend
             {
                 return DBNull.Value;
             }
+
+            Contract.Requires((_position + length) < _buffer.Length);
 
             switch (typeInfo.PgDbType)
             {

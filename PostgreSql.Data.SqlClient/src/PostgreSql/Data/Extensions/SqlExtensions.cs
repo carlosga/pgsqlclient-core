@@ -120,9 +120,8 @@ namespace System
                     else
                     {
                         parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
-                        paramBuilder.Length = 0;
-                        builder.Append($"${++paramIndex}");
-                        builder.Append(sym);
+                        builder.AppendFormat("${0}{1}", (++paramIndex).ToString(), sym);
+                        paramBuilder.Clear();
                         inParam = false;
                     }
                 }
@@ -146,7 +145,7 @@ namespace System
             if (inParam)
             {
                 parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
-                builder.AppendFormat("${0}", ++paramIndex);
+                builder.AppendFormat("${0}", (++paramIndex).ToString());
             }
 
             return builder.ToString();
