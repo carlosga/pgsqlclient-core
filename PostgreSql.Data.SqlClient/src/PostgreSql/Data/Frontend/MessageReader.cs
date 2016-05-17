@@ -122,12 +122,6 @@ namespace PostgreSql.Data.Frontend
 
         internal decimal ReadNumeric()
         {
-            // int len = _buffer.Length - _position;
-            // if (len < 0 || len > PgDecimal.MaxPrecision + PgDecimal.MaxResultScale)
-            // {
-            //     throw new FormatException("invalid length in external \"numeric\" value");
-            // }
-
             int ndigits = 0; /* # of digits in digits[] - can be 0! */
             int weight  = 0; /* weight of first digit */
             int sign    = 0; /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
@@ -247,6 +241,10 @@ namespace PostgreSql.Data.Frontend
                 return ReadByte();
 
             case PgDbType.Numeric:
+                if (length < 0 || length > PgDecimal.MaxPrecision + PgDecimal.MaxResultScale)
+                {
+                    throw new FormatException("invalid length in external \"numeric\" value");
+                }
                 return ReadNumeric();
 
             case PgDbType.Money:

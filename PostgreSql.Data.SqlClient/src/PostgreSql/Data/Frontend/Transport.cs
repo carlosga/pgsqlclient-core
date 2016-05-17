@@ -190,14 +190,17 @@ namespace PostgreSql.Data.Frontend
             return new MessageReader(type, ReadFrame(), sessionData);
         }
         
-        private int ReadFrameLength()
+        private unsafe int ReadFrameLength()
         {
             _reader.Read(_buffer, 0, 4);
 
-            return ((_buffer[3] & 0xFF)
-                  | (_buffer[2] & 0xFF) <<  8
-                  | (_buffer[1] & 0xFF) << 16
-                  | (_buffer[0] & 0xFF) << 24) - 4;
+            fixed (byte* pbuffer = &_buffer[0])
+            {
+                return ((*(pbuffer + 3) & 0xFF)
+                      | (*(pbuffer + 2) & 0xFF) <<  8
+                      | (*(pbuffer + 1) & 0xFF) << 16
+                      | (*(pbuffer    ) & 0xFF) << 24) - 4;
+            }
         }
 
         private byte[] ReadFrame()
