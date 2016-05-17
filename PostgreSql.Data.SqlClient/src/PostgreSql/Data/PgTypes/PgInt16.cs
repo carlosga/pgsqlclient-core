@@ -57,14 +57,7 @@ namespace PostgreSql.Data.PgTypes
             return (PgInt16)value;
         }
 
-        public static PgBoolean operator !=(PgInt16 x, PgInt16 y)
-        {
-            if (x.IsNull || y.IsNull)
-            {
-                return PgBoolean.Null;
-            }
-            return (x._value != y._value);
-        }
+        public static PgBoolean operator !=(PgInt16 x, PgInt16 y) => !(x == y);
 
         public static PgInt16 operator %(PgInt16 x, PgInt16 y)
         {

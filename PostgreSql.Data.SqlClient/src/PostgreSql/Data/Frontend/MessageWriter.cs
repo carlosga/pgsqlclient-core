@@ -7,6 +7,7 @@ using System;
 using System.Data.Common;
 using System.IO;
 using System.Diagnostics.Contracts;
+using System.Numerics;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -145,7 +146,57 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Write(decimal value)  => Write(value.ToString(TypeInfoProvider.InvariantCulture));
+        /// typedef struct NumericVar
+        /// {
+        ///     int          ndigits; /* # of digits in digits[] - can be 0! */
+        ///     int          weight;  /* weight of first digit */
+        ///     int          sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
+        ///     int          dscale;  /* display scale */
+        ///     NumericDigit *buf;    /* start of palloc'd space for digits[] */
+        ///     NumericDigit *digits; /* base-NBASE digits */
+        /// } NumericVar;
+        internal void Write(decimal value)
+        {
+            int[] bits = Decimal.GetBits(value);
+            if (bits        == null
+             || bits.Length != 4
+             || (bits[3] & ~(PgDecimal.DecimalSignMask | PgDecimal.DecimalScaleMask)) != 0
+             || (bits[3] & PgDecimal.DecimalScaleMask) > (28 << 16))
+            {
+                throw new ArgumentException("invalid Decimal", "value");
+            }
+
+            // build up the numerator
+            ulong ul          = (((ulong)(uint)bits[2]) << 32) | ((ulong)(uint)bits[1]);    // (hi    << 32) | (mid)
+            var   m_numerator = (new BigInteger(ul) << 32) | (uint)bits[0];                 // (hiMid << 32) | (low)
+
+            bool isNegative = (bits[3] & PgDecimal.DecimalSignMask) != 0;
+            if (isNegative)
+            {
+                m_numerator = BigInteger.Negate(m_numerator);
+            }
+
+            // build up the denominator
+            int scale         = (bits[3] & PgDecimal.DecimalScaleMask) >> 16;     // 0-28, power of 10 to divide numerator by
+            var m_denominator = BigInteger.Pow(10, scale);
+            var bi            = (ulong)(m_numerator / m_denominator);
+            var weight        = 0;
+
+            for (int i = 0; i <= 7; i++)
+            {
+                var digit = (ulong) (value / PgDecimal.Weights[i]);
+                if (digit > 0)
+                {
+                    bi -= (ulong)(digit * PgDecimal.Weights[i]);
+
+                    if (weight == 0)
+                    {
+                        weight = (i -1);
+                    }
+                }
+            }
+        }
+
         internal void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(PgDate value)   => Write(value.DaysSinceEpoch);

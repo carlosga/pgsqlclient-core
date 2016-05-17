@@ -110,8 +110,6 @@ namespace PostgreSql.Data.Frontend
             return (uint)v2 | ((long)v1 << 32);
         }
 
-        internal decimal ReadNumeric(int length) => Decimal.Parse(ReadString(length), TypeInfoProvider.InvariantCulture);
-
         internal unsafe float ReadSingle()
         {
             // BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
@@ -122,8 +120,55 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal decimal ReadNumeric()
+        {
+            // int len = _buffer.Length - _position;
+            // if (len < 0 || len > PgDecimal.MaxPrecision + PgDecimal.MaxResultScale)
+            // {
+            //     throw new FormatException("invalid length in external \"numeric\" value");
+            // }
+
+            int ndigits = 0; /* # of digits in digits[] - can be 0! */
+            int weight  = 0; /* weight of first digit */
+            int sign    = 0; /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
+            int dscale  = 0; /* display scale */
+            var res     = 0.0M;
+
+            ndigits = ReadInt16();
+
+            if (ndigits < 0 || ndigits > (PgDecimal.MaxPrecision + PgDecimal.MaxResultScale))
+            {
+                throw new FormatException("invalid length in external \"numeric\" value");
+            }
+            
+            weight = ReadInt16() + 8;
+            sign   = ReadInt16();
+
+            if (!(sign == PgDecimal.PositiveMask || sign == PgDecimal.NegativeMask || sign == PgDecimal.NaNMask))
+            {
+                throw new FormatException("invalid sign in external \"numeric\" value");
+            }
+
+            dscale  = ReadInt16();
+
+            /* base-NBASE digits */
+            for (int i = 0; i < ndigits; ++i)
+            {
+                short digit = ReadInt16();
+
+                if (digit < 0 || digit >= PgDecimal.NBase)
+                {
+                    throw new FormatException("invalid digit in external \"numeric\" value");
+                }
+
+                res += digit * PgDecimal.Weights[--weight];
+            }
+
+            return ((sign == PgDecimal.NegativeMask) ? (res * -1) : res);
+        }
+
         internal double     ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
-        internal decimal    ReadMoney()     => ((decimal)ReadInt64() / 100);
+        internal decimal    ReadMoney()     => ((decimal)ReadInt64() / 100.0M);
         internal PgDate     ReadDate()      => PgDate.Epoch.AddDays(ReadInt32());
         internal TimeSpan   ReadTime()      => new TimeSpan(ReadInt64() * 10);
         internal DateTime   ReadTimestamp() => PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
@@ -202,7 +247,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadByte();
 
             case PgDbType.Numeric:
-                return ReadNumeric(length);
+                return ReadNumeric();
 
             case PgDbType.Money:
                 return ReadMoney();
