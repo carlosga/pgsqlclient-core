@@ -19,7 +19,6 @@
             "args": [
                 "build",
                 "PostgreSql.Data.SqlClient",
-                "PostgreSql.Data.SqlClient.Sample",
                 "PostgreSql.Data.SqlClient.Tests"
             ],
             "problemMatcher": "$msCompile"
