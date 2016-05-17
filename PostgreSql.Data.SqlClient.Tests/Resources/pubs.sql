@@ -1769,51 +1769,51 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION reptq3(lolimit money, hilimit money) RETURNS refcursor AS $$
-DECLARE
-  ref refcursor;
-BEGIN
-    OPEN ref FOR 
-    SELECT CASE WHEN GROUPING(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
-           CASE WHEN GROUPING(type)   = 1 THEN 'ALL' ELSE type END   AS type, 
-           COUNT(title_id)                                           AS cnt
-    FROM  titles
-    WHERE price > lolimit AND price < hilimit AND type = @type OR type LIKE '%cook%'
-    GROUP BY pub_id, type WITH ROLLUP;
-    RETURN ref;
-END;
-$$ LANGUAGE plpgsql;
+-- CREATE OR REPLACE FUNCTION reptq3(lolimit money, hilimit money) RETURNS refcursor AS $$
+-- DECLARE
+--   ref refcursor;
+-- BEGIN
+--     OPEN ref FOR 
+--     SELECT CASE WHEN GROUPING(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
+--            CASE WHEN GROUPING(type)   = 1 THEN 'ALL' ELSE type END   AS type, 
+--            COUNT(title_id)                                           AS cnt
+--     FROM  titles
+--     WHERE price > lolimit AND price < hilimit AND type = @type OR type LIKE '%cook%'
+--     GROUP BY pub_id, type WITH ROLLUP;
+--     RETURN ref;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION reptq2() RETURNS refcursor AS $$
-DECLARE
-  ref refcursor;
-BEGIN
-    OPEN ref FOR 
-    SELECT CASE WHEN GROUPING(type) = 1 THEN 'ALL' ELSE type END     AS type, 
-           CASE when grouping(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
-           AVG(ytd_sales)                                            AS avg_ytd_sales
-    FROM titles
-    WHERE pub_id is NOT NULL
-    GROUP BY pub_id, type WITH ROLLUP;
-    RETURN ref;
-END;
-$$ LANGUAGE plpgsql;
+-- CREATE OR REPLACE FUNCTION reptq2() RETURNS refcursor AS $$
+-- DECLARE
+--   ref refcursor;
+-- BEGIN
+--     OPEN ref FOR 
+--     SELECT CASE WHEN GROUPING(type) = 1 THEN 'ALL' ELSE type END     AS type, 
+--            CASE when grouping(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
+--            AVG(ytd_sales)                                            AS avg_ytd_sales
+--     FROM titles
+--     WHERE pub_id is NOT NULL
+--     GROUP BY pub_id, type WITH ROLLUP;
+--     RETURN ref;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION reptq1() RETURNS refcursor AS $$
-DECLARE
-  ref refcursor;
-BEGIN
-    OPEN ref FOR 
-    SELECT
-        CASE WHEN GROUPING(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
-        AVG(price)                                                AS avg_price
-    FROM titles
-    WHERE price IS NOT NULL
-    GROUP BY pub_id WITH ROLLUP
-    ORDER BY pub_id;
-    RETURN ref;
-END;
-$$ LANGUAGE plpgsql;
+-- CREATE OR REPLACE FUNCTION reptq1() RETURNS refcursor AS $$
+-- DECLARE
+--   ref refcursor;
+-- BEGIN
+--     OPEN ref FOR 
+--     SELECT
+--         CASE WHEN GROUPING(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id, 
+--         AVG(price)                                                AS avg_price
+--     FROM titles
+--     WHERE price IS NOT NULL
+--     GROUP BY pub_id WITH ROLLUP
+--     ORDER BY pub_id;
+--     RETURN ref;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
 --
 -- TOC entry 2080 (class 0 OID 0)

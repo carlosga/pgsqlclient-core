@@ -435,10 +435,7 @@ namespace PostgreSql.Data.SqlClient
                 UpdateRecordsAffected();
 
                 // Set values of output parameters
-                if (_command != null && !_command.IsDisposed)
-                {
-                    _command.InternalSetOutputParameters();
-                }
+                _statement?.InternalSetOutputParameters();
 
                 // Clear ref cursors
                 _refCursor?.Close();

@@ -334,24 +334,6 @@ namespace PostgreSql.Data.SqlClient
            }
         }
 
-        internal void InternalSetOutputParameters()
-        {
-            if (CommandType != CommandType.StoredProcedure || _parameters.Count == 0 || !_statement.HasRows)
-            {
-                return;
-            }
-            
-            var row = _statement.FetchRow();
-
-            for (int i = 0; i < _parameters.Count; ++i)
-            {
-                if (_parameters[i].Direction != ParameterDirection.Input)
-                {
-                    _parameters[i].Value = row[i];
-                }
-            }
-        }
-
         private void InternalPrepare()
         {
             var internalConnection = _connection.InnerConnection as PgConnectionInternal; 
@@ -379,11 +361,7 @@ namespace PostgreSql.Data.SqlClient
         {
             InternalPrepare();
 
-            var recordsAffected = _statement.ExecuteNonQuery();
-
-            InternalSetOutputParameters();
-
-            return recordsAffected;
+            return _statement.ExecuteNonQuery();
         }
 
         private void InternalExecuteReader(CommandBehavior behavior)

@@ -221,6 +221,7 @@ namespace PostgreSql.Data.Frontend
 
                 Bind();
                 Execute(CommandBehavior.SingleRow);
+                InternalSetOutputParameters();
 
                 return _recordsAffected;
             }
@@ -487,6 +488,25 @@ namespace PostgreSql.Data.Frontend
             if (IsCancelled)
             {
                 throw new PgException("Operation cancelled by user.");
+            }
+        }
+
+        internal void InternalSetOutputParameters()
+        {
+            if (_commandType != CommandType.StoredProcedure || _parameters.Count == 0 || _rows.Count == 0)
+            {
+                return;
+            }
+            
+            var row   = FetchRow();
+            var index = -1;
+
+            for (int i = 0; i < _parameters.Count; ++i)
+            {
+                if (_parameters[i].Direction != ParameterDirection.Input)
+                {
+                    _parameters[i].Value = row[++index];
+                }
             }
         }
 

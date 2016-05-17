@@ -3,6 +3,8 @@
 
 using Xunit;
 using System.Data;
+using System.Text;
+using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -65,6 +67,58 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                             rowCount++;
                         }
+                    }
+                }
+            }
+        }
+        
+        [Fact]
+        public static void CallFunctionWithOutputParameter()
+        {
+            var functionName = DataTestClass.GetUniqueName("F", String.Empty, String.Empty);
+            var createFuncSql  = new StringBuilder();
+
+            createFuncSql.AppendFormat("CREATE OR REPLACE FUNCTION {0}() ", functionName);
+            createFuncSql.Append("RETURNS int8 AS");
+            createFuncSql.Append("'");
+            createFuncSql.Append("SELECT COUNT(*) FROM authors;");
+            createFuncSql.Append("'");
+            createFuncSql.Append("LANGUAGE 'sql' VOLATILE;");
+
+            try
+            {
+                long expectedResult = 23;
+
+                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+                {
+                    connection.Open();
+
+                    using (PgCommand createFunc = new PgCommand(createFuncSql.ToString(), connection))
+                    {
+                        createFunc.ExecuteNonQuery();
+                    }
+                    using (PgCommand command = new PgCommand(functionName, connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.Add("@CountResult", PgDbType.BigInt).Direction = ParameterDirection.Output;
+                        command.ExecuteNonQuery();
+                        DataTestClass.AssertEqualsWithDescription(expectedResult, command.Parameters[0].Value, "FAILED: Received a different value than expected.");
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+                {
+                    connection.Open();
+
+                    using (PgCommand command = new PgCommand($"DROP FUNCTION IF EXISTS {functionName}()", connection))
+                    {
+                        command.ExecuteNonQuery();
                     }
                 }
             }

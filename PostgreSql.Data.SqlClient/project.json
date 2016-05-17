@@ -5,8 +5,8 @@
     "packOptions":{
         "projectUrl": "https://gitlab.com/carlosga/pgsqlclient",
         "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient/blob/master/license.md",
-        "owners"    : [ "Carlos Guzmán Álvarez" ],
-        "authors"   : [ "Carlos Guzmán Álvarez" ],
+        "owners"    : ["Carlos Guzmán Álvarez"],
+        "authors"   : ["Carlos Guzmán Álvarez"],
         "copyright" : ["2016. Carlos Guzmán Álvarez"],
         "tags"      : ["postgresql", "postgres", "adonet", "netcore", "netstandard15"]
     },
@@ -15,7 +15,7 @@
         "platform"        : "x64",
         "allowUnsafe"     : true,
         "compile"         : "src/**/*.cs",
-        "resource"        : "src/**/*.xml",
+        "resource"        : "src/**/*.xml"
     },
     "dependencies": {
         "NETStandard.Library": "1.5.0-rc2-*",
