@@ -188,7 +188,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.ParallelTransactionsNotSupported(this);
             }
-            if (transactionName == null || transactionName.Length == 0)
+            if (String.IsNullOrEmpty(transactionName))
             {
                 throw ADP.NullEmptyTransactionName();
             }

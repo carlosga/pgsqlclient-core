@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.IO;
 using System.Diagnostics.Contracts;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -155,9 +156,21 @@ namespace PostgreSql.Data.Frontend
         ///     NumericDigit *buf;    /* start of palloc'd space for digits[] */
         ///     NumericDigit *digits; /* base-NBASE digits */
         /// } NumericVar;
+
+        struct Numeric
+        {
+            public short   ndigits; /* # of digits in digits[] - can be 0! */
+            public short   weight;  /* weight of first digit */
+            public short   sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
+            public short   dscale;  /* display scale */
+            public short[] digits;  /* base-NBASE digits */
+        }
+
         internal void Write(decimal value)
         {
-            int[] bits = Decimal.GetBits(value);
+            bool  isNegative = (value < 0);
+            int[] bits       = Decimal.GetBits(Math.Abs(value));
+
             if (bits        == null
              || bits.Length != 4
              || (bits[3] & ~(PgDecimal.DecimalSignMask | PgDecimal.DecimalScaleMask)) != 0
@@ -166,34 +179,40 @@ namespace PostgreSql.Data.Frontend
                 throw new ArgumentException("invalid Decimal", "value");
             }
 
-            // build up the numerator
-            ulong ul          = (((ulong)(uint)bits[2]) << 32) | ((ulong)(uint)bits[1]);    // (hi    << 32) | (mid)
-            var   m_numerator = (new BigInteger(ul) << 32) | (uint)bits[0];                 // (hiMid << 32) | (low)
+            Numeric numeric;
+            numeric.sign    = (short)((isNegative) ? PgDecimal.NegativeMask : PgDecimal.PositiveMask);
+            numeric.dscale  = (short)((bits[3] & PgDecimal.DecimalScaleMask) >> 16); // 0-28, power of 10 to divide numerator by
+            numeric.weight  = (short)((numeric.dscale - 7 + 1) < 0 ? 0 : (numeric.dscale - 7 + 1));
+            numeric.ndigits = 0;
+            numeric.digits  = new short[14];
 
-            bool isNegative = (bits[3] & PgDecimal.DecimalSignMask) != 0;
-            if (isNegative)
+            for (int i = (numeric.weight + 7); i >= 0; --i)
             {
-                m_numerator = BigInteger.Negate(m_numerator);
-            }
-
-            // build up the denominator
-            int scale         = (bits[3] & PgDecimal.DecimalScaleMask) >> 16;     // 0-28, power of 10 to divide numerator by
-            var m_denominator = BigInteger.Pow(10, scale);
-            var bi            = (ulong)(m_numerator / m_denominator);
-            var weight        = 0;
-
-            for (int i = 0; i <= 7; i++)
-            {
-                var digit = (ulong) (value / PgDecimal.Weights[i]);
+                var digit = (short) (value / PgDecimal.Weights[i]);
                 if (digit > 0)
                 {
-                    bi -= (ulong)(digit * PgDecimal.Weights[i]);
-
-                    if (weight == 0)
-                    {
-                        weight = (i -1);
-                    }
+                    value -= (digit * PgDecimal.Weights[i]);
                 }
+                numeric.digits[numeric.ndigits++] = digit; 
+                if (value == 0)
+                {
+                    break;
+                }
+            }
+
+            int sizeInBytes = 8 + numeric.ndigits * sizeof(short);
+
+            EnsureCapacity(sizeInBytes);
+
+            Write(sizeInBytes);
+            Write(numeric.ndigits);
+            Write(numeric.weight);
+            Write(numeric.sign);
+            Write(numeric.dscale);
+
+            for (int i = 0; i < numeric.ndigits; ++i)
+            {
+                Write(numeric.digits[i]);
             }
         }
 

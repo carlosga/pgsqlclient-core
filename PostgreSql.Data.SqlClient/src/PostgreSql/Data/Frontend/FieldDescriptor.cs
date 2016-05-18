@@ -12,6 +12,9 @@ namespace PostgreSql.Data.Frontend
         private readonly short    _typeSize;
         private readonly int      _typeModifier;
         private readonly TypeInfo _typeInfo;
+        private readonly int      _numericPrecision;
+        private readonly int      _numericScale;
+        private readonly bool     _isExpression;
 
         internal string   Name             => _name;
         internal int      TableOid         => _tableOid;
@@ -20,9 +23,9 @@ namespace PostgreSql.Data.Frontend
         internal short    TypeSize         => _typeSize;
         internal int      TypeModifier     => _typeModifier;
         internal TypeInfo TypeInfo         => _typeInfo;
-        internal int      NumericPrecision => ((_typeInfo.IsNumeric) ? ((_typeModifier & 0xFFFF) >> 16) : 0);
-        internal int      NumericScale     => ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4) & 0xFFFF) : 0);
-        internal bool     IsExpression     => (_tableOid == 0 && _columnId == 0);
+        internal int      NumericPrecision => _numericPrecision;
+        internal int      NumericScale     => _numericScale;
+        internal bool     IsExpression     => _isExpression;
 
         internal FieldDescriptor(string   name
                                , int      tableOid
@@ -32,13 +35,16 @@ namespace PostgreSql.Data.Frontend
                                , int      typeModifier
                                , TypeInfo typeInfo)
         {
-            _name         = name;
-            _tableOid     = tableOid;
-            _columnId     = columnId;
-            _typeOid      = typeOid;
-            _typeSize     = typeSize;
-            _typeModifier = typeModifier;
-            _typeInfo     = typeInfo;
+            _name             = name;
+            _tableOid         = tableOid;
+            _columnId         = columnId;
+            _typeOid          = typeOid;
+            _typeSize         = typeSize;
+            _typeModifier     = typeModifier;
+            _typeInfo         = typeInfo;
+            _numericPrecision = ((_typeInfo.IsNumeric) ? ((_typeModifier & 0xFFFF) >> 16) : 0);
+            _numericScale     = ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4) & 0xFFFF) : 0);
+            _isExpression     = (_tableOid == 0 && _columnId == 0);
         }
 
         public override string ToString() => _name;

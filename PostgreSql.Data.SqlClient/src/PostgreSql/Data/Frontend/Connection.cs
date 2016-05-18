@@ -1,7 +1,6 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Authentication;
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;

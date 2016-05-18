@@ -670,7 +670,7 @@ namespace PostgreSql.Data.Frontend
         {
             var name = ((type == STATEMENT) ? _parseName : _portalName);
 
-            if (name == null || name.Length == 0)
+            if (String.IsNullOrEmpty(name))
             {
                 return;
             }

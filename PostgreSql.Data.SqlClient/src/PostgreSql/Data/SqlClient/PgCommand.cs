@@ -504,7 +504,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.TransactionConnectionMismatch();
             }
 
-            if (_commandText == null || _commandText.Length == 0)
+            if (String.IsNullOrEmpty(_commandText))
             {
                 throw ADP.CommandTextRequired(memberName);
             }

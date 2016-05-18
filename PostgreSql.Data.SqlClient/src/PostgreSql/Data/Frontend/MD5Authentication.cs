@@ -1,12 +1,11 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using PostgreSql.Data.Frontend;
 using System.Security.Cryptography;
 using System.Text;
 using System;
 
-namespace PostgreSql.Data.Authentication
+namespace PostgreSql.Data.Frontend
 {
     internal static class MD5Authentication
     {

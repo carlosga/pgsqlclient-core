@@ -135,7 +135,7 @@ namespace PostgreSql.Data.Frontend
                 throw new FormatException("invalid length in external \"numeric\" value");
             }
             
-            weight = ReadInt16() + 8;
+            weight = ReadInt16() + 7;
             sign   = ReadInt16();
 
             if (!(sign == PgDecimal.PositiveMask || sign == PgDecimal.NegativeMask || sign == PgDecimal.NaNMask))
@@ -155,7 +155,7 @@ namespace PostgreSql.Data.Frontend
                     throw new FormatException("invalid digit in external \"numeric\" value");
                 }
 
-                res += digit * PgDecimal.Weights[--weight];
+                res += digit * PgDecimal.Weights[weight - i];
             }
 
             return ((sign == PgDecimal.NegativeMask) ? (res * -1) : res);
@@ -228,7 +228,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadBytes(length);
 
             case PgDbType.Char:
-                return ReadString(length).TrimEnd();
+                return ReadString(length).TrimEnd(null);
 
             case PgDbType.VarChar:
             case PgDbType.Text:

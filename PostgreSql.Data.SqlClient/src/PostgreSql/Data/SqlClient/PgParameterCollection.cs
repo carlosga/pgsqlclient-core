@@ -77,7 +77,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
             }
-            if (value.ParameterName == null || value.ParameterName.Length == 0)
+            if (String.IsNullOrEmpty(value.ParameterName))
             {
                 Interlocked.Increment(ref _paramCount);
                 value.ParameterName = $"Parameter{_paramCount}";
@@ -172,7 +172,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
             }
-            if (parameter.ParameterName == null || parameter.ParameterName.Length == 0)
+            if (String.IsNullOrEmpty(parameter.ParameterName))
             {
                 Interlocked.Increment(ref _paramCount);
                 parameter.ParameterName = $"Parameter{_paramCount}";
