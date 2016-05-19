@@ -318,19 +318,18 @@ namespace PostgreSql.Data.SqlClient
             try
             {
                 var reader = FindLiveReader();
-                
                 reader?.CloseReaderFromCommand();
 
                 _connection.RemoveWeakReference(this);
-                _statement.Dispose();
+                _statement?.Dispose();
             }
             catch
             {
             }
             finally
             {
-                _statement        = null;
-                _commandIndex     = 0;
+                _statement    = null;
+                _commandIndex = 0;
            }
         }
 

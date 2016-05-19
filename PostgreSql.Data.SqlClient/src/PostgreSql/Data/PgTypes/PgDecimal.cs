@@ -25,19 +25,17 @@ namespace PostgreSql.Data.PgTypes
     public struct PgDecimal
         : INullable, IComparable<PgDecimal>, IComparable, IEquatable<PgDecimal>
     {
-        internal const int MaxResultScale = (MaxPrecision * 2);
-        internal const int PositiveMask   = 0x0000;
-        internal const int NegativeMask   = 0x4000;
-        internal const int NaNMask        = 0xC000;
-        internal const int DScaleMask     = 0x3FFF;
-        internal const int NBase          = 10000;
-
-        internal const int DecimalScaleMask = 0x00FF0000;
-        internal const int DecimalSignMask  = unchecked((int)0x80000000);
-        internal const int DecimalMaxScale  = 28;
+        internal const int MaxResultScale   = (MaxPrecision * 2);
+        internal const int PositiveMask     = 0x0000;
+        internal const int NegativeMask     = 0x4000;
+        internal const int NaNMask          = 0xC000;
+        internal const int DecimalScaleMask = 0x3FFF;
+        internal const int NBase            = 10000;
+        internal const int MaxPrecision     = 1000;
+        internal const int MaxScale         = 28;
 
         // [Decimal 128 decimal 1.0 × 10^-28 to 7.9 × 10^28, 28-digit precision]
-        internal static readonly decimal[] Weights = new decimal[] 
+        internal static readonly decimal[] Weights = new decimal[]
         {
               1E-28M
             , 1E-24M
@@ -56,8 +54,6 @@ namespace PostgreSql.Data.PgTypes
             , 1E+28M
         };
 
-        public const int MaxPrecision = 1000;
-        public const int MaxScale     = 38;
         public static readonly PgDecimal MaxValue     = Decimal.MaxValue;
         public static readonly PgDecimal MinValue     = Decimal.MinValue;
         public static readonly PgDecimal Null         = new PgDecimal();

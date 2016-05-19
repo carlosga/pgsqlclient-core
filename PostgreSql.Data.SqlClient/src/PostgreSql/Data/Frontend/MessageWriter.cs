@@ -7,8 +7,6 @@ using System;
 using System.Data.Common;
 using System.IO;
 using System.Diagnostics.Contracts;
-using System.Numerics;
-using System.Collections.Generic;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -147,16 +145,6 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        /// typedef struct NumericVar
-        /// {
-        ///     int          ndigits; /* # of digits in digits[] - can be 0! */
-        ///     int          weight;  /* weight of first digit */
-        ///     int          sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
-        ///     int          dscale;  /* display scale */
-        ///     NumericDigit *buf;    /* start of palloc'd space for digits[] */
-        ///     NumericDigit *digits; /* base-NBASE digits */
-        /// } NumericVar;
-
         struct Numeric
         {
             public short   ndigits; /* # of digits in digits[] - can be 0! */
@@ -168,38 +156,52 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(decimal value)
         {
-            bool  isNegative = (value < 0);
-            int[] bits       = Decimal.GetBits(Math.Abs(value));
+            // Scale mask for the flags field. This byte in the flags field contains
+            // the power of 10 to divide the Decimal value by. The scale byte must
+            // contain a value between 0 and 28 inclusive.
+            const int ScaleMask = 0x00FF0000;
+            // Number of bits scale is shifted by.
+            const int ScaleShift = 16;
+            
+            const int DEC_DIGITS = 4; /* decimal digits per NBASE digit */
 
-            if (bits        == null
-             || bits.Length != 4
-             || (bits[3] & ~(PgDecimal.DecimalSignMask | PgDecimal.DecimalScaleMask)) != 0
-             || (bits[3] & PgDecimal.DecimalScaleMask) > (28 << 16))
-            {
-                throw new ArgumentException("invalid Decimal", "value");
-            }
+            bool  isNegative = (value < 0);
+            var   absValue   = ((isNegative) ? value * -1.0M : value);
+            int[] bits       = Decimal.GetBits(absValue);
 
             Numeric numeric;
             numeric.sign    = (short)((isNegative) ? PgDecimal.NegativeMask : PgDecimal.PositiveMask);
-            numeric.dscale  = (short)((bits[3] & PgDecimal.DecimalScaleMask) >> 16); // 0-28, power of 10 to divide numerator by
-            numeric.weight  = (short)((numeric.dscale - 7 + 1) < 0 ? 0 : (numeric.dscale - 7 + 1));
+            numeric.dscale  = (short)((bits[3] & ScaleMask) >> ScaleShift);
+            numeric.weight  = 0;
             numeric.ndigits = 0;
-            numeric.digits  = new short[14];
+            numeric.digits  = null;
 
-            for (int i = (numeric.weight + 7); i >= 0; --i)
+            if (absValue > 0)
             {
-                var digit = (short) (value / PgDecimal.Weights[i]);
-                if (digit > 0)
+                // postgres: numeric::estimate_ln_dweight 
+                numeric.weight  = (short)Math.Truncate(Math.Log((double)absValue, PgDecimal.NBase));
+                // postgres: numeric::div_var
+                numeric.ndigits = (short)(numeric.weight + 1 + (numeric.dscale + DEC_DIGITS - 1) / DEC_DIGITS);
+                numeric.digits  = new short[numeric.ndigits];
+
+                int windex = numeric.weight + 7;
+
+                for (int i = windex, d = 0; i >= 0; --i, ++d)
                 {
-                    value -= (digit * PgDecimal.Weights[i]);
-                }
-                numeric.digits[numeric.ndigits++] = digit; 
-                if (value == 0)
-                {
-                    break;
+                    var digit = (short) (absValue / PgDecimal.Weights[i]);
+                    if (digit > 0)
+                    {
+                        absValue -= (digit * PgDecimal.Weights[i]);
+                    }
+                    numeric.digits[d] = digit;
+                    if (absValue == 0)
+                    {
+                        break;
+                    }
                 }
             }
 
+            // finally write down the result
             int sizeInBytes = 8 + numeric.ndigits * sizeof(short);
 
             EnsureCapacity(sizeInBytes);

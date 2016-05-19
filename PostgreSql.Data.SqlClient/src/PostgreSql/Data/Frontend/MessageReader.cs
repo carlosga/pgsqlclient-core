@@ -134,7 +134,7 @@ namespace PostgreSql.Data.Frontend
             {
                 throw new FormatException("invalid length in external \"numeric\" value");
             }
-            
+
             weight = ReadInt16() + 7;
             sign   = ReadInt16();
 
@@ -143,7 +143,7 @@ namespace PostgreSql.Data.Frontend
                 throw new FormatException("invalid sign in external \"numeric\" value");
             }
 
-            dscale  = ReadInt16();
+            dscale = ReadInt16();
 
             /* base-NBASE digits */
             for (int i = 0; i < ndigits; ++i)
