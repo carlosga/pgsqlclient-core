@@ -37,6 +37,6 @@ test:
   script:
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore
-    - dotnet build
+    - dotnet build src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - cd tests/PostgreSql.Data.SqlClient.Tests
     - dotnet test
