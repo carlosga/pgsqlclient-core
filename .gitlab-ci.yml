@@ -25,7 +25,8 @@ test:
   services:
     - postgres:latest
   before_script:
-    - apt-get install postgresql-client-* libpq5 postgresql-client-common
+    - apt-get update -y
+    - apt-get install postgresql-client -y
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
