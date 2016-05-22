@@ -20,7 +20,7 @@ build:
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
 
-setup_database:
+postgres:
   stage: test
   image: postgres
   script:
@@ -36,14 +36,6 @@ test:
   stage: test
   services:
     - postgres:latest
-  before_script:
-    # northwind
-    - export PGPASSWORD=$POSTGRES_PASSWORD
-    - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
-    # pubs
-    - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
   script:
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore
