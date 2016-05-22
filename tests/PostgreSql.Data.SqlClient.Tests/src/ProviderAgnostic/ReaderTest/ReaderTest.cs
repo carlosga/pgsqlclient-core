@@ -220,7 +220,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                     // GetTextReader
                     string[] correctStrings = { "'Hello World'", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'" };
-                    string[] collations     = { "en_GB.utf8", "C.UTF-8" };
+                    string[] collations     = { "C.UTF-8", "C.UTF-8" };
 
                     for (int j = 0; j < collations.Length; j++)
                     {

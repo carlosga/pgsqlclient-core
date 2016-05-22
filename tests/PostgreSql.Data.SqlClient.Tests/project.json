@@ -5,7 +5,7 @@
         "languageVersion": "csharp6",
         "platform"       : "x64",
         "compile"        : "src/**/*.cs",
-        "contentFiles"   : ["ConnectionString.xml", "MultipleResultsTest.bsl"]
+        "copyToOutput"   : ["xunit.runner.json", "ConnectionString.xml", "MultipleResultsTest.bsl"]
     },
     "dependencies": {
         "Microsoft.NETCore.App": {

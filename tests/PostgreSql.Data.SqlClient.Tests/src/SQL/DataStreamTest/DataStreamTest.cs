@@ -756,7 +756,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             string[] queryStrings =
             {
-                "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS TEXT), 'Hello World', 'Hello World', 'Hello World', CAST(REPEAT('a', 8000) AS TEXT), 'Hello World' COLLATE \"en_GB.utf8\"",
+                "SELECT 'Hello World', 'Hello World', 12, CAST(NULL AS TEXT), 'Hello World', 'Hello World', 'Hello World', CAST(REPEAT('a', 8000) AS TEXT), 'Hello World' COLLATE \"C.UTF-8\"",
                 string.Format("SELECT {0} {1}, {0} {1}, 12, CAST(NULL AS TEXT), {0} {1}, {0} {1}, {0} {1}, CAST(REPEAT((e'\uFF8A' {1}), 8000) AS TEXT), {0} {1}", "e'\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E'", "COLLATE \"C.UTF-8\"")
             };
 
@@ -978,7 +978,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             foreach (CommandBehavior behavior in behaviors)
             {
                 string[] correctStrings = {
-                    "CAST(('Hello world' COLLATE \"en_GB.utf8\") AS TEXT)",
+                    "CAST(('Hello world' COLLATE \"C.UTF-8\") AS TEXT)",
                     string.Format("CAST('{0}Hello world' AS TEXT)", unicodeString),
                     "CAST(('\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E' COLLATE \"C.UTF-8\") AS TEXT)" };
 
@@ -1087,7 +1087,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                     // GetTextReader
                     string[] correctStrings = { "Hello World", "\uFF8A\uFF9B\uFF70\uFF9C\uFF70\uFF99\uFF84\uFF9E" };
-                    string[] collations     = { "en_GB.utf8", "C.UTF-8" };
+                    string[] collations     = { "C.UTF-8", "C.UTF-8" };
 
                     for (int j = 0; j < collations.Length; j++)
                     {
