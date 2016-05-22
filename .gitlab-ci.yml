@@ -1,3 +1,12 @@
+image: microsoft/dotnet-preview:latest
+
+stages:
+  - build
+  - test
+
+services:
+  - postgres:latest
+
 variables:
   POSTGRES_USER: "pgsqlclient"
   POSTGRES_PASSWORD: "pgsqlclient"
@@ -6,18 +15,28 @@ variables:
 
 build:
   stage: build
-  image: microsoft/dotnet-preview:latest
   script:
     - dotnet restore
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
 
+setup_database:
+  stage: test
+  image: postgres
+  script:
+  # northwind
+  - export PGPASSWORD=$POSTGRES_PASSWORD
+  - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+  # pubs
+  - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
+
 test:
   stage: test
-  image: microsoft/dotnet-preview:latest
   services:
     - postgres:latest
-  script:
+  before_script:
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
@@ -25,7 +44,7 @@ test:
     # pubs
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
-    # run tests
+  script:
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore
     - dotnet build src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
