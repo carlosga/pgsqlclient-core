@@ -14,7 +14,7 @@ build:
   stage: build
   before_script:
     # project setup
-    - dotnet restore --verbosity Minimal
+    - dotnet restore --verbosity Error
   script:
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
@@ -24,18 +24,18 @@ test:
   services:
     - postgres:latest
   before_script:
-    - apt-get update -y
-    - apt-get install postgresql-client -y
+    - apt-get update -y -qq
+    - apt-get install postgresql-client -y -qq
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+    - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
     # pubs
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
+    - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
     # project setup
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
-    - dotnet restore --verbosity Minimal
+    - dotnet restore --verbosity Error
   script:
     - dotnet build src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - cd tests/PostgreSql.Data.SqlClient.Tests
