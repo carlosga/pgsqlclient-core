@@ -1,6 +1,3 @@
 {
-    "projects": [
-        "PostgreSql.Data.SqlClient",
-        "PostgreSql.Data.SqlClient.Tests"
-    ]
+    "projects": ["src", "tests"]
 }

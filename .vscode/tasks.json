@@ -18,8 +18,8 @@
             "isBuildCommand": true,
             "args": [
                 "build",
-                "PostgreSql.Data.SqlClient",
-                "PostgreSql.Data.SqlClient.Tests"
+                "src/PostgreSql.Data.SqlClient",
+                "tests/PostgreSql.Data.SqlClient.Tests"
             ],
             "problemMatcher": "$msCompile"
         },

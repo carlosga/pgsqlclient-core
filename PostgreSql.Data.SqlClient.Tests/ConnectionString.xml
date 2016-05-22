@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ConnectionStrings>
-  <ConnectionString id="PostgreSql9_Northwind">data source=localhost;initial catalog=northwind;user id=pgsqlclient;password=pgsqlclient;port number=5432;pooling=True;multipleactiveresultsets=True;</ConnectionString>
-  <ConnectionString id="PostgreSql9_Pubs">data source=localhost;initial catalog=pubs;user id=pgsqlclient;password=pgsqlclient;port number=5432;pooling=True;multipleactiveresultsets=True;</ConnectionString>
-</ConnectionStrings>
