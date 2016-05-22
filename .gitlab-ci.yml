@@ -14,7 +14,7 @@ build:
   stage: build
   before_script:
     # project setup
-    - dotnet restore
+    - dotnet restore --verbosity Minimal
   script:
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
@@ -35,7 +35,7 @@ test:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
     # project setup
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
-    - dotnet restore
+    - dotnet restore --verbosity Minimal
   script:
     - dotnet build src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - cd tests/PostgreSql.Data.SqlClient.Tests
