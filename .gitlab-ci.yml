@@ -20,10 +20,10 @@ connect:
   # northwind
   - export PGPASSWORD=$POSTGRES_PASSWORD
   - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
-  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
   # pubs
   - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
-  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
+  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
 
 build:
   stage: build
@@ -36,5 +36,6 @@ build:
 test:
   stage: test
   script:
+    - dotnet build
     - cd tests/PostgreSql.Data.SqlClient.Tests
     - dotnet test
