@@ -28,7 +28,6 @@ connect:
 build:
   stage: build
   script:
-    - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
@@ -36,6 +35,7 @@ build:
 test:
   stage: test
   script:
+    - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore
     - dotnet build
     - cd tests/PostgreSql.Data.SqlClient.Tests
