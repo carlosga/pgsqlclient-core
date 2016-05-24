@@ -4,7 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -112,7 +112,6 @@ namespace PostgreSql.Data.Frontend
 
         internal unsafe float ReadSingle()
         {
-            // BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
             fixed (byte* pbuffer = &_buffer[_position])
             {
                 int val = ReadInt32();
@@ -217,7 +216,7 @@ namespace PostgreSql.Data.Frontend
                 return DBNull.Value;
             }
 
-            Contract.Requires((_position + length) < _buffer.Length);
+            Debug.Assert((_position + length) <= _buffer.Length);
 
             switch (typeInfo.PgDbType)
             {
