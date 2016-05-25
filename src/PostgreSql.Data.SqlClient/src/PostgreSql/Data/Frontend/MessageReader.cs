@@ -121,10 +121,10 @@ namespace PostgreSql.Data.Frontend
 
         internal decimal ReadNumeric()
         {
-            int ndigits = 0; /* # of digits in digits[] - can be 0! */
-            int weight  = 0; /* weight of first digit */
-            int sign    = 0; /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
-            int dscale  = 0; /* display scale */
+            int ndigits = 0; // # of digits in digits[] - can be 0!
+            int weight  = 0; // weight of first digit
+            int sign    = 0; // NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN
+            int dscale  = 0; // display scale
             var res     = 0.0M;
 
             ndigits = ReadInt16();
@@ -144,7 +144,7 @@ namespace PostgreSql.Data.Frontend
 
             dscale = ReadInt16();
 
-            /* base-NBASE digits */
+            // base-NBASE digits
             for (int i = 0; i < ndigits; ++i)
             {
                 short digit = ReadInt16();

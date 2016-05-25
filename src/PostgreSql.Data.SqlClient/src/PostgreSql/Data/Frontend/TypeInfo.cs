@@ -71,10 +71,31 @@ namespace PostgreSql.Data.Frontend
                         , string     name
                         , string     internalName
                         , PgDbType   pgDbType
+                        , Type       systemType
+                        , Type       pgType)
+            : this(oid, name, internalName, pgDbType, null, TypeFormat.Binary, systemType, pgType, -1)
+        {
+        }
+
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
                         , TypeFormat format
                         , Type       systemType
                         , Type       pgType)
             : this(oid, name, internalName, pgDbType, null, format, systemType, pgType, -1)
+        {
+        }
+
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
+                        , Type       systemType
+                        , Type       pgType
+                        , int        size)
+            : this(oid, name, internalName, pgDbType, null, TypeFormat.Binary, systemType, pgType, size)
         {
         }
 
@@ -98,6 +119,26 @@ namespace PostgreSql.Data.Frontend
                         , Type     systemType
                         , Type     pgType)
             : this(oid, name, internalName, pgDbType, elementType, elementType.Format, systemType, pgType, -1)
+        {
+        }
+
+        internal TypeInfo(int        oid
+                        , string     name
+                        , string     internalName
+                        , PgDbType   pgDbType
+                        , TypeInfo   elementType
+                        , Type       systemType
+                        , Type       pgType
+                        , int        size)
+            : this(oid
+                 , name
+                 , internalName
+                 , pgDbType
+                 , elementType
+                 , elementType?.Format ?? TypeFormat.Binary
+                 , systemType
+                 , pgType
+                 , size)
         {
         }
 

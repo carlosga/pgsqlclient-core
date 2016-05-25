@@ -305,19 +305,18 @@ namespace PostgreSql.Data.Frontend
                 // Function id
                 message.Write(id);
 
-                // Parameter count
-                var parameterCount = (short)_parameterIndices.Count; 
-
                 // Send parameters format code.
-                message.Write(parameterCount);
-                for (int i = 0; i < parameterCount; ++i)
-                {
-                    message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
-                }
+                message.Write((short)1);
+                message.Write((short)TypeFormat.Binary);
+                // message.Write(parameterCount);
+                // for (int i = 0; i < parameterCount; ++i)
+                // {
+                //     message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
+                // }
 
                 // Send parameter values
-                message.Write(parameterCount);
-                for (int i = 0; i < parameterCount; ++i)
+                message.Write((short)_parameterIndices.Count);
+                for (int i = 0; i < _parameterIndices.Count; ++i)
                 {
                     var param = _parameters[_parameterIndices[i]];
 
@@ -541,12 +540,9 @@ namespace PostgreSql.Data.Frontend
             _parseMessage.WriteNullString(_parseName);
             _parseMessage.WriteNullString(_parsedStatementText);
 
-            // Parameter count
-            var parameterCount = (short)_parameterIndices.Count;
-
             // Write parameter types
-            _parseMessage.Write(parameterCount);
-            for (int i = 0; i < parameterCount; ++i)
+            _parseMessage.Write((short)_parameterIndices.Count);
+            for (int i = 0; i < _parameterIndices.Count; ++i)
             {
                 _parseMessage.Write(_parameters[_parameterIndices[i]].TypeInfo.Oid);
             }
@@ -592,31 +588,31 @@ namespace PostgreSql.Data.Frontend
             // Prepared statement name
             _bindMessage.WriteNullString(_parseName);
 
-            // Parameter count
-            var parameterCount = (short)_parameterIndices.Count;
-
             // Parameter format code.
-            _bindMessage.Write(parameterCount);
-            for (int i = 0; i < parameterCount; ++i)
-            {
-                _bindMessage.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
-            }
+            _bindMessage.Write((short)1);
+            _bindMessage.Write((short)TypeFormat.Binary);
+            // _bindMessage.Write((short)_parameterIndices.Count);
+            // for (int i = 0; i < _parameterIndices.Count; ++i)
+            // {
+            //     _bindMessage.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
+            // }
 
             // Parameter value
-            _bindMessage.Write(parameterCount);
-            for (int i = 0; i < parameterCount; ++i)
+            _bindMessage.Write((short)_parameterIndices.Count);
+            for (int i = 0; i < _parameterIndices.Count; ++i)
             {
                 var param = _parameters[_parameterIndices[i]];
                 _bindMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
             }
 
             // Column information
-            var fieldCount = (short)_rowDescriptor.Count;
-            _bindMessage.Write(fieldCount);
-            for (int i = 0; i < fieldCount; ++i)
-            {
-                _bindMessage.Write(_rowDescriptor[i].TypeInfo.FormatCode);
-            }
+            _bindMessage.Write((short)1);
+            _bindMessage.Write((short)TypeFormat.Binary);
+            // _bindMessage.Write((short)_rowDescriptor.Count);
+            // for (int i = 0; i < _rowDescriptor.Count; ++i)
+            // {
+            //     _bindMessage.Write(_rowDescriptor[i].TypeInfo.FormatCode);
+            // }
 
             // Send message
             _connection.Send(_bindMessage);

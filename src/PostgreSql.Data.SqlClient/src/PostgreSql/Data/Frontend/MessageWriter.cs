@@ -162,8 +162,8 @@ namespace PostgreSql.Data.Frontend
             const int ScaleMask = 0x00FF0000;
             // Number of bits scale is shifted by.
             const int ScaleShift = 16;
-            
-            const int DEC_DIGITS = 4; /* decimal digits per NBASE digit */
+
+            const int DEC_DIGITS = 4; // decimal digits per NBASE digit 
 
             bool  isNegative = (value < 0);
             var   absValue   = ((isNegative) ? value * -1.0M : value);
