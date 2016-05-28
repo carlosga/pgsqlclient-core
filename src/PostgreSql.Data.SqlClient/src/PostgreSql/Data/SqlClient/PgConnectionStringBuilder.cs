@@ -9,6 +9,12 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgConnectionStringBuilder
         : DbConnectionStringBuilder
     {
+        // public override object this[string keyword] 
+        // { 
+        //     get { return GetString(keyword); }
+        //     set { SetValue(keyword, value); }
+        // }
+
         public string ApplicationName
         {
             get { return GetString(DbConnectionStringKeywords.ApplicationName); }
@@ -144,15 +150,24 @@ namespace PostgreSql.Data.SqlClient
             ConnectionString = connectionString;
         }
 
-        private int    GetInt32(string keyword)   => Convert.ToInt32(this[GetValue(keyword)]);
-        private string GetString(string keyword)  => Convert.ToString(this[GetValue(keyword)]);
-        private bool   GetBoolean(string keyword) => Convert.ToBoolean(this[GetValue(keyword)]);
+        private int    GetInt32(string keyword)   => Convert.ToInt32(this[GetKeyword(keyword)]);
+        private string GetString(string keyword)  => Convert.ToString(this[GetKeyword(keyword)]);
+        private bool   GetBoolean(string keyword) => Convert.ToBoolean(this[GetKeyword(keyword)]);
 
-        private void SetValue(string keyword, object value) => this[GetValue(keyword)] = value;
+        private void SetValue(string keyword, object value) => this[GetKeyword(keyword)] = value;
         
-        internal string GetValue(string keyword)
+        internal string GetKeyword(string synonym)
         {
-            string synonymKey = DbConnectionStringSynonyms.Synonyms[keyword];
+            if (String.IsNullOrEmpty(synonym))
+            {
+                throw ADP.ArgumentNull(nameof(synonym));
+            }
+            if (!DbConnectionStringSynonyms.IsSynonym(synonym))
+            {
+                throw ADP.NotSupported($"Keyword not supported: {synonym}");
+            }
+
+            string synonymKey = DbConnectionStringSynonyms.Synonyms[synonym];
 
             // First check if there are yet a property for the requested keyword
             foreach (string key in Keys)

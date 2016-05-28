@@ -86,7 +86,7 @@ namespace PostgreSql.Data.Frontend
             {
                 _position += 2;
                 return (short)((*(pbuffer + 1) & 0xFF)
-                             | (*(pbuffer)     & 0xFF) <<  8);
+                             | (*(pbuffer)     & 0xFF) << 8);
             }
         }
 

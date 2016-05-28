@@ -5,12 +5,12 @@ using System.Data.Common;
 
 namespace PostgreSql.Data.SqlClient
 {
-    public sealed class PostgreSqlClientFactory
+    public sealed class PgSqlClientFactory
         : DbProviderFactory
     {
-        public static readonly PostgreSqlClientFactory Instance = new PostgreSqlClientFactory();
+        public static readonly PgSqlClientFactory Instance = new PgSqlClientFactory();
 
-        private PostgreSqlClientFactory()
+        private PgSqlClientFactory()
             : base()
         {
         }

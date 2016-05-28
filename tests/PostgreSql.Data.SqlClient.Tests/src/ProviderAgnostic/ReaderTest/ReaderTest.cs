@@ -19,7 +19,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             string tempTable        = DataTestClass.GetUniqueName("T", "", "");
             string tempKey          = DataTestClass.GetUniqueName("K", "", "");
 
-            var provider = PostgreSqlClientFactory.Instance;
+            var provider = PgSqlClientFactory.Instance;
             try
             {
                 using (var con = provider.CreateConnection())

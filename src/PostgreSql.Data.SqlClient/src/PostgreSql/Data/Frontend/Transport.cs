@@ -189,7 +189,7 @@ namespace PostgreSql.Data.Frontend
 
             return new MessageReader(type, ReadFrame(), sessionData);
         }
-        
+
         private unsafe int ReadFrameLength()
         {
             _reader.Read(_buffer, 0, 4);

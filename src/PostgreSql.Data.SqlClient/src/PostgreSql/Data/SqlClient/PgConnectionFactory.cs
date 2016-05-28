@@ -32,7 +32,7 @@ namespace PostgreSql.Data.SqlClient
         {
         }
 
-        internal override DbProviderFactory ProviderFactory => PostgreSqlClientFactory.Instance;
+        internal override DbProviderFactory ProviderFactory => PgSqlClientFactory.Instance;
 
         internal override DbConnectionPoolProviderInfo CreateConnectionPoolProviderInfo(DbConnectionOptions connectionOptions)
         {

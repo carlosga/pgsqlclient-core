@@ -306,13 +306,7 @@ namespace PostgreSql.Data.Frontend
                 message.Write(id);
 
                 // Send parameters format code.
-                message.Write((short)1);
-                message.Write((short)TypeFormat.Binary);
-                // message.Write(parameterCount);
-                // for (int i = 0; i < parameterCount; ++i)
-                // {
-                //     message.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
-                // }
+                message.Write(65537);
 
                 // Send parameter values
                 message.Write((short)_parameterIndices.Count);
@@ -589,13 +583,7 @@ namespace PostgreSql.Data.Frontend
             _bindMessage.WriteNullString(_parseName);
 
             // Parameter format code.
-            _bindMessage.Write((short)1);
-            _bindMessage.Write((short)TypeFormat.Binary);
-            // _bindMessage.Write((short)_parameterIndices.Count);
-            // for (int i = 0; i < _parameterIndices.Count; ++i)
-            // {
-            //     _bindMessage.Write(_parameters[_parameterIndices[i]].TypeInfo.FormatCode);
-            // }
+            _bindMessage.Write(65537);
 
             // Parameter value
             _bindMessage.Write((short)_parameterIndices.Count);
@@ -606,13 +594,7 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Column information
-            _bindMessage.Write((short)1);
-            _bindMessage.Write((short)TypeFormat.Binary);
-            // _bindMessage.Write((short)_rowDescriptor.Count);
-            // for (int i = 0; i < _rowDescriptor.Count; ++i)
-            // {
-            //     _bindMessage.Write(_rowDescriptor[i].TypeInfo.FormatCode);
-            // }
+            _bindMessage.Write(65537);
 
             // Send message
             _connection.Send(_bindMessage);
