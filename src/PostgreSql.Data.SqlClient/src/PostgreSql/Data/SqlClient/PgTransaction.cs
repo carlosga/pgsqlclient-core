@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using PostgreSql.Data.Frontend;
-using System;
 using System.Data;
 using System.Data.Common;
 
@@ -93,7 +92,7 @@ namespace PostgreSql.Data.SqlClient
 
         public void Save(string savePointName)
         {
-            if (String.IsNullOrEmpty(savePointName))
+            if (string.IsNullOrEmpty(savePointName))
             {
                 throw ADP.NullEmptyTransactionName();
             }
@@ -104,7 +103,7 @@ namespace PostgreSql.Data.SqlClient
 
         public void Commit(string savePointName)
         {
-            if (String.IsNullOrEmpty(savePointName))
+            if (string.IsNullOrEmpty(savePointName))
             {
                 throw ADP.NullEmptyTransactionName();
             }
@@ -115,7 +114,7 @@ namespace PostgreSql.Data.SqlClient
 
         public void Rollback(string savePointName)
         {
-            if (String.IsNullOrEmpty(savePointName))
+            if (string.IsNullOrEmpty(savePointName))
             {
                 throw ADP.NullEmptyTransactionName();
             }

@@ -653,7 +653,7 @@ namespace PostgreSql.Data.Frontend
         {
             var name = ((type == STATEMENT) ? _parseName : _portalName);
 
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 return;
             }
@@ -671,7 +671,6 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-                // HandleMessage(rmessage);
             } while (!rmessage.IsCloseComplete);
 
             _tag             = null;
@@ -744,14 +743,14 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case "INSERT":
-                _recordsAffected = Int32.Parse(elements[2]);
+                _recordsAffected = int.Parse(elements[2]);
                 break;
 
             case "UPDATE":
             case "DELETE":
             case "MOVE":
             case "COPY":
-                _recordsAffected = Int32.Parse(elements[1]);
+                _recordsAffected = int.Parse(elements[1]);
                 break;
             }
         }

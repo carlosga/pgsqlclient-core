@@ -221,19 +221,19 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
         }
 
-        public override Boolean GetBoolean(int i)
+        public override bool GetBoolean(int i)
         {
             CheckPosition();
             return _row.GetBoolean(i);
         }
 
-        public override Byte GetByte(int i)
+        public override byte GetByte(int i)
         {
             CheckPosition();
             return _row.GetByte(i);
         }
 
-        public override Char GetChar(int i)
+        public override char GetChar(int i)
         {
             CheckPosition();
             return _row.GetChar(i);
@@ -251,37 +251,37 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetDateTimeOffset(i);
         }
 
-        public override Decimal GetDecimal(int i)
+        public override decimal GetDecimal(int i)
         {
             CheckPosition();
             return _row.GetDecimal(i);
         }
 
-        public override Double GetDouble(int i)
+        public override double GetDouble(int i)
         {
             CheckPosition();
             return _row.GetDouble(i);
         }
 
-        public override Single GetFloat(int i)
+        public override float GetFloat(int i)
         {
             CheckPosition();
             return _row.GetFloat(i);
         }
 
-        public override Int16 GetInt16(int i)
+        public override short GetInt16(int i)
         {
             CheckPosition();
             return _row.GetInt16(i);
         }
 
-        public override Int32 GetInt32(int i)
+        public override int GetInt32(int i)
         {
             CheckPosition();
             return _row.GetInt32(i);
         }
 
-        public override Int64 GetInt64(int i)
+        public override long GetInt64(int i)
         {
             CheckPosition();
             return _row.GetInt64(i);
@@ -293,7 +293,7 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetTimeSpan(i);
         }
 
-        public override String GetString(int i)
+        public override string GetString(int i)
         {
             CheckPosition();
             return _row.GetString(i);
@@ -343,7 +343,7 @@ namespace PostgreSql.Data.SqlClient
             return _statement.RowDescriptor[i].TypeInfo.SystemType;
         }
 
-        public override String GetName(int i)
+        public override string GetName(int i)
         {
             CheckIndex(i);
             return _statement.RowDescriptor[i].Name;

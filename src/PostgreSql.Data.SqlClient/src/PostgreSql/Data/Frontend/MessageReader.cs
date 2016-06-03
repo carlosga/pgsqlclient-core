@@ -14,6 +14,7 @@ namespace PostgreSql.Data.Frontend
         private byte[]      _buffer;
         private int         _position;
         private int         _length;
+        private int         _capacity;
         private byte        _pendingMessage;
         private SessionData _sessionData;
 
@@ -30,8 +31,7 @@ namespace PostgreSql.Data.Frontend
 
         internal MessageReader(SessionData sessionData, int capacity)
         {
-            _messageType = 0;
-            _position    = 0;
+            _capacity    = capacity;
             _buffer      = new byte[capacity];
             _sessionData = sessionData;
         }
@@ -53,7 +53,7 @@ namespace PostgreSql.Data.Frontend
         {
             int start = _position;
 
-            while (_position < _buffer.Length && _buffer[_position] != 0) 
+            while (_position < _length && _buffer[_position] != 0) 
             { 
                 ++_position;
             }
@@ -65,7 +65,7 @@ namespace PostgreSql.Data.Frontend
                 ++_position;
             }
 
-            return (count == 0) ? String.Empty : _sessionData.ClientEncoding.GetString(_buffer, start, count);
+            return (count == 0) ? string.Empty : _sessionData.ClientEncoding.GetString(_buffer, start, count);
         }
 
         internal string ReadString(int count)
@@ -86,8 +86,7 @@ namespace PostgreSql.Data.Frontend
             fixed (byte* pbuffer = &_buffer[_position])
             {
                 _position += 2;
-                return (short)((*(pbuffer + 1) & 0xFF)
-                             | (*(pbuffer)     & 0xFF) << 8);
+                return (short)((*(pbuffer + 1) & 0xFF) | (*(pbuffer) & 0xFF) << 8);
             }
         }
 
@@ -217,7 +216,7 @@ namespace PostgreSql.Data.Frontend
                 return DBNull.Value;
             }
 
-            Debug.Assert((_position + length) <= _buffer.Length);
+            Debug.Assert((_position + length) <= _length);
 
             switch (typeInfo.PgDbType)
             {
@@ -328,8 +327,9 @@ namespace PostgreSql.Data.Frontend
             {
                 _messageType    = _pendingMessage;
                 _pendingMessage = 0;
+                _length         = transport.ReadFrame(ref _buffer);
 
-                transport.ReadFrame(ref _buffer);
+                Array.Resize<byte>(ref _buffer, ((_length < _capacity) ? _capacity : _length));
             }
             else
             {
@@ -342,13 +342,12 @@ namespace PostgreSql.Data.Frontend
 
                     do
                     {
-                        _length        += transport.ReadFrame(ref _buffer, _length, transport.ReadFrameLength());
-                        _pendingMessage = transport.ReadByte();
-                    } while (_pendingMessage == _messageType);
+                        _length += transport.ReadFrame(ref _buffer, _length);
+                    } while ((_pendingMessage = transport.ReadByte()) == _messageType);
                 }
                 else
                 {
-                    transport.ReadFrame(ref _buffer);
+                    _length = transport.ReadFrame(ref _buffer);
                 }
             }
         }

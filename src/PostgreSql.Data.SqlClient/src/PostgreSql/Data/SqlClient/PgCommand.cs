@@ -28,12 +28,12 @@ namespace PostgreSql.Data.SqlClient
 
         public override string CommandText
         {
-            get { return _commandText ?? String.Empty; }
+            get { return _commandText ?? string.Empty; }
             set
             {
                 if (_commandText != value)
                 {
-                    if (_statement != null && !String.IsNullOrEmpty(_commandText) && _commandText != value)
+                    if (_statement != null && !string.IsNullOrEmpty(_commandText) && _commandText != value)
                     {
                         InternalClose();
                     }
@@ -158,7 +158,7 @@ namespace PostgreSql.Data.SqlClient
         public PgCommand()
             : base()
         {
-            _commandText       = String.Empty;
+            _commandText       = string.Empty;
             _commandType       = CommandType.Text;
             _commandTimeout    = 30;
             _updatedRowSource  = UpdateRowSource.Both;
@@ -503,7 +503,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.TransactionConnectionMismatch();
             }
 
-            if (String.IsNullOrEmpty(_commandText))
+            if (string.IsNullOrEmpty(_commandText))
             {
                 throw ADP.CommandTextRequired(memberName);
             }

@@ -3,7 +3,6 @@
 
 using PostgreSql.Data.Frontend;
 using PostgreSql.Data.PgTypes;
-using System;
 using System.Data;
 using System.Data.Common;
 
@@ -196,7 +195,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override void ResetDbType()
         {
-            throw new Exception("The method or operation is not implemented.");
+            throw ADP.NotSupported("The method or operation is not implemented.");
         }
 
         private void UpdateTypeInfo(object value)
@@ -215,7 +214,7 @@ namespace PostgreSql.Data.SqlClient
             }
             if (_typeInfo == null && _pgDbType != PgDbType.Composite)
             {
-                throw new InvalidOperationException("Unknown value type, set the parameter provider type before assigning its value.");
+                throw ADP.InvalidOperation("Unknown value type, set the parameter provider type before assigning its value.");
             }
             if (!_isTypeSet)
             {

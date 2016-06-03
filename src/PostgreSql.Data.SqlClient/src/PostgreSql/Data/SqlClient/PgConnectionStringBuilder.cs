@@ -158,7 +158,7 @@ namespace PostgreSql.Data.SqlClient
         
         internal string GetKeyword(string synonym)
         {
-            if (String.IsNullOrEmpty(synonym))
+            if (string.IsNullOrEmpty(synonym))
             {
                 throw ADP.ArgumentNull(nameof(synonym));
             }

@@ -76,7 +76,7 @@ namespace PostgreSql.Data.Frontend
 
         internal void SetValue(string name, string value)
         {
-            if (String.IsNullOrEmpty(name) || String.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
             {
                 return;
             }

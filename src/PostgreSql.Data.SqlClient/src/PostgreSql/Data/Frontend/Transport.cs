@@ -108,7 +108,7 @@ namespace PostgreSql.Data.Frontend
 
                 _packetSize = packetSize;
             }
-            catch (Exception)
+            catch
             {
                 Detach();
 
@@ -169,18 +169,9 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ReadFrame(ref byte[] frame)
+        internal int ReadFrame(ref byte[] frame, int offset = 0)
         {
-            Array.Resize<byte>(ref frame, ReadFrameLength());
-            ReadFrame(ref frame, 0, frame.Length);
-        }
-
-        internal int ReadFrame(ref byte[] frame, int offset, int count)
-        {
-            if (count == 0)
-            {
-                return 0;
-            }
+            int count = ReadFrameLength();
             int read  = 0;
             int total = 0;
             if ((offset + count) > frame.Length)

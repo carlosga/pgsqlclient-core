@@ -101,7 +101,7 @@ namespace PostgreSql.Data.SqlClient
             : base()
         {
             _innerConnection = DbConnectionClosedNeverOpened.SingletonInstance;
-            ConnectionString = connectionString ?? String.Empty;
+            ConnectionString = connectionString ?? string.Empty;
         }
 
         #region IDisposable Support
@@ -153,14 +153,14 @@ namespace PostgreSql.Data.SqlClient
 
         public override void Open()
         {
-            if (String.IsNullOrEmpty(_connectionString))
+            if (string.IsNullOrEmpty(_connectionString))
             {
                 throw ADP.NoConnectionString();
             }
 
             if (!TryOpen(null))
             {
-                throw new InvalidOperationException("Cannot open a new connection");
+                throw ADP.InvalidOperation("Cannot open a new connection");
             }
         }
 
@@ -188,7 +188,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.ParallelTransactionsNotSupported(this);
             }
-            if (String.IsNullOrEmpty(transactionName))
+            if (string.IsNullOrEmpty(transactionName))
             {
                 throw ADP.NullEmptyTransactionName();
             }
@@ -209,7 +209,7 @@ namespace PostgreSql.Data.SqlClient
         public new PgCommand CreateCommand()
         {
             var internalConnection = _innerConnection as PgConnectionInternal;
-            return new PgCommand(String.Empty, this, internalConnection?.ActiveTransaction);
+            return new PgCommand(string.Empty, this, internalConnection?.ActiveTransaction);
         }
 
         protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)

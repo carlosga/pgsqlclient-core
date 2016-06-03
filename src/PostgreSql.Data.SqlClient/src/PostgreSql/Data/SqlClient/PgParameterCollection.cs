@@ -75,16 +75,16 @@ namespace PostgreSql.Data.SqlClient
             }
             if (value.Parent != null)
             {
-                throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
+                throw ADP.Argument("The PgParameter is already contained by another PgParameterCollection.");
             }
-            if (String.IsNullOrEmpty(value.ParameterName))
+            if (string.IsNullOrEmpty(value.ParameterName))
             {
                 Interlocked.Increment(ref _paramCount);
                 value.ParameterName = $"Parameter{_paramCount}";
             }
             else if (IndexOf(value) != -1)
             {
-                throw new ArgumentException("PgParameterCollection already contains PgParameter with ParameterName '" + value.ParameterName + "'.");
+                throw ADP.Argument("PgParameterCollection already contains PgParameter with ParameterName '" + value.ParameterName + "'.");
             }
 
             value.Parent = this;
@@ -170,16 +170,16 @@ namespace PostgreSql.Data.SqlClient
             }
             if (parameter.Parent != null)
             {
-                throw new ArgumentException("The PgParameter is already contained by another PgParameterCollection.");
+                throw ADP.Argument("The PgParameter is already contained by another PgParameterCollection.");
             }
-            if (String.IsNullOrEmpty(parameter.ParameterName))
+            if (string.IsNullOrEmpty(parameter.ParameterName))
             {
                 Interlocked.Increment(ref _paramCount);
                 parameter.ParameterName = $"Parameter{_paramCount}";
             }
             else if (IndexOf(parameter) != -1)
             {
-                throw new ArgumentException("PgParameterCollection already contains PgParameter with ParameterName '" + parameter.ParameterName + "'.");
+                throw ADP.Argument("PgParameterCollection already contains PgParameter with ParameterName '" + parameter.ParameterName + "'.");
             }
             
             _parameters.Insert(index, parameter);
@@ -202,7 +202,7 @@ namespace PostgreSql.Data.SqlClient
 
             if (!Contains(parameter))
             {
-                throw new ArgumentException("Attempted to remove an PgParameter that is not contained by this PgParameterCollection.");
+                throw ADP.Argument("Attempted to remove an PgParameter that is not contained by this PgParameterCollection.");
             }
 
             _parameters.Remove(parameter);

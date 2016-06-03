@@ -3,7 +3,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using System;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -11,7 +10,7 @@ namespace PostgreSql.Data.Frontend
     {
         internal static string Prefix = "md5";
 
-        internal static string EncryptPassword(byte[] salt,string userId, string password)
+        internal static string EncryptPassword(byte[] salt, string userId, string password)
         {
             string userHash = GetMD5Hash(Encoding.UTF8.GetBytes(userId), password);
             string hash     = GetMD5Hash(salt, userHash);
@@ -24,7 +23,7 @@ namespace PostgreSql.Data.Frontend
             using (HashAlgorithm csp = MD5.Create())
             {
                 string md5    = string.Empty;
-                int    length = ((String.IsNullOrEmpty(password) ? 0 : Encoding.UTF8.GetByteCount(password)));
+                int    length = ((string.IsNullOrEmpty(password) ? 0 : Encoding.UTF8.GetByteCount(password)));
                 byte[] data   = new byte[salt.Length + length];
 
                 if (length > 0)

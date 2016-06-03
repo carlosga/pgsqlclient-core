@@ -55,7 +55,7 @@ namespace PostgreSql.Data.SqlClient
                                     , bool                              applyTransientFaultHandling = false) 
             : base()
         {
-            if (String.IsNullOrEmpty(connectionOptions.DataSource))
+            if (string.IsNullOrEmpty(connectionOptions.DataSource))
             {
                 throw ADP.InvalidOperation("Cannot open a connection without specifying a data source or server.");
             }
@@ -127,7 +127,7 @@ namespace PostgreSql.Data.SqlClient
 
         internal override void ChangeDatabase(string database)
         {
-            if (String.IsNullOrEmpty(database))
+            if (string.IsNullOrEmpty(database))
             {
                 throw ADP.EmptyDatabaseName();
             }

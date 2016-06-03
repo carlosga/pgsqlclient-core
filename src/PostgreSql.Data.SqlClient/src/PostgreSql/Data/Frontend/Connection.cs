@@ -368,7 +368,7 @@ namespace PostgreSql.Data.Frontend
             message.WriteNullString(_connectionOptions.UserID);
 
             // database
-            if (!String.IsNullOrEmpty(_connectionOptions.InitialCatalog))
+            if (!string.IsNullOrEmpty(_connectionOptions.InitialCatalog))
             {
                 message.WriteNullString("database");
                 message.WriteNullString(_connectionOptions.InitialCatalog);
@@ -379,14 +379,14 @@ namespace PostgreSql.Data.Frontend
             message.WriteNullString(PgDate.DateStyle);
 
             // search_path
-            if (!String.IsNullOrEmpty(_connectionOptions.SearchPath))
+            if (!string.IsNullOrEmpty(_connectionOptions.SearchPath))
             {
                 message.WriteNullString("search_path");
                 message.WriteNullString(_connectionOptions.SearchPath);
             }
 
             // application_name
-            if (!String.IsNullOrEmpty(_connectionOptions.ApplicationName))
+            if (!string.IsNullOrEmpty(_connectionOptions.ApplicationName))
             {
                 message.WriteNullString("application_name");
                 message.WriteNullString(_connectionOptions.ApplicationName);
@@ -414,7 +414,7 @@ namespace PostgreSql.Data.Frontend
             }
 
             // default_tablespace
-            if (!String.IsNullOrEmpty(_connectionOptions.DefaultTablespace))
+            if (!string.IsNullOrEmpty(_connectionOptions.DefaultTablespace))
             {
                 message.WriteNullString("default_tablespace");
                 message.WriteNullString(_connectionOptions.DefaultTablespace);
@@ -525,7 +525,7 @@ namespace PostgreSql.Data.Frontend
         private void HandleErrorMessage(MessageReader message)
         {
             char   type     = ' ';
-            string value    = String.Empty;
+            string value    = string.Empty;
             string severity = null;
             string emessage = null;
             string code     = null;
