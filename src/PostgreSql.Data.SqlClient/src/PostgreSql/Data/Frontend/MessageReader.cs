@@ -28,11 +28,11 @@ namespace PostgreSql.Data.Frontend
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
-        internal MessageReader(SessionData sessionData)
+        internal MessageReader(SessionData sessionData, int capacity)
         {
             _messageType = 0;
             _position    = 0;
-            _buffer      = Array.Empty<byte>();
+            _buffer      = new byte[capacity];
             _sessionData = sessionData;
         }
 
@@ -337,28 +337,14 @@ namespace PostgreSql.Data.Frontend
 
                 if (_messageType == BackendMessages.DataRow)
                 {
-                    var count = 0;
-                    
-                    if (_buffer.Length < transport.PacketSize)
-                    {
-                        Array.Resize<byte>(ref _buffer, transport.PacketSize);
-                    }
-
                     _pendingMessage = _messageType;
+                    _length         = 0;
 
-                    while (_pendingMessage == BackendMessages.DataRow)
+                    do
                     {
-                        count          += transport.ReadFrame(ref _buffer, count, transport.ReadFrameLength());
+                        _length        += transport.ReadFrame(ref _buffer, _length, transport.ReadFrameLength());
                         _pendingMessage = transport.ReadByte();
-                    }
-
-                    _pendingMessage = ((_pendingMessage == _messageType) ? (byte)0 : _pendingMessage);
-                    _length         = count;
-
-                    // if (_buffer.Length > count)
-                    // {
-                    //     Array.Resize<byte>(ref _buffer, count);
-                    // }
+                    } while (_pendingMessage == _messageType);
                 }
                 else
                 {

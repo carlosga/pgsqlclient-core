@@ -335,7 +335,7 @@ namespace PostgreSql.Data.Frontend
             // Reset instance data
             _open        = false;
             _sessionData = new SessionData();
-            _reader      = new MessageReader(_sessionData);
+            _reader      = new MessageReader(_sessionData, _connectionOptions.PacketSize);
 
             // Wire up SSL callbacks
             if (_connectionOptions.Encrypt)

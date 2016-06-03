@@ -196,20 +196,16 @@ namespace PostgreSql.Data.SqlClient
                 _row = new DataRecord();
             }
 
+            _position++;
+
             if (_refCursor != null)
             {
-                _row.Descriptor = _refCursor.RowDescriptor;
-                _row.Values     = _refCursor.FetchRow();
+                return _row.ReadFrom(_refCursor);
             }
             else
             {
-                _row.Descriptor = _statement.RowDescriptor;
-                _row.Values     = _statement.FetchRow();
+                return _row.ReadFrom(_statement);
             }
-
-            ++_position;
-
-            return (_row.Values != null);
         }
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)

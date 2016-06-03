@@ -16,17 +16,8 @@ namespace PostgreSql.Data.Frontend
         internal object this[int i]       => GetValue(i);
         internal object this[string name] => GetValue(name);
 
-        internal RowDescriptor Descriptor
-        {
-            get { return _descriptor; }
-            set { _descriptor = value; }
-        }
-        
-        internal object[] Values
-        {
-            get { return _values; }
-            set { _values = value; }
-        } 
+        internal RowDescriptor Descriptor => _descriptor;
+        internal object[]      Values     => _values;
 
         internal DataRecord()
         {
@@ -41,6 +32,14 @@ namespace PostgreSql.Data.Frontend
         {
             _descriptor = descriptor;
             _values     = values;
+        }
+
+        internal bool ReadFrom(Statement statement)
+        {
+            _descriptor = statement.RowDescriptor;
+            _values     = statement.FetchRow();
+
+            return (_values != null);
         }
 
         internal int GetOrdinal(string name) => _descriptor.IndexOf(name);

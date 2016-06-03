@@ -45,9 +45,9 @@ namespace PostgreSql.Data.Schema
                 command.Prepare();
                 command.ExecuteReader();
 
-                var row = new DataRecord(command.RowDescriptor);
+                var row = new DataRecord();
 
-                while ((row.Values = command.FetchRow()) != null)
+                while (row.ReadFrom(command))
                 {
                     var schema     = row.GetString(0);
                     var typoid     = row.GetInt32(1);
@@ -60,7 +60,7 @@ namespace PostgreSql.Data.Schema
 
                     for (int i = 1; i < attcount; ++i)
                     {
-                        row.Values    = command.FetchRow();
+                        row.ReadFrom(command);
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
                     }
 
