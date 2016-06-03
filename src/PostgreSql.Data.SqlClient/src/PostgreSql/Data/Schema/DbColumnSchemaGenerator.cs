@@ -65,7 +65,7 @@ namespace PostgreSql.Data.Schema
 
                         command.ExecuteReader(CommandBehavior.SingleRow);
 
-                        schema.Populate(command.FetchRow());
+                        schema.Populate(new DataRecord(command.RowDescriptor, command.FetchRow()));
                     }
 
                     columns[i] = schema;

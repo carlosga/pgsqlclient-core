@@ -9,12 +9,33 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class DataRecord
     {
-        private readonly RowDescriptor _descriptor;
-        private readonly object[]      _values;
+        private RowDescriptor _descriptor;
+        private object[]      _values;
 
         internal int    FieldCount        => _descriptor.Count;
         internal object this[int i]       => GetValue(i);
         internal object this[string name] => GetValue(name);
+
+        internal RowDescriptor Descriptor
+        {
+            get { return _descriptor; }
+            set { _descriptor = value; }
+        }
+        
+        internal object[] Values
+        {
+            get { return _values; }
+            set { _values = value; }
+        } 
+
+        internal DataRecord()
+        {
+        }
+
+        internal DataRecord(RowDescriptor descriptor)
+        {
+            _descriptor = descriptor;
+        }
 
         internal DataRecord(RowDescriptor descriptor, object[] values)
         {

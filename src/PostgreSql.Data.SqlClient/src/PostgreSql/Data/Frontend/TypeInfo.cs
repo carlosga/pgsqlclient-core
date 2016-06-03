@@ -11,159 +11,86 @@ namespace PostgreSql.Data.Frontend
         private readonly string          _schema;
         private readonly int             _oid;
         private readonly string          _name;
-        private readonly string          _internalName;
         private readonly PgDbType        _pgDbType;
-        private readonly TypeFormat      _format;
-        private readonly short           _formatCode;
         private readonly Type            _systemType;
         private readonly Type            _pgType;
         private readonly TypeInfo        _elementType;
         private readonly int             _size;
+        private readonly bool            _isArray;
+        private readonly bool            _isBinary;
+        private readonly bool            _isRefCursor;
+        private readonly bool            _isNumeric;
         private readonly TypeAttribute[] _attributes;
 
         internal string          Schema       => _schema; 
         internal int             Oid          => _oid;
         internal string          Name         => _name;
-        internal string          InternalName => _internalName;
         internal PgDbType        PgDbType     => _pgDbType;
         internal Type            SystemType   => _systemType;
         internal Type            PgType       => _pgType;
         internal TypeInfo        ElementType  => _elementType; 
-        internal TypeFormat      Format       => _format;
-        internal short           FormatCode   => _formatCode;
         internal int             Size         => _size;
+        internal bool            IsArray      => _isArray;
+        internal bool            IsBinary     => _isBinary;
+        internal bool            IsRefCursor  => _isRefCursor;
+        internal bool            IsNumeric    => _isNumeric;
         internal TypeAttribute[] Attributes   => _attributes;
-        internal bool            IsArray      => (_pgDbType == PgDbType.Array);
-        internal bool            IsBinary     => (_pgDbType == PgDbType.Bytea);
-        internal bool            IsRefCursor  => (_oid      == (int)Frontend.Oid.RefCursor);
-
-        internal bool IsNumeric
-        {
-            get
-            {
-                return (_pgDbType == PgDbType.BigInt
-                     || _pgDbType == PgDbType.Byte
-                     || _pgDbType == PgDbType.Double
-                     || _pgDbType == PgDbType.Integer
-                     || _pgDbType == PgDbType.Money
-                     || _pgDbType == PgDbType.Numeric
-                     || _pgDbType == PgDbType.Real
-                     || _pgDbType == PgDbType.SmallInt);
-            }
-        }
-
-        internal bool IsPrimitive
-        {
-            get
-            {
-                return (_pgDbType == PgDbType.BigInt
-                     || _pgDbType == PgDbType.Boolean
-                     || _pgDbType == PgDbType.Byte
-                     || _pgDbType == PgDbType.Char
-                     || _pgDbType == PgDbType.Double
-                     || _pgDbType == PgDbType.Integer
-                     || _pgDbType == PgDbType.Real
-                     || _pgDbType == PgDbType.SmallInt);
-            }
-        }
 
         internal TypeInfo(int        oid
                         , string     name
-                        , string     internalName
                         , PgDbType   pgDbType
                         , Type       systemType
                         , Type       pgType)
-            : this(oid, name, internalName, pgDbType, null, TypeFormat.Binary, systemType, pgType, -1)
+            : this(oid, name, pgDbType, null, systemType, pgType, -1)
         {
         }
 
         internal TypeInfo(int        oid
                         , string     name
-                        , string     internalName
-                        , PgDbType   pgDbType
-                        , TypeFormat format
-                        , Type       systemType
-                        , Type       pgType)
-            : this(oid, name, internalName, pgDbType, null, format, systemType, pgType, -1)
-        {
-        }
-
-        internal TypeInfo(int        oid
-                        , string     name
-                        , string     internalName
                         , PgDbType   pgDbType
                         , Type       systemType
                         , Type       pgType
                         , int        size)
-            : this(oid, name, internalName, pgDbType, null, TypeFormat.Binary, systemType, pgType, size)
-        {
-        }
-
-        internal TypeInfo(int        oid
-                        , string     name
-                        , string     internalName
-                        , PgDbType   pgDbType
-                        , TypeFormat format
-                        , Type       systemType
-                        , Type       pgType
-                        , int        size)
-            : this(oid, name, internalName, pgDbType, null, format, systemType, pgType, size)
+            : this(oid, name, pgDbType, null, systemType, pgType, size)
         {
         }
 
         internal TypeInfo(int      oid
                         , string   name
-                        , string   internalName
                         , PgDbType pgDbType
                         , TypeInfo elementType
                         , Type     systemType
                         , Type     pgType)
-            : this(oid, name, internalName, pgDbType, elementType, elementType.Format, systemType, pgType, -1)
+            : this(oid, name, pgDbType, elementType, systemType, pgType, -1)
         {
         }
 
-        internal TypeInfo(int        oid
-                        , string     name
-                        , string     internalName
-                        , PgDbType   pgDbType
-                        , TypeInfo   elementType
-                        , Type       systemType
-                        , Type       pgType
-                        , int        size)
-            : this(oid
-                 , name
-                 , internalName
-                 , pgDbType
-                 , elementType
-                 , elementType?.Format ?? TypeFormat.Binary
-                 , systemType
-                 , pgType
-                 , size)
+        internal TypeInfo(int      oid
+                        , string   name
+                        , PgDbType pgDbType
+                        , TypeInfo elementType
+                        , Type     systemType
+                        , Type     pgType
+                        , int      size)
         {
-        }
-
-        internal TypeInfo(int        oid
-                        , string     name
-                        , string     internalName
-                        , PgDbType   pgDbType
-                        , TypeInfo   elementType
-                        , TypeFormat format
-                        , Type       systemType
-                        , Type       pgType
-                        , int        size)
-        {
-            _schema       = null;
             _oid          = oid;
             _name         = name;
-            _internalName = internalName;
             _pgDbType     = pgDbType;
             _elementType  = elementType;
-            _format       = format;
-            _formatCode   = (short)format;
             _systemType   = systemType;
             _pgType       = pgType;
             _size         = size;
-            _attributes   = null;
+            _isArray      = (_pgDbType == PgDbType.Array);
+            _isBinary     = (_pgDbType == PgDbType.Bytea);
+            _isRefCursor  = (_oid      == Frontend.Oid.RefCursor);
+            _isNumeric    = (_pgDbType == PgDbType.BigInt
+                          || _pgDbType == PgDbType.Byte
+                          || _pgDbType == PgDbType.Double
+                          || _pgDbType == PgDbType.Integer
+                          || _pgDbType == PgDbType.Money
+                          || _pgDbType == PgDbType.Numeric
+                          || _pgDbType == PgDbType.Real
+                          || _pgDbType == PgDbType.SmallInt);
         }
 
         internal TypeInfo(string          schema
@@ -174,10 +101,7 @@ namespace PostgreSql.Data.Frontend
             _schema       = schema;
             _oid          = oid;
             _name         = name;
-            _internalName = name;
             _pgDbType     = PgDbType.Composite;
-            _format       = TypeFormat.Binary;
-            _formatCode   = (short)_format;
             _systemType   = typeof(object);
             _pgType       = typeof(object);
             _size         = -1;

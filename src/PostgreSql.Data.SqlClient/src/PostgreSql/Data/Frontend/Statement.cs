@@ -26,7 +26,7 @@ namespace PostgreSql.Data.Frontend
         private int                   _recordsAffected;
         private bool                  _hasRows;
         private RowDescriptor         _rowDescriptor;
-        private Queue<DataRecord>     _rows;
+        private Queue<object[]>       _rows;
         private StatementState        _state;
         private PgParameterCollection _parameters;
         private CommandType           _commandType;
@@ -37,6 +37,7 @@ namespace PostgreSql.Data.Frontend
         private MessageWriter         _executeMessage;
         private MessageWriter         _closeMessage;
         private MessageWriter         _queryMessage;
+        private MessageWriter         _functionMessage;
 
         internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
@@ -88,7 +89,7 @@ namespace PostgreSql.Data.Frontend
                         throw new InvalidOperationException("Fetch size cannot be changed while fetching rows.");
                     }
                     _fetchSize = value;
-                    _rows      = new Queue<DataRecord>(_fetchSize);
+                    _rows      = new Queue<object[]>(_fetchSize);
                 }
             } 
         }
@@ -108,12 +109,13 @@ namespace PostgreSql.Data.Frontend
             _parameterIndices = new List<int>();
             _rowDescriptor    = new RowDescriptor();
             _hasRows          = false;
-            _parseMessage     = _connection.CreateMessage(FrontendMessages.Parse);
-            _describeMessage  = _connection.CreateMessage(FrontendMessages.Describe);
-            _bindMessage      = _connection.CreateMessage(FrontendMessages.Bind);
-            _executeMessage   = _connection.CreateMessage(FrontendMessages.Execute);
-            _closeMessage     = _connection.CreateMessage(FrontendMessages.Close);
-            _queryMessage     = _connection.CreateMessage(FrontendMessages.Query);
+            _parseMessage     = new MessageWriter(FrontendMessages.Parse        , _connection.SessionData);
+            _describeMessage  = new MessageWriter(FrontendMessages.Describe     , _connection.SessionData);
+            _bindMessage      = new MessageWriter(FrontendMessages.Bind         , _connection.SessionData);
+            _executeMessage   = new MessageWriter(FrontendMessages.Execute      , _connection.SessionData);
+            _closeMessage     = new MessageWriter(FrontendMessages.Close        , _connection.SessionData);
+            _queryMessage     = new MessageWriter(FrontendMessages.Query        , _connection.SessionData);
+            _functionMessage  = new MessageWriter(FrontendMessages.FunctionCall , _connection.SessionData);;
 
             StatementText     = statementText;
             FetchSize         = 200;
@@ -151,6 +153,7 @@ namespace PostgreSql.Data.Frontend
                 _executeMessage   = null;
                 _closeMessage     = null;
                 _queryMessage     = null;
+                _functionMessage  = null;
 
                 _disposed = true;
             }
@@ -300,28 +303,28 @@ namespace PostgreSql.Data.Frontend
 
                 ChangeState(StatementState.Executing);
 
-                var message = _connection.CreateMessage(FrontendMessages.FunctionCall);
+                _functionMessage.Clear();
 
                 // Function id
-                message.Write(id);
+                _functionMessage.Write(id);
 
                 // Send parameters format code.
-                message.Write(65537);
+                _functionMessage.Write(65537);
 
                 // Send parameter values
-                message.Write((short)_parameterIndices.Count);
+                _functionMessage.Write((short)_parameterIndices.Count);
                 for (int i = 0; i < _parameterIndices.Count; ++i)
                 {
                     var param = _parameters[_parameterIndices[i]];
 
-                    message.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
+                    _functionMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
                 }
 
                 // Send the format code for the function result
-                message.Write((short)TypeFormat.Binary);
+                _functionMessage.Write((short)TypeFormat.Binary);
 
                 // Send message
-                _connection.Send(message);
+                _connection.Send(_functionMessage);
 
                 // Process response
                 ReadUntilReadyForQuery();
@@ -371,7 +374,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal DataRecord FetchRow()
+        internal object[] FetchRow()
         {
             if (IsCancelled && _rows.Count == 0)
             {
@@ -420,7 +423,7 @@ namespace PostgreSql.Data.Frontend
                 _portalName = null;
 
                 // Reset the row descriptor
-                _rowDescriptor.Resize(0);
+                _rowDescriptor.Clear();
 
                 // Reset statement parameters
                 _parameters = null;
@@ -435,6 +438,7 @@ namespace PostgreSql.Data.Frontend
                 _executeMessage.Clear();
                 _closeMessage.Clear();
                 _queryMessage.Clear();
+                _functionMessage.Clear();
 
                 // Update Status
                 ChangeState(StatementState.Default);
@@ -469,7 +473,7 @@ namespace PostgreSql.Data.Frontend
                 {
                     var row = stmt.FetchRow();
 
-                    stmtPlan.Append($"{row.GetString(0)} \r\n");
+                    stmtPlan.Append($"{row[0]} \r\n");
                 }
             }
 
@@ -628,10 +632,11 @@ namespace PostgreSql.Data.Frontend
             {
                 rmessage = _connection.Read();
                 HandleMessage(rmessage);
-            }
-            while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
+            } while (!rmessage.IsCommandComplete && !rmessage.IsPortalSuspended && !rmessage.IsEmptyQuery);
 
-            if (behavior.HasBehavior(CommandBehavior.SingleResult)
+            if (rmessage.IsCommandComplete 
+             || rmessage.IsEmptyQuery
+             || behavior.HasBehavior(CommandBehavior.SingleResult) 
              || behavior.HasBehavior(CommandBehavior.SingleRow))
             {
                 ClosePortal();
@@ -666,9 +671,8 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 rmessage = _connection.Read();
-                HandleMessage(rmessage);
-            }
-            while (!rmessage.IsCloseComplete);
+                // HandleMessage(rmessage);
+            } while (!rmessage.IsCloseComplete);
 
             _tag             = null;
             _recordsAffected = -1;
@@ -695,16 +699,10 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case BackendMessages.CommandComplete:
-                ClosePortal();
                 ProcessTag(message);
                 break;
 
             case BackendMessages.EmptyQueryResponse:
-                ClosePortal();
-                _rows.Clear();
-                _hasRows = false;
-                break;
-
             case BackendMessages.NoData:
                 _rows.Clear();
                 _hasRows = false;
@@ -775,7 +773,7 @@ namespace PostgreSql.Data.Frontend
         {
             int count = message.ReadInt16();
 
-            _rowDescriptor.Resize(count);
+            _rowDescriptor.Allocate(count);
 
             for (int i = 0; i < count; ++i)
             {
@@ -806,7 +804,7 @@ namespace PostgreSql.Data.Frontend
                 {
                     values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
                 }
-                _rows.Enqueue(new DataRecord(_rowDescriptor, values));
+                _rows.Enqueue(values);
             }
             _hasRows = true;
         }
@@ -833,14 +831,14 @@ namespace PostgreSql.Data.Frontend
 
         private void PrepareParameters()
         {
-            for (int i = 0; i < _parameterIndices.Count; ++i)
-            {
-                var parameter = _parameters[_parameterIndices[i]];
-                if (parameter.PgDbType == PgDbType.Composite)
-                {
-                    // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
-                }
-            }
+            // for (int i = 0; i < _parameterIndices.Count; ++i)
+            // {
+            //     var parameter = _parameters[_parameterIndices[i]];
+            //     if (parameter.PgDbType == PgDbType.Composite)
+            //     {
+            //         // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
+            //     }
+            // }
         }
 
         // private void ProcessParameterDescription(PgInputPacket packet)

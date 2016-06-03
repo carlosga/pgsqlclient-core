@@ -181,7 +181,7 @@ namespace PostgreSql.Data.SqlClient
             // Close the active statement
             _statement.Close();
 
-            return NextResultFromMars();
+            return _command.NextResult(); 
         }
 
         public override bool Read()
@@ -191,18 +191,25 @@ namespace PostgreSql.Data.SqlClient
                 return false;
             }
 
+            if (_row == null)
+            {
+                _row = new DataRecord();
+            }
+
             if (_refCursor != null)
             {
-                _row = _refCursor.FetchRow();
+                _row.Descriptor = _refCursor.RowDescriptor;
+                _row.Values     = _refCursor.FetchRow();
             }
             else
             {
-                _row = _statement.FetchRow();
+                _row.Descriptor = _statement.RowDescriptor;
+                _row.Values     = _statement.FetchRow();
             }
 
             ++_position;
 
-            return (_row != null);
+            return (_row.Values != null);
         }
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
@@ -331,80 +338,66 @@ namespace PostgreSql.Data.SqlClient
         public override string GetDataTypeName(int i)
         {
             CheckIndex(i);
-
             return _statement.RowDescriptor[i].TypeInfo.Name;
         }
 
         public override Type GetFieldType(int i)
         {
             CheckIndex(i);
-
             return _statement.RowDescriptor[i].TypeInfo.SystemType;
         }
 
         public override String GetName(int i)
         {
             CheckIndex(i);
-
             return _statement.RowDescriptor[i].Name;
         }
 
         public override int GetOrdinal(string name)
         {
-            if (IsClosed)
-            {
-                throw ADP.InvalidRead();
-            }
-
+            CheckPosition();
             return _statement.RowDescriptor.IndexOf(name);
         }
 
         public override object GetValue(int i)
         {
             CheckPosition();
-
             return _row[i];
         }
 
         public override T GetFieldValue<T>(int i)
         {
             CheckPosition();
-
             return _row.GetFieldValue<T>(i);
         }
 
         public override int GetValues(object[] values)
         {
             CheckPosition();
-
             return _row.GetValues(values);
         }
 
         public override bool IsDBNull(int i)
         {
             CheckPosition();
-
             return _row.IsDBNull(i);
         }
 
         public override Type GetProviderSpecificFieldType(int i)
         {
             CheckIndex(i);
-
             return _statement.RowDescriptor[i].TypeInfo.PgType;
         }
 
         public override object GetProviderSpecificValue(int i)
         {
             CheckPosition();
-
             return _row.GetProviderSpecificValue(i);
         }
 
         public override int GetProviderSpecificValues(object[] values)
         {
             CheckPosition();
-
             return _row.GetProviderSpecificValues(values);
         }
 
@@ -474,7 +467,6 @@ namespace PostgreSql.Data.SqlClient
         private object GetValue(string name)
         {
             CheckPosition();
-
             return _row[name];
         }
 
@@ -489,18 +481,13 @@ namespace PostgreSql.Data.SqlClient
                 _refCursors.Clear();
 
                 // Add refcusor's names to the queue
-                DataRecord row        = null;
-                Connection connection = _statement.Connection;
+                object[] row        = null;
+                var      connection = _statement.Connection;
 
-                do
+                while ((row = _statement.FetchRow()) != null)
                 {
-                    row = _statement.FetchRow();
-                    if (row != null)
-                    {
-                        var refcursor = connection.CreateStatement($"fetch all in \"{row.GetString(0)}\"");
-                        _refCursors.Enqueue(refcursor);
-                    }
-                } while (row != null);
+                    _refCursors.Enqueue(connection.CreateStatement($"fetch all in \"{row[0]}\""));
+                }
 
                 // Grab information of the first refcursor
                 NextResultFromRefCursor();
@@ -516,17 +503,11 @@ namespace PostgreSql.Data.SqlClient
             return true;
         }
 
-        private bool NextResultFromMars()
-        {
-            return _command.NextResult(); 
-        }
-
         private void UpdateRecordsAffected()
         {
             if (_command != null && !_command.IsDisposed && _command.RecordsAffected != -1)
             {
-                _recordsAffected  = ((_recordsAffected == -1) ? 0 : _recordsAffected);
-                _recordsAffected += _command.RecordsAffected;
+                _recordsAffected  += ((_recordsAffected == -1) ? 1 : _command.RecordsAffected);
             }
         }
 

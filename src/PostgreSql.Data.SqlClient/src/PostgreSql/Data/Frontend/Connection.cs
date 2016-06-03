@@ -24,7 +24,6 @@ namespace PostgreSql.Data.Frontend
         private const int ProtocolVersion3Minor = 0;
         private const int ProtocolVersion3      = (ProtocolVersion3Major << 16) | ProtocolVersion3Minor;
 
-        private Transport           _transport;
         private DbConnectionOptions _connectionOptions;
         private TransactionState    _transactionState;
         private SessionData         _sessionData;
@@ -32,6 +31,8 @@ namespace PostgreSql.Data.Frontend
         private int                 _secretKey;
         private bool                _open;
         private TypeInfoProvider    _typeInfoProvider;
+        private Transport           _transport;
+        private MessageReader       _reader;
 
         internal NotificationCallback Notification
         {
@@ -133,15 +134,12 @@ namespace PostgreSql.Data.Frontend
             try
             {
                 Lock();
-
                 OpenInternal();
-
                 ReleaseLock();
             }
             catch
             {
                 ReleaseLock();
-
                 Close();
 
                 throw;
@@ -175,13 +173,15 @@ namespace PostgreSql.Data.Frontend
 
                 _connectionOptions      = null;
                 _sessionData            = null;
+                _transport              = null;
+                _reader                 = null;
                 _transactionState       = TransactionState.Default;
                 _processId              = -1;
                 _secretKey              = -1;
-                _transport              = null;
                 _open                   = false;
                 _activeSemaphore        = null;
                 _cancelRequestSemaphore = null;
+                
 
                 // Callback cleanup
                 ReleaseCallbacks();
@@ -270,7 +270,7 @@ namespace PostgreSql.Data.Frontend
                 connection = new Connection(_connectionOptions);
                 connection.Open();
 
-                var message = connection.CreateMessage(FrontendMessages.Untyped);
+                var message = new MessageWriter(FrontendMessages.Untyped, _sessionData);
 
                 message.Write(CancelRequestCode);
                 message.Write(_processId);
@@ -289,29 +289,27 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal MessageWriter CreateMessage(byte type) => new MessageWriter(type, _sessionData);
-
         internal MessageReader Read()
         {
-            var message = _transport.ReadMessage(_sessionData);
+            _reader.ReadFrom(_transport);
 
-            switch (message.MessageType)
+            switch (_reader.MessageType)
             {
             case BackendMessages.ReadyForQuery:
-                UpdateTransactionState(message.ReadChar());
+                UpdateTransactionState(_reader.ReadChar());
                 break;
 
             case BackendMessages.NotificationResponse:
-                HandleNotificationMessage(message);
+                HandleNotificationMessage(_reader);
                 break;
 
             case BackendMessages.NoticeResponse:
             case BackendMessages.ErrorResponse:
-                HandleErrorMessage(message);
+                HandleErrorMessage(_reader);
                 break;
             }
 
-            return message;
+            return _reader;
         }
 
         internal void Send(MessageWriter message) => _transport.WriteMessage(message);
@@ -337,6 +335,7 @@ namespace PostgreSql.Data.Frontend
             // Reset instance data
             _open        = false;
             _sessionData = new SessionData();
+            _reader      = new MessageReader(_sessionData);
 
             // Wire up SSL callbacks
             if (_connectionOptions.Encrypt)
@@ -359,7 +358,7 @@ namespace PostgreSql.Data.Frontend
         private void SendStartupMessage()
         {
             // Send Startup message
-            var message = CreateMessage(FrontendMessages.Untyped);
+            var message = new MessageWriter(FrontendMessages.Untyped, _sessionData);
 
             // http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
 
@@ -439,14 +438,13 @@ namespace PostgreSql.Data.Frontend
             do
             {
                 message = Read();
-
                 HandleMessage(message);
             } while (!message.IsReadyForQuery);
         }
 
         private void SendClearTextPasswordAuthentication()
         {
-            var authPacket = CreateMessage(FrontendMessages.PasswordMessage);
+            var authPacket = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
 
             authPacket.WriteNullString(_connectionOptions.Password);
 
@@ -455,9 +453,9 @@ namespace PostgreSql.Data.Frontend
 
         private void SendPasswordAuthentication(byte[] salt)
         {
-            var authMsg = CreateMessage(FrontendMessages.PasswordMessage);
+            var authMsg = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
             var hash    = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
-            
+
             authMsg.WriteNullString(hash);
 
             Send(authMsg);

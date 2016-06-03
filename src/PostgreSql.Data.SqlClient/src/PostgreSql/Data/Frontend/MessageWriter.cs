@@ -389,7 +389,14 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.Date:
                 Write(typeInfo.Size);
-                Write((PgDate)value);
+                if (value is PgDate)
+                {
+                    Write((PgDate)value);
+                }
+                else
+                {
+                    Write((PgDate)(DateTime)value);
+                }
                 break;
 
             case PgDbType.Time:

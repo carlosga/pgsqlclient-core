@@ -38,8 +38,9 @@ namespace PostgreSql.Data.Frontend
         private Stream        _reader;
         private Stream        _writer;
         private byte[]        _buffer;
-        private byte          _pendingMessage;
         private int           _packetSize;
+
+        internal int PacketSize => _packetSize;
 
         internal Transport()
         {
@@ -61,7 +62,6 @@ namespace PostgreSql.Data.Frontend
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
                 _buffer         = null;
-                _pendingMessage = 0;
                 _packetSize     = 0;
 
                 _disposed = true;
@@ -150,47 +150,13 @@ namespace PostgreSql.Data.Frontend
                 return false;
             }
         }
-
-        internal MessageReader ReadMessage(SessionData sessionData)
+        
+        internal byte ReadByte()
         {
-            if (_pendingMessage != 0)
-            {
-                var mtype = _pendingMessage;
-
-                _pendingMessage = 0;
-
-                return new MessageReader(mtype, ReadFrame(), sessionData);
-            }
-
-            byte type = (byte)_reader.ReadByte();
-
-            if (type == BackendMessages.DataRow)
-            {
-                var frame = new byte[_packetSize];
-                var count = 0;
-
-                while (type == BackendMessages.DataRow)
-                {
-                    count += ReadFrame(ref frame, count, ReadFrameLength());
-                    type   = (byte)_reader.ReadByte();
-                }
-
-                if (frame.Length > count)
-                {
-                    Array.Resize<byte>(ref frame, count);
-                }
-
-                _pendingMessage = type;
-
-                return new MessageReader(BackendMessages.DataRow, frame, sessionData);
-            }
-
-            _pendingMessage = 0;
-
-            return new MessageReader(type, ReadFrame(), sessionData);
+            return (byte)_reader.ReadByte();
         }
 
-        private unsafe int ReadFrameLength()
+        internal unsafe int ReadFrameLength()
         {
             _reader.Read(_buffer, 0, 4);
 
@@ -203,17 +169,13 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private byte[] ReadFrame()
+        internal void ReadFrame(ref byte[] frame)
         {
-            int    count = ReadFrameLength();
-            byte[] frame = new byte[count];
-
-            ReadFrame(ref frame, 0, count);
-
-            return frame;
+            Array.Resize<byte>(ref frame, ReadFrameLength());
+            ReadFrame(ref frame, 0, frame.Length);
         }
 
-        private int ReadFrame(ref byte[] frame, int offset, int count)
+        internal int ReadFrame(ref byte[] frame, int offset, int count)
         {
             if (count == 0)
             {
