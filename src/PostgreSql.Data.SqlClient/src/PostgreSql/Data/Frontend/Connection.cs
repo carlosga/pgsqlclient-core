@@ -58,11 +58,11 @@ namespace PostgreSql.Data.Frontend
             set;
         }
 
-        internal SessionData      SessionData              => _sessionData;
-        internal TransactionState TransactionState         => _transactionState;
-        internal string           Database                 => _connectionOptions?.InitialCatalog;
-        internal string           DataSource               => _connectionOptions?.DataSource;
-        internal string           InternalUrl              => $"{DataSource}://{Database}";
+        internal SessionData      SessionData      => _sessionData;
+        internal TransactionState TransactionState => _transactionState;
+        internal string           Database         => _connectionOptions?.InitialCatalog;
+        internal string           DataSource       => _connectionOptions?.DataSource;
+        internal string           TypeInfoUrl      => $"{DataSource}://{Database}";
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
@@ -162,7 +162,7 @@ namespace PostgreSql.Data.Frontend
 
                 _transport.Close();
 
-                TypeInfoProviderCache.Release(InternalUrl);
+                TypeInfoProviderCache.Release(TypeInfoUrl);
             }
             catch
             {
@@ -201,7 +201,7 @@ namespace PostgreSql.Data.Frontend
                 _transport.Close();
 
                 // Release the type info provider
-                TypeInfoProviderCache.Release(InternalUrl);
+                TypeInfoProviderCache.Release(TypeInfoUrl);
 
                 // Reset the current session data
                 _sessionData = null;
@@ -234,7 +234,7 @@ namespace PostgreSql.Data.Frontend
         internal Statement CreateStatement()                => new Statement(this);
         internal Statement CreateStatement(string stmtText) => new Statement(this, stmtText);
 
-        internal void Flush() => _transport.WriteMessage(FrontendMessages.Flush);
+        internal void Flush() => _transport.WriteFrame(FrontendMessages.Flush);
 
         internal void Sync()
         {
@@ -243,7 +243,7 @@ namespace PostgreSql.Data.Frontend
                 return;
             }
 
-            _transport.WriteMessage(FrontendMessages.Sync);
+            _transport.WriteFrame(FrontendMessages.Sync);
         }
 
         internal void CancelRequest()
@@ -312,7 +312,7 @@ namespace PostgreSql.Data.Frontend
             return _reader;
         }
 
-        internal void Send(MessageWriter message) => _transport.WriteMessage(message);
+        internal void Send(MessageWriter message) => message.WriteTo(_transport);
 
         internal bool IsConnectionAlive(bool throwOnException = false)
         {
@@ -335,7 +335,7 @@ namespace PostgreSql.Data.Frontend
             // Reset instance data
             _open        = false;
             _sessionData = new SessionData();
-            _reader      = new MessageReader(_sessionData, _connectionOptions.PacketSize);
+            _reader      = new MessageReader(_connectionOptions.PacketSize, _sessionData);
 
             // Wire up SSL callbacks
             if (_connectionOptions.Encrypt)
@@ -423,7 +423,7 @@ namespace PostgreSql.Data.Frontend
             // Terminator
             message.WriteByte(0);
 
-            _transport.WriteMessage(message);
+            message.WriteTo(_transport);
 
             // Process responses
             ReadUntilReadyForQuery();
@@ -444,21 +444,19 @@ namespace PostgreSql.Data.Frontend
 
         private void SendClearTextPasswordAuthentication()
         {
-            var authPacket = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
+            var message = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
 
-            authPacket.WriteNullString(_connectionOptions.Password);
-
-            _transport.WriteMessage(authPacket);
+            message.WriteNullString(_connectionOptions.Password);
+            message.WriteTo(_transport);
         }
 
         private void SendPasswordAuthentication(byte[] salt)
         {
-            var authMsg = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
+            var message = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
             var hash    = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
 
-            authMsg.WriteNullString(hash);
-
-            Send(authMsg);
+            message.WriteNullString(hash);
+            message.WriteTo(_transport);
         }
 
         private void HandleMessage(MessageReader message)

@@ -16,9 +16,6 @@ namespace PostgreSql.Data.Frontend
         internal object this[int i]       => GetValue(i);
         internal object this[string name] => GetValue(name);
 
-        internal RowDescriptor Descriptor => _descriptor;
-        internal object[]      Values     => _values;
-
         internal DataRecord()
         {
         }

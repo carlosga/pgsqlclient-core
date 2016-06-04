@@ -12,6 +12,15 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageWriter
     {
+        struct Numeric
+        {
+            public short   ndigits; /* # of digits in digits[] - can be 0! */
+            public short   weight;  /* weight of first digit */
+            public short   sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
+            public short   dscale;  /* display scale */
+            public short[] digits;  /* base-NBASE digits */
+        }
+        
         private readonly byte        _messageType;
         private readonly SessionData _sessionData;
         private readonly int         _initialCapacity;
@@ -143,15 +152,6 @@ namespace PostgreSql.Data.Frontend
                 Write(buffer.Length);
                 Write(buffer);
             }
-        }
-
-        struct Numeric
-        {
-            public short   ndigits; /* # of digits in digits[] - can be 0! */
-            public short   weight;  /* weight of first digit */
-            public short   sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
-            public short   dscale;  /* display scale */
-            public short[] digits;  /* base-NBASE digits */
         }
 
         internal void Write(decimal value)
@@ -454,19 +454,14 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void WriteTo(Stream stream)
+        internal void WriteTo(Transport transport)
         {
             int length = _position;
 
             Seek(_offset);
-
             Write(length - _offset);
 
-            stream.Write(_buffer, 0, length);
-
-            Seek(length);
-
-            Clear();
+            transport.WriteFrame(_buffer, 0, length);
         }
 
         private void WriteArray(TypeInfo typeInfo, object value)
@@ -548,6 +543,7 @@ namespace PostgreSql.Data.Frontend
         private void WritePathInternal(PgPath path)
         {
             int sizeInBytes = (16 * path.Points.Length) + 5;
+            EnsureCapacity(sizeInBytes + 4);
             Write(sizeInBytes);
             Write(path);
         }

@@ -376,12 +376,16 @@ namespace PostgreSql.Data.Frontend
 
         internal object[] FetchRow()
         {
-            if (IsCancelled && _rows.Count == 0)
+            if (IsCancelled)
             {
-                return null;
+                if (_rows.Count == 0)
+                {
+                    return null;
+                }
+                return _rows.Dequeue();
             }
 
-            if (!IsCancelled && IsSuspended && _rows.Count == 0)
+            if (IsSuspended && _rows.Count == 0)
             {
                 Execute();  // Fetch next group of rows
             }
@@ -790,7 +794,7 @@ namespace PostgreSql.Data.Frontend
                     // typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
                 }
 
-                _rowDescriptor.Add(new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo));
+                _rowDescriptor[i] = new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo);
             }
         }
 

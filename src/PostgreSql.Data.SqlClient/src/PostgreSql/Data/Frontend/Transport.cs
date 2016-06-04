@@ -61,10 +61,9 @@ namespace PostgreSql.Data.Frontend
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-                _buffer         = null;
-                _packetSize     = 0;
-
-                _disposed = true;
+                _buffer     = null;
+                _packetSize = 0;
+                _disposed   = true;
             }
         }
 
@@ -123,7 +122,7 @@ namespace PostgreSql.Data.Frontend
             try
             {
                 // Notify the server that we are closing the connection.
-                WriteMessage(FrontendMessages.Terminate);
+                WriteFrame(FrontendMessages.Terminate);
             }
             catch
             {
@@ -156,7 +155,7 @@ namespace PostgreSql.Data.Frontend
             return (byte)_reader.ReadByte();
         }
 
-        internal unsafe int ReadFrameLength()
+        internal unsafe int ReadInt32()
         {
             _reader.Read(_buffer, 0, 4);
 
@@ -171,7 +170,7 @@ namespace PostgreSql.Data.Frontend
 
         internal int ReadFrame(ref byte[] frame, int offset = 0)
         {
-            int count = ReadFrameLength();
+            int count = ReadInt32();
             int read  = 0;
             int total = 0;
             if ((offset + count) > frame.Length)
@@ -192,18 +191,12 @@ namespace PostgreSql.Data.Frontend
             return total;
         }
 
-        internal void WriteMessage(byte type)
+        internal void WriteByte(byte value)
         {
-            _writer.WriteByte(type);
-            Write(4);
+            _writer.WriteByte(value);
         }
 
-        internal void WriteMessage(MessageWriter message)
-        {
-            message.WriteTo(_writer);
-        }
-
-        private void Write(int value)
+        internal void WriteInt32(int value)
         {
             _buffer[0] = (byte)((value >> 24) & 0xFF);
             _buffer[1] = (byte)((value >> 16) & 0xFF);
@@ -211,6 +204,17 @@ namespace PostgreSql.Data.Frontend
             _buffer[3] = (byte)((value      ) & 0xFF);
 
             _writer.Write(_buffer, 0, 4);
+        }
+
+        internal void WriteFrame(byte[] frame, int offset, int length)
+        {
+            _writer.Write(frame, offset, length);
+        }
+
+        internal void WriteFrame(byte type)
+        {
+            _writer.WriteByte(type);
+            WriteInt32(4);
         }
 
         private void Connect(string host, int port, int connectTimeout, int packetSize)
@@ -322,9 +326,9 @@ namespace PostgreSql.Data.Frontend
             return false;
         }
 
-        internal bool RequestSecureChannel()
+        private bool RequestSecureChannel()
         {
-            Write(SslRequest);
+            WriteInt32(SslRequest);
 
             return ((char)_reader.ReadByte() == 'S');
         }

@@ -12,7 +12,7 @@ namespace PostgreSql.Data.Frontend
 
         internal static TypeInfoProvider GetOrAdd(Connection connection)
         {
-            string key = connection.InternalUrl;
+            string key = connection.TypeInfoUrl;
             Lazy<TypeInfoProvider> cacheItem;
 
             if (!s_providers.TryGetValue(key, out cacheItem))

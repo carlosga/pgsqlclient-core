@@ -29,11 +29,11 @@ namespace PostgreSql.Data.Frontend
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
-        internal MessageReader(SessionData sessionData, int capacity)
+        internal MessageReader(int capacity, SessionData sessionData)
         {
-            _capacity    = capacity;
-            _buffer      = new byte[capacity];
             _sessionData = sessionData;
+            _capacity    = capacity;
+            _buffer      = new byte[_capacity];
         }
 
         internal byte[] ReadBytes(int count)
@@ -327,28 +327,31 @@ namespace PostgreSql.Data.Frontend
             {
                 _messageType    = _pendingMessage;
                 _pendingMessage = 0;
-                _length         = transport.ReadFrame(ref _buffer);
 
-                Array.Resize<byte>(ref _buffer, ((_length < _capacity) ? _capacity : _length));
+                if (_buffer.Length > (_capacity * 2))
+                {
+                    Array.Resize<byte>(ref _buffer, _capacity);
+                }
             }
             else
             {
                 _messageType = transport.ReadByte();
+            }
 
-                if (_messageType == BackendMessages.DataRow)
-                {
-                    _pendingMessage = _messageType;
-                    _length         = 0;
+            if (_messageType == BackendMessages.DataRow)
+            {
+                _pendingMessage = _messageType;
+                _length         = 0;
 
-                    do
-                    {
-                        _length += transport.ReadFrame(ref _buffer, _length);
-                    } while ((_pendingMessage = transport.ReadByte()) == _messageType);
-                }
-                else
+                do
                 {
-                    _length = transport.ReadFrame(ref _buffer);
-                }
+                    _length        += transport.ReadFrame(ref _buffer, _length);
+                    _pendingMessage = transport.ReadByte();
+                } while (_pendingMessage == _messageType);
+            }
+            else
+            {
+                _length = transport.ReadFrame(ref _buffer);
             }
         }
 

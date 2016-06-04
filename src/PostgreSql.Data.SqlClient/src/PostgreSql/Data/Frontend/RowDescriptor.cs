@@ -8,19 +8,19 @@ namespace PostgreSql.Data.Frontend
     internal sealed class RowDescriptor
     {
         private FieldDescriptor[] _descriptors;
-        private int               _index;
 
-        internal FieldDescriptor this[int index] => _descriptors[index];
+        internal FieldDescriptor this[int index]
+        {
+            get { return _descriptors[index]; }
+            set { _descriptors[index] = value; }
+        }
 
-        internal int Count => _index;
+        internal int Count => _descriptors.Length;
 
         internal RowDescriptor()
         {
             _descriptors = Array.Empty<FieldDescriptor>();
-            _index       = 0;
         }
-
-        internal void Add(FieldDescriptor descriptor) => _descriptors[_index++] = descriptor;
 
         internal int IndexOf(string name)
         {
@@ -38,13 +38,11 @@ namespace PostgreSql.Data.Frontend
         internal void Allocate(int count)
         {
             Array.Resize<FieldDescriptor>(ref _descriptors, count);
-            _index = 0;
         }
 
         internal void Clear()
         {
             _descriptors = Array.Empty<FieldDescriptor>();
-            _index       = 0;
         }
     }
 }
