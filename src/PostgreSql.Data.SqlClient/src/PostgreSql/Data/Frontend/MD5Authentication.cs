@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -22,7 +23,6 @@ namespace PostgreSql.Data.Frontend
         {
             using (HashAlgorithm csp = MD5.Create())
             {
-                string md5    = string.Empty;
                 int    length = ((string.IsNullOrEmpty(password) ? 0 : Encoding.UTF8.GetByteCount(password)));
                 byte[] data   = new byte[salt.Length + length];
 
@@ -31,18 +31,19 @@ namespace PostgreSql.Data.Frontend
                     Encoding.UTF8.GetBytes(password, 0, length, data, 0);
                 }
 
-                salt.CopyTo(data, length);
+                Buffer.BlockCopy(salt, 0, data, length, salt.Length);
 
                 // Calculate hash value
-                byte[] hash = csp.ComputeHash(data);
+                var hash = csp.ComputeHash(data);
+                var md5  = new StringBuilder(hash.Length * 2);
 
                 // Calculate MD5 string
                 for (int i = 0; i < hash.Length; ++i)
                 {
-                    md5 += hash[i].ToString("x2");
+                    md5.Append(hash[i].ToString("x2"));
                 }
 
-                return md5;
+                return md5.ToString();
             }
         }
     }
