@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using System.Globalization;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -530,8 +531,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                         // DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789012345678", ((decimal)o).ToString(), "FAILED: Decimal did not have expected value");
                         // DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789012345678", n.ToString(), "FAILED: Decimal did not have expected value");
 #warning TODO: Using the built-int .net decimal type we can't compare against the original value as it does not have the required precision
-                        DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789", ((decimal)o).ToString(), "FAILED: Decimal did not have expected value");
-                        DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789", n.ToString(), "FAILED: Decimal did not have expected value");
+                        DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789", ((decimal)o).ToString(CultureInfo.InvariantCulture), "FAILED: Decimal did not have expected value");
+                        DataTestClass.AssertEqualsWithDescription("-123456789012345.67890123456789", n.ToString(CultureInfo.InvariantCulture), "FAILED: Decimal did not have expected value");
 
                         // com+ type coercion should fail
                         // Em

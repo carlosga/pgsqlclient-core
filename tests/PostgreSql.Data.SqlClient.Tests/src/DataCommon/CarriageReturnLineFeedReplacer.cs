@@ -6,7 +6,6 @@
 
 using System.IO;
 using System.Text;
-using System.Globalization;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests

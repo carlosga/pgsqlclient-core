@@ -5,7 +5,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
-using System.Data.Common;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests

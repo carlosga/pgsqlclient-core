@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using PostgreSql.Data.SqlClient.Tests.SystemDataInternals;
 using System.Threading;
-using System.Reflection;
 using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
