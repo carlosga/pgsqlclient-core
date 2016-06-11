@@ -130,7 +130,6 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
             return (int)s_dbConnectionPoolCount.GetValue(pool, null);
         }
 
-
         private static void VerifyObjectIsPool(object pool)
         {
             if (pool == null)

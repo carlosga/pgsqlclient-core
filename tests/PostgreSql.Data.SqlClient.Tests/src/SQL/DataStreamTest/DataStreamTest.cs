@@ -480,7 +480,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         Assert.True(reader.IsClosed, "FAILED: Stream was not closed by connection close (Scenario: Read Partial Data)");
                         conn.Open();
                     }
-                    
+
                     using (reader = cmd.ExecuteReader())
                     {
                         do
@@ -600,7 +600,8 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        // private static void SqlCharsBytesTest()
+        // [Fact]
+        // public static void SqlCharsBytesTest()
         // {
         //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
         //     {

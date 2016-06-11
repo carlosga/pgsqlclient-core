@@ -15,8 +15,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         public static void TestMain()
         {
             string connectionString = DataTestClass.PostgreSql9_Pubs;
-            string tempTable        = DataTestClass.GetUniqueName("T", "", "");
-            string tempKey          = DataTestClass.GetUniqueName("K", "", "");
+            string tempTable        = DataTestClass.GetUniqueName("T", string.Empty, string.Empty);
+            string tempKey          = DataTestClass.GetUniqueName("K", string.Empty, string.Empty);
 
             var provider = PgSqlClientFactory.Instance;
             try

@@ -21,7 +21,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
     internal class TransactionTestWorker
     {
-        private static string s_tempTableName1 = DataTestClass.GetUniqueName("TEST_", String.Empty, String.Empty);
+        private static string s_tempTableName1 = DataTestClass.GetUniqueName("TEST_", string.Empty, string.Empty);
         private static string s_tempTableName2 = s_tempTableName1 + "_2";
         private string _connectionString;
 

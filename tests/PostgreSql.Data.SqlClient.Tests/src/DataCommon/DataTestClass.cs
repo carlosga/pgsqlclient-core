@@ -171,14 +171,14 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     Console.WriteLine(e.StackTrace);
                 }
-                if (null != values)
+                if (values != null)
                 {
                     foreach (string value in values)
                     {
                         Console.WriteLine(value);
                     }
                 }
-                if (null != e.InnerException)
+                if (e.InnerException != null)
                 {
                     PrintException(e.InnerException.GetType(), e.InnerException);
                 }
@@ -197,7 +197,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public static void DumpParameters(PgCommand cmd)
         {
-            Debug.Assert(null != cmd, "DumpParameters: null PgCommand");
+            Debug.Assert(cmd != null, "DumpParameters: null PgCommand");
 
             foreach (PgParameter p in cmd.Parameters)
             {
@@ -223,7 +223,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public static string AssemblyFilter(StreamWriter writer)
         {
-            if (null == s_outputBuilder)
+            if (s_outputBuilder == null)
             {
                 s_outputBuilder = new StringBuilder();
             }
@@ -253,7 +253,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             for (int i = 0; i < filter.Length; ++i)
             {
-                builder.Replace(filter[i], "");
+                builder.Replace(filter[i], string.Empty);
             }
         }
 
@@ -296,7 +296,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             if (value is DbDataReader)
             {
-                WriteDbDataReader(textWriter, value as DbDataReader, cultureInfo, "", recursionLimit);
+                WriteDbDataReader(textWriter, value as DbDataReader, cultureInfo, string.Empty, recursionLimit);
             }
             else
             {
@@ -394,11 +394,11 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public static void WriteObject(TextWriter textWriter, object value, int recursionLimit, CultureInfo cultureInfo)
         {
-            if (null == textWriter)
+            if (textWriter == null)
             {
                 throw new ArgumentNullException("textWriter");
             }
-            if (null == cultureInfo)
+            if (cultureInfo == null)
             {
                 cultureInfo = CultureInfo.InvariantCulture;
             }
@@ -543,7 +543,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         var properties = valuetype.GetProperties(BindingFlags.Instance | BindingFlags.Public);
                         var hasinfo    = false;
                         
-                        if ((null != fields) && (0 < fields.Length))
+                        if ((fields != null) && (0 < fields.Length))
                         {
                             textWriter.Write(fullName);
                             fullName = null;
@@ -561,9 +561,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                             }
                             hasinfo = true;
                         }
-                        if ((null != properties) && (0 < properties.Length))
+                        if ((properties != null) && (properties.Length > 0))
                         {
-                            if (null != fullName)
+                            if (fullName != null)
                             {
                                 textWriter.Write(fullName);
                                 fullName = null;
@@ -576,7 +576,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                                 if (property.CanRead)
                                 {
                                     ParameterInfo[] parameters = property.GetIndexParameters();
-                                    if ((null == parameters) || (0 == parameters.Length))
+                                    if ((parameters == null) || (parameters.Length == 0))
                                     {
                                         AppendNewLineIndent(textWriter, indent + 1);
                                         textWriter.Write(property.Name);
