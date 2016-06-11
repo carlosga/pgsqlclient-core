@@ -50,5 +50,5 @@
             ]
         }
     },
-    "testRunner"  :  "xunit"
+    "testRunner":  "xunit"
 }
