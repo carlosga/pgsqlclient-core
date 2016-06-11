@@ -162,14 +162,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                             con.ChangeDatabase(DATABASE_NAME);
                             DataTestClass.AssertEqualsWithDescription(DATABASE_NAME, con.Database, "Change Database should return expected Database Name");
                             break;
-
-                        case ReaderVerificationType.BeginTransaction:
-    #warning TODO: Port to PostgreSql
-                            // verificationCmd.Transaction = con.BeginTransaction();
-                            // verificationCmd.CommandText = "select @@trancount";
-                            // int tranCount = (int)verificationCmd.ExecuteScalar();
-                            // DataTestClass.AssertEqualsWithDescription(1, tranCount, "Begin Transaction should return expected Transaction count");
-                            break;
                     }
                 }
             }
@@ -231,14 +223,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                         con.Close();
                         con.Open();
                         break;
-                }
-
-                using (PgCommand cmd = con.CreateCommand())
-                {
-#warning TODO: See how to port to postgresql
-                    // cmd.CommandText = "select @@trancount";
-                    // int tranCount = (int)cmd.ExecuteScalar();
-                    // DataTestClass.AssertEqualsWithDescription(0, tranCount, "TransactionSingle Case " + caseName + " should return expected trans count");
                 }
             }
         }

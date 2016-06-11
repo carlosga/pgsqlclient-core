@@ -92,11 +92,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                         }
                     }
 
-#warning TODO: see how to port this if possible, remove it if not. 
-                    // cmd1.CommandText = "select @@trancount";
-                    // int tranCount = (int)cmd1.ExecuteScalar();
-                    // Assert.True(tranCount == 1, "FAILED: Expected a transaction count of 1, but actually received " + tranCount);
-
                     tran.Commit();
                 }
             }

@@ -65,18 +65,14 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public PendAsyncReadsScope(PgCommand command, int? errorCode = null)
         {
-            _command = command;
+            _command   = command;
             _errorCode = errorCode;
-#warning TODO: Non portable            
-            // TdsParserStateObjectHelper.ForcePendingReadsToWaitForUser = true;
         }
 
         public PendAsyncReadsScope(PgDataReader reader, int? errorCode = null)
         {
-            _reader = reader;
+            _reader    = reader;
             _errorCode = errorCode;
-#warning TODO: Non portable            
-            // TdsParserStateObjectHelper.ForcePendingReadsToWaitForUser = true;
         }
 
         public void Dispose()

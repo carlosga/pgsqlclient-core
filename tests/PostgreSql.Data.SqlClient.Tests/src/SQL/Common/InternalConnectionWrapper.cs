@@ -66,6 +66,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             return ConnectionHelper.IsConnectionAlive(_internalConnection);
         }
+
         public void KillConnection()
         {
             #warning TODO: Look if it can be implemented

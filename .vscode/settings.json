@@ -4,6 +4,7 @@
     "editor.fontLigatures": true,
     "editor.glyphMargin": true,
     "editor.renderWhitespace": true,
+    "editor.trimAutoWhitespace": true,
     "files.eol": "\n",
     "json.schemas": [
         {

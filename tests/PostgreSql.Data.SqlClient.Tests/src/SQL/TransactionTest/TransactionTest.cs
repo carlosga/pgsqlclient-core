@@ -53,9 +53,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                 // ReadUncommittedIsolationLevel_ShouldReturnUncommittedData();
                 // ResetTables();
 
-#warning TODO: Review and enable if possible
-                // ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
-                // ResetTables();
+                ReadCommitedIsolationLevel_ShouldReceiveTimeoutExceptionBecauseItWaitsForUncommittedTransaction();
+                ResetTables();
             }
             finally
             {
@@ -257,7 +256,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 AssertException<InvalidOperationException>(() =>
                 {
-                    connection.BeginTransaction("");
+                    connection.BeginTransaction(string.Empty);
                 }, parallelTransactionErrorMessage);
 
                 AssertException<ArgumentException>(() =>
@@ -267,7 +266,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 AssertException<ArgumentException>(() =>
                 {
-                    tx.Rollback("");
+                    tx.Rollback(string.Empty);
                 }, invalidSaveStateMessage);
 
                 AssertException<ArgumentException>(() =>
@@ -277,7 +276,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 AssertException<ArgumentException>(() =>
                 {
-                    tx.Save("");
+                    tx.Save(string.Empty);
                 }, invalidSaveStateMessage);
             }
         }
@@ -351,7 +350,17 @@ namespace PostgreSql.Data.SqlClient.Tests
                     PgTransaction tx2 = connection2.BeginTransaction(IsolationLevel.ReadCommitted);
                     command2.Transaction = tx2;
 
-                    AssertException<PgException>(() => command2.ExecuteReader(), "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");
+                    int count = 0;
+
+                    using (var reader = command2.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            count++;
+                        }
+                    }
+
+                    Assert.True(count == 0, "Should Expected 0 rows because Isolation Level is read committed which should not return uncommitted data.");
 
                     tx2.Rollback();
                     connection2.Close();

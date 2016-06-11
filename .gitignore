@@ -46,6 +46,9 @@ CMakeLists.txt.user
 # Clion / IntelliJ IDEA
 .idea
 
+# Visual studio code
+.browse.VC.*
+
 # Project files to be ignored
 ConnectionString.xml
 *.lock.json

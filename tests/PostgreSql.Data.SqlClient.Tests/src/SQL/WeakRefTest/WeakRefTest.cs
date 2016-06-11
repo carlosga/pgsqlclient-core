@@ -147,14 +147,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                             con.ChangeDatabase(DATABASE_NAME);
                             Assert.Equal(con.Database, DATABASE_NAME);
                             break;
-
-                        case ReaderVerificationType.BeginTransaction:
-#warning TODO: See how to port to postgresql
-                            // cmd.Transaction = con.BeginTransaction();
-                            // cmd.CommandText = "select @@trancount";
-                            // int tranCount = (int)cmd.ExecuteScalar();
-                            // Assert.AreEqual(tranCount, 1);
-                            break;
                     }
                 }
             }
@@ -206,21 +198,13 @@ namespace PostgreSql.Data.SqlClient.Tests
                         con.Open();
                         break;
                 }
-
-                using (PgCommand cmd = con.CreateCommand())
-                {
-#warning TODO: See how to port to postgresql
-                    // cmd.CommandText = "select @@trancount";
-                    // int tranCount = (int)cmd.ExecuteScalar();
-                    // Assert.AreEqual(tranCount, 0);
-                }
             }
         }
 
         private static WeakReference OpenNullifyReader(PgCommand cmd)
         {
-            PgDataReader reader = cmd.ExecuteReader();
-            WeakReference weak = new WeakReference(reader);
+            PgDataReader  reader = cmd.ExecuteReader();
+            WeakReference weak   = new WeakReference(reader);
             reader = null;
             return weak;
         }
@@ -228,7 +212,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         private static WeakReference OpenNullifyTransaction(PgConnection connection)
         {
             PgTransaction transaction = connection.BeginTransaction();
-            WeakReference weak = new WeakReference(transaction);
+            WeakReference weak        = new WeakReference(transaction);
             transaction = null;
             return weak;
         }
