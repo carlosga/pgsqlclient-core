@@ -137,8 +137,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             yield return new object[] { PgDate.MinValue         , 328 };
             yield return new object[] { PgDate.MaxValue         , 365 };
-            yield return new object[] { new PgDate(2000, 02, 29), 122 };
-            yield return new object[] { new PgDate(1986, 02, 28), 121 };
+            yield return new object[] { new PgDate(2000, 02, 29),  59 };
+            yield return new object[] { new PgDate(1986, 02, 28),  58 };
         }
 
         /// Ported from corefx sources
