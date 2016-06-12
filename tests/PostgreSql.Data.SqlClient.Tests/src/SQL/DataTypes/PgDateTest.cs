@@ -65,12 +65,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = PgDate.Today;
 
-            Assert.Equal(date.Year          , DateTime.Today.Date.Year);
-            Assert.Equal(date.Month         , DateTime.Today.Date.Month);
-            Assert.Equal(date.Day           , DateTime.Today.Date.Day);
-            Assert.Equal(date.Era           , Era.Common);
-            Assert.Equal(date.DayOfWeek     , DateTime.Today.Date.DayOfWeek);
-            Assert.Equal(date.DayOfYear     , DateTime.Today.Date.DayOfYear);
+            Assert.Equal(date.Year     , DateTime.Today.Date.Year);
+            Assert.Equal(date.Month    , DateTime.Today.Date.Month);
+            Assert.Equal(date.Day      , DateTime.Today.Date.Day);
+            Assert.Equal(date.Era      , Era.Common);
+            Assert.Equal(date.DayOfWeek, DateTime.Today.Date.DayOfWeek);
+            Assert.Equal(date.DayOfYear, DateTime.Today.Date.DayOfYear);
         }
 
         [Theory]
