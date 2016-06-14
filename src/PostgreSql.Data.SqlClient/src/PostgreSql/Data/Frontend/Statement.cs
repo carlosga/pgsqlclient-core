@@ -791,7 +791,7 @@ namespace PostgreSql.Data.Frontend
 
                 if (typeInfo == null)
                 {
-                    // typeInfo = _connection.TypeInfoProvider.GetTypeInfo(typeOid);
+                    typeInfo = _connection.SessionData.TypeInfoProvider.GetCompositeTypeInfo(typeOid);
                 }
 
                 _rowDescriptor[i] = new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo);

@@ -456,7 +456,7 @@ namespace PostgreSql.Data.Frontend
             {
                 return _types[oid];
             }
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Data Type with oid {oid} is not supported");
         }
 
         private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(Connection connection)

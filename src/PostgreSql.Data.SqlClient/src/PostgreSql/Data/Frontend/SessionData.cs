@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Common;
 using System.Text;
 
 namespace PostgreSql.Data.Frontend
@@ -14,14 +15,13 @@ namespace PostgreSql.Data.Frontend
 
         static SessionData()
         {
-            Dictionary<string, Encoding> encodings = new Dictionary<string, Encoding>(4);
+            Dictionary<string, Encoding> encodings = new Dictionary<string, Encoding>(20);
 
             // http://www.postgresql.org/docs/9.1/static/multibyte.html
-            encodings["SQL_ASCII"] = new ASCIIEncoding();                       // ASCII
-            encodings["UNICODE"]   = new UTF8Encoding(false);                   // Unicode (UTF-8)
-            encodings["UTF8"]      = new UTF8Encoding(false);                   // UTF-8
-            encodings["LATIN1"]    = Encoding.GetEncoding("iso-8859-1");        // ISO 8859-1/ECMA 94 (Latin alphabet no.1)
-
+            encodings["SQL_ASCII"]  = new ASCIIEncoding();                   // ASCII
+            encodings["UNICODE"]    = new UTF8Encoding(false);               // Unicode (UTF-8)
+            encodings["UTF8"]       = new UTF8Encoding(false);               // UTF-8
+            encodings["LATIN1"]     = Encoding.GetEncoding("iso-8859-1");    // ISO 8859-1/ECMA 94 (Latin alphabet no.1)
             // encodings["EUC_JP"]     = Encoding.GetEncoding("euc-jp");        // Japanese EUC
             // encodings["EUC_CN"]     = Encoding.GetEncoding("euc-cn");        // Chinese EUC
             // encodings["LATIN2"]     = Encoding.GetEncoding("iso-8859-2");    // ISO 8859-2/ECMA 94 (Latin alphabet no.2)
@@ -38,6 +38,8 @@ namespace PostgreSql.Data.Frontend
             Encodings = new ReadOnlyDictionary<string, Encoding>(encodings);
         }
 
+        private readonly DbConnectionOptions _connectionOptions;
+
         private string           _serverVersion;
         private Encoding         _serverEncoding;
         private Encoding         _clientEncoding;
@@ -51,27 +53,29 @@ namespace PostgreSql.Data.Frontend
         private string           _standardConformingStrings;
         private TypeInfoProvider _typeInfoProvider;
 
-        internal string       ServerVersion             => _serverVersion;
-        internal Encoding     ServerEncoding            => _serverEncoding;
-        internal Encoding     ClientEncoding            => _clientEncoding;
-        internal string       ApplicationName           => _applicationName;
-        internal bool         IsSuperUser               => _isSuperUser;
-        internal string       SessionAuthorization      => _sessionAuthorization;
-        internal string       DateStyle                 => _dateStyle;
-        internal string       IntervalStyle             => _intervalStyle;
-        internal TimeZoneInfo TimeZoneInfo              => _timeZoneInfo;
-        internal bool         IntegerDateTimes          => _integerDateTimes;
-        internal string       StandardConformingStrings => _standardConformingStrings;
-        
+        internal DbConnectionOptions ConnectionOptions         => _connectionOptions;
+        internal string              ServerVersion             => _serverVersion;
+        internal Encoding            ServerEncoding            => _serverEncoding;
+        internal Encoding            ClientEncoding            => _clientEncoding;
+        internal string              ApplicationName           => _applicationName;
+        internal bool                IsSuperUser               => _isSuperUser;
+        internal string              SessionAuthorization      => _sessionAuthorization;
+        internal string              DateStyle                 => _dateStyle;
+        internal string              IntervalStyle             => _intervalStyle;
+        internal TimeZoneInfo        TimeZoneInfo              => _timeZoneInfo;
+        internal bool                IntegerDateTimes          => _integerDateTimes;
+        internal string              StandardConformingStrings => _standardConformingStrings;
+
         internal TypeInfoProvider TypeInfoProvider
         {
             get { return _typeInfoProvider; }
             set { _typeInfoProvider = value; }
         }
 
-        internal SessionData()
+        internal SessionData(DbConnectionOptions connectionOptions)
         {
-            _clientEncoding = Encoding.UTF8;
+            _connectionOptions = connectionOptions;
+            _clientEncoding    = Encoding.UTF8;
         }
 
         internal void SetValue(string name, string value)

@@ -1024,7 +1024,9 @@ namespace System.Data.ProviderBase
                         finally
                         {
                             if (locked)
+                            {
                                 Monitor.Exit(obj);
+                            }
                         }
                     }
                 }
@@ -1063,7 +1065,7 @@ namespace System.Data.ProviderBase
             // deactivate timer callbacks
             Timer t = _cleanupTimer;
             _cleanupTimer = null;
-            if (null != t)
+            if (t != null)
             {
                 t.Dispose();
             }

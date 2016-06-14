@@ -73,7 +73,7 @@ namespace System.Data.ProviderBase
 
         protected void AddItem(object value, int tag)
         {
-            Debug.Assert(null != value && 0 != tag, "AddItem with null value or 0 tag");
+            Debug.Assert(value != null && tag != 0, "AddItem with null value or 0 tag");
             bool itemAdded = false;
 
             lock (_itemLock)

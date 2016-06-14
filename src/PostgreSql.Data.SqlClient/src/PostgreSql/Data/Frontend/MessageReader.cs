@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Bindings;
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageReader
+        : ITypeReader
     {
         private byte        _messageType;
         private byte[]      _buffer;
@@ -29,10 +31,10 @@ namespace PostgreSql.Data.Frontend
         internal bool IsCloseComplete   => (_messageType == BackendMessages.CloseComplete);
         internal bool IsReadyForQuery   => (_messageType == BackendMessages.ReadyForQuery);
 
-        internal MessageReader(int capacity, SessionData sessionData)
+        internal MessageReader(SessionData sessionData)
         {
             _sessionData = sessionData;
-            _capacity    = capacity;
+            _capacity    = sessionData.ConnectionOptions.PacketSize;
             _buffer      = new byte[_capacity];
         }
 
@@ -426,16 +428,50 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        private object[] ReadComposite(TypeInfo typeInfo, int length)
+        public object ReadComposite()
         {
-            var count  = ReadInt32();
+            return null;
+        }
+
+        public object ReadCompositeValue()
+        {
+            int oid   = ReadInt32();
+            var size  = ReadInt32();
+            var tinfo = TypeInfoProvider.GetTypeInfo(oid); 
+
+            return ReadValue(tinfo, size);
+        }
+
+        private object ReadComposite(TypeInfo typeInfo, int length)
+        {
+            var count    = ReadInt32();
+            var provider = TypeBindingContext.GetProvider(_sessionData.ConnectionOptions.ConnectionString);
+
+            if (provider == null)
+            {
+                return ReadComposite(typeInfo, length, count);
+            }
+
+            var binding = provider.GetBinding(typeInfo.Name);
+
+            if (binding == null)
+            {
+                throw new InvalidOperationException($"No binding registered for type {typeInfo.Name}");
+            }
+
+#warning TODO: Ensure the value is fully readed
+            return binding.Read(this);
+        }
+
+        private object[] ReadComposite(TypeInfo typeInfo, int length, int count)
+        {
             var values = new object[count];
 
             for (int i = 0; i < values.Length; ++i)
             {
                 int oid   = ReadInt32();
                 var size  = ReadInt32();
-                var tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid); 
+                var tinfo = TypeInfoProvider.GetTypeInfo(oid); 
 
                 values[i] = ReadValue(tinfo, size);
             }

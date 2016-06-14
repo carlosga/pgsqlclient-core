@@ -402,10 +402,15 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 cultureInfo = CultureInfo.InvariantCulture;
             }
-            WriteObject(textWriter, value, cultureInfo, new Hashtable(), 1, recursionLimit);
+            WriteObject(textWriter, value, cultureInfo, new Dictionary<string, string>(), 1, recursionLimit);
         }
 
-        private static void WriteObject(TextWriter textWriter, object value, CultureInfo cultureInfo, Hashtable used, int indent, int recursionLimit)
+        private static void WriteObject(TextWriter                 textWriter
+                                      , object                     value
+                                      , CultureInfo                cultureInfo
+                                      , Dictionary<string, string> used
+                                      , int                        indent
+                                      , int                        recursionLimit)
         {
             if (0 > --recursionLimit)
             {
@@ -507,8 +512,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                 else if (value is ICollection)
                 {
                     textWriter.Write(valuetype.Name);
-                    ICollection collection = (ICollection)value;
-                    object[] newvalue = new object[collection.Count];
+                    var collection = (ICollection)value;
+                    var newvalue   = new object[collection.Count];
                     collection.CopyTo(newvalue, 0);
 
                     textWriter.Write(' ');
@@ -641,7 +646,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             textWriter.Write(buf, 0, indent * 4);
         }
 
-        private sealed class FieldInfoCompare : IComparer
+        private sealed class FieldInfoCompare : IComparer<FieldInfo>
         {
             internal static FieldInfoCompare Default = new FieldInfoCompare();
 
@@ -649,16 +654,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
             }
 
-            public int Compare(object x, object y)
+            public int Compare(FieldInfo x, FieldInfo y)
             {
-                string fieldInfoName1 = ((FieldInfo)x).Name;
-                string fieldInfoName2 = ((FieldInfo)y).Name;
+                string fieldInfoName1 = x.Name;
+                string fieldInfoName2 = y.Name;
 
                 return CultureInfo.InvariantCulture.CompareInfo.Compare(fieldInfoName1, fieldInfoName2, CompareOptions.IgnoreCase);
             }
         }
 
-        private sealed class PropertyInfoCompare : IComparer
+        private sealed class PropertyInfoCompare : IComparer<PropertyInfo>
         {
             internal static PropertyInfoCompare Default = new PropertyInfoCompare();
 
@@ -666,10 +671,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
             }
 
-            public int Compare(object x, object y)
+            public int Compare(PropertyInfo x, PropertyInfo y)
             {
-                string propertyInfoName1 = ((PropertyInfo)x).Name;
-                string propertyInfoName2 = ((PropertyInfo)y).Name;
+                string propertyInfoName1 = x.Name;
+                string propertyInfoName2 = y.Name;
 
                 return CultureInfo.InvariantCulture.CompareInfo.Compare(propertyInfoName1, propertyInfoName2, CompareOptions.IgnoreCase);
             }
