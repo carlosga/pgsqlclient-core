@@ -456,7 +456,7 @@ namespace PostgreSql.Data.Frontend
 
             if (binding == null)
             {
-                throw new InvalidOperationException($"No binding registered for type {typeInfo.Name}");
+                return ReadComposite(typeInfo, length, count);
             }
 
 #warning TODO: Ensure the value is fully readed

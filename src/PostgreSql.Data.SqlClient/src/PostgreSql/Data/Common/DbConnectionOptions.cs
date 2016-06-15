@@ -56,6 +56,7 @@ namespace System.Data.Common
         internal bool   Pooling                    => _pooling;
         internal string SearchPath                 => _searchPath;
         internal string UserID                     => _userId;
+        internal string InternalUrl                => $"{DataSource}://{InitialCatalog}";
 
         internal bool IsEmpty => String.IsNullOrEmpty(_connectionString);
 

@@ -12,7 +12,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     public class CompositeTypesTest
     {
         [Fact]
-        public static void SelectSimpleTest()
+        public static void ReadCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -62,6 +62,77 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
                                 DataTestClass.AssertEqualsWithDescription("fuzzy dice", item.Name, "FAILED: Received a different value than expected.");
                                 DataTestClass.AssertEqualsWithDescription(   42, item.SupplierId, "FAILED: Received a different value than expected.");
                                 DataTestClass.AssertEqualsWithDescription(1.99M, item.Price, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription( 1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public static void ReadCompositeWithoutBindingTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
+            string createSql = 
+@"CREATE TYPE inventory_item AS (
+    name        text,
+    supplier_id integer,
+    price       numeric
+);
+CREATE TABLE on_hand (
+    item  inventory_item,
+    count integer
+);
+INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var values = (object[])reader.GetValue(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(values != null && values.Length == 3, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice", values[0], "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   42, values[1], "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, values[2], "FAILED: Received a different value than expected.");
                                 DataTestClass.AssertEqualsWithDescription( 1000, fcount, "FAILED: Received a different value than expected.");
 
                                 count++;

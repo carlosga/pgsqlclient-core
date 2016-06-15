@@ -58,11 +58,9 @@ namespace PostgreSql.Data.Frontend
             set;
         }
 
-        internal SessionData      SessionData      => _sessionData;
-        internal TransactionState TransactionState => _transactionState;
-        internal string           Database         => _connectionOptions?.InitialCatalog;
-        internal string           DataSource       => _connectionOptions?.DataSource;
-        internal string           TypeInfoUrl      => $"{DataSource}://{Database}";
+        internal SessionData         SessionData       => _sessionData;
+        internal TransactionState    TransactionState  => _transactionState;
+        internal DbConnectionOptions ConnectionOptions => _connectionOptions;
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
@@ -162,7 +160,7 @@ namespace PostgreSql.Data.Frontend
 
                 _transport.Close();
 
-                TypeInfoProviderCache.Release(TypeInfoUrl);
+                TypeInfoProviderCache.Release(this);
             }
             catch
             {
@@ -201,7 +199,7 @@ namespace PostgreSql.Data.Frontend
                 _transport.Close();
 
                 // Release the type info provider
-                TypeInfoProviderCache.Release(TypeInfoUrl);
+                TypeInfoProviderCache.Release(this);
 
                 // Reset the current session data
                 _sessionData = null;

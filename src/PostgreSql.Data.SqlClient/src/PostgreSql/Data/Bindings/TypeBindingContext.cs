@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
+using System.Collections.Concurrent;
+using System.Data.Common;
 
 namespace PostgreSql.Data.Bindings
 {
-    public sealed class TypeBindingContext
+    public static class TypeBindingContext
     {
-#warning TODO: Use ConcurrentDictionary
-        private static readonly Dictionary<string, TypeBindingProvider> s_providers = new Dictionary<string, TypeBindingProvider>(10);
-
-        private TypeBindingContext()
-        {
-        }
+        private static readonly ConcurrentDictionary<string, TypeBindingProvider> s_providers = new ConcurrentDictionary<string, TypeBindingProvider>();
 
         public static TypeBindingProvider GetProvider(string connectionString)
         {
@@ -19,7 +18,10 @@ namespace PostgreSql.Data.Bindings
                 throw new ArgumentNullException("connectionString");
             }
 
-            return s_providers[connectionString];
+            DbConnectionOptions options = new DbConnectionOptions(connectionString);
+            TypeBindingProvider provider;
+            s_providers.TryGetValue(options.InternalUrl, out provider);
+            return provider;
         }
 
         public static TypeBindingProvider Register(string connectionString)
@@ -29,17 +31,27 @@ namespace PostgreSql.Data.Bindings
                 throw new ArgumentNullException("connectionString");
             }
 
-            if (!s_providers.ContainsKey(connectionString))
+            DbConnectionOptions options = new DbConnectionOptions(connectionString);
+            TypeBindingProvider provider;
+
+            if (!s_providers.TryGetValue(options.InternalUrl, out provider))
             {
-                s_providers[connectionString] = new TypeBindingProvider(connectionString); 
+                provider = new TypeBindingProvider(options.InternalUrl);
+
+                if (!s_providers.TryAdd(options.InternalUrl, provider))
+                {
+                    throw ADP.InvalidOperation("An error has occurred while try to register the provider.");
+                }
             }
 
-            return s_providers[connectionString];
+            return provider;
         }
 
-        public static void UnRegister(string connectionstring)
+        public static void UnRegister(string connectionString)
         {
-            s_providers.Remove(connectionstring);
+            DbConnectionOptions options = new DbConnectionOptions(connectionString);
+            TypeBindingProvider provider;
+            s_providers.TryRemove(options.InternalUrl, out provider);
         }
 
         public static void Clear()

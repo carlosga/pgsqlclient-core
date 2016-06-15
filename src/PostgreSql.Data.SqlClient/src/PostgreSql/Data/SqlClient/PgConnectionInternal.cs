@@ -30,8 +30,8 @@ namespace PostgreSql.Data.SqlClient
         internal PgConnection        OwningConnection      => (PgConnection)Owner;
         internal Connection          Connection            => _connection;
         internal PgTransaction       ActiveTransaction     => _activeTransaction?.Target as PgTransaction;
-        internal string              Database              => _connection?.Database;
-        internal string              DataSource            => _connection?.DataSource;
+        internal string              Database              => _connection?.ConnectionOptions?.InitialCatalog;
+        internal string              DataSource            => _connection?.ConnectionOptions?.DataSource;
         internal DbConnectionOptions ConnectionOptions     => _connectionOptions;
         internal DbConnectionOptions UserConnectionOptions => _userConnectionOptions;
         internal bool ApplyTransientFaultHandling          => _applyTransientFaultHandling;
@@ -192,7 +192,8 @@ namespace PostgreSql.Data.SqlClient
                 }
                 // This should be true only if PgConnection.ChangeDatabase has been called with a different database name
                 // In that case restore the connection to the original database only for pooled connections.
-                if (_providerInfo.PoolGroup != null && _connection.Database != _connectionOptions.InitialCatalog)
+                if (_providerInfo.PoolGroup != null 
+                 && _connection.ConnectionOptions.InitialCatalog != _connectionOptions.InitialCatalog)
                 {
                     _connection.ChangeDatabase(_connectionOptions.InitialCatalog);
                 }
