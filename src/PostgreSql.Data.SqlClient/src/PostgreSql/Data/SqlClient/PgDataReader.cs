@@ -311,7 +311,7 @@ namespace PostgreSql.Data.SqlClient
         public PgInt16     GetPgInt16(int i)     => GetFieldValue<PgInt16>(i);
         public PgInt32     GetPgInt32(int i)     => GetFieldValue<PgInt32>(i);
         public PgInt64     GetPgInt64(int i)     => GetFieldValue<PgInt64>(i);
-        public PgDecimal   GetPgDecimal(int i)   => GetFieldValue<PgDecimal>(i);
+        public PgNumeric   GetPgNumeric(int i)   => GetFieldValue<PgNumeric>(i);
         public PgMoney     GetPgMoney(int i)     => GetFieldValue<PgMoney>(i);
         public PgReal      GetPgReal(int i)      => GetFieldValue<PgReal>(i);
         public PgDate      GetPgDate(int i)      => GetFieldValue<PgDate>(i);

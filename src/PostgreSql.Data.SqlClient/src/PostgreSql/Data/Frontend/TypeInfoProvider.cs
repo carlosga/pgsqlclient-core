@@ -129,8 +129,8 @@ namespace PostgreSql.Data.Frontend
             // decimal | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
             // numeric | variable | user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
 
-            types[1700] = new TypeInfo(1700, "numeric"  , PgDbType.Numeric, typeof(decimal), typeof(PgDecimal));
-            types[1231] = new TypeInfo(1231, "numeric[]", PgDbType.Array  , types[1700], typeof(decimal[]), typeof(PgDecimal[]));
+            types[1700] = new TypeInfo(1700, "numeric"  , PgDbType.Numeric, typeof(decimal), typeof(PgNumeric));
+            types[1231] = new TypeInfo(1231, "numeric[]", PgDbType.Array  , types[1700], typeof(decimal[]), typeof(PgNumeric[]));
 
             // real | 4 bytes | variable-precision, inexact	6 decimal digits precision
 

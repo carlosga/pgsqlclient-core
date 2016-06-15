@@ -22,8 +22,8 @@ namespace PostgreSql.Data.PgTypes
     /// in *decimal* digits, and so it may correspond to a fractional number of
     /// base-NBASE digits --- divide by DEC_DIGITS to convert to NBASE digits.
 
-    public struct PgDecimal
-        : INullable, IComparable<PgDecimal>, IComparable, IEquatable<PgDecimal>
+    public struct PgNumeric
+        : INullable, IComparable<PgNumeric>, IComparable, IEquatable<PgNumeric>
     {
         internal const int MaxResultScale   = (MaxPrecision * 2);
         internal const int PositiveMask     = 0x0000;
@@ -54,48 +54,48 @@ namespace PostgreSql.Data.PgTypes
             , 1E+28M
         };
 
-        public static readonly PgDecimal MaxValue     = Decimal.MaxValue;
-        public static readonly PgDecimal MinValue     = Decimal.MinValue;
-        public static readonly PgDecimal Null         = new PgDecimal();
+        public static readonly PgNumeric MaxValue = Decimal.MaxValue;
+        public static readonly PgNumeric MinValue = Decimal.MinValue;
+        public static readonly PgNumeric Null     = new PgNumeric();
 
         private readonly bool    _isNotNull;
         private readonly decimal _value;
 
-        public PgDecimal(decimal value)
+        public PgNumeric(decimal value)
         {
             _value     = value;
             _isNotNull = true;
         }
 
-        public PgDecimal(double dVal)
+        public PgNumeric(double dVal)
         {
             _value     = (decimal)dVal;
             _isNotNull = true;
         }
 
-        public PgDecimal(int value)
+        public PgNumeric(int value)
         {
             _value     = value;
             _isNotNull = true;
         }
 
-        public PgDecimal(long value)
+        public PgNumeric(long value)
         {
             _value     = value;
             _isNotNull = true;
         }
 
-        // public PgDecimal(byte bPrecision, byte bScale, bool fPositive, int[] bits)
+        // public PgNumeric(byte bPrecision, byte bScale, bool fPositive, int[] bits)
         // {
         //     throw new NotImplementedException();
         // }
 
-        // public PgDecimal(byte bPrecision, byte bScale, bool fPositive, int data1, int data2, int data3, int data4)
+        // public PgNumeric(byte bPrecision, byte bScale, bool fPositive, int data1, int data2, int data3, int data4)
         // {
         //     throw new NotImplementedException();
         // }
 
-        public static PgDecimal operator -(PgDecimal x)
+        public static PgNumeric operator -(PgNumeric x)
         {
             if (x.IsNull)
             {
@@ -109,7 +109,7 @@ namespace PostgreSql.Data.PgTypes
             return value;
         }
 
-        public static PgDecimal operator -(PgDecimal x, PgDecimal y)
+        public static PgNumeric operator -(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -123,9 +123,9 @@ namespace PostgreSql.Data.PgTypes
             return value;
         }
 
-        public static PgBoolean operator !=(PgDecimal x, PgDecimal y) => !(x == y);
+        public static PgBoolean operator !=(PgNumeric x, PgNumeric y) => !(x == y);
 
-        public static PgDecimal operator *(PgDecimal x, PgDecimal y)
+        public static PgNumeric operator *(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -139,7 +139,7 @@ namespace PostgreSql.Data.PgTypes
             return value;
         }
 
-        public static PgDecimal operator /(PgDecimal x, PgDecimal y)
+        public static PgNumeric operator /(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -153,7 +153,7 @@ namespace PostgreSql.Data.PgTypes
             return value;
         }
 
-        public static PgDecimal operator +(PgDecimal x, PgDecimal y)
+        public static PgNumeric operator +(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -167,7 +167,7 @@ namespace PostgreSql.Data.PgTypes
             return value;
         }
 
-        public static PgBoolean operator <(PgDecimal x, PgDecimal y)
+        public static PgBoolean operator <(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -176,7 +176,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value < y._value);
         }
 
-        public static PgBoolean operator <=(PgDecimal x, PgDecimal y)
+        public static PgBoolean operator <=(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -185,7 +185,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value <= y._value);
         }
 
-        public static PgBoolean operator ==(PgDecimal x, PgDecimal y)
+        public static PgBoolean operator ==(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -194,7 +194,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value == y._value);
         }
 
-        public static PgBoolean operator >(PgDecimal x, PgDecimal y)
+        public static PgBoolean operator >(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -203,7 +203,7 @@ namespace PostgreSql.Data.PgTypes
             return (x._value > y._value);
         }
 
-        public static PgBoolean operator >=(PgDecimal x, PgDecimal y)
+        public static PgBoolean operator >=(PgNumeric x, PgNumeric y)
         {
             if (x.IsNull || y.IsNull)
             {
@@ -212,27 +212,27 @@ namespace PostgreSql.Data.PgTypes
             return (x._value >= y._value);
         }
 
-        public static explicit operator PgDecimal(double x) => new PgDecimal(x);
+        public static explicit operator PgNumeric(double x) => new PgNumeric(x);
 
-        public static explicit operator PgDecimal(PgBit x)
+        public static explicit operator PgNumeric(PgBit x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value);
+            return new PgNumeric(x.Value);
         }
 
-        public static explicit operator PgDecimal(PgBoolean x)
+        public static explicit operator PgNumeric(PgBoolean x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.ByteValue);
+            return new PgNumeric(x.ByteValue);
         }
 
-        public static explicit operator decimal(PgDecimal x)
+        public static explicit operator decimal(PgNumeric x)
         {
             if (x.IsNull)
             {
@@ -241,74 +241,74 @@ namespace PostgreSql.Data.PgTypes
             return x._value;
         }
 
-        public static explicit operator PgDecimal(PgDouble x)
+        public static explicit operator PgNumeric(PgDouble x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value);
+            return new PgNumeric(x.Value);
         }
 
-        public static explicit operator PgDecimal(PgReal x)
+        public static explicit operator PgNumeric(PgReal x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value);
+            return new PgNumeric(x.Value);
         }
 
-        public static implicit operator PgDecimal(decimal x) => new PgDecimal(x);
+        public static implicit operator PgNumeric(decimal x) => new PgNumeric(x);
 
-        public static implicit operator PgDecimal(long x)
+        public static implicit operator PgNumeric(long x)
         {
             throw new NotImplementedException();
         }
 
-        public static implicit operator PgDecimal(PgByte x)
+        public static implicit operator PgNumeric(PgByte x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x);
+            return new PgNumeric(x);
         }
         
-        public static implicit operator PgDecimal(PgInt16 x)  
+        public static implicit operator PgNumeric(PgInt16 x)  
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value); 
+            return new PgNumeric(x.Value); 
         }
 
-        public static implicit operator PgDecimal(PgInt32 x)  
+        public static implicit operator PgNumeric(PgInt32 x)  
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value);
+            return new PgNumeric(x.Value);
         }
 
-        public static implicit operator PgDecimal(PgInt64 x)
+        public static implicit operator PgNumeric(PgInt64 x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value); 
+            return new PgNumeric(x.Value); 
         }
 
-        public static implicit operator PgDecimal(PgMoney x)
+        public static implicit operator PgNumeric(PgMoney x)
         {
             if (x.IsNull)
             {
                 return Null;
             }
-            return new PgDecimal(x.Value);
+            return new PgNumeric(x.Value);
         }
 
         public byte[] BinData
@@ -350,19 +350,19 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        public static PgDecimal Abs(PgDecimal n)
+        public static PgNumeric Abs(PgNumeric n)
         {
             return Math.Abs(n._value);
         }
 
-        public static PgDecimal Add(PgDecimal x, PgDecimal y) => (x + y);
+        public static PgNumeric Add(PgNumeric x, PgNumeric y) => (x + y);
 
-        public static PgDecimal AdjustScale(PgDecimal n, int digits, bool fRound)
+        public static PgNumeric AdjustScale(PgNumeric n, int digits, bool fRound)
         {
             throw new NotImplementedException();
         }
 
-        public static PgDecimal Ceiling(PgDecimal n)
+        public static PgNumeric Ceiling(PgNumeric n)
         {
             return Math.Ceiling(n._value);
         }
@@ -374,10 +374,10 @@ namespace PostgreSql.Data.PgTypes
                 return -1;
             }
 
-            return CompareTo((PgDecimal)obj);
+            return CompareTo((PgNumeric)obj);
         }
 
-        public int CompareTo(PgDecimal value)
+        public int CompareTo(PgNumeric value)
         {
             if (IsNull)
             {
@@ -399,14 +399,14 @@ namespace PostgreSql.Data.PgTypes
             return 0;
         }
 
-        public static PgDecimal ConvertToPrecScale(PgDecimal n, int precision, int scale)
+        public static PgNumeric ConvertToPrecScale(PgNumeric n, int precision, int scale)
         {
             throw new NotImplementedException();
         }
 
-        public static PgDecimal Divide(PgDecimal x, PgDecimal y) => (x / y);
+        public static PgNumeric Divide(PgNumeric x, PgNumeric y) => (x / y);
 
-        public bool Equals(PgDecimal other) => (this == other).Value;
+        public bool Equals(PgNumeric other) => (this == other).Value;
 
         public override bool Equals(object obj)
         {
@@ -414,30 +414,30 @@ namespace PostgreSql.Data.PgTypes
             {
                 return false;
             }
-            if (!(obj is PgDecimal))
+            if (!(obj is PgNumeric))
             {
                 return false;
             }
-            return Equals((PgDecimal)obj);
+            return Equals((PgNumeric)obj);
         }
 
-        public static PgBoolean Equals(PgDecimal x, PgDecimal y) => (x == y);
+        public static PgBoolean Equals(PgNumeric x, PgNumeric y) => (x == y);
 
-        public static PgDecimal Floor(PgDecimal n)
+        public static PgNumeric Floor(PgNumeric n)
         {
             return Math.Floor(n._value);
         }
 
         public override int GetHashCode() => ((IsNull) ? 0 : _value.GetHashCode());
 
-        public static PgBoolean GreaterThan(PgDecimal x, PgDecimal y)        => (x > y);
-        public static PgBoolean GreaterThanOrEqual(PgDecimal x, PgDecimal y) => (x >= y);
-        public static PgBoolean LessThan(PgDecimal x, PgDecimal y)           => (x < y);
-        public static PgBoolean LessThanOrEqual(PgDecimal x, PgDecimal y)    => (x <= y);
-        public static PgDecimal Multiply(PgDecimal x, PgDecimal y)           => (x * y);
-        public static PgBoolean NotEquals(PgDecimal x, PgDecimal y)          => (x != y); 
+        public static PgBoolean GreaterThan(PgNumeric x, PgNumeric y)        => (x > y);
+        public static PgBoolean GreaterThanOrEqual(PgNumeric x, PgNumeric y) => (x >= y);
+        public static PgBoolean LessThan(PgNumeric x, PgNumeric y)           => (x < y);
+        public static PgBoolean LessThanOrEqual(PgNumeric x, PgNumeric y)    => (x <= y);
+        public static PgNumeric Multiply(PgNumeric x, PgNumeric y)           => (x * y);
+        public static PgBoolean NotEquals(PgNumeric x, PgNumeric y)          => (x != y); 
         
-        public static PgDecimal Parse(string s)
+        public static PgNumeric Parse(string s)
         {
             if (TypeInfoProvider.IsNullString(s))
             {
@@ -446,22 +446,22 @@ namespace PostgreSql.Data.PgTypes
             return Decimal.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
-        public static PgDecimal Power(PgDecimal n, double exp)
+        public static PgNumeric Power(PgNumeric n, double exp)
         {
             throw new NotImplementedException();
         }
 
-        public static PgDecimal Round(PgDecimal n, int position)
+        public static PgNumeric Round(PgNumeric n, int position)
         {
             return Math.Round(n._value, position);
         }
 
-        public static PgInt32 Sign(PgDecimal n)
+        public static PgInt32 Sign(PgNumeric n)
         {
             throw new NotImplementedException();
         }
 
-        public static PgDecimal Subtract(PgDecimal x, PgDecimal y) => (x - y);
+        public static PgNumeric Subtract(PgNumeric x, PgNumeric y) => (x - y);
 
         public double ToDouble()
         {
@@ -491,7 +491,7 @@ namespace PostgreSql.Data.PgTypes
             return _value.ToString(TypeInfoProvider.InvariantCulture);
         }
 
-        public static PgDecimal Truncate(PgDecimal n, int position)
+        public static PgNumeric Truncate(PgNumeric n, int position)
         {
             throw new NotImplementedException();
         }

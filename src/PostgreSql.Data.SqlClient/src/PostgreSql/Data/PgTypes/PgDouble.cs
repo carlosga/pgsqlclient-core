@@ -166,7 +166,7 @@ namespace PostgreSql.Data.PgTypes
             return new PgDouble(x.Value);
         }
 
-        public static implicit operator PgDouble(PgDecimal x)
+        public static implicit operator PgDouble(PgNumeric x)
         {
             if (x.IsNull)
             {
@@ -306,7 +306,7 @@ namespace PostgreSql.Data.PgTypes
         public PgBit     ToPgBit()     => (PgBit)this;
         public PgBoolean ToPgBoolean() => (PgBoolean)this;
         public PgByte    ToPgByte()    => (PgByte)this;
-        public PgDecimal ToPgDecimal() => (PgDecimal)this;
+        public PgNumeric ToPgNumeric() => (PgNumeric)this;
         public PgInt16   ToPgInt16()   => (PgInt16)this;
         public PgInt32   ToPgInt32()   => (PgInt32)this;
         public PgInt64   ToPgInt64()   => (PgInt64)this;

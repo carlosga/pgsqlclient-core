@@ -223,7 +223,7 @@ namespace PostgreSql.Data.PgTypes
             return x.Value ? One : Zero;
         }
 
-        public static explicit operator PgByte(PgDecimal x)
+        public static explicit operator PgByte(PgNumeric x)
         {
             if (x.IsNull)
             {
@@ -417,7 +417,7 @@ namespace PostgreSql.Data.PgTypes
 
         public PgBoolean ToPgBoolean() => (PgBoolean)this;
         public PgBit     ToPgBit()     => (PgBit)this;
-        public PgDecimal ToPgDecimal() => (PgDecimal)this;
+        public PgNumeric ToPgNumeric() => (PgNumeric)this;
         public PgDouble  ToPgDouble()  => (PgDouble)this;
         public PgInt16   ToPgInt16()   => (PgInt16)this;
         public PgInt32   ToPgInt32()   => (PgInt32)this;

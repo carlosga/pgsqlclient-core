@@ -595,7 +595,7 @@ namespace System.Data.Common
 //         {
 //             return ADP.Argument(Res.GetString(Res.ADP_ParameterValueOutOfRange, value.ToString((IFormatProvider)null)));
 //         }
-//         internal static ArgumentException ParameterValueOutOfRange(PgDecimal value)
+//         internal static ArgumentException ParameterValueOutOfRange(PgNumeric value)
 //         {
 //             return ADP.Argument(Res.GetString(Res.ADP_ParameterValueOutOfRange, value.ToString()));
 //         }

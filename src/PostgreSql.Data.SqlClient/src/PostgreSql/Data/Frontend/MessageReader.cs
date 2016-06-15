@@ -131,7 +131,7 @@ namespace PostgreSql.Data.Frontend
 
             ndigits = ReadInt16();
 
-            if (ndigits < 0 || ndigits > (PgDecimal.MaxPrecision + PgDecimal.MaxResultScale))
+            if (ndigits < 0 || ndigits > (PgNumeric.MaxPrecision + PgNumeric.MaxResultScale))
             {
                 throw new FormatException("invalid length in external \"numeric\" value");
             }
@@ -139,7 +139,7 @@ namespace PostgreSql.Data.Frontend
             weight = ReadInt16() + 7;
             sign   = ReadInt16();
 
-            if (!(sign == PgDecimal.PositiveMask || sign == PgDecimal.NegativeMask || sign == PgDecimal.NaNMask))
+            if (!(sign == PgNumeric.PositiveMask || sign == PgNumeric.NegativeMask || sign == PgNumeric.NaNMask))
             {
                 throw new FormatException("invalid sign in external \"numeric\" value");
             }
@@ -151,15 +151,15 @@ namespace PostgreSql.Data.Frontend
             {
                 short digit = ReadInt16();
 
-                if (digit < 0 || digit >= PgDecimal.NBase)
+                if (digit < 0 || digit >= PgNumeric.NBase)
                 {
                     throw new FormatException("invalid digit in external \"numeric\" value");
                 }
 
-                res += digit * PgDecimal.Weights[weight - i];
+                res += digit * PgNumeric.Weights[weight - i];
             }
 
-            return ((sign == PgDecimal.NegativeMask) ? (res * -1) : res);
+            return ((sign == PgNumeric.NegativeMask) ? (res * -1) : res);
         }
 
         internal double     ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
@@ -242,7 +242,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadByte();
 
             case PgDbType.Numeric:
-                if (length < 0 || length > PgDecimal.MaxPrecision + PgDecimal.MaxResultScale)
+                if (length < 0 || length > PgNumeric.MaxPrecision + PgNumeric.MaxResultScale)
                 {
                     throw new FormatException("invalid length in external \"numeric\" value");
                 }

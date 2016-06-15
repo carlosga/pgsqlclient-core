@@ -170,7 +170,7 @@ namespace PostgreSql.Data.Frontend
             int[] bits       = Decimal.GetBits(absValue);
 
             Numeric numeric;
-            numeric.sign    = (short)((isNegative) ? PgDecimal.NegativeMask : PgDecimal.PositiveMask);
+            numeric.sign    = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
             numeric.dscale  = (short)((bits[3] & ScaleMask) >> ScaleShift);
             numeric.weight  = 0;
             numeric.ndigits = 0;
@@ -179,7 +179,7 @@ namespace PostgreSql.Data.Frontend
             if (absValue > 0)
             {
                 // postgres: numeric::estimate_ln_dweight 
-                numeric.weight  = (short)Math.Truncate(Math.Log((double)absValue, PgDecimal.NBase));
+                numeric.weight  = (short)Math.Truncate(Math.Log((double)absValue, PgNumeric.NBase));
                 // postgres: numeric::div_var
                 numeric.ndigits = (short)(numeric.weight + 1 + (numeric.dscale + DEC_DIGITS - 1) / DEC_DIGITS);
                 numeric.digits  = new short[numeric.ndigits];
@@ -188,10 +188,10 @@ namespace PostgreSql.Data.Frontend
 
                 for (int i = windex, d = 0; i >= 0; --i, ++d)
                 {
-                    var digit = (short) (absValue / PgDecimal.Weights[i]);
+                    var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
                     {
-                        absValue -= (digit * PgDecimal.Weights[i]);
+                        absValue -= (digit * PgNumeric.Weights[i]);
                     }
                     numeric.digits[d] = digit;
                     if (absValue == 0)

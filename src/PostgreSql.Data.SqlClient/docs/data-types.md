@@ -10,7 +10,7 @@
 | Bytea         | PgBinary      | Binary           | byte[]              |
 | Char          |               | String           | String              |
 | Circle        | PgCircle      |                  |                     |
-| Composite     |               | Object           | PgDbType.Composite if PgCompositeTypeAttribute is present, otherwise unsupported |
+| Composite     |               | Object           | PgDbType.Composite  |
 | Date          | PgDate        | Date             |                     |
 | Double        | PgDouble      | Double           | Double              |
 | Integer       | PgInteger     | Int32            | Int32               |

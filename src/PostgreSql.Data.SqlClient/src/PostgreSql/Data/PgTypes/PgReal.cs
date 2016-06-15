@@ -219,7 +219,7 @@ namespace PostgreSql.Data.PgTypes
             return new PgReal(x.Value);
         }
 
-        public static implicit operator PgReal(PgDecimal x)
+        public static implicit operator PgReal(PgNumeric x)
         {
             if (x.IsNull)
             {
@@ -359,15 +359,15 @@ namespace PostgreSql.Data.PgTypes
             return Single.Parse(s, TypeInfoProvider.InvariantCulture);
         }
 
-        public PgBit ToPgBit()         => (PgBit)this;
+        public PgBit     ToPgBit()     => (PgBit)this;
         public PgBoolean ToPgBoolean() => (PgBoolean)this;
-        public PgByte ToPgByte()       => (PgByte)this;
-        public PgDecimal ToPgDecimal() => (PgDecimal)this;
-        public PgDouble ToPgDouble()   => (PgDouble)this;
-        public PgInt16 ToPgInt16()     => (PgInt16)this;
-        public PgInt32 ToPgInt32()     => (PgInt32)this;
-        public PgInt64 ToPgInt64()     => (PgInt64)this;
-        public PgMoney ToPgMoney()     => (PgMoney)this;
+        public PgByte    ToPgByte()    => (PgByte)this;
+        public PgNumeric ToPgNumeric() => (PgNumeric)this;
+        public PgDouble  ToPgDouble()  => (PgDouble)this;
+        public PgInt16   ToPgInt16()   => (PgInt16)this;
+        public PgInt32   ToPgInt32()   => (PgInt32)this;
+        public PgInt64   ToPgInt64()   => (PgInt64)this;
+        public PgMoney   ToPgMoney()   => (PgMoney)this;
 
         public override string ToString()
         {
