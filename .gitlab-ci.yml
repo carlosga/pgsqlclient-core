@@ -4,12 +4,6 @@ stages:
   - build
   - test
 
-variables:
-  POSTGRES_USER: "pgsqlclient"
-  POSTGRES_PASSWORD: "pgsqlclient"
-  POSTGRES_NORTHWIND_DB: "northwind"
-  POSTGRES_PUBS_DB: "pubs"
-
 build:
   stage: build
   before_script:
