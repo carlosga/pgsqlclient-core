@@ -9,7 +9,7 @@ namespace PostgreSql.Data.Bindings
     public interface ITypeBinding<T>
         : ITypeBinding
     {
-        T Read(ITypeReader r);
+        new T Read(ITypeReader r);
         void Write(ITypeWriter w, T value);
     }
 }

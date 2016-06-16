@@ -5,6 +5,7 @@ using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 
 namespace PostgreSql.Data.Frontend
@@ -535,9 +536,6 @@ namespace PostgreSql.Data.Frontend
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
             }
 
-            // Prepare parameters
-            PrepareParameters();
-
             // Write Statement name and it's query
             _parseMessage.WriteNullString(_parseName);
             _parseMessage.WriteNullString(_parsedStatementText);
@@ -685,12 +683,16 @@ namespace PostgreSql.Data.Frontend
         {
             switch (message.MessageType)
             {
-            case BackendMessages.DataRow:
-                ProcessDataRow(message);
-                break;
+            // case BackendMessages.ParameterDescription:
+            //     ProcessParameterDescription(message);
+            //     break;
 
             case BackendMessages.RowDescription:
                 ProcessRowDescription(message);
+                break;
+
+            case BackendMessages.DataRow:
+                ProcessDataRow(message);
                 break;
 
             case BackendMessages.FunctionCallResponse:
@@ -798,6 +800,36 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        // private void ProcessParameterDescription(MessageReader message)
+        // {
+        //     int oid   = 0;
+        //     int count = message.ReadInt16();
+
+        //     if (count != _parameterIndices.Count)
+        //     {
+        //         throw ADP.PrepareParametersCount(count, _parameterIndices.Count);
+        //     }
+
+        //     PgParameter parameter = null;
+
+        //     for (int i = 0; i < count; ++i)
+        //     {
+        //         oid                = message.ReadInt32();
+        //         parameter          = _parameters[_parameterIndices[i]]; 
+        //         parameter.TypeInfo = TypeInfoProvider.GetTypeInfo(oid);
+
+        //         if (parameter.TypeInfo == null)
+        //         {
+        //             parameter.TypeInfo = _connection.SessionData.TypeInfoProvider.GetCompositeTypeInfo(oid);
+
+        //             if (parameter.TypeInfo == null)
+        //             {
+        //                 throw ADP.PrepareParametersUnknownDataType(oid);
+        //             }
+        //         }
+        //     }
+        // }
+
         private void ProcessDataRow(MessageReader message)
         {
             while (message.Position < message.Length)
@@ -831,33 +863,5 @@ namespace PostgreSql.Data.Frontend
                 _state = newState;
             }
         }
-
-        private void PrepareParameters()
-        {
-            // for (int i = 0; i < _parameterIndices.Count; ++i)
-            // {
-            //     var parameter = _parameters[_parameterIndices[i]];
-            //     if (parameter.PgDbType == PgDbType.Composite)
-            //     {
-            //         // parameter.TypeInfo = _connection.TypeInfoProvider.GetCompositeTypeInfo(_parameter.Value);
-            //     }
-            // }
-        }
-
-        // private void ProcessParameterDescription(PgInputPacket packet)
-        // {
-        //     int oid   = 0;
-        //     int count = packet.ReadInt16();
-
-        //     _parameters.Clear();
-        //     _parameters.Capacity = count;
-
-        //     for (int i = 0; i < count; ++i)
-        //     {
-        //         oid = packet.ReadInt32();
-
-        //         _parameters.Add(new PgParameter(_database.ServerConfiguration.DataTypes.SingleOrDefault(x => x.Oid == oid)));
-        //     }
-        // }
     }
 }

@@ -147,11 +147,11 @@ namespace System.Data.Common
 //             return e;
 //         }
 
-//         internal static PlatformNotSupportedException DbTypeNotSupported(string dbType)
-//         {
-//             PlatformNotSupportedException e = new PlatformNotSupportedException(Res.GetString(Res.SQL_DbTypeNotSupportedOnThisPlatform, dbType));
-//             return e;
-//         }
+        internal static PlatformNotSupportedException DbTypeNotSupported(string dbType)
+        {
+            return new PlatformNotSupportedException($"Type {dbType} is not supported.");
+        }
+
 //         internal static InvalidCastException InvalidCast()
 //         {
 //             InvalidCastException e = new InvalidCastException();
@@ -426,6 +426,15 @@ namespace System.Data.Common
         internal static Exception InvalidFetchSize(int value, [CallerMemberName] string property = "")
         {
             return Argument($"Invalid FetchSize value {value}; the value must be >= 0.");
+        }
+        
+        internal static Exception PrepareParametersCount(int expected, int actual)
+        {
+            return InvalidOperation($"The command contains an invalid number of parameters {actual} expected {expected} parameters.");
+        }
+        internal static Exception PrepareParametersUnknownDataType(int oid)
+        {
+            return InvalidOperation($"Unknown parameter data type oid {oid}.");
         }
 //         internal static Exception UninitializedParameterSize(int index, Type dataType)
 //         {

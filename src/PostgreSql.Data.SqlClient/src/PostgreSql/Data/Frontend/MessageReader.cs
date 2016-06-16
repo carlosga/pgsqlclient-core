@@ -430,7 +430,11 @@ namespace PostgreSql.Data.Frontend
 
         public object ReadComposite()
         {
-            return null;
+            int oid   = ReadInt32();
+            var size  = ReadInt32();
+            var tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid); 
+
+            return ReadComposite(tinfo, size);
         }
 
         public object ReadCompositeValue()

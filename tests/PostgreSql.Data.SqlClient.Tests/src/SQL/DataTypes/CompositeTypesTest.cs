@@ -155,6 +155,97 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
                 }
             }
         }
+
+        [Fact]
+        public static void ReadNestedCompositeWithBindingTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";
+            string createSql = 
+@"CREATE TYPE discount AS (
+    type integer,
+    percentage numeric(5,2)
+);
+CREATE TYPE inventory_item_with_discount AS (
+    name        text,
+    supplier_id integer,
+    price       numeric,
+    discount    discount
+);
+CREATE TABLE on_hand (
+    item  inventory_item_with_discount,
+    count integer
+);
+INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var provider = TypeBindingContext.Register(connStr);
+
+            provider.RegisterBinding<DiscountBinding>();
+            provider.RegisterBinding<InventoryItemWithDiscountBinding>();
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var item   = reader.GetFieldValue<InventoryItemWithDiscount>(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(item != null, "FAILED: Received a different value than expected.");
+                                Assert.True(item.Discount != null, "FAILED: Received a different value than expected.");
+
+                                // Inventory item
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice", item.Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   42, item.SupplierId, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, item.Price, "FAILED: Received a different value than expected.");
+
+                                // Discount
+                                var discount = item.Discount;
+
+                                DataTestClass.AssertEqualsWithDescription(1, discount.Type, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(10.50M, discount.Percentage, "FAILED: Received a different value than expected.");
+
+                                // Other properties
+                                DataTestClass.AssertEqualsWithDescription(1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
     }
 
     public sealed class InventoryItem
@@ -176,19 +267,13 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
             get;
             set;
         }
-
-        public InventoryItem()
-        {
-        }
     }
 
-   public sealed class InventoryItemBinding
+    public sealed class InventoryItemBinding
         : ITypeBinding<InventoryItem>
     {
-        public string Name
-        {
-            get { return "inventory_item"; }
-        }
+        public string Name => "inventory_item";
+        public Type   Type => typeof(InventoryItem);
 
         public InventoryItem Read(ITypeReader r)
         {
@@ -218,6 +303,122 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
         void ITypeBinding.Write(ITypeWriter w, object value)
         {
             Write(w, (InventoryItem)value);
+        }
+    }
+
+    public sealed class Discount
+    {
+        public int Type
+        {
+            get;
+            set;
+        }
+
+        public decimal Percentage
+        {
+            get;
+            set;
+        }
+    }
+
+    public sealed class InventoryItemWithDiscount
+    {
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        public int SupplierId
+        {
+            get;
+            set;
+        }
+
+        public decimal Price
+        {
+            get;
+            set;
+        }
+
+        public Discount Discount
+        {
+            get;
+            set;
+        }
+    }
+
+    public sealed class DiscountBinding
+        : ITypeBinding<Discount>
+    {
+        public string Name => "discount";
+        public Type   Type => typeof(Discount);
+
+        public Discount Read(ITypeReader r)
+        {
+            if (r == null)
+            {
+                throw new ArgumentNullException("r");
+            }
+
+            return new Discount
+            {
+                Type       = (int)r.ReadCompositeValue()
+              , Percentage = (decimal)r.ReadCompositeValue()
+            };
+        }
+
+        public void Write(ITypeWriter w, Discount value)
+        {
+            throw new NotSupportedException();
+        }
+
+        object ITypeBinding.Read(ITypeReader r)
+        {
+            return Read(r);
+        }
+
+        void ITypeBinding.Write(ITypeWriter w, object value)
+        {
+            Write(w, (Discount)value);
+        }
+    }
+
+    public sealed class InventoryItemWithDiscountBinding
+        : ITypeBinding<InventoryItemWithDiscount>
+    {
+        public string Name => "inventory_item_with_discount";
+        public Type   Type => typeof(InventoryItemWithDiscount);
+
+        public InventoryItemWithDiscount Read(ITypeReader r)
+        {
+            if (r == null)
+            {
+                throw new ArgumentNullException("r");
+            }
+
+            return new InventoryItemWithDiscount
+            {
+                Name       = (string)r.ReadCompositeValue()
+              , SupplierId = (int)r.ReadCompositeValue()
+              , Price      = (decimal)r.ReadCompositeValue()
+              , Discount   = (Discount)r.ReadComposite()
+            };
+        }
+
+        public void Write(ITypeWriter w, InventoryItemWithDiscount value)
+        {
+            throw new NotSupportedException();
+        }
+
+        object ITypeBinding.Read(ITypeReader r)
+        {
+            return Read(r);
+        }
+
+        void ITypeBinding.Write(ITypeWriter w, object value)
+        {
+            Write(w, (InventoryItemWithDiscount)value);
         }
     }
 }

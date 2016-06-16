@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 
@@ -370,7 +371,7 @@ namespace PostgreSql.Data.Frontend
                 // case DbType.UInt32:
                 // case DbType.UInt64:
                 default:
-                    throw new NotSupportedException("Invalid data type specified.");
+                    throw ADP.DbTypeNotSupported(dbType.ToString());
             }
         }
 

@@ -13,6 +13,11 @@ namespace PostgreSql.Data.Bindings
             get;
         }
 
+        Type Type
+        {
+            get;
+        }
+
         object Read(ITypeReader r);
         void Write(ITypeWriter w, object value);
     }
