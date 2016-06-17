@@ -20,6 +20,7 @@ namespace PostgreSql.Data.Frontend
         private readonly bool            _isBinary;
         private readonly bool            _isRefCursor;
         private readonly bool            _isNumeric;
+        private readonly bool            _isComposite;
         private readonly TypeAttribute[] _attributes;
 
         internal string          Schema       => _schema; 
@@ -34,6 +35,7 @@ namespace PostgreSql.Data.Frontend
         internal bool            IsBinary     => _isBinary;
         internal bool            IsRefCursor  => _isRefCursor;
         internal bool            IsNumeric    => _isNumeric;
+        internal bool            IsComposite  => _isComposite; 
         internal TypeAttribute[] Attributes   => _attributes;
 
         internal TypeInfo(int        oid
@@ -93,19 +95,37 @@ namespace PostgreSql.Data.Frontend
                           || _pgDbType == PgDbType.SmallInt);
         }
 
-        internal TypeInfo(string          schema
-                        , int             oid
+        internal TypeInfo(int             oid
+                        , string          schema
                         , string          name
-                        , TypeAttribute[] attributes)
+                        , TypeAttribute[] attributes
+                        , Type            systemType)
         {
-            _schema       = schema;
-            _oid          = oid;
-            _name         = name;
-            _pgDbType     = PgDbType.Composite;
-            _systemType   = typeof(object);
-            _pgType       = typeof(object);
-            _size         = -1;
-            _attributes   = attributes;
+            _schema      = schema;
+            _oid         = oid;
+            _name        = name;
+            _pgDbType    = PgDbType.Composite;
+            _size        = 0;
+            _attributes  = attributes;
+            _systemType  = systemType;
+            _pgType      = systemType;
+            _isComposite = true;
+        }
+
+        internal TypeInfo(int      oid
+                        , string   schema
+                        , string   name
+                        , TypeInfo elementType)
+        {
+            _schema      = schema;
+            _oid         = oid;
+            _name        = name;
+            _pgDbType    = PgDbType.Array;
+            _elementType = elementType;
+            _systemType  = typeof(object);
+            _pgType      = typeof(object);
+            _size        = 0;
+            _isComposite = true;
         }
 
         public override string ToString() => _name;

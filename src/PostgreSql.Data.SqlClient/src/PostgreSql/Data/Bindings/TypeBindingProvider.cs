@@ -23,15 +23,23 @@ namespace PostgreSql.Data.Bindings
             _bindings         = new ConcurrentDictionary<string, ITypeBinding>();
         }
 
-        public bool IsRegistered(string typeName)
+        public bool IsRegistered(string schema, string typeName)
         {
-            return _bindings.ContainsKey(typeName);
+            if (_bindings.Count == 0)
+            {
+                return false;
+            }
+            return _bindings.ContainsKey($"{schema}.{typeName}");
         }
 
-        public ITypeBinding GetBinding(string typeName)
+        public ITypeBinding GetBinding(string schema, string typeName)
         {
+            if (_bindings.Count == 0)
+            {
+                return null;
+            }
             ITypeBinding binding;
-            if (_bindings.TryGetValue(typeName, out binding))
+            if (_bindings.TryGetValue($"{schema}.{typeName}", out binding))
             {
                 return binding;
             }
@@ -43,10 +51,11 @@ namespace PostgreSql.Data.Bindings
         {
             ITypeBinding binding = new T();
             ITypeBinding current;
+            string       key     = $"{binding.Schema}.{binding.Name}";
 
-            if (!_bindings.TryGetValue(binding.Name, out current))
+            if (!_bindings.TryGetValue(key, out current))
             {
-                if (!_bindings.TryAdd(binding.Name, binding))
+                if (!_bindings.TryAdd(key, binding))
                 {
                     throw ADP.InvalidOperation("An error has occurred while try to register the binding.");
                 }

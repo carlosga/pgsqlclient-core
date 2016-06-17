@@ -1,6 +1,7 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Bindings;
 using PostgreSql.Data.Frontend;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,7 +38,7 @@ namespace PostgreSql.Data.Schema
 
         internal ReadOnlyDictionary<int, TypeInfo> GetTypeInfo()
         {
-            var types = new Dictionary<int, TypeInfo>();
+            var types = new Dictionary<int, TypeInfo>(10);
 
             using (var command = _connection.CreateStatement(SchemaQuery))
             {
@@ -64,7 +65,18 @@ namespace PostgreSql.Data.Schema
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
                     }
 
-                    types.Add(typoid, new TypeInfo(schema, typoid, typname, attributes));
+                    var systemType = typeof(object);
+                    var provider   = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
+                    if (provider != null)
+                    {
+                        var binding = provider.GetBinding(schema, typname);
+                        if (binding != null)
+                        {
+                            systemType = binding.Type;
+                        }
+                    }
+                    types.Add(typoid, new TypeInfo(typoid, schema, typname, attributes, systemType));
+                    types.Add(arroid, new TypeInfo(arroid, schema, typname, types[typoid]));
                 }
             }
 

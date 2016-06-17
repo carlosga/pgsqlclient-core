@@ -12,6 +12,87 @@ namespace PostgreSql.Data.SqlClient.Tests
     public class CompositeTypesTest
     {
         [Fact]
+        public static void ReadCompositeArrayTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
+            string createSql = 
+@"CREATE TYPE inventory_item AS (
+    name        text,
+    supplier_id integer,
+    price       numeric
+);
+CREATE TABLE on_hand (
+    item  inventory_item[],
+    count integer
+);
+INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32, 2.05)""}', 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var provider = TypeBindingContext.Register(connStr);
+
+            provider.RegisterBinding<InventoryItemBinding>();
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var item   = reader.GetFieldValue<InventoryItem[]>(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(item != null, "FAILED: Received a different value than expected.");
+                                Assert.True(item.Length == 2, "FAILED: Received a different value than expected.");
+
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice 1", item[0].Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   42, item[0].SupplierId, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, item[0].Price, "FAILED: Received a different value than expected.");
+
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice 2", item[1].Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   32, item[1].SupplierId, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(2.05M, item[1].Price, "FAILED: Received a different value than expected.");
+
+                                DataTestClass.AssertEqualsWithDescription( 1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public static void ReadCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -428,8 +509,9 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
     public sealed class InventoryItemBinding
         : ITypeBinding<InventoryItem>
     {
-        public string Name => "inventory_item";
-        public Type   Type => typeof(InventoryItem);
+        public string Schema => "public";
+        public string Name   => "inventory_item";
+        public Type   Type   => typeof(InventoryItem);
 
         public InventoryItem Read(ITypeReader r)
         {
@@ -507,8 +589,9 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
     public sealed class DiscountBinding
         : ITypeBinding<Discount>
     {
-        public string Name => "discount";
-        public Type   Type => typeof(Discount);
+        public string Schema => "public";
+        public string Name   => "discount";
+        public Type   Type   => typeof(Discount);
 
         public Discount Read(ITypeReader r)
         {
@@ -543,8 +626,9 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
     public sealed class InventoryItemWithDiscountBinding
         : ITypeBinding<InventoryItemWithDiscount>
     {
-        public string Name => "inventory_item_with_discount";
-        public Type   Type => typeof(InventoryItemWithDiscount);
+        public string Schema => "public";
+        public string Name   => "inventory_item_with_discount";
+        public Type   Type   => typeof(InventoryItemWithDiscount);
 
         public InventoryItemWithDiscount Read(ITypeReader r)
         {

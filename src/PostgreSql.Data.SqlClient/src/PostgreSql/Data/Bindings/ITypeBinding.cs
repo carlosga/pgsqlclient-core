@@ -8,7 +8,12 @@ namespace PostgreSql.Data.Bindings
 {
     public interface ITypeBinding
     {
-        string Name	
+        string Schema
+        {
+            get;
+        }
+
+        string Name
         {
             get;
         }

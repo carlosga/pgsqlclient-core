@@ -20,7 +20,7 @@ namespace PostgreSql.Data.Frontend
         internal static readonly IFormatProvider InvariantCulture = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
         internal static bool     IsNullString(string s) => (s == null || s == NullString);
 
-        private static readonly ReadOnlyDictionary<int, TypeInfo> s_types;
+        internal static readonly ReadOnlyDictionary<int, TypeInfo> BaseTypes;
 
         static TypeInfoProvider()
         {
@@ -246,7 +246,7 @@ namespace PostgreSql.Data.Frontend
             //
             types[194] = new TypeInfo(194, "pg_node_tree", PgDbType.Text, typeof(string), typeof(string));
 
-            s_types = new ReadOnlyDictionary<int, TypeInfo>(types);
+            BaseTypes = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
         internal static DbType GetDbType(PgDbType providerType)
@@ -375,31 +375,22 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal static TypeInfo GetTypeInfo(int oid)
-        {
-            if (s_types.ContainsKey(oid))
-            {
-                return s_types[oid];
-            }
-            return null;
-        }
-
         internal static TypeInfo GetTypeInfo(PgDbType pgDbType)
         {
-            return s_types.Values.First(x => x.PgDbType == pgDbType);
+            return BaseTypes.Values.First(x => x.PgDbType == pgDbType);
         }
 
         internal static TypeInfo GetTypeInfo(object value)
         {
             if (value == null || value == DBNull.Value)
             {
-                return s_types[Oid.Varchar];   // Varchar by default
+                return BaseTypes[Oid.Varchar];   // Varchar by default
             }
             if (value is INullable)
             {
-                return s_types.Values.First(x => x.PgType == value.GetType());
+                return BaseTypes.Values.First(x => x.PgType == value.GetType());
             }
-            return s_types.Values.FirstOrDefault(x => x.SystemType == value.GetType());
+            return BaseTypes.Values.FirstOrDefault(x => x.SystemType == value.GetType());
         }
 
         internal static TypeInfo GetArrayTypeInfo(object value)
@@ -410,9 +401,9 @@ namespace PostgreSql.Data.Frontend
             }
             if (value is INullable)
             {
-                return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
+                return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
             }
-            return s_types.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+            return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
         }
 
         internal static TypeInfo GetVectorTypeInfo(object value)
@@ -423,9 +414,9 @@ namespace PostgreSql.Data.Frontend
             }
             if (value is INullable)
             {
-                return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
+                return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
             }
-            return s_types.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+            return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
         private readonly ReadOnlyDictionary<int, TypeInfo> _types;
@@ -451,13 +442,17 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal TypeInfo GetCompositeTypeInfo(int oid)
+        internal TypeInfo GetTypeInfo(int oid)
         {
+            if (BaseTypes.ContainsKey(oid))
+            {
+                return BaseTypes[oid];
+            }
             if (_types.ContainsKey(oid))
             {
                 return _types[oid];
             }
-            throw new NotSupportedException($"Data Type with oid {oid} is not supported");
+            throw new NotSupportedException($"Data Type with OID='{oid}' is not supported");
         }
 
         private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(Connection connection)

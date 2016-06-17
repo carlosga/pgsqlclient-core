@@ -17,6 +17,10 @@ namespace PostgreSql.Data.Bindings
             {
                 throw new ArgumentNullException("connectionString");
             }
+            if (s_providers.Count == 0)
+            {
+                return null;
+            }
 
             DbConnectionOptions options = new DbConnectionOptions(connectionString);
             TypeBindingProvider provider;
@@ -49,6 +53,11 @@ namespace PostgreSql.Data.Bindings
 
         public static void UnRegister(string connectionString)
         {
+            if (s_providers.Count == 0)
+            {
+                return;
+            }
+            
             DbConnectionOptions options = new DbConnectionOptions(connectionString);
             TypeBindingProvider provider;
             s_providers.TryRemove(options.InternalUrl, out provider);

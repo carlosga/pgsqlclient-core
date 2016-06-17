@@ -376,7 +376,11 @@ namespace PostgreSql.Data.Frontend
 
             // Read array element type
             int oid         = ReadInt32();
-            var elementType = TypeInfoProvider.GetTypeInfo(oid);
+            var elementType = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
+            if (elementType == null)
+            {
+                throw ADP.InvalidOperation($"Data type with OID='{oid}' has no registered binding or is not supported.");
+            }
 
             // Read array lengths and lower bounds
             for (int i = 0; i < dimensions; ++i)
@@ -397,13 +401,6 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Read Array values
-            ReadArrayValues(elementType, ref data);
-
-            return data;
-        }
-
-        private void ReadArrayValues(TypeInfo elementType, ref Array data)
-        {
 #warning TODO: Add proper support for multi-dimensional arrays 
             int lowerBound = data.GetLowerBound(0);
             int upperBound = data.GetUpperBound(0);
@@ -414,6 +411,8 @@ namespace PostgreSql.Data.Frontend
                 size = ReadInt32();
                 data.SetValue(ReadValue(elementType, elementType.Size), i);
             }
+
+            return data;
         }
 
         private Array ReadVector(TypeInfo type, int length)
@@ -429,14 +428,14 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        public T ReadValue<T>()
+        T ITypeReader.ReadValue<T>()
         {
-            object value = ReadValue();
+            object value = (this as ITypeReader).ReadValue();
 
             return (value == DBNull.Value) ? default(T) : (T)value;
         }
 
-        public object ReadValue()
+        object ITypeReader.ReadValue()
         {
             var oid  = ReadInt32();
             var size = ReadInt32();
@@ -446,19 +445,11 @@ namespace PostgreSql.Data.Frontend
                 return DBNull.Value;
             }
 
-            var tinfo = TypeInfoProvider.GetTypeInfo(oid);
-
+            var tinfo = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
             if (tinfo == null)
             {
-                tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid);
-
-                if (tinfo == null)
-                {
-                    throw ADP.InvalidOperation($"Data type with OID='{oid}' is not supported.");
-                }
-
-                return ReadComposite(tinfo, size); 
-            } 
+                throw ADP.InvalidOperation($"Data type with OID='{oid}' has no registered binding or is not supported.");
+            }
 
             return ReadValue(tinfo, size);
         }
@@ -473,7 +464,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadComposite(typeInfo, length, count);
             }
 
-            var binding = provider.GetBinding(typeInfo.Name);
+            var binding = provider.GetBinding(typeInfo.Schema, typeInfo.Name);
 
             if (binding == null)
             {
@@ -491,7 +482,7 @@ namespace PostgreSql.Data.Frontend
             {
                 int oid   = ReadInt32();
                 var size  = ReadInt32();
-                var tinfo = TypeInfoProvider.GetTypeInfo(oid); 
+                var tinfo = _sessionData.TypeInfoProvider.GetTypeInfo(oid); 
 
                 values[i] = ReadValue(tinfo, size);
             }
