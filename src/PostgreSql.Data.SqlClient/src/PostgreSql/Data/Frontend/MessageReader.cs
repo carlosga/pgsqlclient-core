@@ -5,6 +5,7 @@ using PostgreSql.Data.Bindings;
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Data.Common;
 using System.Diagnostics;
 
 namespace PostgreSql.Data.Frontend
@@ -428,20 +429,36 @@ namespace PostgreSql.Data.Frontend
             return data;
         }
 
-        public object ReadComposite()
+        public T ReadValue<T>()
         {
-            int oid   = ReadInt32();
-            var size  = ReadInt32();
-            var tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid); 
+            object value = ReadValue();
 
-            return ReadComposite(tinfo, size);
+            return (value == DBNull.Value) ? default(T) : (T)value;
         }
 
-        public object ReadCompositeValue()
+        public object ReadValue()
         {
-            int oid   = ReadInt32();
-            var size  = ReadInt32();
-            var tinfo = TypeInfoProvider.GetTypeInfo(oid); 
+            var oid  = ReadInt32();
+            var size = ReadInt32();
+
+            if (size == -1)
+            {
+                return DBNull.Value;
+            }
+
+            var tinfo = TypeInfoProvider.GetTypeInfo(oid);
+
+            if (tinfo == null)
+            {
+                tinfo = _sessionData.TypeInfoProvider.GetCompositeTypeInfo(oid);
+
+                if (tinfo == null)
+                {
+                    throw ADP.InvalidOperation($"Data type with OID='{oid}' is not supported.");
+                }
+
+                return ReadComposite(tinfo, size); 
+            } 
 
             return ReadValue(tinfo, size);
         }
@@ -463,7 +480,6 @@ namespace PostgreSql.Data.Frontend
                 return ReadComposite(typeInfo, length, count);
             }
 
-#warning TODO: Ensure the value is fully readed
             return binding.Read(this);
         }
 

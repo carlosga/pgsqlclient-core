@@ -156,6 +156,79 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
             }
         }
 
+        public static void ReadCompositeWithNullValuesTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
+            string createSql = 
+@"CREATE TYPE inventory_item AS (
+    name        text,
+    supplier_id integer,
+    price       numeric
+);
+CREATE TABLE on_hand (
+    item  inventory_item,
+    count integer
+);
+INSERT INTO on_hand VALUES (ROW('fuzzy dice', NULL, 1.99), 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var provider = TypeBindingContext.Register(connStr);
+
+            provider.RegisterBinding<InventoryItemBinding>();
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var item   = reader.GetFieldValue<InventoryItem>(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(item != null, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice", item.Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   true, !item.SupplierId.HasValue, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, item.Price, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription( 1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
         [Fact]
         public static void ReadNestedCompositeWithBindingTest()
         {
@@ -246,6 +319,89 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
                 }
             }
         }
+
+        [Fact]
+        public static void ReadNullNestedCompositeTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";
+            string createSql = 
+@"CREATE TYPE discount AS (
+    type integer,
+    percentage numeric(5,2)
+);
+CREATE TYPE inventory_item_with_discount AS (
+    name        text,
+    supplier_id integer,
+    price       numeric,
+    discount    discount
+);
+CREATE TABLE on_hand (
+    item  inventory_item_with_discount,
+    count integer
+);
+INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var provider = TypeBindingContext.Register(connStr);
+
+            provider.RegisterBinding<DiscountBinding>();
+            provider.RegisterBinding<InventoryItemWithDiscountBinding>();
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var item   = reader.GetFieldValue<InventoryItemWithDiscount>(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(item != null, "FAILED: Received a different value than expected.");
+
+                                // Inventory item
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice", item.Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   42, item.SupplierId, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, item.Price, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(true, item.Discount == null, $"FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
     }
 
     public sealed class InventoryItem
@@ -256,7 +412,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
             set;
         }
 
-        public int SupplierId
+        public int? SupplierId
         {
             get;
             set;
@@ -284,9 +440,9 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
 
             return new InventoryItem
             {
-                Name       = (string)r.ReadCompositeValue()
-              , SupplierId = (int)r.ReadCompositeValue()
-              , Price      = (decimal)r.ReadCompositeValue()
+                Name       = r.ReadValue<string>()
+              , SupplierId = r.ReadValue<int?>()
+              , Price      = r.ReadValue<decimal>()
             };
         }
 
@@ -363,8 +519,8 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
 
             return new Discount
             {
-                Type       = (int)r.ReadCompositeValue()
-              , Percentage = (decimal)r.ReadCompositeValue()
+                Type       = r.ReadValue<int>()
+              , Percentage = r.ReadValue<decimal>()
             };
         }
 
@@ -399,10 +555,10 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
 
             return new InventoryItemWithDiscount
             {
-                Name       = (string)r.ReadCompositeValue()
-              , SupplierId = (int)r.ReadCompositeValue()
-              , Price      = (decimal)r.ReadCompositeValue()
-              , Discount   = (Discount)r.ReadComposite()
+                Name       = r.ReadValue<string>()
+              , SupplierId = r.ReadValue<int>()
+              , Price      = r.ReadValue<decimal>()
+              , Discount   = r.ReadValue<Discount>()
             };
         }
 

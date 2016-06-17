@@ -8,7 +8,7 @@ namespace PostgreSql.Data.Bindings
 {
     public interface ITypeReader
     {
-        object ReadComposite();
-        object ReadCompositeValue();
+        T ReadValue<T>();
+        object ReadValue();
     }
 }
