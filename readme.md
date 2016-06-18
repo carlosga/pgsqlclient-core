@@ -6,6 +6,7 @@
 
 * [Connection String](docs/connection-string.md)
 * [Data types](docs/data-types.md)
+   * [Composite types](docs/composite-types.md)
 
 # License
 
