@@ -361,21 +361,22 @@ namespace PostgreSql.Data.Frontend
         private Array ReadArray(TypeInfo typeInfo, int length)
         {
             // Read number of dimensions
-            int dimensions = ReadInt32();
+            var dimensions = ReadInt32();
 
-            // Create arrays for the lengths and lower bounds
-            int[] lengths     = new int[dimensions];
-            int[] lowerBounds = new int[dimensions];
-
-            // Read flags value
-            int flags = ReadInt32();
-            if (flags != 0)
+            if (dimensions > 3)
             {
-                throw new NotSupportedException("Invalid flags value");
+                throw ADP.NotSupported("Arrays with more than three dimensions are not supported.");
             }
 
+            // Create arrays for the lengths and lower bounds
+            var lengths     = new int[dimensions];
+            var lowerBounds = new int[dimensions];
+
+            // Read flags value
+            var flags = ReadInt32();
+
             // Read array element type
-            int oid         = ReadInt32();
+            var oid         = ReadInt32();
             var elementType = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
             if (elementType == null)
             {
@@ -401,15 +402,38 @@ namespace PostgreSql.Data.Frontend
             }
 
             // Read Array values
-#warning TODO: Add proper support for multi-dimensional arrays 
-            int lowerBound = data.GetLowerBound(0);
-            int upperBound = data.GetUpperBound(0);
-            int size       = 0;
-
-            for (int i = lowerBound; i <= upperBound; ++i)
+            if (dimensions == 1)
             {
-                size = ReadInt32();
-                data.SetValue(ReadValue(elementType, elementType.Size), i);
+                for (int i = data.GetLowerBound(0); i <= data.GetUpperBound(0); ++i)
+                {
+                    var value = ReadValue(elementType, ReadInt32());
+                    data.SetValue((ADP.IsNull(value)) ? null : value, i);
+                }
+            }
+            else if (dimensions == 2)
+            {
+                for (int i = data.GetLowerBound(0); i <= data.GetUpperBound(0); ++i)
+                {
+                    for (int j = data.GetLowerBound(1); j <= data.GetUpperBound(1); ++j)
+                    {
+                        var value = ReadValue(elementType, ReadInt32());
+                        data.SetValue((ADP.IsNull(value)) ? null : value, i, j);
+                    }
+                }
+            } 
+            else if (dimensions == 3)
+            {
+                for (int i = data.GetLowerBound(0); i <= data.GetUpperBound(0); ++i)
+                {
+                    for (int j = data.GetLowerBound(1); j <= data.GetUpperBound(1); ++j)
+                    {
+                        for (int k = data.GetLowerBound(2); k <= data.GetUpperBound(2); ++k)
+                        {
+                            var value = ReadValue(elementType, ReadInt32());
+                            data.SetValue((ADP.IsNull(value)) ? null : value, i, j, k);
+                        }
+                    }
+                }
             }
 
             return data;

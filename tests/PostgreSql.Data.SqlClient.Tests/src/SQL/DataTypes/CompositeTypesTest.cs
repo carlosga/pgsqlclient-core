@@ -93,6 +93,84 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32,
         }
 
         [Fact]
+        public static void ReadCompositeArrayWithNullElementsTest()
+        {
+            string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
+            string createSql = 
+@"CREATE TYPE inventory_item AS (
+    name        text,
+    supplier_id integer,
+    price       numeric
+);
+CREATE TABLE on_hand (
+    item  inventory_item[],
+    count integer
+);
+INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", NULL}', 1000);
+";
+
+            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var provider = TypeBindingContext.Register(connStr);
+
+            provider.RegisterBinding<InventoryItemBinding>();
+
+            try
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(createSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand("SELECT * FROM on_hand", connection))
+                    {
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int count = 0;
+
+                            while (reader.Read())
+                            {
+                                var item   = reader.GetFieldValue<InventoryItem[]>(0);
+                                var fcount = reader.GetInt32(1);
+
+                                Assert.True(item != null, "FAILED: Received a different value than expected.");
+                                Assert.True(item.Length == 2, "FAILED: Received a different value than expected.");
+                                Assert.True(item[1] == null, "FAILED: Received a different value than expected.");
+
+                                DataTestClass.AssertEqualsWithDescription("fuzzy dice 1", item[0].Name, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(   42, item[0].SupplierId, "FAILED: Received a different value than expected.");
+                                DataTestClass.AssertEqualsWithDescription(1.99M, item[0].Price, "FAILED: Received a different value than expected.");
+
+                                DataTestClass.AssertEqualsWithDescription( 1000, fcount, "FAILED: Received a different value than expected.");
+
+                                count++;
+                            }
+
+                            Assert.True(count == 1, "ERROR: Received more results than was expected");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand(dropSql, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public static void ReadCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";

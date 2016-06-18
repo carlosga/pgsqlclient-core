@@ -120,7 +120,6 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case "TimeZone":
-#warning TODO: Add support for non local time zones
                     _timeZoneInfo = TimeZoneInfo.Local;
                     break;
 
