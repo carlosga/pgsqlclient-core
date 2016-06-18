@@ -3,8 +3,8 @@
     "description": "postgresql data provider for .net core",
     "version": "0.1.0",
     "packOptions":{
-        "projectUrl": "https://gitlab.com/carlosga/pgsqlclient",
-        "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient/blob/master/license.md",
+        "projectUrl": "https://gitlab.com/carlosga/pgsqlclient-core",
+        "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient-core/blob/master/license.md",
         "owners"    : ["Carlos Guzmán Álvarez"],
         "authors"   : ["Carlos Guzmán Álvarez"],
         "copyright" : ["2016. Carlos Guzmán Álvarez"],
