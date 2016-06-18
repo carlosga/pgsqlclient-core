@@ -2,6 +2,11 @@
 
 [pgsqlclient](https://github.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*) on linux.
 
+# documentation
+
+* [Connection String](docs/connection-string.md)
+* [Data types](docs/data-types.md)
+
 # License
 
 Licensed under the [MIT license](license.md).
