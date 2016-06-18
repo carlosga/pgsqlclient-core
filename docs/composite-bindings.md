@@ -43,16 +43,16 @@ public sealed class DiscountBinding
     }
 }
 
-public sealed class InventoryItemWithDiscountBinding
-    : ITypeBinding<InventoryItemWithDiscount>
+public sealed class InventoryItemBinding
+    : ITypeBinding<InventoryItem>
 {
     public string Schema => "public";
-    public string Name   => "inventory_item_with_discount";
-    public Type   Type   => typeof(InventoryItemWithDiscount);
+    public string Name   => "inventory_item";
+    public Type   Type   => typeof(InventoryItem);
 
-    public InventoryItemWithDiscount Read(ITypeReader r)
+    public InventoryItem Read(ITypeReader r)
     {
-        return new InventoryItemWithDiscount
+        return new InventoryItem
         {
             Name       = r.ReadValue<string>()
           , SupplierId = r.ReadValue<int>()
@@ -61,7 +61,7 @@ public sealed class InventoryItemWithDiscountBinding
         };
     }
 
-    public void Write(ITypeWriter w, InventoryItemWithDiscount value)
+    public void Write(ITypeWriter w, InventoryItem value)
     {
         ...
     }
