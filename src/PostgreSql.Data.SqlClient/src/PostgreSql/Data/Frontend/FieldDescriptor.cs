@@ -46,7 +46,5 @@ namespace PostgreSql.Data.Frontend
             _numericScale     = ((_typeInfo.IsNumeric) ? (((ushort)_typeModifier - 4) & 0xFFFF) : 0);
             _isExpression     = (_tableOid == 0 && _columnId == 0);
         }
-
-        public override string ToString() => _name;
     }
 }

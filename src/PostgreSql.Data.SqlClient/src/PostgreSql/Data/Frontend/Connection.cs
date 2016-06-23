@@ -159,6 +159,7 @@ namespace PostgreSql.Data.Frontend
                 Lock();
 
                 _transport.Close();
+                _reader.Clear();
 
                 TypeInfoProviderCache.Release(this);
             }

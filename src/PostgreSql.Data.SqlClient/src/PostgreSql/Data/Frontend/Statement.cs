@@ -203,10 +203,6 @@ namespace PostgreSql.Data.Frontend
 
                 ChangeState(StatementState.Prepared);
             }
-            catch
-            {
-                throw;
-            }
             finally
             {
                 _connection.ReleaseLock();
@@ -229,10 +225,6 @@ namespace PostgreSql.Data.Frontend
 
                 return _recordsAffected;
             }
-            catch
-            {
-                throw;
-            }
             finally
             {
                 _connection.ReleaseLock();
@@ -253,10 +245,6 @@ namespace PostgreSql.Data.Frontend
 
                 Bind();
                 Execute(behavior);
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
@@ -283,10 +271,6 @@ namespace PostgreSql.Data.Frontend
                 }
 
                 return null;
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
@@ -333,10 +317,6 @@ namespace PostgreSql.Data.Frontend
                 // Update status
                 ChangeState(StatementState.Prepared);
             }
-            catch
-            {
-                throw;
-            }
             finally
             {
                 _connection.ReleaseLock();
@@ -363,10 +343,6 @@ namespace PostgreSql.Data.Frontend
 
                 // Update status
                 ChangeState(StatementState.Default);
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
@@ -446,10 +422,6 @@ namespace PostgreSql.Data.Frontend
 
                 // Update Status
                 ChangeState(StatementState.Default);
-            }
-            catch
-            {
-                throw;
             }
             finally
             {

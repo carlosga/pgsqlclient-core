@@ -196,12 +196,15 @@ namespace PostgreSql.Data.Frontend
             _writer.WriteByte(value);
         }
 
-        internal void WriteInt32(int value)
+        internal unsafe void WriteInt32(int value)
         {
-            _buffer[0] = (byte)((value >> 24) & 0xFF);
-            _buffer[1] = (byte)((value >> 16) & 0xFF);
-            _buffer[2] = (byte)((value >>  8) & 0xFF);
-            _buffer[3] = (byte)((value      ) & 0xFF);
+            fixed (byte* pbuffer = _buffer)
+            {
+                *(pbuffer)     = (byte)((value >> 24) & 0xFF);
+                *(pbuffer + 1) = (byte)((value >> 16) & 0xFF);
+                *(pbuffer + 2) = (byte)((value >>  8) & 0xFF);
+                *(pbuffer + 3) = (byte)((value      ) & 0xFF);
+            }
 
             _writer.Write(_buffer, 0, 4);
         }

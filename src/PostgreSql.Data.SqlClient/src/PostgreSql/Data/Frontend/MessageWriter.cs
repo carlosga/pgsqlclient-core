@@ -12,15 +12,6 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageWriter
     {
-        struct Numeric
-        {
-            public short   ndigits; /* # of digits in digits[] - can be 0! */
-            public short   weight;  /* weight of first digit */
-            public short   sign;    /* NUMERIC_POS, NUMERIC_NEG, or NUMERIC_NAN */
-            public short   dscale;  /* display scale */
-            public short[] digits;  /* base-NBASE digits */
-        }
-        
         private readonly byte        _messageType;
         private readonly SessionData _sessionData;
         private readonly int         _initialCapacity;
@@ -167,61 +158,50 @@ namespace PostgreSql.Data.Frontend
             const int ScaleMask = 0x00FF0000;
             // Number of bits scale is shifted by.
             const int ScaleShift = 16;
-
-            const int DEC_DIGITS = 4; // decimal digits per NBASE digit 
+            // decimal digits per NBASE digit
+            const int DEC_DIGITS = 4;  
 
             bool  isNegative = (value < 0);
             var   absValue   = ((isNegative) ? value * -1.0M : value);
             int[] bits       = Decimal.GetBits(absValue);
 
-            Numeric numeric;
-            numeric.sign    = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
-            numeric.dscale  = (short)((bits[3] & ScaleMask) >> ScaleShift);
-            numeric.weight  = 0;
-            numeric.ndigits = 0;
-            numeric.digits  = null;
+            short sign    = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
+            short dscale  = (short)((bits[3] & ScaleMask) >> ScaleShift);
+            short weight  = 0;
+            short ndigits = 0;
 
             if (absValue > 0)
             {
                 // postgres: numeric::estimate_ln_dweight 
-                numeric.weight  = (short)Math.Truncate(Math.Log((double)absValue, PgNumeric.NBase));
+                weight  = (short)Math.Truncate(Math.Log((double)absValue, PgNumeric.NBase));
                 // postgres: numeric::div_var
-                numeric.ndigits = (short)(numeric.weight + 1 + (numeric.dscale + DEC_DIGITS - 1) / DEC_DIGITS);
-                numeric.digits  = new short[numeric.ndigits];
+                ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) / DEC_DIGITS);
+            }
 
-                int windex = numeric.weight + 7;
+            int sizeInBytes = 8 + ndigits * sizeof(short);
 
-                for (int i = windex, d = 0; i >= 0; --i, ++d)
+            EnsureCapacity(sizeInBytes);
+
+            Write(sizeInBytes);
+            Write(ndigits);
+            Write(weight);
+            Write(sign);
+            Write(dscale);
+
+            if (ndigits > 0)
+            {
+                for (int i = weight + 7; i >= 0; --i)
                 {
                     var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
                     {
                         absValue -= (digit * PgNumeric.Weights[i]);
                     }
-                    numeric.digits[d] = digit;
+                    Write(digit);
                     if (absValue == 0)
                     {
                         break;
                     }
-                }
-            }
-
-            // finally write down the result
-            int sizeInBytes = 8 + numeric.ndigits * sizeof(short);
-
-            EnsureCapacity(sizeInBytes);
-
-            Write(sizeInBytes);
-            Write(numeric.ndigits);
-            Write(numeric.weight);
-            Write(numeric.sign);
-            Write(numeric.dscale);
-
-            if (numeric.ndigits > 0)
-            {
-                for (int i = 0; i < numeric.digits.Length; ++i)
-                {
-                    Write(numeric.digits[i]);
                 }
             }
         }

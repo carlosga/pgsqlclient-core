@@ -8,7 +8,7 @@ namespace PostgreSql.Data.Frontend
 {
     internal static class TypeInfoProviderCache
     {
-        private static ConcurrentDictionary<string, Lazy<TypeInfoProvider>> s_providers = new ConcurrentDictionary<string, Lazy<TypeInfoProvider>>();
+        private static readonly ConcurrentDictionary<string, Lazy<TypeInfoProvider>> s_providers = new ConcurrentDictionary<string, Lazy<TypeInfoProvider>>();
 
         internal static TypeInfoProvider GetOrAdd(Connection connection)
         {

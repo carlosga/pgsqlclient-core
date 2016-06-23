@@ -39,6 +39,17 @@ namespace PostgreSql.Data.Frontend
             _buffer      = new byte[_capacity];
         }
 
+        internal void Clear()
+        {
+            _messageType    = 0;
+            _buffer         = null;
+            _position       = 0;
+            _length         = 0;
+            _capacity       = 0;
+            _pendingMessage = 0;
+            _sessionData    = null;
+        }
+
         internal byte[] ReadBytes(int count)
         {
             byte[] buffer = new byte[count];
@@ -221,10 +232,10 @@ namespace PostgreSql.Data.Frontend
                 _messageType    = _pendingMessage;
                 _pendingMessage = 0;
 
-                if (_buffer.Length > (_capacity * 2))
-                {
-                    Array.Resize<byte>(ref _buffer, _capacity);
-                }
+                // if (_buffer.Length > (_capacity * 2))
+                // {
+                //     Array.Resize<byte>(ref _buffer, _capacity);
+                // }
             }
             else
             {

@@ -16,7 +16,5 @@ namespace PostgreSql.Data.Frontend
             _name = name;
             _oid  = oid;
         }
-
-        public override string ToString() => _name;
     }
 }
