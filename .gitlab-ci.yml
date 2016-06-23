@@ -1,4 +1,4 @@
-image: microsoft/dotnet:1.0.0-core
+image: microsoft/dotnet:latest
 
 stages:
   - build
