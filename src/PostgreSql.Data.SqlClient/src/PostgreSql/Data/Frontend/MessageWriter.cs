@@ -61,7 +61,6 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal void Write(byte[] buffer) => Write(buffer, 0, buffer.Length);
-        internal void Write(char ch)       => WriteByte((byte)ch);
         internal void Write(bool value)    => WriteByte((byte)(value ? 1 : 0));
 
         internal void Write(byte[] buffer, int offset, int count)
@@ -83,22 +82,28 @@ namespace PostgreSql.Data.Frontend
             _buffer[_position++] = value;
         }
 
-        internal void Write(short value)
+        internal unsafe void Write(short value)
         {
             EnsureCapacity(2);
 
-            _buffer[_position++] = (byte)((value >> 8) & 0xFF);
-            _buffer[_position++] = (byte)((value     ) & 0xFF);
+            fixed (byte* pbuffer = _buffer)
+            {
+                *(pbuffer + _position++) = (byte)((value >> 8) & 0xFF);
+                *(pbuffer + _position++) = (byte)((value     ) & 0xFF);
+            }
         }
 
-        internal void Write(int value)
+        internal unsafe void Write(int value)
         {
             EnsureCapacity(4);
 
-            _buffer[_position++] = (byte)((value >> 24) & 0xFF);
-            _buffer[_position++] = (byte)((value >> 16) & 0xFF);
-            _buffer[_position++] = (byte)((value >>  8) & 0xFF);
-            _buffer[_position++] = (byte)((value      ) & 0xFF);
+            fixed (byte* pbuffer = _buffer)
+            {
+                *(pbuffer + _position++) = (byte)((value >> 24) & 0xFF);
+                *(pbuffer + _position++) = (byte)((value >> 16) & 0xFF);
+                *(pbuffer + _position++) = (byte)((value >>  8) & 0xFF);
+                *(pbuffer + _position++) = (byte)((value      ) & 0xFF);
+            }
         }
 
         internal void Write(long value)
@@ -212,16 +217,19 @@ namespace PostgreSql.Data.Frontend
             Write(numeric.sign);
             Write(numeric.dscale);
 
-            for (int i = 0; i < numeric.ndigits; ++i)
+            if (numeric.ndigits > 0)
             {
-                Write(numeric.digits[i]);
+                for (int i = 0; i < numeric.digits.Length; ++i)
+                {
+                    Write(numeric.digits[i]);
+                }
             }
         }
 
         internal void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
         internal void Write(PgDate value)   => Write(value.DaysSinceEpoch);
-        internal void Write(TimeSpan value) => Write((long)(value.Ticks * 0.1));
+        internal void Write(TimeSpan value) => Write((long)(value.Ticks * 0.1M));
         internal void Write(DateTime value) => Write((long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000));
         internal void Write(PgInterval value)
         {
@@ -561,10 +569,12 @@ namespace PostgreSql.Data.Frontend
         {
             Debug.Assert(count >= 0);
 
-            if (_buffer == null || (_position + count) > _buffer.Length)
+            var offset = _position + count;
+
+            if (_buffer == null || offset > _buffer.Length)
             {
                 // double the size of the buffer, or use the minimum required
-                long newSize = Math.Max(_buffer == null ? 0 : (((long)_buffer.Length) << 1), _position + count);
+                long newSize = Math.Max(_buffer == null ? 0 : (((long)_buffer.Length) << 1), offset);
 
                 // .NET (as of 4.5) cannot allocate an array with more than 2^31 - 1 items...
                 if (newSize > 0x7fffffffL) 
@@ -578,7 +588,7 @@ namespace PostgreSql.Data.Frontend
                 Array.Resize(ref _buffer, size);
             }
 
-            Debug.Assert(_buffer != null && _buffer.Length >= (_position + count));
+            Debug.Assert(_buffer != null && _buffer.Length >= offset);
         }
 
         /// FoundationDB client (BSD License)

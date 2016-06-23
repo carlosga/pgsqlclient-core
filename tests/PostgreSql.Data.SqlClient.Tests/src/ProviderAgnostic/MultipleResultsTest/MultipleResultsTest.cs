@@ -13,9 +13,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         : DataTestClass
     {
         [Fact]
-        public static void TestMain()
+        public void TestMain()
         {
-            Assert.True((new MultipleResultsTest()).RunTestCoreAndCompareWithBaseline());
+            Assert.True(RunTestCoreAndCompareWithBaseline());
         }
 
         protected override void RunDataTest()

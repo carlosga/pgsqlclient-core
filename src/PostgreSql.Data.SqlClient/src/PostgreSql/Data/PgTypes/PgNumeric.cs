@@ -25,7 +25,6 @@ namespace PostgreSql.Data.PgTypes
     public struct PgNumeric
         : INullable, IComparable<PgNumeric>, IComparable, IEquatable<PgNumeric>
     {
-        internal const int MaxResultScale   = (MaxPrecision * 2);
         internal const int PositiveMask     = 0x0000;
         internal const int NegativeMask     = 0x4000;
         internal const int NaNMask          = 0xC000;
@@ -33,6 +32,8 @@ namespace PostgreSql.Data.PgTypes
         internal const int NBase            = 10000;
         internal const int MaxPrecision     = 1000;
         internal const int MaxScale         = 28;
+        internal const int MaxResultScale   = (MaxPrecision * 2);
+        internal const int MaxLength        = MaxPrecision + MaxResultScale;
 
         // [Decimal 128 decimal 1.0 × 10^-28 to 7.9 × 10^28, 28-digit precision]
         internal static readonly decimal[] Weights = new decimal[]

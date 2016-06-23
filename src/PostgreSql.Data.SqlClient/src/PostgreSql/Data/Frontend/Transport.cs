@@ -149,7 +149,7 @@ namespace PostgreSql.Data.Frontend
                 return false;
             }
         }
-        
+
         internal byte ReadByte()
         {
             return (byte)_reader.ReadByte();

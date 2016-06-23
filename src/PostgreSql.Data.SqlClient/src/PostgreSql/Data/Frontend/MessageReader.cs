@@ -132,17 +132,17 @@ namespace PostgreSql.Data.Frontend
 
             ndigits = ReadInt16();
 
-            if (ndigits < 0 || ndigits > (PgNumeric.MaxPrecision + PgNumeric.MaxResultScale))
+            if (ndigits < 0 || ndigits > PgNumeric.MaxLength)
             {
-                throw new FormatException("invalid length in external \"numeric\" value");
+                throw new FormatException("invalid length in \"numeric\" value");
             }
 
             weight = ReadInt16() + 7;
             sign   = ReadInt16();
 
-            if (!(sign == PgNumeric.PositiveMask || sign == PgNumeric.NegativeMask || sign == PgNumeric.NaNMask))
+            if (sign != PgNumeric.PositiveMask && sign != PgNumeric.NegativeMask && sign != PgNumeric.NaNMask)
             {
-                throw new FormatException("invalid sign in external \"numeric\" value");
+                throw new FormatException("invalid sign in \"numeric\" value");
             }
 
             dscale = ReadInt16();
@@ -160,7 +160,7 @@ namespace PostgreSql.Data.Frontend
                 res += digit * PgNumeric.Weights[weight - i];
             }
 
-            return ((sign == PgNumeric.NegativeMask) ? (res * -1) : res);
+            return ((sign == PgNumeric.NegativeMask) ? -res : res);
         }
 
         internal double     ReadDouble()    => BitConverter.Int64BitsToDouble(ReadInt64());
@@ -212,7 +212,48 @@ namespace PostgreSql.Data.Frontend
             return new PgPath(points, isClosedPath);
         }
 
-        internal object ReadValue(TypeInfo typeInfo, int length)
+        internal void ReadFrom(Transport transport)
+        {
+            _position = 0;
+
+            if (_pendingMessage != 0)
+            {
+                _messageType    = _pendingMessage;
+                _pendingMessage = 0;
+
+                if (_buffer.Length > (_capacity * 2))
+                {
+                    Array.Resize<byte>(ref _buffer, _capacity);
+                }
+            }
+            else
+            {
+                _messageType = transport.ReadByte();
+            }
+
+            if (_messageType == BackendMessages.DataRow)
+            {
+                _pendingMessage = _messageType;
+                _length         = 0;
+
+                do
+                {
+                    _length        += transport.ReadFrame(ref _buffer, _length);
+                    _pendingMessage = transport.ReadByte();
+                } while (_pendingMessage == _messageType);
+            }
+            else
+            {
+                _length = transport.ReadFrame(ref _buffer);
+            }
+        }
+
+        internal object ReadValue(TypeInfo typeInfo)
+        {
+            return ReadValue(typeInfo, ReadInt32());
+        }
+
+        private object ReadValue(TypeInfo typeInfo, int length)
         {
             if (length == -1)
             {
@@ -243,10 +284,6 @@ namespace PostgreSql.Data.Frontend
                 return ReadByte();
 
             case PgDbType.Numeric:
-                if (length < 0 || length > PgNumeric.MaxPrecision + PgNumeric.MaxResultScale)
-                {
-                    throw new FormatException("invalid length in external \"numeric\" value");
-                }
                 return ReadNumeric();
 
             case PgDbType.Money:
@@ -322,42 +359,6 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void ReadFrom(Transport transport)
-        {
-            _position = 0;
-
-            if (_pendingMessage != 0)
-            {
-                _messageType    = _pendingMessage;
-                _pendingMessage = 0;
-
-                if (_buffer.Length > (_capacity * 2))
-                {
-                    Array.Resize<byte>(ref _buffer, _capacity);
-                }
-            }
-            else
-            {
-                _messageType = transport.ReadByte();
-            }
-
-            if (_messageType == BackendMessages.DataRow)
-            {
-                _pendingMessage = _messageType;
-                _length         = 0;
-
-                do
-                {
-                    _length        += transport.ReadFrame(ref _buffer, _length);
-                    _pendingMessage = transport.ReadByte();
-                } while (_pendingMessage == _messageType);
-            }
-            else
-            {
-                _length = transport.ReadFrame(ref _buffer);
-            }
-        }
-
         private Array ReadArray(TypeInfo typeInfo, int length)
         {
             // Read number of dimensions
@@ -406,7 +407,7 @@ namespace PostgreSql.Data.Frontend
             {
                 for (int i = data.GetLowerBound(0); i <= data.GetUpperBound(0); ++i)
                 {
-                    var value = ReadValue(elementType, ReadInt32());
+                    var value = ReadValue(elementType);
                     data.SetValue((ADP.IsNull(value)) ? null : value, i);
                 }
             }
@@ -416,7 +417,7 @@ namespace PostgreSql.Data.Frontend
                 {
                     for (int j = data.GetLowerBound(1); j <= data.GetUpperBound(1); ++j)
                     {
-                        var value = ReadValue(elementType, ReadInt32());
+                        var value = ReadValue(elementType);
                         data.SetValue((ADP.IsNull(value)) ? null : value, i, j);
                     }
                 }
@@ -429,7 +430,7 @@ namespace PostgreSql.Data.Frontend
                     {
                         for (int k = data.GetLowerBound(2); k <= data.GetUpperBound(2); ++k)
                         {
-                            var value = ReadValue(elementType, ReadInt32());
+                            var value = ReadValue(elementType);
                             data.SetValue((ADP.IsNull(value)) ? null : value, i, j, k);
                         }
                     }
@@ -461,21 +462,14 @@ namespace PostgreSql.Data.Frontend
 
         object ITypeReader.ReadValue()
         {
-            var oid  = ReadInt32();
-            var size = ReadInt32();
-
-            if (size == -1)
-            {
-                return DBNull.Value;
-            }
-
+            var oid   = ReadInt32();
             var tinfo = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
             if (tinfo == null)
             {
                 throw ADP.InvalidOperation($"Data type with OID='{oid}' has no registered binding or is not supported.");
             }
 
-            return ReadValue(tinfo, size);
+            return ReadValue(tinfo);
         }
 
         private object ReadComposite(TypeInfo typeInfo, int length)
@@ -505,10 +499,9 @@ namespace PostgreSql.Data.Frontend
             for (int i = 0; i < values.Length; ++i)
             {
                 int oid   = ReadInt32();
-                var size  = ReadInt32();
                 var tinfo = _sessionData.TypeInfoProvider.GetTypeInfo(oid); 
 
-                values[i] = ReadValue(tinfo, size);
+                values[i] = ReadValue(tinfo);
             }
 
             return values;

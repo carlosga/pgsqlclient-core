@@ -39,6 +39,12 @@ namespace PostgreSql.Data.Frontend
             return (_values != null);
         }
 
+        internal void Clear()
+        {
+            _descriptor = null;
+            _values     = null;
+        }
+
         internal int GetOrdinal(string name) => _descriptor.IndexOf(name);
 
         internal string GetName(int i)

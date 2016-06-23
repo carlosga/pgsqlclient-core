@@ -85,6 +85,7 @@ namespace PostgreSql.Data.SqlClient
             _command         = command;
             _behavior        = _command.CommandBehavior;
             _statement       = _command.Statement;
+            _row             = new DataRecord();
 
             _connection.AddWeakReference(this, PgReferenceCollection.DataReaderTag);
 
@@ -161,7 +162,7 @@ namespace PostgreSql.Data.SqlClient
             _position = STARTPOS;
 
             // Clear current row data
-            _row = null;
+            _row.Clear();
 
             // Reset records affected
             _recordsAffected = -1;
@@ -189,11 +190,6 @@ namespace PostgreSql.Data.SqlClient
             if (!_statement.HasRows)
             {
                 return false;
-            }
-
-            if (_row == null)
-            {
-                _row = new DataRecord();
             }
 
             _position++;
@@ -448,15 +444,15 @@ namespace PostgreSql.Data.SqlClient
             }
             finally
             {
+                _connection      = null;
                 _command         = null;
                 _statement       = null;
                 _refCursor       = null;
-                _connection      = null;
                 _refCursors      = null;
                 _row             = null;
+                _metadata        = null;
                 _recordsAffected = -1;
                 _position        = STARTPOS;
-                _metadata        = null;
             }
         }
 

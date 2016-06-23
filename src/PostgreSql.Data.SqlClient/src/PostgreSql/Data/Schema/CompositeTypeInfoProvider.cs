@@ -59,7 +59,7 @@ namespace PostgreSql.Data.Schema
 
                     attributes[0] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
 
-                    for (int i = 1; i < attcount; ++i)
+                    for (int i = 1; i < attributes.Length; ++i)
                     {
                         row.ReadFrom(command);
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));

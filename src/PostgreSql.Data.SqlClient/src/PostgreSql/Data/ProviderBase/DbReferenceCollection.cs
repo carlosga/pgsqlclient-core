@@ -214,9 +214,9 @@ namespace System.Data.ProviderBase
             }
         }
 
-        abstract protected void NotifyItem(int message, int tag, object value);
+        protected abstract void NotifyItem(int message, int tag, object value);
 
-        abstract public void Remove(object value);
+        public abstract void Remove(object value);
 
         protected void RemoveItem(object value)
         {

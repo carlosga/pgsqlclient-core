@@ -353,7 +353,6 @@ namespace PostgreSql.Data.Frontend
                 ChangeState(StatementState.Executing);
 
                 _queryMessage.Clear();
-
                 _queryMessage.WriteNullString(_statementText);
 
                 // Send message
@@ -769,7 +768,7 @@ namespace PostgreSql.Data.Frontend
 
                 if (p.Direction != ParameterDirection.Input)
                 {
-                    p.Value = message.ReadValue(p.TypeInfo, message.ReadInt32());
+                    p.Value = message.ReadValue(p.TypeInfo);
                 }
             }
         }
@@ -838,7 +837,7 @@ namespace PostgreSql.Data.Frontend
                 var values = new object[message.ReadInt16()];
                 for (int i = 0; i < values.Length; ++i)
                 {
-                    values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo, message.ReadInt32());
+                    values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo);
                 }
                 _rows.Enqueue(values);
             }
