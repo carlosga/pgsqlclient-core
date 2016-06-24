@@ -44,7 +44,7 @@ namespace PostgreSql.Data.Bindings
 
                 if (!s_providers.TryAdd(options.InternalUrl, provider))
                 {
-                    throw ADP.InvalidOperation("An error has occurred while try to register the provider.");
+                    throw ADP.InvalidOperation("An error has occurred while trying to register the type binding provider.");
                 }
             }
 

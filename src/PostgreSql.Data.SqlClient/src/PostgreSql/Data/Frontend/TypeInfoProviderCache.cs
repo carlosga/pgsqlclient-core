@@ -3,29 +3,27 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Data.Common;
 
 namespace PostgreSql.Data.Frontend
 {
     internal static class TypeInfoProviderCache
     {
-        private static readonly ConcurrentDictionary<string, Lazy<TypeInfoProvider>> s_providers = new ConcurrentDictionary<string, Lazy<TypeInfoProvider>>();
+        private static readonly ConcurrentDictionary<string, TypeInfoProvider> s_providers = new ConcurrentDictionary<string, TypeInfoProvider>();
 
         internal static TypeInfoProvider GetOrAdd(Connection connection)
         {
-            string key = connection.ConnectionOptions.InternalUrl;
-            Lazy<TypeInfoProvider> cacheItem;
+            string           key = connection.ConnectionOptions.InternalUrl;
+            TypeInfoProvider provider;
 
-            if (!s_providers.TryGetValue(key, out cacheItem))
+            if (!s_providers.TryGetValue(key, out provider))
             {
-                cacheItem = new Lazy<TypeInfoProvider>(() => new TypeInfoProvider(connection));
-
-                if (!s_providers.TryAdd(key, cacheItem))
-                {   
-                    cacheItem = s_providers[key];
+                provider = new TypeInfoProvider(connection.ConnectionOptions);
+                if (!s_providers.TryAdd(key, provider))
+                {
+                    throw ADP.InvalidOperation("An error has occurred while trying to register the connection type info provider.");
                 }
             }
-
-            var provider = cacheItem.Value;
 
             provider.AddRef();
 
@@ -34,15 +32,15 @@ namespace PostgreSql.Data.Frontend
 
         internal static void Release(Connection connection)
         {
-            string key = connection.ConnectionOptions.InternalUrl;
-            Lazy<TypeInfoProvider> cacheItem;
-            if (s_providers.TryGetValue(key, out cacheItem))
+            string           key = connection.ConnectionOptions.InternalUrl;
+            TypeInfoProvider provider;
+            if (s_providers.TryGetValue(key, out provider))
             {
-                cacheItem.Value.Release();
+                provider.Release();
 
-                if (cacheItem.Value.Count == 0)
+                if (provider.Count == 0)
                 {
-                   s_providers.TryRemove(key, out cacheItem);
+                   s_providers.TryRemove(key, out provider);
                 }
             }
         }

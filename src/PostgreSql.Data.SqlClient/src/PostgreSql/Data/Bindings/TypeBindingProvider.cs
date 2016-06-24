@@ -57,7 +57,7 @@ namespace PostgreSql.Data.Bindings
             {
                 if (!_bindings.TryAdd(key, binding))
                 {
-                    throw ADP.InvalidOperation("An error has occurred while try to register the binding.");
+                    throw ADP.InvalidOperation("An error has occurred while trying to register the binding.");
                 }
             }
 

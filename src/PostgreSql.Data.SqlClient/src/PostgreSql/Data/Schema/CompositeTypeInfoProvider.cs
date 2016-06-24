@@ -38,15 +38,18 @@ namespace PostgreSql.Data.Schema
 
         internal ReadOnlyDictionary<int, TypeInfo> GetTypeInfo()
         {
-            var types = new Dictionary<int, TypeInfo>(10);
+            var types       = new Dictionary<int, TypeInfo>(10);
+            var row         = new DataRecord();
+            var provider    = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
+            var defaultType = typeof(object);
+
+            ITypeBinding binding = null;
 
             using (var command = _connection.CreateStatement(SchemaQuery))
             {
                 command.FetchSize = 0;
                 command.Prepare();
                 command.ExecuteReader();
-
-                var row = new DataRecord();
 
                 while (row.ReadFrom(command))
                 {
@@ -65,17 +68,12 @@ namespace PostgreSql.Data.Schema
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
                     }
 
-                    var systemType = typeof(object);
-                    var provider   = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
                     if (provider != null)
                     {
-                        var binding = provider.GetBinding(schema, typname);
-                        if (binding != null)
-                        {
-                            systemType = binding.Type;
-                        }
+                        binding = provider.GetBinding(schema, typname);
                     }
-                    types.Add(typoid, new TypeInfo(typoid, schema, typname, attributes, systemType));
+
+                    types.Add(typoid, new TypeInfo(typoid, schema, typname, attributes, binding?.Type ?? defaultType));
                     types.Add(arroid, new TypeInfo(arroid, schema, typname, types[typoid]));
                 }
             }

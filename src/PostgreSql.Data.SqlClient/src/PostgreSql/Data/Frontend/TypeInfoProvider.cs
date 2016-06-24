@@ -419,14 +419,17 @@ namespace PostgreSql.Data.Frontend
             return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
-        private readonly ReadOnlyDictionary<int, TypeInfo> _types;
-        private int _count;
+        private ReadOnlyDictionary<int, TypeInfo> _types;
+        private DbConnectionOptions               _connectionOptions;
+        private int                               _count;
 
         internal int Count => _count;
 
-        internal TypeInfoProvider(Connection connection)
+        internal TypeInfoProvider(DbConnectionOptions connectionOptions)
         {
-            _types = DiscoverTypes(connection);
+            _types             = null;
+            _count             = 0;
+            _connectionOptions = connectionOptions;
         }
 
         internal void AddRef()
@@ -439,6 +442,11 @@ namespace PostgreSql.Data.Frontend
             if (_count > 0)
             {
                 Interlocked.Decrement(ref _count);
+                if (_count == 0)
+                {
+                    _types             = null;
+                    _connectionOptions = null;
+                }
             }
         }
 
@@ -448,6 +456,10 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes[oid];
             }
+            if (_types == null)
+            {
+                _types = DiscoverTypes(_connectionOptions);
+            }
             if (_types.ContainsKey(oid))
             {
                 return _types[oid];
@@ -455,10 +467,15 @@ namespace PostgreSql.Data.Frontend
             throw new NotSupportedException($"Data Type with OID='{oid}' is not supported");
         }
 
-        private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(Connection connection)
+        private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(DbConnectionOptions connectionOptions)
         {
-            var typeProvider = new CompositeTypeInfoProvider(connection);
-            return typeProvider.GetTypeInfo();
+            using (var connection = new Connection(connectionOptions))
+            {
+                connection.Open();
+
+                var typeProvider = new CompositeTypeInfoProvider(connection);
+                return typeProvider.GetTypeInfo();
+            }
         }
     }
 }

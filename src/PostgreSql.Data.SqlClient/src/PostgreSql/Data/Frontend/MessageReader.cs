@@ -232,10 +232,10 @@ namespace PostgreSql.Data.Frontend
                 _messageType    = _pendingMessage;
                 _pendingMessage = 0;
 
-                // if (_buffer.Length > (_capacity * 2))
-                // {
-                //     Array.Resize<byte>(ref _buffer, _capacity);
-                // }
+                if (_buffer.Length > (_capacity * 2))
+                {
+                    Array.Resize<byte>(ref _buffer, _capacity);
+                }
             }
             else
             {
