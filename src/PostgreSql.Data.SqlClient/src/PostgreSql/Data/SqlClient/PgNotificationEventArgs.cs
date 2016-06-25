@@ -10,17 +10,17 @@ namespace PostgreSql.Data.SqlClient
     {
         private readonly int    _processId;
         private readonly string _condition;
-        private readonly string _aditional;
+        private readonly string _additional;
 
-        public int    ProcessId => _processId;
-        public string Condition => _condition;
-        public string Aditional => _aditional;
+        public int    ProcessId  => _processId;
+        public string Condition  => _condition;
+        public string Additional => _additional;
 
         internal PgNotificationEventArgs(int processId, string condition, string addtional)
         {
             _processId = processId;
             _condition = condition;
-            _aditional = addtional;
+            _additional = addtional;
         }
     }
 }
