@@ -15,6 +15,21 @@ namespace PostgreSql.Data.SqlClient.Tests
         private object _connectionPool = null;
 
         /// <summary>
+        /// The number of connections in this connection pool (free + non-free; including transaction pools)
+        /// </summary>
+        public int ConnectionCount => ConnectionPoolHelper.CountConnectionsInPool(_connectionPool); 
+
+        /// <summary>
+        /// Counts the number of free connection in the pool (excluding any transaction pools)
+        /// </summary>
+        public int FreeConnectionCount => ConnectionPoolHelper.CountFreeConnections(_connectionPool);
+
+        /// <summary>
+        /// The connection string associated with this connection pool
+        /// </summary>
+        public string ConnectionString { get; private set; }
+
+        /// <summary>
         /// Finds the connection pool for the given connection
         /// NOTE: This only works for connections that are currently open
         /// </summary>
@@ -37,7 +52,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         /// <summary>
         /// Finds the connection pool for the given connection string
-        /// NOTE: There is currently no support for SSPI and multiple identities (single identity is ok)
         /// </summary>
         /// <param name="connectionString"></param>
         public ConnectionPoolWrapper(string connectionString)
@@ -74,21 +88,6 @@ namespace PostgreSql.Data.SqlClient.Tests
         private ConnectionPoolWrapper()
         { 
         }
-
-        /// <summary>
-        /// The number of connections in this connection pool (free + non-free; including transaction pools)
-        /// </summary>
-        public int ConnectionCount => ConnectionPoolHelper.CountConnectionsInPool(_connectionPool); 
-
-        /// <summary>
-        /// Counts the number of free connection in the pool (excluding any transaction pools)
-        /// </summary>
-        public int FreeConnectionCount => ConnectionPoolHelper.CountFreeConnections(_connectionPool);
-
-        /// <summary>
-        /// The connection string associated with this connection pool
-        /// </summary>
-        public string ConnectionString { get; private set; }
 
         /// <summary>
         /// Creates a list of all connection pools

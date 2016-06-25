@@ -5,31 +5,26 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Runtime.ExceptionServices;
-using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
     public sealed class ConnectionPoolTest
     {
-        private readonly string _nwnd9Tcp = null;
-        private readonly string _nwnd9TcpMars = null;
-
-        public ConnectionPoolTest()
-        {
-            PrepareConnectionStrings(DataTestClass.PostgreSql9_Northwind, out _nwnd9Tcp, out _nwnd9TcpMars);
-        }
-
+        [Fact]
         public void ConnectionPool_Nwnd9()
         {
-            RunDataTestForSingleConnString(_nwnd9Tcp);
-        }
+            var connBuilder   = new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind);
+            var sourceBuilder = new DataSourceBuilder(connBuilder.DataSource);
+            sourceBuilder.Protocol = null;
 
-        public void ConnectionPool_Nwnd9Mars()
-        {
-            RunDataTestForSingleConnString(_nwnd9TcpMars);
+            connBuilder.DataSource = sourceBuilder.ToString();
+            connBuilder.Pooling    = true;
+            
+            RunDataTestForSingleConnString(connBuilder.ConnectionString);
         }
 
         private static void RunDataTestForSingleConnString(string tcpConnectionString)
@@ -222,22 +217,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             var connection = new PgConnection(connectionString);
             connection.Open();
             return new InternalConnectionWrapper(connection);
-        }
-
-        private static void PrepareConnectionStrings(string originalString, out string tcpString, out string tcpMarsString)
-        {
-            var connBuilder   = new PgConnectionStringBuilder(originalString);
-            var sourceBuilder = new DataSourceBuilder(connBuilder.DataSource);
-            sourceBuilder.Protocol = null;
-
-            // TCP
-            connBuilder.DataSource = sourceBuilder.ToString();
-            connBuilder.MultipleActiveResultSets = false;
-            tcpString = connBuilder.ConnectionString;
-
-            // TCP + MARS
-            connBuilder.MultipleActiveResultSets = true;
-            tcpMarsString = connBuilder.ConnectionString;
         }
     }
 }
