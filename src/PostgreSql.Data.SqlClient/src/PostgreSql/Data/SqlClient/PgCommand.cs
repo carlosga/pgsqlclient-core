@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (_commandText != value)
                 {
-                    if (_statement != null && !string.IsNullOrEmpty(_commandText) && _commandText != value)
+                    if (_statement != null && !string.IsNullOrEmpty(_commandText))
                     {
                         InternalClose();
                     }
