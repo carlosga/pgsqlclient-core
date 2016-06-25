@@ -9,6 +9,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -107,10 +108,14 @@ namespace PostgreSql.Data.Frontend
 
                 _packetSize = packetSize;
             }
+            catch (PgException)
+            {
+                Detach();
+                throw;
+            }
             catch
             {
                 Detach();
-
                 throw new PgException("A network-related or instance-specific error occurred while establishing a connection to PostgreSQL."
                                     + " The server was not found or was not accessible."
                                     + " Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.");
@@ -138,7 +143,7 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                return _socket.Connected && _socket.Poll(1000, SelectMode.SelectRead);
+                return _socket.Connected && !_socket.Poll(0, SelectMode.SelectError);
             }
             catch
             {
@@ -222,37 +227,55 @@ namespace PostgreSql.Data.Frontend
 
         private void Connect(string host, int port, int connectTimeout, int packetSize)
         {
-            // Obtain the IP addresses for the specified host
-            var task = Dns.GetHostAddressesAsync(host);
-            task.Wait();
+            var tokenSource     = new CancellationTokenSource();
+            var cancelToken     = tokenSource.Token;
+            var remoteAddresses = Dns.GetHostAddressesAsync(host).GetAwaiter().GetResult();
 
-            var remoteAddresses = task.Result;
-
-            // Try to connect on each IP address until one succeeds
-            for (int i = 0; i < remoteAddresses.Length; ++i)
-            {
-                if (remoteAddresses[i].AddressFamily == AddressFamily.InterNetwork      // Address for IP version 4.
-                 || remoteAddresses[i].AddressFamily == AddressFamily.InterNetworkV6)   // Address for IP version 6.
+            var task = Task.Factory.StartNew<Socket>(() => {
+                // Try to connect on each IP address until one succeeds
+                for (int i = 0; i < remoteAddresses.Length; ++i)
                 {
-                    _socket = TryConnect(remoteAddresses[i], port, connectTimeout, packetSize);
+                    Socket socket = null;
+
+                    if (remoteAddresses[i].AddressFamily == AddressFamily.InterNetwork      // Address for IP version 4.
+                     || remoteAddresses[i].AddressFamily == AddressFamily.InterNetworkV6)   // Address for IP version 6.
+                    {
+                        socket = TryConnect(remoteAddresses[i], port, packetSize, cancelToken);
+                    }
+
+                    cancelToken.ThrowIfCancellationRequested();
+
+                    if (socket != null)
+                    {
+                        return socket;
+                    }
                 }
 
-                if (_socket != null)
+                return null;
+            }, cancelToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+            if (!task.Wait(connectTimeout * 1000, cancelToken))
+            {
+                tokenSource.Cancel();
+                throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");
+            }
+            else
+            {
+                var socket = task.Result;
+                if (socket == null || socket.Poll(0, SelectMode.SelectError))
                 {
-                    break;
+                    throw new PgException($"No valid IP addresses found for the given host {host}:{port}.");
                 }
+                _socket = socket;
             }
 
-            if (_socket == null)
-            {
-                throw new PgException($"No valid IP addresses found for the given host {host}:{port}.");
-            }
+            tokenSource.Dispose();
 
             // Set the nework stream
             _networkStream = new NetworkStream(_socket, true);
         }
 
-        private Socket TryConnect(IPAddress address, int port, int connectTimeout, int packetSize)
+        private Socket TryConnect(IPAddress address, int port, int packetSize, CancellationToken cancelToken)
         {
             IPEndPoint remoteEP = new IPEndPoint(address, port);
             Socket     socket   = null;
@@ -270,28 +293,11 @@ namespace PostgreSql.Data.Frontend
                 // Nagle algorithm
                 socket.NoDelay = true;
 
+                // Before attempt to connect check if cancellation has been requested
+                cancelToken.ThrowIfCancellationRequested();
+
                 // Connect to the host
-                var complete = new ManualResetEvent(false);
-                var args     = new SocketAsyncEventArgs { RemoteEndPoint = remoteEP, UserToken = complete };
-
-                args.Completed += (object sender, SocketAsyncEventArgs saeargs) =>
-                {
-                    var mre = saeargs.UserToken as ManualResetEvent;
-                    mre.Set();
-                };
-
-                var result = socket.ConnectAsync(args);
-
-                complete.WaitOne(connectTimeout * 1000);
-
-                if (!result || !socket.Connected || args.SocketError != SocketError.Success)
-                {
-                    complete.Reset();
-                    Socket.CancelConnectAsync(args);
-                    complete.WaitOne();
-
-                    throw new PgException("Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.");
-                }
+                socket.Connect(remoteEP);
             }
             catch
             {
