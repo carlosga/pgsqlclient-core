@@ -5,16 +5,16 @@ namespace PostgreSql.Data.Frontend
 {
     internal static class ErrorMessageParts
     {
-        internal const char Severity = 'S';
-        internal const char Code     = 'C';
-        internal const char Message  = 'M';
-        internal const char Detail   = 'D';
-        internal const char Hint     = 'H';
-        internal const char Position = 'P';
-        internal const char Where    = 'W';
-        internal const char File     = 'F';
-        internal const char Line     = 'L';
-        internal const char Routine  = 'R';
-        internal const char End      = '\0';
+        internal const byte Severity = (byte)'S';
+        internal const byte Code     = (byte)'C';
+        internal const byte Message  = (byte)'M';
+        internal const byte Detail   = (byte)'D';
+        internal const byte Hint     = (byte)'H';
+        internal const byte Position = (byte)'P';
+        internal const byte Where    = (byte)'W';
+        internal const byte File     = (byte)'F';
+        internal const byte Line     = (byte)'L';
+        internal const byte Routine  = (byte)'R';
+        internal const byte End      = (byte)'\0';
     }
 }
