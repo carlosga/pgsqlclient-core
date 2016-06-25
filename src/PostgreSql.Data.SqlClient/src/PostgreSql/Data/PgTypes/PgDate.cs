@@ -6,6 +6,7 @@
 // Portions Copyright (c) 1994, Regents of the University of California
 
 using System;
+using System.Data.Common;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -147,38 +148,7 @@ namespace PostgreSql.Data.PgTypes
             }
         }
 
-        //public static PgTimestamp operator -(PgDate x, TimeSpan t)
-        //{
-        //    if (x.IsNull)
-        //    {
-        //        return Null;
-        //    }
-        //    if (t.Hours > 0 || t.Minutes > 0 || t.Seconds > 0 || t.Milliseconds > 0)
-        //    {
-        //        throw new OverflowException();
-        //    }
-        //    return (x._value.Add(t));
-        //}
-
         public static bool operator !=(PgDate x, PgDate y) => !(x == y);
-
-        //public static PgTimestamp operator +(PgDate x, TimeSpan t)
-        //{
-        //    if (x.IsNull)
-        //    {
-        //        return Null;
-        //    }
-        //    if (t.Hours > 0 || t.Minutes > 0 || t.Seconds > 0 || t.Milliseconds > 0)
-        //    {
-        //        throw new OverflowException();
-        //    }
-        //    return (x.Value.Subtract(t));
-        //}
-
-        //public static PgDate operator +(PgDate x, PgInterval i)
-        //{
-        //}
-
         public static bool operator <(PgDate x, PgDate y)  => (x._days < y._days);
         public static bool operator <=(PgDate x, PgDate y) => (x._days <= y._days);
         public static bool operator ==(PgDate x, PgDate y) => (x._days == y._days);
@@ -190,19 +160,7 @@ namespace PostgreSql.Data.PgTypes
             return new DateTime(x.Year, x.Month, x.Day);
         }
 
-        //public static explicit operator PgDate(PgString x)
-        //{
-        //    if (x.IsNull)
-        //    {
-        //        return Null;
-        //    }
-        //    return Parse(x.Value);
-        //}
-
         public static implicit operator PgDate(DateTime x) => new PgDate(x);
-
-        //public static PgTimeSpan Add(PgDate x, TimeSpan t)   => (x + t);
-        //public static PgDate     Add(PgDate x, PgInterval i) => (x + i);
 
         public int CompareTo(object obj)
         {
@@ -212,7 +170,7 @@ namespace PostgreSql.Data.PgTypes
             }
             if (!(obj is PgDate))
             {
-                throw new System.ArgumentException("obj");
+                throw ADP.WrongType(obj.GetType(), typeof(PgDate));
             }
             return CompareTo((PgDate)obj);
         }
@@ -232,7 +190,7 @@ namespace PostgreSql.Data.PgTypes
             }
             if (!(obj is PgDate))
             {
-                throw new System.ArgumentException("obj");
+                throw ADP.WrongType(obj.GetType(), typeof(PgDate));
             }
             return Equals((PgDate)obj);
         }
@@ -248,10 +206,6 @@ namespace PostgreSql.Data.PgTypes
 
         //public static PgDate Parse(string s) => new PgDate();
 
-        //public static PgDate Subtract(PgDate x, TimeSpan t) => (x - t);
-
-        //public PgString ToPgString() => ToString();
-        
         public DateTime ToDateTime() => (DateTime)this;
 
         public override string ToString() => ToString(null, CultureInfo.CurrentCulture);
@@ -296,7 +250,7 @@ namespace PostgreSql.Data.PgTypes
 
         public PgDate AddYears(int value) => AddMonths(value * 12);
 
-        bool IsValidDate()
+        private bool IsValidDate()
         {
             int year  = 0;
             int month = 0;
@@ -307,14 +261,14 @@ namespace PostgreSql.Data.PgTypes
             return IsValidDate(year, month, day) && (this >= MinValue && this <= MaxValue);
         }
 
-        static bool IsValidDate(int year, int month, int day)
+        private static bool IsValidDate(int year, int month, int day)
         {
             return (year  != 0 && year  >= MinYear && year <= MaxYear
                  && month >= 1 && month <= 12
                  && day   >= 1 && day   <= DaysInMonth(year, month));
         }
 
-        static int GetDatePart(int days, DatePart datePart)
+        private static int GetDatePart(int days, DatePart datePart)
         {
             int year  = 0;
             int month = 0;
@@ -337,7 +291,7 @@ namespace PostgreSql.Data.PgTypes
         /// Ported from PostgreSql Source Code
         /// Portions Copyright (c) 1996-2016, PostgreSQL Global Development Group
         /// Portions Copyright (c) 1994, Regents of the University of California
-        static void ToDate(int days, ref int year, ref int month, ref int day)
+        private static void ToDate(int days, ref int year, ref int month, ref int day)
         {
             uint julian;
             uint quad;
@@ -363,7 +317,7 @@ namespace PostgreSql.Data.PgTypes
         /// Ported from PostgreSql Source Code
         /// Portions Copyright (c) 1996-2016, PostgreSQL Global Development Group
         /// Portions Copyright (c) 1994, Regents of the University of California
-        static int ToDays(int year, int month, int day)
+        private static int ToDays(int year, int month, int day)
         {
             int	julian;
             int	century;
