@@ -26,53 +26,6 @@ namespace System.Data.Common
 {
     internal static class ADP
     {
-        // The class ADP defines the exceptions that are specific to the Adapters.
-        // The class contains functions that take the proper informational variables and then construct
-        // the appropriate exception with an error string obtained from the resource framework.
-        // The exception is then returned to the caller, so that the caller may then throw from its
-        // location so that the catcher of the exception will have the appropriate call stack.
-        // This class is used so that there will be compile time checking of error messages.
-
-//         internal static Task<T> CreatedTaskWithException<T>(Exception ex)
-//         {
-//             return Task.FromException<T>(ex);
-//         }
-
-//         internal static Task<T> CreatedTaskWithCancellation<T>()
-//         {
-//             TaskCompletionSource<T> completion = new TaskCompletionSource<T>();
-//             completion.SetCanceled();
-//             return completion.Task;
-//         }
-
-//         // NOTE: Initializing a Task in SQL CLR requires the "UNSAFE" permission set (http://msdn.microsoft.com/en-us/library/ms172338.aspx)
-//         // Therefore we are lazily initializing these Tasks to avoid forcing customers to use the "UNSAFE" set when they are actually using no Async features
-//         static private Task<bool> s_trueTask = null;
-//         internal static Task<bool> TrueTask
-//         {
-//             get
-//             {
-//                 if (s_trueTask == null)
-//                 {
-//                     s_trueTask = Task.FromResult<bool>(true);
-//                 }
-//                 return s_trueTask;
-//             }
-//         }
-
-//         static private Task<bool> s_falseTask = null;
-//         internal static Task<bool> FalseTask
-//         {
-//             get
-//             {
-//                 if (s_falseTask == null)
-//                 {
-//                     s_falseTask = Task.FromResult<bool>(false);
-//                 }
-//                 return s_falseTask;
-//             }
-//         }
-
         internal static Exception ExceptionWithStackTrace(Exception e)
         {
             try
@@ -699,7 +652,7 @@ namespace System.Data.Common
         internal static long TimerRemainingSeconds(long timerExpire)      => TimerToSeconds(TimerRemaining(timerExpire));
 
         internal static long TimerToMilliseconds(long timerValue) => timerValue / TimeSpan.TicksPerMillisecond;
-        private static long TimerToSeconds(long timerValue)       => timerValue / TimeSpan.TicksPerSecond;
+        internal static long TimerToSeconds(long timerValue)      => timerValue / TimeSpan.TicksPerSecond;
 
         //
         // : Misc
