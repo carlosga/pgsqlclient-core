@@ -81,7 +81,7 @@ namespace PostgreSql.Data.SqlClient
                 if (innerConnection == null)
                 {
                     throw ADP.ClosedConnectionError();
-                }                
+                }
                 return innerConnection.HasActiveTransaction;
             }
         }

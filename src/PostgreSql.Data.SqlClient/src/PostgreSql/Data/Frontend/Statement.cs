@@ -654,10 +654,6 @@ namespace PostgreSql.Data.Frontend
         {
             switch (message.MessageType)
             {
-            // case BackendMessages.ParameterDescription:
-            //     ProcessParameterDescription(message);
-            //     break;
-
             case BackendMessages.RowDescription:
                 ProcessRowDescription(message);
                 break;
@@ -683,6 +679,10 @@ namespace PostgreSql.Data.Frontend
                 _rows.Clear();
                 _hasRows = false;
                 break;
+
+            // case BackendMessages.ParameterDescription:
+            //     ProcessParameterDescription(message);
+            //     break;
 
             // case BackendMessages.CopyData:
             //     Console.WriteLine("CopyData");
@@ -772,36 +772,6 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        // private void ProcessParameterDescription(MessageReader message)
-        // {
-        //     int oid   = 0;
-        //     int count = message.ReadInt16();
-
-        //     if (count != _parameterIndices.Count)
-        //     {
-        //         throw ADP.PrepareParametersCount(count, _parameterIndices.Count);
-        //     }
-
-        //     PgParameter parameter = null;
-
-        //     for (int i = 0; i < count; ++i)
-        //     {
-        //         oid                = message.ReadInt32();
-        //         parameter          = _parameters[_parameterIndices[i]]; 
-        //         parameter.TypeInfo = TypeInfoProvider.GetTypeInfo(oid);
-
-        //         if (parameter.TypeInfo == null)
-        //         {
-        //             parameter.TypeInfo = _connection.SessionData.TypeInfoProvider.GetCompositeTypeInfo(oid);
-
-        //             if (parameter.TypeInfo == null)
-        //             {
-        //                 throw ADP.PrepareParametersUnknownDataType(oid);
-        //             }
-        //         }
-        //     }
-        // }
-
         private void ProcessDataRow(MessageReader message)
         {
             while (message.Position < message.Length)
@@ -835,5 +805,35 @@ namespace PostgreSql.Data.Frontend
                 _state = newState;
             }
         }
+
+        // private void ProcessParameterDescription(MessageReader message)
+        // {
+        //     int oid   = 0;
+        //     int count = message.ReadInt16();
+
+        //     if (count != _parameterIndices.Count)
+        //     {
+        //         throw ADP.PrepareParametersCount(count, _parameterIndices.Count);
+        //     }
+
+        //     PgParameter parameter = null;
+
+        //     for (int i = 0; i < count; ++i)
+        //     {
+        //         oid                = message.ReadInt32();
+        //         parameter          = _parameters[_parameterIndices[i]]; 
+        //         parameter.TypeInfo = TypeInfoProvider.GetTypeInfo(oid);
+
+        //         if (parameter.TypeInfo == null)
+        //         {
+        //             parameter.TypeInfo = _connection.SessionData.TypeInfoProvider.GetCompositeTypeInfo(oid);
+
+        //             if (parameter.TypeInfo == null)
+        //             {
+        //                 throw ADP.PrepareParametersUnknownDataType(oid);
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
