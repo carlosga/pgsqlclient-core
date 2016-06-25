@@ -675,125 +675,123 @@ namespace System.Data.ProviderBase
                                     , out DbConnectionInternal connection)
         {
             DbConnectionInternal obj = null;
-            if (obj == null)
+
+            Interlocked.Increment(ref _waitCount);
+
+            do
             {
-                Interlocked.Increment(ref _waitCount);
-
-                do
+                int waitResult = BOGUS_HANDLE;
+                try
                 {
-                    int waitResult = BOGUS_HANDLE;
-                    try
+                    waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(allowCreate), unchecked((int)waitForMultipleObjectsTimeout));
+
+                    // From the WaitAny docs: "If more than one object became signaled during
+                    // the call, this is the array index of the signaled object with the
+                    // smallest index value of all the signaled objects."  This is important
+                    // so that the free object signal will be returned before a creation
+                    // signal.
+
+                    switch (waitResult)
                     {
-                        waitResult = WaitHandle.WaitAny(_waitHandles.GetHandles(allowCreate), unchecked((int)waitForMultipleObjectsTimeout));
+                    case WaitHandle.WaitTimeout:
+                        Interlocked.Decrement(ref _waitCount);
+                        connection = null;
+                        return false;
 
-                        // From the WaitAny docs: "If more than one object became signaled during
-                        // the call, this is the array index of the signaled object with the
-                        // smallest index value of all the signaled objects."  This is important
-                        // so that the free object signal will be returned before a creation
-                        // signal.
+                    case ERROR_HANDLE:
+                        // Throw the error that PoolCreateRequest stashed.
+                        Interlocked.Decrement(ref _waitCount);
+                        throw TryCloneCachedException();
 
-                        switch (waitResult)
+                    case CREATION_HANDLE:
+                        try
                         {
-                            case WaitHandle.WaitTimeout:
-                                Interlocked.Decrement(ref _waitCount);
-                                connection = null;
-                                return false;
-
-                            case ERROR_HANDLE:
-                                // Throw the error that PoolCreateRequest stashed.
-                                Interlocked.Decrement(ref _waitCount);
-                                throw TryCloneCachedException();
-
-                            case CREATION_HANDLE:
-
-                                try
-                                {
-                                    obj = UserCreateRequest(owningObject, userOptions);
-                                }
-                                catch
-                                {
-                                    if (obj == null)
-                                    {
-                                        Interlocked.Decrement(ref _waitCount);
-                                    }
-                                    throw;
-                                }
-                                finally
-                                {
-                                    // Ensure that we release this waiter, regardless
-                                    // of any exceptions that may be thrown.
-                                    if (obj != null)
-                                    {
-                                        Interlocked.Decrement(ref _waitCount);
-                                    }
-                                }
-
-                                if (obj == null)
-                                {
-                                    // If we were not able to create an object, check to see if
-                                    // we reached MaxPoolSize.  If so, we will no longer wait on
-                                    // the CreationHandle, but instead wait for a free object or
-                                    // the timeout.
-                                    if (Count >= MaxPoolSize && 0 != MaxPoolSize)
-                                    {
-                                        if (!ReclaimEmancipatedObjects())
-                                        {
-                                            // modify handle array not to wait on creation mutex anymore
-                                            Debug.Assert(2 == CREATION_HANDLE, "creation handle changed value");
-                                            allowCreate = false;
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case SEMAPHORE_HANDLE:
-                                //
-                                //    guaranteed available inventory
-                                //
-                                Interlocked.Decrement(ref _waitCount);
-                                obj = GetFromGeneralPool();
-
-                                if ((obj != null) && (!obj.IsConnectionAlive()))
-                                {
-                                    DestroyObject(obj);
-                                    obj = null;     // Setting to null in case creating a new object fails
-
-                                    if (onlyOneCheckConnection)
-                                    {
-                                        if (_waitHandles.CreationSemaphore.WaitOne(unchecked((int)waitForMultipleObjectsTimeout)))
-                                        {
-                                            try
-                                            {
-                                                obj = UserCreateRequest(owningObject, userOptions);
-                                            }
-                                            finally
-                                            {
-                                                _waitHandles.CreationSemaphore.Release(1);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // Timeout waiting for creation semaphore - return null
-                                            connection = null;
-                                            return false;
-                                        }
-                                    }
-                                }
-                                break;
-                            default:
-                                Interlocked.Decrement(ref _waitCount);
-                                throw ADP.InternalError(ADP.InternalErrorCode.UnexpectedWaitAnyResult);
+                            obj = UserCreateRequest(owningObject, userOptions);
                         }
+                        catch
+                        {
+                            if (obj == null)
+                            {
+                                Interlocked.Decrement(ref _waitCount);
+                            }
+                            throw;
+                        }
+                        finally
+                        {
+                            // Ensure that we release this waiter, regardless
+                            // of any exceptions that may be thrown.
+                            if (obj != null)
+                            {
+                                Interlocked.Decrement(ref _waitCount);
+                            }
+                        }
+
+                        if (obj == null)
+                        {
+                            // If we were not able to create an object, check to see if
+                            // we reached MaxPoolSize.  If so, we will no longer wait on
+                            // the CreationHandle, but instead wait for a free object or
+                            // the timeout.
+                            if (Count >= MaxPoolSize && MaxPoolSize != 0)
+                            {
+                                if (!ReclaimEmancipatedObjects())
+                                {
+                                    // modify handle array not to wait on creation mutex anymore
+                                    Debug.Assert(2 == CREATION_HANDLE, "creation handle changed value");
+                                    allowCreate = false;
+                                }
+                            }
+                        }
+                        break;
+
+                    case SEMAPHORE_HANDLE:
+                        //
+                        //    guaranteed available inventory
+                        //
+                        Interlocked.Decrement(ref _waitCount);
+                        obj = GetFromGeneralPool();
+
+                        if ((obj != null) && (!obj.IsConnectionAlive()))
+                        {
+                            DestroyObject(obj);
+                            obj = null;     // Setting to null in case creating a new object fails
+
+                            if (onlyOneCheckConnection)
+                            {
+                                if (_waitHandles.CreationSemaphore.WaitOne(unchecked((int)waitForMultipleObjectsTimeout)))
+                                {
+                                    try
+                                    {
+                                        obj = UserCreateRequest(owningObject, userOptions);
+                                    }
+                                    finally
+                                    {
+                                        _waitHandles.CreationSemaphore.Release(1);
+                                    }
+                                }
+                                else
+                                {
+                                    // Timeout waiting for creation semaphore - return null
+                                    connection = null;
+                                    return false;
+                                }
+                            }
+                        }
+                        break;
+
+                    default:
+                        Interlocked.Decrement(ref _waitCount);
+                        throw ADP.InternalError(ADP.InternalErrorCode.UnexpectedWaitAnyResult);
                     }
-                    finally
+                }
+                finally
+                {
+                    if (CREATION_HANDLE == waitResult)
                     {
-                        if (CREATION_HANDLE == waitResult)
-                        {
-                            _waitHandles.CreationSemaphore.Release(1);
-                        }
+                        _waitHandles.CreationSemaphore.Release(1);
                     }
-                } while (obj == null);
-            }
+                }
+            } while (obj == null);
 
             if (obj != null)
             {
