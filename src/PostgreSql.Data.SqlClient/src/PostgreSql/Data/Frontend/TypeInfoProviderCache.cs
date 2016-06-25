@@ -19,10 +19,7 @@ namespace PostgreSql.Data.Frontend
             if (!s_providers.TryGetValue(key, out provider))
             {
                 provider = new TypeInfoProvider(connection.ConnectionOptions);
-                if (!s_providers.TryAdd(key, provider))
-                {
-                    throw ADP.InvalidOperation("An error has occurred while trying to register the connection type info provider.");
-                }
+                s_providers.TryAdd(key, provider);
             }
 
             provider.AddRef();
