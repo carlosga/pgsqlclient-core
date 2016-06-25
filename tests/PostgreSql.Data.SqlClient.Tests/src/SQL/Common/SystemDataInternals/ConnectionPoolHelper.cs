@@ -29,7 +29,7 @@ namespace PostgreSql.Data.SqlClient.Tests.SystemDataInternals
         private static PropertyInfo s_dictPoolIdentityPoolValues          = s_dictPoolIdentityPool.GetProperty("Values");
         private static FieldInfo    s_dbConnectionFactoryPoolGroupList    = s_dbConnectionFactory.GetField("_connectionPoolGroups", BindingFlags.Instance | BindingFlags.NonPublic);
         private static FieldInfo    s_dbConnectionPoolGroupPoolCollection = s_dbConnectionPoolGroup.GetField("_poolCollection", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static FieldInfo    s_sqlConnectionFactorySingleton       = s_sqlConnectionFactory.GetField("SingletonInstance", BindingFlags.Static | BindingFlags.Public);
+        private static FieldInfo    s_sqlConnectionFactorySingleton       = s_sqlConnectionFactory.GetField("SingletonInstance", BindingFlags.Static | BindingFlags.NonPublic);
         private static FieldInfo    s_dbConnectionPoolStackOld            = s_dbConnectionPool.GetField("_stackOld", BindingFlags.Instance | BindingFlags.NonPublic);
         private static FieldInfo    s_dbConnectionPoolStackNew            = s_dbConnectionPool.GetField("_stackNew", BindingFlags.Instance | BindingFlags.NonPublic);
         private static MethodInfo   s_dbConnectionPoolCleanup             = s_dbConnectionPool.GetMethod("CleanupCallback", BindingFlags.Instance | BindingFlags.NonPublic);
