@@ -10,7 +10,7 @@ namespace PostgreSql.Data.SqlClient
     public sealed class PgErrorCollection
         : ICollection, IEnumerable, IEnumerable<PgError>
     {
-        private List<PgError> _innerList;
+        private readonly List<PgError> _innerList;
 
         public PgError this[int errorIndex]
         {
