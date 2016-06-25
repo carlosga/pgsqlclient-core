@@ -351,17 +351,6 @@ namespace PostgreSql.Data.SqlClient
                 // GC.ReRegisterForFinalize(this);
             }
 
-            // if (StatisticsEnabled)
-            // {
-            //     ADP.TimerCurrent(out _statistics._openTimestamp);
-            //     tdsInnerConnection.Parser.Statistics = _statistics;
-            // }
-            // else
-            // {
-            //     tdsInnerConnection.Parser.Statistics = null;
-            //     _statistics = null; // in case of previous Open/Close/reset_CollectStats sequence
-            // }
-
             return true;
         }
 
