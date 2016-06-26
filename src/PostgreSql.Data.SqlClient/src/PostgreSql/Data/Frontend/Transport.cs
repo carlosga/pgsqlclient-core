@@ -92,7 +92,7 @@ namespace PostgreSql.Data.Frontend
 
                 if (secureChannel)
                 {
-                    if (!OpenSecureChannel(host))
+                    if (!TryOpenSecureChannel(host))
                     {
                         throw new PgException("Cannot open a secure connection against PostgreSQL server.");
                     }
@@ -157,7 +157,9 @@ namespace PostgreSql.Data.Frontend
 
         internal byte ReadByte()
         {
-            return (byte)_reader.ReadByte();
+            _reader.Read(_buffer, 0, 1);
+            return _buffer[0];
+            // return (byte)_reader.ReadByte();
         }
 
         internal unsafe int ReadInt32()
@@ -309,7 +311,7 @@ namespace PostgreSql.Data.Frontend
             return socket;
         }
 
-        private bool OpenSecureChannel(string host)
+        private bool TryOpenSecureChannel(string host)
         {
             bool request = RequestSecureChannel();
 
@@ -339,7 +341,7 @@ namespace PostgreSql.Data.Frontend
         {
             WriteInt32(SslRequest);
 
-            return ((char)_reader.ReadByte() == 'S');
+            return (_reader.ReadByte() == (byte)'S');
         }
 
         private void Detach()
