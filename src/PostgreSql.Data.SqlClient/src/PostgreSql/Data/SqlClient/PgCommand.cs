@@ -508,7 +508,7 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.CommandTextRequired(memberName);
             }
         }
-        
+
         private PgDataReader FindLiveReader()
         {
             var innerConnection = _connection?.InnerConnection as PgConnectionInternal;
