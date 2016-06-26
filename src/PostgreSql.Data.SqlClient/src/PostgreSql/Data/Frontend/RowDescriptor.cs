@@ -42,7 +42,10 @@ namespace PostgreSql.Data.Frontend
 
         internal void Clear()
         {
-            _descriptors = Array.Empty<FieldDescriptor>();
+            if (_descriptors.Length > 0)
+            {
+                _descriptors = Array.Empty<FieldDescriptor>();
+            }
         }
     }
 }
