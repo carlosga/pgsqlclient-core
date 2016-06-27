@@ -521,7 +521,7 @@ namespace PostgreSql.Data.Frontend
 
         private void HandleErrorMessage(MessageReader message)
         {
-            byte   type     = 0;
+            byte   type     = 255;
             string value    = string.Empty;
             string severity = null;
             string emessage = null;
