@@ -221,7 +221,7 @@ namespace PostgreSql.Data.Frontend
 
                 Bind();
                 Execute(CommandBehavior.SingleRow);
-                InternalSetOutputParameters();
+                SetOutputParameters();
 
                 return _recordsAffected;
             }
@@ -385,6 +385,9 @@ namespace PostgreSql.Data.Frontend
             {
                 _connection.Lock();
 
+                // Set values of output parameters
+                SetOutputParameters();
+
                 // Close current statement
                 Close(STATEMENT);
 
@@ -464,20 +467,24 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void InternalSetOutputParameters()
+        internal void SetOutputParameters()
         {
             if (_commandType != CommandType.StoredProcedure || _parameters.Count == 0 || _rows.Count == 0)
             {
                 return;
             }
-            
-            var row   = FetchRow();
-            var index = -1;
+
+            object[] row   = null;
+            int      index = -1;
 
             for (int i = 0; i < _parameters.Count; ++i)
             {
                 if (_parameters[i].Direction != ParameterDirection.Input)
                 {
+                    if (row == null)
+                    {
+                        row = FetchRow();
+                    }
                     _parameters[i].Value = row[++index];
                 }
             }

@@ -419,9 +419,6 @@ namespace PostgreSql.Data.SqlClient
                 // This will update RecordsAffected property
                 UpdateRecordsAffected();
 
-                // Set values of output parameters
-                _statement?.InternalSetOutputParameters();
-
                 // Clear ref cursors
                 _refCursor?.Close();
                 _refCursors.Clear();
