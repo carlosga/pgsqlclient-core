@@ -9,8 +9,8 @@ build:
   before_script:
     - dotnet restore
   script:
-    - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
-    - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
+    - dotnet build -c Debug **/project.json
+    - dotnet build -c Release **/project.json
 
 test:
   stage: test
@@ -30,6 +30,6 @@ test:
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore --verbosity Error
   script:
-    - dotnet build src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
+    - dotnet build **/project.json
     - cd tests/PostgreSql.Data.SqlClient.Tests
     - dotnet test
