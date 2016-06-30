@@ -1,6 +1,6 @@
 # pgsqlclient core
 
-[pgsqlclient](https://github.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*) on linux.
+[pgsqlclient](https://gitlab.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*) on linux.
 
 # documentation
 
