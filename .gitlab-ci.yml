@@ -7,8 +7,7 @@ stages:
 build:
   stage: build
   before_script:
-    # project setup
-    - dotnet restore --verbosity Error
+    - dotnet restore
   script:
     - dotnet build -c Debug src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
     - dotnet build -c Release src/PostgreSql.Data.SqlClient tests/PostgreSql.Data.SqlClient.Tests
