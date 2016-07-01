@@ -330,7 +330,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 _statement    = null;
                 _commandIndex = 0;
-           }
+            }
         }
 
         private void InternalPrepare()

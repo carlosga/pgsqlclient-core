@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public sealed class ConnectionPoolTest
     {
-        [Fact]
+        // [Fact]
         public void ConnectionPool_Nwnd9()
         {
             var connBuilder   = new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind);

@@ -71,17 +71,18 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private static async Task ExecuteCommandWithNewConnectionAsync(string processName, string cmdText, ICollection<string> executedProcessList)
         {
-            var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind);
-
-            await conn.OpenAsync();
-            
-            var cmd = new PgCommand(cmdText, conn);
-
-            using (var reader = await cmd.ExecuteReaderAsync())
+            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
             {
-                while (await reader.ReadAsync())
+                await conn.OpenAsync();
+                
+                var cmd = new PgCommand(cmdText, conn);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    executedProcessList.Add(processName);
+                    while (await reader.ReadAsync())
+                    {
+                        executedProcessList.Add(processName);
+                    }
                 }
             }
         }

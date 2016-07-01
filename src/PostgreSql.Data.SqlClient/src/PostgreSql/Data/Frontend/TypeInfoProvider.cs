@@ -419,6 +419,8 @@ namespace PostgreSql.Data.Frontend
             return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
+        private readonly static object s_syncObject = new object();
+
         private ReadOnlyDictionary<int, TypeInfo> _types;
         private DbConnectionOptions               _connectionOptions;
         private int                               _count;
@@ -432,22 +434,22 @@ namespace PostgreSql.Data.Frontend
             _connectionOptions = connectionOptions;
         }
 
-        internal void AddRef()
+        internal int AddRef()
         {
-            Interlocked.Increment(ref _count);
+            return Interlocked.Increment(ref _count);
         }
 
-        internal void Release()
+        internal int Release()
         {
-            if (_count > 0)
+            if (Interlocked.Exchange(ref _count, 0) != 0)
             {
-                Interlocked.Decrement(ref _count);
-                if (_count == 0)
+                if (Interlocked.Decrement(ref _count) == 0)
                 {
                     _types             = null;
                     _connectionOptions = null;
                 }
             }
+            return _count;
         }
 
         internal TypeInfo GetTypeInfo(int oid)
@@ -458,7 +460,13 @@ namespace PostgreSql.Data.Frontend
             }
             if (_types == null)
             {
-                _types = DiscoverTypes(_connectionOptions);
+                lock (s_syncObject)
+                {
+                    if (_types == null)
+                    {
+                        _types = DiscoverTypes(_connectionOptions);
+                    }
+                }
             }
             if (_types.ContainsKey(oid))
             {

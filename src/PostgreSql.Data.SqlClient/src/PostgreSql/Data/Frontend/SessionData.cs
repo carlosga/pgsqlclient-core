@@ -65,16 +65,12 @@ namespace PostgreSql.Data.Frontend
         internal TimeZoneInfo        TimeZoneInfo              => _timeZoneInfo;
         internal bool                IntegerDateTimes          => _integerDateTimes;
         internal string              StandardConformingStrings => _standardConformingStrings;
+        internal TypeInfoProvider    TypeInfoProvider          => _typeInfoProvider;
 
-        internal TypeInfoProvider TypeInfoProvider
-        {
-            get { return _typeInfoProvider; }
-            set { _typeInfoProvider = value; }
-        }
-
-        internal SessionData(DbConnectionOptions connectionOptions)
+        internal SessionData(DbConnectionOptions connectionOptions, TypeInfoProvider typeInfoProvider)
         {
             _connectionOptions = connectionOptions;
+            _typeInfoProvider  = typeInfoProvider;
             _clientEncoding    = Encoding.UTF8;
         }
 

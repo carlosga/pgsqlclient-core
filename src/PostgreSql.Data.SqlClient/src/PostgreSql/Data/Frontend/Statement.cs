@@ -754,8 +754,7 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessRowDescription(MessageReader message)
         {
-            int count    = message.ReadInt16();
-            var provider = _connection.SessionData.TypeInfoProvider;
+            int count = message.ReadInt16();
 
             _rowDescriptor.Allocate(count);
 
@@ -768,12 +767,7 @@ namespace PostgreSql.Data.Frontend
                 var typeSize     = message.ReadInt16();
                 var typeModifier = message.ReadInt32();
                 var format       = message.ReadInt16();
-                var typeInfo     = (provider == null) ? TypeInfoProvider.BaseTypes[typeOid] : provider.GetTypeInfo(typeOid);
-
-                if (typeInfo == null)
-                {
-                    throw ADP.InvalidOperation($"Data type with OID='{typeOid}' has no registered binding or is not supported.");
-                }
+                var typeInfo     = _connection.SessionData.TypeInfoProvider.GetTypeInfo(typeOid);
 
                 _rowDescriptor[i] = new FieldDescriptor(name, tableOid, columnid, typeOid, typeSize, typeModifier, typeInfo);
             }

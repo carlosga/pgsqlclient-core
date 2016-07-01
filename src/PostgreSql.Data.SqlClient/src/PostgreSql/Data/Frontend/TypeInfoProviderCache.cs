@@ -1,7 +1,6 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
 
@@ -11,15 +10,14 @@ namespace PostgreSql.Data.Frontend
     {
         private static readonly ConcurrentDictionary<string, TypeInfoProvider> s_providers = new ConcurrentDictionary<string, TypeInfoProvider>();
 
-        internal static TypeInfoProvider GetOrAdd(Connection connection)
+        internal static TypeInfoProvider GetOrAdd(DbConnectionOptions options)
         {
-            string           key = connection.ConnectionOptions.InternalUrl;
             TypeInfoProvider provider;
 
-            if (!s_providers.TryGetValue(key, out provider))
+            if (!s_providers.TryGetValue(options.InternalUrl, out provider))
             {
-                provider = new TypeInfoProvider(connection.ConnectionOptions);
-                s_providers.TryAdd(key, provider);
+                provider = new TypeInfoProvider(options);
+                s_providers.TryAdd(options.InternalUrl, provider);
             }
 
             provider.AddRef();
@@ -27,17 +25,14 @@ namespace PostgreSql.Data.Frontend
             return provider;
         }
 
-        internal static void Release(Connection connection)
+        internal static void Release(DbConnectionOptions options)
         {
-            string           key = connection.ConnectionOptions.InternalUrl;
             TypeInfoProvider provider;
-            if (s_providers.TryGetValue(key, out provider))
+            if (s_providers.TryGetValue(options.InternalUrl, out provider))
             {
-                provider.Release();
-
-                if (provider.Count == 0)
+                if (provider.Release() == 0)
                 {
-                   s_providers.TryRemove(key, out provider);
+                   s_providers.TryRemove(options.InternalUrl, out provider);
                 }
             }
         }

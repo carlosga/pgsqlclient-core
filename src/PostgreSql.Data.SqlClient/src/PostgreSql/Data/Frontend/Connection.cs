@@ -30,7 +30,6 @@ namespace PostgreSql.Data.Frontend
         private int                 _processId;
         private int                 _secretKey;
         private bool                _open;
-        private TypeInfoProvider    _typeInfoProvider;
         private Transport           _transport;
         private MessageReader       _reader;
 
@@ -61,6 +60,7 @@ namespace PostgreSql.Data.Frontend
         internal SessionData         SessionData       => _sessionData;
         internal TransactionState    TransactionState  => _transactionState;
         internal DbConnectionOptions ConnectionOptions => _connectionOptions;
+        internal bool                IsOpen            => _open;
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
@@ -142,14 +142,6 @@ namespace PostgreSql.Data.Frontend
 
                 throw;
             }
-            finally
-            {
-                if (_open)
-                {
-                    _typeInfoProvider             = TypeInfoProviderCache.GetOrAdd(this);
-                    _sessionData.TypeInfoProvider = _typeInfoProvider;
-                }
-            }
         }
 
         internal void Close()
@@ -161,7 +153,7 @@ namespace PostgreSql.Data.Frontend
                 _transport.Close();
                 _reader.Clear();
 
-                TypeInfoProviderCache.Release(this);
+                TypeInfoProviderCache.Release(_connectionOptions);
             }
             catch
             {
@@ -200,7 +192,7 @@ namespace PostgreSql.Data.Frontend
                 _transport.Close();
 
                 // Release the type info provider
-                TypeInfoProviderCache.Release(this);
+                TypeInfoProviderCache.Release(_connectionOptions);
 
                 // Reset the current session data
                 _sessionData = null;
@@ -217,14 +209,6 @@ namespace PostgreSql.Data.Frontend
                 Close();
 
                 throw;
-            }
-            finally
-            {
-                if (_open)
-                {
-                    _typeInfoProvider             = TypeInfoProviderCache.GetOrAdd(this);
-                    _sessionData.TypeInfoProvider = _typeInfoProvider;
-                }
             }
         }
 
@@ -333,7 +317,7 @@ namespace PostgreSql.Data.Frontend
         {
             // Reset instance data
             _open        = false;
-            _sessionData = new SessionData(_connectionOptions);
+            _sessionData = new SessionData(_connectionOptions, TypeInfoProviderCache.GetOrAdd(_connectionOptions));
             _reader      = new MessageReader(_sessionData);
 
             // Wire up SSL callbacks
@@ -352,6 +336,9 @@ namespace PostgreSql.Data.Frontend
 
             // Send startup message
             SendStartupMessage();
+
+            // Set the connection as open
+            _open = true;
         }
 
         private void SendStartupMessage()
@@ -426,8 +413,6 @@ namespace PostgreSql.Data.Frontend
 
             // Process responses
             ReadUntilReadyForQuery();
-
-            _open = true;
         }
 
         private void ReadUntilReadyForQuery()
