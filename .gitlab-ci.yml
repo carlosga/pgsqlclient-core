@@ -6,10 +6,9 @@ stages:
 
 build:
   stage: build
-  before_script:
-    - dotnet restore
   script:
     - export DOTNET_CLI_TELEMETRY_OPTOUT=1
+    - dotnet restore
     - dotnet build -c Debug **/project.json
     - dotnet build -c Release **/project.json
 
