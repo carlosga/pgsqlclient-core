@@ -479,6 +479,20 @@ namespace PostgreSql.Data.SqlClient
             return true;
         }
 
+        private PgDataReader FindLiveReader()
+        {
+            var innerConnection = _connection?.InnerConnection as PgConnectionInternal;
+            
+            if (innerConnection?.ReferenceCollection != null)
+            {
+                var references = innerConnection.ReferenceCollection as PgReferenceCollection;
+
+                return references?.FindLiveReader(this);
+            }
+
+            return null;
+        }
+
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
         {
             if (_connection == null)
@@ -507,20 +521,6 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.CommandTextRequired(memberName);
             }
-        }
-
-        private PgDataReader FindLiveReader()
-        {
-            var innerConnection = _connection?.InnerConnection as PgConnectionInternal;
-            
-            if (innerConnection?.ReferenceCollection != null)
-            {
-                var references = innerConnection.ReferenceCollection as PgReferenceCollection;
-
-                return references?.FindLiveReader(this);
-            }
-
-            return null;
         }
     }
 }

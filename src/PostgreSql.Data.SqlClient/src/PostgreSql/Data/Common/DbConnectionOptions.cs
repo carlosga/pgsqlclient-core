@@ -272,27 +272,27 @@ namespace System.Data.Common
         {
             var builder = new PostgreSql.Data.SqlClient.PgConnectionStringBuilder();
 
-            builder.ApplicationName             = ApplicationName;
-            builder.CommandTimeout              = CommandTimeout;
-            builder.ConnectRetryCount           = ConnectRetryCount;
-            builder.ConnectRetryInterval        = ConnectRetryInterval;
-            builder.ConnectTimeout              = ConnectTimeout;
-            builder.DataSource                  = DataSource;
-            builder.DefaultTransactionReadOnly  = DefaultTransactionReadOnly;
-            builder.DefaultTablespace           = DefaultTablespace;
-            builder.Encrypt                     = Encrypt;
-            builder.InitialCatalog              = InitialCatalog;
-            builder.LoadBalanceTimeout          = LoadBalanceTimeout;
-            builder.LockTimeout                 = LockTimeout;
-            builder.PacketSize                  = PacketSize;
-            builder.Password                    = ((hidePassword) ? String.Empty : Password);
-            builder.Pooling                     = Pooling;
-            builder.PortNumber                  = PortNumber;
-            builder.MaxPoolSize                 = MaxPoolSize;
-            builder.MinPoolSize                 = MinPoolSize;
-            builder.MultipleActiveResultSets    = MultipleActiveResultSets;
-            builder.SearchPath                  = SearchPath;
-            builder.UserID                      = UserID;
+            builder.ApplicationName            = ApplicationName;
+            builder.CommandTimeout             = CommandTimeout;
+            builder.ConnectRetryCount          = ConnectRetryCount;
+            builder.ConnectRetryInterval       = ConnectRetryInterval;
+            builder.ConnectTimeout             = ConnectTimeout;
+            builder.DataSource                 = DataSource;
+            builder.DefaultTransactionReadOnly = DefaultTransactionReadOnly;
+            builder.DefaultTablespace          = DefaultTablespace;
+            builder.Encrypt                    = Encrypt;
+            builder.InitialCatalog             = InitialCatalog;
+            builder.LoadBalanceTimeout         = LoadBalanceTimeout;
+            builder.LockTimeout                = LockTimeout;
+            builder.PacketSize                 = PacketSize;
+            builder.Password                   = ((hidePassword) ? String.Empty : Password);
+            builder.Pooling                    = Pooling;
+            builder.PortNumber                 = PortNumber;
+            builder.MaxPoolSize                = MaxPoolSize;
+            builder.MinPoolSize                = MinPoolSize;
+            builder.MultipleActiveResultSets   = MultipleActiveResultSets;
+            builder.SearchPath                 = SearchPath;
+            builder.UserID                     = UserID;
 
             return builder.ToString();
         }

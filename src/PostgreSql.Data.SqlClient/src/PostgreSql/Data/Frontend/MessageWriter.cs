@@ -7,18 +7,22 @@ using System;
 using System.Data.Common;
 using System.IO;
 using System.Diagnostics;
+using PostgreSql.Data.Bindings;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed class MessageWriter
+        : ITypeWriter
     {
         private readonly byte        _messageType;
         private readonly SessionData _sessionData;
         private readonly int         _initialCapacity;
         private readonly int         _offset;
-
-        private byte[] _buffer;
-        private int    _position;
+        
+        private byte[]   _buffer;
+        private int      _position;
+        private TypeInfo _compositeTI;
+        private int      _compositeIndex;
 
         internal byte MessageType => _messageType;
         internal int  Position    => _position;
@@ -30,8 +34,8 @@ namespace PostgreSql.Data.Frontend
             _sessionData     = sessionData;
             _offset          = ((_messageType != FrontendMessages.Untyped) ? 1 : 0);
             _initialCapacity = 4 + _offset;
-            _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
             _position        = _initialCapacity;
+            _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
             if (_messageType != FrontendMessages.Untyped)
             {
                 _buffer[0] = _messageType;
@@ -439,6 +443,10 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Path:
                 WritePathInternal((PgPath)value);
                 break;
+
+            case PgDbType.Composite:
+                WriteComposite(typeInfo, value);
+                break;
             }
         }
 
@@ -542,6 +550,58 @@ namespace PostgreSql.Data.Frontend
             EnsureCapacity(sizeInBytes + 4);
             Write(sizeInBytes);
             Write(polygon);
+        }
+
+        void ITypeWriter.WriteValue<T>(T value)
+        {
+            (this as ITypeWriter).WriteValue((object)value);
+        }
+
+        void ITypeWriter.WriteValue(object value)
+        {
+            var oid      = _compositeTI.Attributes[_compositeIndex++].Oid;
+            var typeInfo = _sessionData.TypeInfoProvider.GetTypeInfo(oid);
+
+            if (typeInfo.IsComposite)
+            {
+                throw ADP.InvalidOperation("Nested composite attributes are not supported.");
+            }
+
+            Write(typeInfo.Oid);
+            Write(typeInfo, value);
+        }
+
+        private void WriteComposite(TypeInfo typeInfo, object value)
+        {
+            var pinitial = _position;
+            var provider = TypeBindingContext.GetProvider(_sessionData.ConnectionOptions.ConnectionString);
+            if (provider == null)
+            {
+                throw ADP.InvalidOperation($"No registered bindings found for the given composite parameter value type ({value.GetType()}).");
+            }
+
+            var binding = provider.GetBinding(typeInfo.Schema, typeInfo.Name);
+            if (binding == null)
+            {
+                throw ADP.InvalidOperation("No registered bindings found for the given composite parameter value  ({value.GetType()}).");
+            }
+
+            _compositeTI    = typeInfo;
+            _compositeIndex = 0;
+
+            Write(0);
+            Write(typeInfo.Attributes.Length);
+            binding.Write(this, value);
+
+            var pcurrent = _position;
+            var length   = _position - pinitial;
+
+            Seek(pinitial, SeekOrigin.Begin);
+            Write(length - 4);
+            Seek(pcurrent, SeekOrigin.Begin);
+
+            _compositeTI    = null;
+            _compositeIndex = 0;
         }
 
         /// FoundationDB client (BSD License)

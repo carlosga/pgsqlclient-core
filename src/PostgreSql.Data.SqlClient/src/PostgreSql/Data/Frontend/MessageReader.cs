@@ -487,14 +487,12 @@ namespace PostgreSql.Data.Frontend
         {
             var count    = ReadInt32();
             var provider = TypeBindingContext.GetProvider(_sessionData.ConnectionOptions.ConnectionString);
-
             if (provider == null)
             {
                 return ReadComposite(typeInfo, length, count);
             }
 
             var binding = provider.GetBinding(typeInfo.Schema, typeInfo.Name);
-
             if (binding == null)
             {
                 return ReadComposite(typeInfo, length, count);

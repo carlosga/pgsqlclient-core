@@ -7,10 +7,10 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class CompositeTypesTest
+    public partial class CompositeTypesTest
     {
         [Fact]
-        public static void ReadCompositeArrayTest()
+        public void SelectCompositeArrayTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -94,7 +94,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32,
         }
 
         [Fact]
-        public static void ReadCompositeArrayNoBindingsTest()
+        public void SelectCompositeArrayNoBindingsTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -175,7 +175,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32,
         }
 
         [Fact]
-        public static void ReadCompositeArrayWithNullElementsTest()
+        public void SelectCompositeArrayWithNullElementsTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -256,7 +256,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", NULL}', 1000);
         }
 
         [Fact]
-        public static void ReadCompositeWithBindingTest()
+        public void SelectCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -333,7 +333,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
         }
 
         [Fact]
-        public static void ReadCompositeWithoutBindingTest()
+        public void SelectCompositeWithoutBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -403,7 +403,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
             }
         }
 
-        public static void ReadCompositeWithNullValuesTest()
+        public void SelectCompositeWithNullValuesTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
             string createSql = 
@@ -480,7 +480,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', NULL, 1.99), 1000);
         }
 
         [Fact]
-        public static void ReadNestedCompositeWithBindingTest()
+        public void SelectNestedCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";
             string createSql = 
@@ -574,7 +574,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
         }
 
         [Fact]
-        public static void ReadNullNestedCompositeTest()
+        public void SelectNullNestedCompositeTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";
             string createSql = 
@@ -657,183 +657,6 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
                 provider.Clear();
                 TypeBindingContext.Clear();
             }
-        }
-    }
-
-    public sealed class InventoryItem
-    {
-        public string Name
-        {
-            get;
-            set;
-        }
-
-        public int? SupplierId
-        {
-            get;
-            set;
-        }
-
-        public decimal Price
-        {
-            get;
-            set;
-        }
-    }
-
-    public sealed class InventoryItemBinding
-        : ITypeBinding<InventoryItem>
-    {
-        public string Schema => "public";
-        public string Name   => "inventory_item";
-        public Type   Type   => typeof(InventoryItem);
-
-        public InventoryItem Read(ITypeReader r)
-        {
-            if (r == null)
-            {
-                throw new ArgumentNullException("r");
-            }
-
-            return new InventoryItem
-            {
-                Name       = r.ReadValue<string>()
-              , SupplierId = r.ReadValue<int?>()
-              , Price      = r.ReadValue<decimal>()
-            };
-        }
-
-        public void Write(ITypeWriter w, InventoryItem value)
-        {
-            throw new NotSupportedException();
-        }
-
-        object ITypeBinding.Read(ITypeReader r)
-        {
-            return Read(r);
-        }
-
-        void ITypeBinding.Write(ITypeWriter w, object value)
-        {
-            Write(w, (InventoryItem)value);
-        }
-    }
-
-    public sealed class Discount
-    {
-        public int Type
-        {
-            get;
-            set;
-        }
-
-        public decimal Percentage
-        {
-            get;
-            set;
-        }
-    }
-
-    public sealed class InventoryItemWithDiscount
-    {
-        public string Name
-        {
-            get;
-            set;
-        }
-
-        public int SupplierId
-        {
-            get;
-            set;
-        }
-
-        public decimal Price
-        {
-            get;
-            set;
-        }
-
-        public Discount Discount
-        {
-            get;
-            set;
-        }
-    }
-
-    public sealed class DiscountBinding
-        : ITypeBinding<Discount>
-    {
-        public string Schema => "public";
-        public string Name   => "discount";
-        public Type   Type   => typeof(Discount);
-
-        public Discount Read(ITypeReader r)
-        {
-            if (r == null)
-            {
-                throw new ArgumentNullException("r");
-            }
-
-            return new Discount
-            {
-                Type       = r.ReadValue<int>()
-              , Percentage = r.ReadValue<decimal>()
-            };
-        }
-
-        public void Write(ITypeWriter w, Discount value)
-        {
-            throw new NotSupportedException();
-        }
-
-        object ITypeBinding.Read(ITypeReader r)
-        {
-            return Read(r);
-        }
-
-        void ITypeBinding.Write(ITypeWriter w, object value)
-        {
-            Write(w, (Discount)value);
-        }
-    }
-
-    public sealed class InventoryItemWithDiscountBinding
-        : ITypeBinding<InventoryItemWithDiscount>
-    {
-        public string Schema => "public";
-        public string Name   => "inventory_item_with_discount";
-        public Type   Type   => typeof(InventoryItemWithDiscount);
-
-        public InventoryItemWithDiscount Read(ITypeReader r)
-        {
-            if (r == null)
-            {
-                throw new ArgumentNullException("r");
-            }
-
-            return new InventoryItemWithDiscount
-            {
-                Name       = r.ReadValue<string>()
-              , SupplierId = r.ReadValue<int>()
-              , Price      = r.ReadValue<decimal>()
-              , Discount   = r.ReadValue<Discount>()
-            };
-        }
-
-        public void Write(ITypeWriter w, InventoryItemWithDiscount value)
-        {
-            throw new NotSupportedException();
-        }
-
-        object ITypeBinding.Read(ITypeReader r)
-        {
-            return Read(r);
-        }
-
-        void ITypeBinding.Write(ITypeWriter w, object value)
-        {
-            Write(w, (InventoryItemWithDiscount)value);
         }
     }
 }
