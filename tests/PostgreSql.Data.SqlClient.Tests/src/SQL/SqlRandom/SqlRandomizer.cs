@@ -441,9 +441,10 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// generates random, but valid date value for PostgreSQL
         /// </summary>
-        public PgDate NextDate()
+        public DateTime NextDate()
         {
-            return new PgDate(NextIntInclusive(minValue: 0, maxValueInclusive: 2147483493));
+            return NextDateTime().Date;
+            // return new PgDate(NextIntInclusive(minValue: 0, maxValueInclusive: 2147483493));
         }
 
         /// <summary>

@@ -212,23 +212,19 @@ namespace PostgreSql.Data.Frontend
 
         internal void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         internal void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
-        internal void Write(PgDate value)   => Write(value.DaysSinceEpoch);
+        internal void Write(DateTime value) => Write(value.Date.Subtract(PgDate.EpochDateTime).Days);
         internal void Write(TimeSpan value) => Write((long)(value.Ticks * 0.1M));
-        internal void Write(DateTime value) => Write((long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000));
-        internal void Write(PgInterval value)
-        {
-            EnsureCapacity(8);
-
-            Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
-            Write(value.Days / 30);
-        }
-
         internal void WriteTimeTZ(DateTimeOffset value)
         {
             EnsureCapacity(12);
 
             Write(value.TimeOfDay);
             Write((int)(value.Offset.TotalSeconds));
+        }
+
+        internal void WriteTimeStamp(DateTime value)
+        {
+            Write((long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000));
         } 
 
         internal void WriteTimestampTZ(DateTimeOffset value)
@@ -237,6 +233,14 @@ namespace PostgreSql.Data.Frontend
                           + (int)value.Offset.TotalSeconds;
 
             Write(timestamp);
+        }
+
+        internal void Write(PgInterval value)
+        {
+            EnsureCapacity(8);
+
+            Write((value - TimeSpan.FromDays(value.TotalDays)).TotalSeconds);
+            Write(value.Days / 30);
         }
 
         internal void Write(PgPoint point)
@@ -381,14 +385,7 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.Date:
                 Write(typeInfo.Size);
-                if (value is PgDate)
-                {
-                    Write((PgDate)value);
-                }
-                else
-                {
-                    Write((PgDate)(DateTime)value);
-                }
+                Write((DateTime)value);
                 break;
 
             case PgDbType.Time:

@@ -52,6 +52,7 @@ namespace PostgreSql.Data.PgTypes
         private static readonly int[]  DaysInMonthOnNonLeapYear = new int[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         private static readonly int[]  DaysInMonthOnLeapYear    = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
+        internal static readonly DateTime EpochDateTime = new System.DateTime(2000, 1, 1, 0, 0, 0);
         internal static readonly string DateStyle     = "ISO";
         internal static readonly PgDate CommonEraDate = new PgDate(CommonEraDays);
 

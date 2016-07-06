@@ -10,24 +10,23 @@ namespace PostgreSql.Data.Schema
 {
     internal sealed class CompositeTypeInfoProvider
     {
-        private static readonly string SchemaQuery =
-              "SELECT "
-            + "pg_namespace.nspname "
-            + ", pg_type.oid "
-            + ", pg_type.typarray  "
-            + ", (select count(*) from pg_attribute a where a.attrelid = pg_type.typrelid) "
-            + ", pg_type.typname "
-            + ", pg_attribute.atttypid "
-            + ", pg_attribute.attname "
-            + ", pg_attribute.attnum "
-            + "FROM pg_type "
-            + "LEFT JOIN pg_namespace ON pg_namespace.oid 	= pg_type.typnamespace " 
-            + "LEFT JOIN pg_attribute ON pg_attribute.attrelid = pg_type.typrelid "
-            + "WHERE (pg_type.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_class c WHERE c.oid = pg_type.typrelid)) " 
-            + "AND NOT EXISTS(SELECT 1 FROM pg_type el WHERE el.oid = pg_type.typelem AND el.typarray = pg_type.oid) "
-            + "AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema') "
-            + "AND pg_attribute.attisdropped = false "
-            + "ORDER BY pg_type.oid, pg_attribute.attnum";
+        private static readonly string SchemaQuery = @"SELECT
+      pg_namespace.nspname
+    , pg_type.oid
+    , pg_type.typarray
+    , (select count(*) from pg_attribute a where a.attrelid = pg_type.typrelid)
+    , pg_type.typname
+    , pg_attribute.atttypid
+    , pg_attribute.attname
+    , pg_attribute.attnum
+FROM  pg_type
+LEFT  JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace 
+LEFT  JOIN pg_attribute ON pg_attribute.attrelid = pg_type.typrelid
+WHERE (pg_type.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_class c WHERE c.oid = pg_type.typrelid)) 
+  AND NOT EXISTS(SELECT 1 FROM pg_type el WHERE el.oid = pg_type.typelem AND el.typarray = pg_type.oid)
+  AND pg_namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+  AND pg_attribute.attisdropped = false
+ORDER BY pg_type.oid, pg_attribute.attnum";
 
         private readonly Connection _connection;
 

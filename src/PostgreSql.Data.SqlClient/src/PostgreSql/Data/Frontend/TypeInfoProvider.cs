@@ -89,8 +89,8 @@ namespace PostgreSql.Data.Frontend
 
             // date	| 4 bytes | date (no time of day) | 4713 BC | 5874897 AD | 1 day
 
-            types[1082] = new TypeInfo(1082, "date"  , PgDbType.Date , typeof(PgDate), typeof(PgDate), 4);
-            types[1182] = new TypeInfo(1182, "date[]", PgDbType.Array, types[1082], typeof(PgDate[]), typeof(PgDate[]));
+            types[1082] = new TypeInfo(1082, "date"  , PgDbType.Date , typeof(DateTime), typeof(PgDate), 4);
+            types[1182] = new TypeInfo(1182, "date[]", PgDbType.Array, types[1082], typeof(DateTime[]), typeof(PgDate[]));
 
             // time [ (p) ] [ without time zone ] | 8 bytes | time of day (no date) | 00:00:00 | 24:00:00 | 1 microsecond / 14 digits
 

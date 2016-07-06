@@ -1,7 +1,7 @@
 {
     "title": "postgresql data provider for .net core",
     "description": "postgresql data provider for .net core",
-    "version": "0.1.0",
+    "version": "1.0.0-Beta-1",
     "packOptions":{
         "projectUrl": "https://gitlab.com/carlosga/pgsqlclient-core",
         "licenseUrl": "https://gitlab.com/carlosga/pgsqlclient-core/blob/master/license.md",
@@ -14,7 +14,8 @@
         "languageVersion" : "csharp6",
         "platform"        : "x64",
         "compile"         : "src/**/*.cs",
-        "allowUnsafe"     : true
+        "allowUnsafe"     : true,
+        "warningsAsErrors": true
     },
     "frameworks": {
         "netstandard1.5": { 

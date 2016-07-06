@@ -116,19 +116,19 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         rdr.Read();
                         
-                        object  v = null;
-                        PgDate  d;
-                        decimal m = 0.0M;
-                        string  s = null;
-                        int     i = 0;
+                        object   v = null;
+                        DateTime d;
+                        decimal  m = 0.0M;
+                        string   s = null;
+                        int      i = 0;
 
                         // read data out of buffer
                         v = rdr.GetValue( 0); i = (int)v;
                         v = rdr.GetValue( 1); s = v is DBNull ? null : (string)v;
                         v = rdr.GetValue( 2); i = (int)v;
-                        v = rdr.GetValue( 3); d = (PgDate)v;
-                        v = rdr.GetValue( 4); d = (PgDate)v;
-                        v = rdr.GetValue( 5); d = (PgDate)v;
+                        v = rdr.GetValue( 3); d = (DateTime)v;
+                        v = rdr.GetValue( 4); d = (DateTime)v;
+                        v = rdr.GetValue( 5); d = (DateTime)v;
                         v = rdr.GetValue( 6); i = (int)v;
                         v = rdr.GetValue( 7); m = (decimal)v;
                         v = rdr.GetValue( 8); s = v is DBNull ? null : (string)v;
@@ -204,9 +204,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                     rdr.GetFieldValue<int>(0);          // order id
                     rdr.GetFieldValue<string>(1);       // customer id
                     rdr.GetFieldValue<int>(2);          // employee id
-                    rdr.GetFieldValue<PgDate>(3);       // OrderDate
-                    rdr.GetFieldValue<PgDate>(4);       // RequiredDate
-                    rdr.GetFieldValue<PgDate>(5);       // ShippedDate;
+                    rdr.GetFieldValue<DateTime>(3);     // OrderDate
+                    rdr.GetFieldValue<DateTime>(4);     // RequiredDate
+                    rdr.GetFieldValue<DateTime>(5);     // ShippedDate;
                     rdr.GetFieldValue<int>(6);          // ShipVia;
                     rdr.GetFieldValue<decimal>(7);      // Freight;
                     rdr.GetFieldValue<string>(8);       // ShipName;
@@ -229,9 +229,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                     rdr.GetFieldValueAsync<int>(0).Wait();          // order id
                     rdr.GetFieldValueAsync<string>(1).Wait();       // customer id
                     rdr.GetFieldValueAsync<int>(2).Wait();          // employee id
-                    rdr.GetFieldValueAsync<PgDate>(3).Wait();       // OrderDate
-                    rdr.GetFieldValueAsync<PgDate>(4).Wait();       // RequiredDate
-                    rdr.GetFieldValueAsync<PgDate>(5).Wait();       // ShippedDate;
+                    rdr.GetFieldValueAsync<DateTime>(3).Wait();     // OrderDate
+                    rdr.GetFieldValueAsync<DateTime>(4).Wait();     // RequiredDate
+                    rdr.GetFieldValueAsync<DateTime>(5).Wait();     // ShippedDate;
                     rdr.GetFieldValueAsync<int>(6).Wait();          // ShipVia;
                     rdr.GetFieldValueAsync<decimal>(7).Wait();      // Freight;
                     rdr.GetFieldValueAsync<string>(8).Wait();       // ShipName;

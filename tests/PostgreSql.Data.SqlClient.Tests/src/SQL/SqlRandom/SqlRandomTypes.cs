@@ -552,12 +552,12 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
         {
-            return ReadDate(reader, ordinal, asType);
+            return ReadDateTime(reader, ordinal, asType);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
         {
-            return CompareValues<PgDate>(expected, actual);
+            return CompareValues<DateTime>(expected, actual);
         }
     }
 
