@@ -35,6 +35,7 @@ namespace PostgreSql.Data.SqlClient
       , TimeTZ
       , Timestamp
       , TimestampTZ
+      , Uuid
       , VarChar
       , Vector
       , Void

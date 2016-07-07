@@ -259,6 +259,11 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal Guid ReadUuid()
+        {
+            return new Guid(ReadBytes(16));
+        }
+
         internal object ReadValue(TypeInfo typeInfo)
         {
             return ReadValue(typeInfo, ReadInt32());
@@ -364,6 +369,9 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.Composite:
                 return ReadComposite(typeInfo, length);
+
+            case PgDbType.Uuid:
+                return ReadUuid();
 
             default:
                 return ReadBytes(length);

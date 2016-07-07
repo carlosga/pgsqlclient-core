@@ -1030,4 +1030,44 @@ namespace PostgreSql.Data.SqlClient.Tests
             return CompareValues<PgPolygon>(expected, actual);
         }
     }
+
+    internal sealed class SqlUuidTypeInfo
+        : SqlRandomTypeInfo
+    {
+        public SqlUuidTypeInfo()
+            : base(PgDbType.Uuid)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
+        {
+            return 16;
+        }
+
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
+        {
+            return "uuid";
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            // this method does not use Guid.NewGuid since it is not based on the given rand object
+            return rand.NextUniqueIdentifier();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(Guid), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetGuid(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<Guid>(expected, actual);
+        }
+    }
 }

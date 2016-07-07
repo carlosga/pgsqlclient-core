@@ -265,6 +265,12 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetFloat(i);
         }
 
+        public override Guid GetGuid(int i)
+        {
+            CheckPosition();
+            return _row.GetGuid(i);
+        }
+
         public override short GetInt16(int i)
         {
             CheckPosition();
@@ -321,11 +327,6 @@ namespace PostgreSql.Data.SqlClient
         public PgPoint2D   GetPgPoint2D(int i)   => GetFieldValue<PgPoint2D>(i);
         public PgPoint3D   GetPgPoint3D(int i)   => GetFieldValue<PgPoint3D>(i);
         public PgPolygon   GetPgPolygon(int i)   => GetFieldValue<PgPolygon>(i);
-
-        public override Guid GetGuid(int i)
-        {
-            throw new NotSupportedException("Guid datatype is not supported");
-        }
 
         public override string GetDataTypeName(int i)
         {

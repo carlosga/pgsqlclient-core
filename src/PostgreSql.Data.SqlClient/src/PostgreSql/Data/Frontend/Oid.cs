@@ -76,5 +76,7 @@ namespace PostgreSql.Data.Frontend
       internal static readonly int Unknown          = 705;
       internal static readonly int Void             = 2278;
       internal static readonly int NodeTree         = 194;
+      internal static readonly int Uuid             = 2950;
+      internal static readonly int UuidArray        = 2951;
     };
 };

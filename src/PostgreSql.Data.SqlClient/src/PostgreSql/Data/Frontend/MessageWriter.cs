@@ -304,6 +304,12 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal void WriteUuid(Guid uuid)
+        {
+            EnsureCapacity(16);
+            Write(uuid.ToByteArray());
+        }
+
         internal void Write(TypeInfo typeInfo, object value)
         {
             if (ADP.IsNull(value))
@@ -443,6 +449,11 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.Composite:
                 WriteComposite(typeInfo, value);
+                break;
+
+            case PgDbType.Uuid:
+                Write(typeInfo.Size);
+                WriteUuid((Guid)value);
                 break;
             }
         }

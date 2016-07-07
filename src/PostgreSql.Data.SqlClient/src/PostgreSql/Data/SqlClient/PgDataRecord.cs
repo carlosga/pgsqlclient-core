@@ -31,11 +31,6 @@ namespace PostgreSql.Data.SqlClient
             return _record.GetChars(i, dataIndex, buffer, bufferIndex, length);
         }
 
-        public override Guid GetGuid(int i) 
-        {
-            throw new NotSupportedException("Guid datatype is not supported");
-        }
-
         public override bool     GetBoolean(int i)          => _record.GetBoolean(i);
         public override byte     GetByte(int i)             => _record.GetByte(i);
         public override char     GetChar(int i)             => _record.GetChar(i);
@@ -45,6 +40,7 @@ namespace PostgreSql.Data.SqlClient
         public override double   GetDouble(int i)           => _record.GetDouble(i);
         public override Type     GetFieldType(int i)        => _record.GetFieldType(i);
         public override float    GetFloat(int i)            => _record.GetFloat(i);
+        public override Guid     GetGuid(int i)             => _record.GetGuid(i);
         public override short    GetInt16(int i)            => _record.GetInt16(i);
         public override int      GetInt32(int i)            => _record.GetInt32(i);
         public override long     GetInt64(int i)            => _record.GetInt64(i);

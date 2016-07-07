@@ -235,6 +235,12 @@ namespace PostgreSql.Data.Frontend
             types[2205] = new TypeInfo(2205, "regclass" , PgDbType.VarChar, typeof(string), typeof(string[]));
 
             //
+            // Uuid
+            // 
+            types[2950] = new TypeInfo(2950, "uuid", PgDbType.Uuid, typeof(Guid), typeof(Guid), 16);
+            types[2951] = new TypeInfo(2951, "uuid[]", PgDbType.Array, types[2950], typeof(Guid[]), typeof(Guid[]));
+
+            //
             // PSEUDO-TYPES
             //
 
@@ -302,6 +308,9 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.TimestampTZ:
                     return DbType.DateTimeOffset;
 
+                case PgDbType.Uuid:
+                    return DbType.Guid;
+
                 default:
                     throw new NotSupportedException("Invalid data type specified.");
             }
@@ -364,7 +373,9 @@ namespace PostgreSql.Data.Frontend
                 case DbType.Object:
                     return PgDbType.Composite;
 
-                // case DbType.Guid:
+                case DbType.Guid:
+                    return PgDbType.Uuid;
+
                 // case DbType.VarNumeric:
                 // case DbType.SByte:
                 // case DbType.UInt16:

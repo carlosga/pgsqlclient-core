@@ -63,6 +63,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             new SqlLSegTypeInfo(),
             new SqlPathTypeInfo(),
 
+            // Uuid
+            new SqlUuidTypeInfo(),
+
             // Array types
             new SqlSmallIntArrayTypeInfo()
         };
