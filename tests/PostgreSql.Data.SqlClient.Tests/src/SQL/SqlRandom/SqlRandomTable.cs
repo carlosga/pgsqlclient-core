@@ -321,12 +321,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private bool SkipOnInsert(int c)
         {
-            if (_columns[c].Type == PgDbType.Timestamp)
-            {
-                // cannot insert timestamp
-                return true;
-            }
-
             if (IsColumnSet(c))
             {
                 // skip column set, using sparse columns themselves
@@ -451,7 +445,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 
                 if (SkipOnInsert(ci))
                 {
-                    // cannot insert timestamp
                     // insert of values into columnset columns are also not supported (use sparse columns themselves)
                     continue;
                 }
@@ -493,7 +486,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 valuesText.Append(p.ParameterName);
             }
 
-            Debug.Assert(columnsText.Length > 0, "Table that have only TIMESTAMP, ColumnSet or Sparse columns are not allowed - use primary key in this case");
+            Debug.Assert(columnsText.Length > 0, "Table that have only ColumnSet or Sparse columns are not allowed - use primary key in this case");
 
             cmd.CommandText = string.Format("INSERT INTO {0} ( {1} ) VALUES ( {2} )", tableName, columnsText, valuesText);
 
@@ -613,7 +606,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                                                            , bool                        createIdColumn)
         {
             var    retColumns          = new List<SqlRandomTableColumn>(maxColumnsCount);
-            bool   hasTimestamp        = false;
             double totalRowSize        = 0;
             int    totalRegularColumns = 0;
 
@@ -732,33 +724,18 @@ namespace PostgreSql.Data.SqlClient.Tests
                 //     ti = sourceCollection[PgDbType.Xml];
                 //     options |= SqlRandomColumnOptions.ColumnSet;
                 // }
-                // else
+                else
                 {
                     // regular column
                     ti = sourceCollection.Next(rand);
-
-                    if (ti.Type == PgDbType.Timestamp)
-                    {
-                        // while table can contain single timestamp column only, there is no way to insert values into it. 
-                        // thus, do not allow this
-                        if (hasTimestamp || maxColumnsCount == 1)
-                        {
-                            ti = sourceCollection[PgDbType.Integer];
-                        }
-                        else
-                        {
-                            // table cannot have two timestamp columns
-                            hasTimestamp = true;
-                        }
-                    }
                 }
 
                 SqlRandomTableColumn col = ti.CreateRandomColumn(rand, options);
 
                 if (!isSparse)
                 {
-                    double rowSize = ti.GetInRowSize(col, DBNull.Value);
-                    int overhead = GetRowOverhead(retColumns.Count + 1); // +1 for this column
+                    double rowSize  = ti.GetInRowSize(col, DBNull.Value);
+                    int    overhead = GetRowOverhead(retColumns.Count + 1); // +1 for this column
 
                     if (totalRowSize + rowSize + overhead > maxRowSize)
                     {

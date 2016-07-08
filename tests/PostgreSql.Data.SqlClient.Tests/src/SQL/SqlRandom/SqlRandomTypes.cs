@@ -43,13 +43,16 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlBooleanTypeInfo
         : SqlRandomTypeInfo
     {
+        private const string TypeSqlName = "bool";
+        private const double StorageSize = 0.125; // 8 bits => 1 byte
+
         public SqlBooleanTypeInfo()
             : base(PgDbType.Boolean)
         {
         }
 
-        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => 0.125; // 8 bits => 1 byte
-        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => "bool";
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)         => StorageSize;
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo) => TypeSqlName;
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
         {
@@ -354,8 +357,8 @@ namespace PostgreSql.Data.SqlClient.Tests
     internal sealed class SqlDecimalTypeInfo
         : SqlRandomTypeInfo
     {
-        private const string TypeSqlName = "numeric";
-        private int _defaultPrecision    = 18;
+        private const string TypeSqlName      = "numeric";
+        private const int    DefaultPrecision = 18;
 
         public SqlDecimalTypeInfo()
             : base(PgDbType.Numeric)
@@ -364,7 +367,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
         {
-            int precision = columnInfo.Precision.HasValue ? columnInfo.Precision.Value : _defaultPrecision;
+            int precision = columnInfo.Precision.HasValue ? columnInfo.Precision.Value : DefaultPrecision;
             if (precision < 1 || precision > 38)
             {
                 throw new ArgumentOutOfRangeException("wrong precision");
@@ -902,7 +905,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 return DBNull.Value;
             }
-            return reader.GetPgBox(ordinal);
+            return reader.GetPgLine(ordinal);
         }
 
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)

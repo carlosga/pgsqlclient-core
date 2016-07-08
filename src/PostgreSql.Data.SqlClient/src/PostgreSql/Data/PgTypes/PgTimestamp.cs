@@ -21,7 +21,7 @@ namespace PostgreSql.Data.PgTypes
 
         internal static readonly long MicrosecondsBetweenEpoch = 10957 * MicrosecondsPerDay;
 
-        internal static readonly DateTime EpochDateTime = new DateTime(2000, 01, 01, 0, 0, 0, DateTimeKind.Utc);
+        internal static readonly DateTime EpochDateTime = new DateTime(2000, 01, 01, 0, 0, 0);
 
         private readonly bool     _isNotNull;
         private readonly DateTime _value;

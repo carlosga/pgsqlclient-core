@@ -4,12 +4,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using PostgreSql.Data.PgTypes;
-using Xunit;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-
 namespace PostgreSql.Data.SqlClient.Tests
 {
     // public static class PgTypeTest

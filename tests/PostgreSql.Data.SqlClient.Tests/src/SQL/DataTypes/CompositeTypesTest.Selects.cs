@@ -3,7 +3,6 @@
 
 using Xunit;
 using PostgreSql.Data.Bindings;
-using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {

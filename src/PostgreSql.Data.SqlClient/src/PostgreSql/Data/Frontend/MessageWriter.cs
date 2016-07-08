@@ -401,7 +401,7 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.Timestamp:
                 Write(typeInfo.Size);
-                Write((DateTime)value);
+                WriteTimeStamp((DateTime)value);
                 break;
 
             case PgDbType.TimeTZ:

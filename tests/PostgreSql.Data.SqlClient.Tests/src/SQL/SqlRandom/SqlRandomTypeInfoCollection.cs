@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             // date/time types
             new SqlDateTypeInfo(),
             new SqlTimeTypeInfo(),
-            // new SqlTimestampTypeInfo(),
+            new SqlTimestampTypeInfo(),
             // new SqlTimeTzTypeInfo(),
             // new SqlTimestampTzTypeInfo(),
             // new SqlIntervalTypeInfo(),
@@ -141,7 +141,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             for (int i = 0; i < types.Length; i++)
             {
-                Add(types[i]);   
+                Add(types[i]);
             }
         }
 
