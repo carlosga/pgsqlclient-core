@@ -24,6 +24,7 @@ namespace PostgreSql.Data.SqlClient
       , IPAddress
       , Line
       , LSeg
+      , MacAddress
       , Money
       , Numeric
       , Path

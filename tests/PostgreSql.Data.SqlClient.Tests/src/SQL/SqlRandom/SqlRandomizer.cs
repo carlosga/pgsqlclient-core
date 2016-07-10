@@ -9,6 +9,7 @@ using System.Collections;
 using System.Diagnostics;
 using System;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -405,6 +406,11 @@ namespace PostgreSql.Data.SqlClient.Tests
         public IPAddress NextIPAddress()
         {
             return new IPAddress(NextByteArray(4, 4));
+        }
+
+        public PhysicalAddress NextMacAddress()
+        {
+            return new PhysicalAddress(NextByteArray(6, 6));
         }
 
         #endregion

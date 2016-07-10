@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -222,7 +223,7 @@ namespace PostgreSql.Data.Frontend
 
             // macaddr | 6 bytes | MAC addresses
 
-            types[829] = new TypeInfo(829, "macaddr", PgDbType.VarChar, typeof(string), typeof(string), 6);
+            types[829] = new TypeInfo(829, "macaddr", PgDbType.MacAddress, typeof(PhysicalAddress), typeof(PhysicalAddress), 6);
 
             //
             // OBJECT IDENTIFIER TYPES

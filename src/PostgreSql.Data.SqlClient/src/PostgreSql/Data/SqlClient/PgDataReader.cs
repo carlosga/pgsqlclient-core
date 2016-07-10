@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -296,16 +297,22 @@ namespace PostgreSql.Data.SqlClient
             return _row.GetInt64(i);
         }
 
-        public TimeSpan GetTimeSpan(int i)
+        public PhysicalAddress GetMacAddress(int i)
         {
             CheckPosition();
-            return _row.GetTimeSpan(i);
+            return _row.GetMacAddress(i);
         }
 
         public override string GetString(int i)
         {
             CheckPosition();
             return _row.GetString(i);
+        }
+
+        public TimeSpan GetTimeSpan(int i)
+        {
+            CheckPosition();
+            return _row.GetTimeSpan(i);
         }
 
         public PgBinary    GetPgBinary(int i)    => GetFieldValue<PgBinary>(i);

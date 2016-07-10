@@ -7,6 +7,7 @@
 using PostgreSql.Data.PgTypes;
 using System;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -1111,6 +1112,45 @@ namespace PostgreSql.Data.SqlClient.Tests
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
         {
             return CompareValues<IPAddress>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlMacAddressTypeInfo
+        : SqlRandomTypeInfo
+    {
+        public SqlMacAddressTypeInfo()
+            : base(PgDbType.MacAddress)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
+        {
+            return 6;
+        }
+
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
+        {
+            return "macaddr";
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextMacAddress();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(PhysicalAddress), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetMacAddress(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<PhysicalAddress>(expected, actual);
         }
     }
 }

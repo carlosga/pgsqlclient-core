@@ -218,6 +218,9 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.IPAddress:
                 return ReadIPAddress();
 
+            case PgDbType.MacAddress:
+                return ReadMacAddress();
+
             case PgDbType.Array:
                 return ReadArray(typeInfo, length);
 

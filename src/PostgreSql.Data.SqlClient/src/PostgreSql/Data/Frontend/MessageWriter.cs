@@ -9,6 +9,7 @@ using System.IO;
 using System.Diagnostics;
 using PostgreSql.Data.Bindings;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -234,6 +235,11 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.IPAddress:
                 Write((IPAddress)value);
+                break;
+
+            case PgDbType.MacAddress:
+                Write(typeInfo.Size);
+                Write((PhysicalAddress)value);
                 break;
 
             case PgDbType.Point:

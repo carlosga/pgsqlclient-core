@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
 namespace PostgreSql.Data.Frontend
@@ -24,6 +25,11 @@ namespace PostgreSql.Data.Frontend
             WriteByte(0);                        // is_cidr
             WriteByte((byte)bytes.Length);       // address length
             Write(bytes);                        // address in network byte order
+        }
+
+        private void Write(PhysicalAddress value)
+        {
+            Write(value.GetAddressBytes());
         }
     }
 }

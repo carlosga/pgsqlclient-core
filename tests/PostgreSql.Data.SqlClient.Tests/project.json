@@ -13,6 +13,7 @@
             "version": "1.0.0"
         },
         "System.Collections.NonGeneric": "4.0.1",
+        "System.Net.NetworkInformation": "4.1.0",
         "System.Xml.XmlDocument": "4.0.1",
         "xunit": "2.1.0",
         "dotnet-test-xunit": "1.0.0-*",
