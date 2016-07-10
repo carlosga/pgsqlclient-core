@@ -6,6 +6,7 @@
 
 using PostgreSql.Data.PgTypes;
 using System;
+using System.Net;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -1071,6 +1072,45 @@ namespace PostgreSql.Data.SqlClient.Tests
         protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
         {
             return CompareValues<Guid>(expected, actual);
+        }
+    }
+
+    internal sealed class SqlIPAddressTypeInfo
+        : SqlRandomTypeInfo
+    {
+        public SqlIPAddressTypeInfo()
+            : base(PgDbType.IPAddress)
+        {
+        }
+
+        protected override double GetInRowSizeInternal(SqlRandomTableColumn columnInfo)
+        {
+            return 16;
+        }
+
+        protected override string GetSqlTypeDefinitionInternal(SqlRandomTableColumn columnInfo)
+        {
+            return "inet";
+        }
+
+        protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
+        {
+            return rand.NextIPAddress();
+        }
+
+        protected override object ReadInternal(PgDataReader reader, int ordinal, SqlRandomTableColumn columnInfo, Type asType)
+        {
+            ValidateReadType(typeof(IPAddress), asType);
+            if (reader.IsDBNull(ordinal))
+            {
+                return DBNull.Value;
+            }
+            return reader.GetIPAddress(ordinal);
+        }
+
+        protected override bool CompareValuesInternal(SqlRandomTableColumn columnInfo, object expected, object actual)
+        {
+            return CompareValues<IPAddress>(expected, actual);
         }
     }
 }

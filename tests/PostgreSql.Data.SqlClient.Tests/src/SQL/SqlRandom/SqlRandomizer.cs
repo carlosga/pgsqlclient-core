@@ -8,6 +8,7 @@ using PostgreSql.Data.PgTypes;
 using System.Collections;
 using System.Diagnostics;
 using System;
+using System.Net;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -384,6 +385,10 @@ namespace PostgreSql.Data.SqlClient.Tests
             return NextByteArray(8, 8);
         }
 
+        #endregion
+
+        #region · Guid values ·
+
         /// <summary>
         /// returns a random GUID to be used as unique identifier in SQL. Note that this method is deterministic for fixed seed random instances
         /// (it does NOT use Guid.NewGuid).
@@ -391,6 +396,15 @@ namespace PostgreSql.Data.SqlClient.Tests
         public Guid NextUniqueIdentifier()
         {
             return new Guid(NextByteArray(16, 16));
+        }
+
+        #endregion
+
+        #region · Network values ·
+
+        public IPAddress NextIPAddress()
+        {
+            return new IPAddress(NextByteArray(4, 4));
         }
 
         #endregion

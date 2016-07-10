@@ -159,7 +159,6 @@ namespace PostgreSql.Data.Frontend
         {
             _reader.Read(_buffer, 0, 1);
             return _buffer[0];
-            // return (byte)_reader.ReadByte();
         }
 
         internal unsafe int ReadInt32()

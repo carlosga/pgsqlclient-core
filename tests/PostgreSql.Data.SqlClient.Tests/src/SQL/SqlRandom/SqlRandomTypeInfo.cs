@@ -323,7 +323,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         /// <summary>
         /// helper method to compare two non-array values.
         /// </summary>
-        protected bool CompareValues<T>(object expected, object actual) where T : struct
+        protected bool CompareValues<T>(object expected, object actual) /*where T : struct*/
         {
             bool bothDbNull;
             if (!CompareDbNullAndType(typeof(T), expected, actual, out bothDbNull) || bothDbNull)

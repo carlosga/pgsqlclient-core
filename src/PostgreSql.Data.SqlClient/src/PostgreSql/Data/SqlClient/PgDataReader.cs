@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.Net;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -269,6 +270,12 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckPosition();
             return _row.GetGuid(i);
+        }
+
+        public IPAddress GetIPAddress(int i)
+        {
+            CheckPosition();
+            return _row.GetIPAddress(i);
         }
 
         public override short GetInt16(int i)

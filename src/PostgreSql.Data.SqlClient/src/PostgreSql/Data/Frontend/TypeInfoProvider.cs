@@ -11,6 +11,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading;
+using System.Net;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -166,22 +167,22 @@ namespace PostgreSql.Data.Frontend
 
             // point | 16 bytes | Point on a plane (x,y)
 
-            types[ 600] = new TypeInfo( 600, "point"  , PgDbType.Point, types[701], typeof(PgPoint), typeof(PgPoint), 16);
+            types[ 600] = new TypeInfo( 600, "point"  , PgDbType.Point, typeof(PgPoint), typeof(PgPoint), 16);
             types[1017] = new TypeInfo(1017, "point[]", PgDbType.Array, types[600], typeof(PgPoint[]), typeof(PgPoint[]));
 
             // line	| 32 bytes | Infinite line {A,B,C}
 
-            types[628] = new TypeInfo(628, "line"  , PgDbType.Line , types[701], typeof(PgLine), typeof(PgLine), 32);
+            types[628] = new TypeInfo(628, "line"  , PgDbType.Line , typeof(PgLine), typeof(PgLine), 32);
             types[629] = new TypeInfo(629, "line[]", PgDbType.Array, types[628], typeof(PgLine[]), typeof(PgLine[]));
 
             // lseg	| 32 bytes | Finite line segment | ((x1,y1),(x2,y2))
 
-            types[ 601] = new TypeInfo( 601, "lseg"  , PgDbType.LSeg , types[600], typeof(PgLSeg), typeof(PgLSeg), 32);
+            types[ 601] = new TypeInfo( 601, "lseg"  , PgDbType.LSeg , typeof(PgLSeg), typeof(PgLSeg), 32);
             types[1018] = new TypeInfo(1018, "lseg[]", PgDbType.Array, types[601], typeof(PgLSeg[]), typeof(PgLSeg[]));
 
             // box | 32 bytes | Rectangular box | ((x1,y1),(x2,y2))
 
-            types[ 603] = new TypeInfo( 603, "box"  , PgDbType.Box  , types[600], typeof(PgBox), typeof(PgBox), 32);
+            types[ 603] = new TypeInfo( 603, "box"  , PgDbType.Box  , typeof(PgBox), typeof(PgBox), 32);
             types[1020] = new TypeInfo(1020, "box[]", PgDbType.Array, types[603], typeof(PgBox[]), typeof(PgBox[]));
 
             // path | 16+16n bytes | Closed path (similar to polygon) |	((x1,y1),...)
@@ -213,7 +214,11 @@ namespace PostgreSql.Data.Frontend
 
             // inet	| 7 or 19 bytes	| IPv4 and IPv6 hosts and networks
 
-            types[869] = new TypeInfo(869, "inet", PgDbType.VarChar, typeof(string), typeof(string));
+            types[869] = new TypeInfo(869, "inet", PgDbType.IPAddress, typeof(IPAddress), typeof(IPAddress));
+
+            // cidr	| 7 or 19 bytes	| IPv4 and IPv6 hosts and networks
+
+            // types[650] = new TypeInfo(650, "cidr", PgDbType.IPAddress, typeof(IPAddress), typeof(IPAddress));
 
             // macaddr | 6 bytes | MAC addresses
 
@@ -310,6 +315,9 @@ namespace PostgreSql.Data.Frontend
 
                 case PgDbType.Uuid:
                     return DbType.Guid;
+
+                case PgDbType.IPAddress:
+                    return DbType.Object;
 
                 default:
                     throw new NotSupportedException("Invalid data type specified.");

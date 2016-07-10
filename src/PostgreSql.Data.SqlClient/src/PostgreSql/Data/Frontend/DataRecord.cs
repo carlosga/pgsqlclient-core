@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using System;
 using System.Data.Common;
+using System.Net;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -169,17 +170,19 @@ namespace PostgreSql.Data.Frontend
         internal bool           GetBoolean(int i)        => GetFieldValue<bool>(i);
         internal byte           GetByte(int i)           => GetFieldValue<byte>(i);
         internal char           GetChar(int i)           => GetFieldValue<char>(i);
+        internal DateTime       GetDateTime(int i)       => GetFieldValue<DateTime>(i);
         internal DateTimeOffset GetDateTimeOffset(int i) => GetFieldValue<DateTimeOffset>(i);
-        internal TimeSpan       GetTimeSpan(int i)       => GetFieldValue<TimeSpan>(i);
         internal decimal        GetDecimal(int i)        => GetFieldValue<decimal>(i);
         internal double         GetDouble(int i)         => GetFieldValue<double>(i);
         internal float          GetFloat(int i)          => GetFieldValue<float>(i);
         internal Guid           GetGuid(int i)           => GetFieldValue<Guid>(i);
+        internal IPAddress      GetIPAddress(int i)      => GetFieldValue<IPAddress>(i);
         internal short          GetInt16(int i)          => GetFieldValue<short>(i);
         internal int            GetInt32(int i)          => GetFieldValue<int>(i);
         internal long           GetInt64(int i)          => GetFieldValue<long>(i);
         internal string         GetString(int i)         => GetFieldValue<string>(i);
-        internal DateTime       GetDateTime(int i)       => GetFieldValue<DateTime>(i);
+        internal TimeSpan       GetTimeSpan(int i)       => GetFieldValue<TimeSpan>(i);
+
         internal PgBinary       GetPgBinary(int i)       => GetFieldValue<PgBinary>(i);
         internal PgBit          GetPgBit(int i)          => GetFieldValue<PgBit>(i);
         internal PgBoolean      GetPgBoolean(int i)      => GetFieldValue<PgBoolean>(i);
@@ -206,6 +209,7 @@ namespace PostgreSql.Data.Frontend
         internal PgPoint2D      GetPgPoint2D(int i)      => GetFieldValue<PgPoint2D>(i);
         internal PgPoint3D      GetPgPoint3D(int i)      => GetFieldValue<PgPoint3D>(i);
         internal PgPolygon      GetPgPolygon(int i)      => GetFieldValue<PgPolygon>(i);
+
         internal object         GetValue(string name)    => GetValue(GetOrdinal(name));
 
         internal object GetValue(int i)

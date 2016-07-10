@@ -21,6 +21,7 @@ namespace PostgreSql.Data.SqlClient
       , Double
       , Integer
       , Interval
+      , IPAddress
       , Line
       , LSeg
       , Money

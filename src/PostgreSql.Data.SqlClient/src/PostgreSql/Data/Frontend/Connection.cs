@@ -279,7 +279,7 @@ namespace PostgreSql.Data.Frontend
             switch (_reader.MessageType)
             {
             case BackendMessages.ReadyForQuery:
-                UpdateTransactionState(_reader.ReadChar());
+                _transactionState = (TransactionState)_reader.ReadByte();
                 break;
 
             case BackendMessages.NotificationResponse:
@@ -594,25 +594,6 @@ namespace PostgreSql.Data.Frontend
             var additional = message.ReadNullString();
 
             Notification?.Invoke(processId, condition, additional);
-        }
-
-        private void UpdateTransactionState(char state)
-        {
-            switch (state)
-            {
-            case 'T':
-                _transactionState = TransactionState.Active;
-                break;
-
-            case 'E':
-                _transactionState = TransactionState.Broken;
-                break;
-
-            case 'I':
-            default:
-                _transactionState = TransactionState.Default;
-                break;
-            }
         }
 
         private void HandleParameterStatus(MessageReader message)
