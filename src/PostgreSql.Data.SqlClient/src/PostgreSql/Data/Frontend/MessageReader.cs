@@ -216,7 +216,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadUuid();
 
             case PgDbType.IPAddress:
-                return ReadIPAddress(length);
+                return ReadIPAddress();
 
             case PgDbType.Array:
                 return ReadArray(typeInfo, length);
