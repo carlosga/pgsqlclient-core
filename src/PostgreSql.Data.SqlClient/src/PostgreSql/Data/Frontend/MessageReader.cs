@@ -5,7 +5,6 @@ using PostgreSql.Data.Bindings;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Diagnostics;
-using System.Net;
 
 namespace PostgreSql.Data.Frontend
 {
