@@ -15,8 +15,10 @@
 | Double        | PgDouble      | Double           | Double              |
 | Integer       | PgInteger     | Int32            | Int32               |
 | Interval      | PgInterval    |                  |                     |
+| IPAddress     |               |                  | IPAddress           |
 | Line          | PgLine        |                  |                     |
 | LSeg          | PgLSeg        |                  |                     |
+| MacAddress    |               |                  | PhysicalAddress     |
 | Money         | PgMoney       | Currency         |                     |
 | Numeric       | PgNumeric     | Decimal          | Decimal             |
 | Path          | PgPath        |                  |                     |
