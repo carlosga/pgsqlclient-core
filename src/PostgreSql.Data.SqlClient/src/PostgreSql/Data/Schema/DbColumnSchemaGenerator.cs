@@ -26,8 +26,8 @@ LEFT JOIN pg_class      ON pg_attribute.attrelid  = pg_class.oid
 LEFT JOIN pg_namespace  ON pg_class.relnamespace  = pg_namespace.oid
 LEFT JOIN pg_attrdef    ON (pg_class.oid          = pg_attrdef.adrelid AND pg_attribute.attnum = pg_attrdef.adnum)
 LEFT JOIN pg_depend     ON (pg_attribute.attrelid = pg_depend.refobjid AND pg_attribute.attnum = pg_depend.refobjsubid AND pg_depend.deptype = 'i')
-WHERE pg_attribute.attrelid     = $1
-  AND pg_attribute.attnum       = $2
+WHERE pg_attribute.attrelid     = @TableOid
+  AND pg_attribute.attnum       = @ColumnId
   AND pg_attribute.attisdropped = false";
 
         private readonly Connection    _connection;
@@ -47,8 +47,8 @@ WHERE pg_attribute.attrelid     = $1
             {
                 command.Parameters = new PgParameterCollection();
 
-                command.Parameters.Add(new PgParameter("@TableOid", PgDbType.Integer));
-                command.Parameters.Add(new PgParameter("@ColumnId", PgDbType.Integer));
+                var tableOidParam = command.Parameters.Add(new PgParameter("@TableOid", PgDbType.Integer));
+                var columnIdParam = command.Parameters.Add(new PgParameter("@ColumnId", PgDbType.SmallInt));
 
                 command.Prepare();
 
@@ -58,8 +58,8 @@ WHERE pg_attribute.attrelid     = $1
 
                     if (!_descriptor[i].IsExpression)
                     {
-                        command.Parameters[0].Value = _descriptor[i].TableOid;
-                        command.Parameters[1].Value = _descriptor[i].ColumnId;
+                        tableOidParam.Value = _descriptor[i].TableOid;
+                        columnIdParam.Value = _descriptor[i].ColumnId;
 
                         command.ExecuteReader(CommandBehavior.SingleRow);
 

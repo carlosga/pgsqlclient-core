@@ -1204,6 +1204,37 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
+        [Fact]
+        public static void GetColumnSchema()
+        {
+            string[] expectedColNames =
+            {
+                "orderid", "customerid", "employeeid" , "orderdate", "requireddate", "shippeddate"   , "shipvia",
+                "freight", "shipname"  , "shipaddress", "shipcity" , "shipregion"  , "shippostalcode", "shipcountry"
+            };
+            string[] expectedColTypeNames =
+            {
+                "integer", "bpchar" , "integer", "date"    , "date"    , "date"    , "integer",
+                "numeric", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
+            };
+
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            {
+                conn.Open();
+                using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
+                using (PgDataReader reader = cmd.ExecuteReader())
+                {
+                    var schema = reader.GetColumnSchema();
+
+                    for (int i = 0; i < schema.Count; i++)
+                    {
+                        DataTestClass.AssertEqualsWithDescription(expectedColNames[i]    , schema[i].ColumnName  , "FAILED: Received incorrect column name in GetColumnSchema.");
+                        DataTestClass.AssertEqualsWithDescription(expectedColTypeNames[i], schema[i].DataTypeName, "FAILED: Received incorrect column type name in GetColumnSchema.");
+                    }
+                }
+            }
+        }
+
         private static void SeqAccessFailureWrapper<TException>(Action action, CommandBehavior behavior) where TException : Exception
         {
             if (behavior == CommandBehavior.SequentialAccess)
@@ -1216,7 +1247,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        internal static void VerifySchema(PgDataReader reader)
+        private static void VerifySchema(PgDataReader reader)
         {
             string[] expectedColNames =
             {
@@ -1245,7 +1276,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             return (v1.Equals(v2));
         }
 
-        internal static void VerifyData(PgDataReader reader, object[] buffer)
+        private static void VerifyData(PgDataReader reader, object[] buffer)
         {
             object value = null;
 
