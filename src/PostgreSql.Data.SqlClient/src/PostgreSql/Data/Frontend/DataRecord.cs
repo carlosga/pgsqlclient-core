@@ -22,11 +22,6 @@ namespace PostgreSql.Data.Frontend
         {
         }
 
-        internal DataRecord(RowDescriptor descriptor)
-        {
-            _descriptor = descriptor;
-        }
-
         internal DataRecord(RowDescriptor descriptor, object[] values)
         {
             _descriptor = descriptor;
@@ -184,36 +179,7 @@ namespace PostgreSql.Data.Frontend
         internal PhysicalAddress GetMacAddress(int i)     => GetFieldValue<PhysicalAddress>(i); 
         internal string          GetString(int i)         => GetFieldValue<string>(i);
         internal TimeSpan        GetTimeSpan(int i)       => GetFieldValue<TimeSpan>(i);
-
-        /// Provider types
-
-        internal PgBinary    GetPgBinary(int i)       => GetFieldValue<PgBinary>(i);
-        internal PgBit       GetPgBit(int i)          => GetFieldValue<PgBit>(i);
-        internal PgBoolean   GetPgBoolean(int i)      => GetFieldValue<PgBoolean>(i);
-        internal PgBox       GetPgBox(int i)          => GetFieldValue<PgBox>(i);
-        internal PgBox2D     GetPgBox2D(int i)        => GetFieldValue<PgBox2D>(i);
-        internal PgBox3D     GetPgBox3D(int i)        => GetFieldValue<PgBox3D>(i);
-        internal PgByte      GetPgByte(int i)         => GetFieldValue<PgByte>(i);
-        internal PgCircle    GetPgCircle(int i)       => GetFieldValue<PgCircle>(i);
-        internal PgDate      GetPgDate(int i)         => GetFieldValue<PgDate>(i);
-        internal PgTime      GetPgTime(int i)         => GetFieldValue<PgTime>(i);
-        internal PgTimestamp GetPgTimestamp(int i)    => GetFieldValue<PgTimestamp>(i);
-        internal PgInterval  GetPgInterval(int i)     => GetFieldValue<PgInterval>(i);
-        internal PgNumeric   GetPgNumeric(int i)      => GetFieldValue<PgNumeric>(i);
-        internal PgMoney     GetPgMoney(int i)        => GetFieldValue<PgMoney>(i);
-        internal PgReal      GetPgReal(int i)         => GetFieldValue<PgReal>(i);
-        internal PgDouble    GetPgDouble(int i)       => GetFieldValue<PgDouble>(i);
-        internal PgInt16     GetPgInt16(int i)        => GetFieldValue<PgInt16>(i);
-        internal PgInt32     GetPgInt32(int i)        => GetFieldValue<PgInt32>(i);
-        internal PgInt64     GetPgInt64(int i)        => GetFieldValue<PgInt64>(i);
-        internal PgLine      GetPgLine(int i)         => GetFieldValue<PgLine>(i);
-        internal PgLSeg      GetPgLSeg(int i)         => GetFieldValue<PgLSeg>(i);
-        internal PgPath      GetPgPath(int i)         => GetFieldValue<PgPath>(i);
-        internal PgPoint     GetPgPoint(int i)        => GetFieldValue<PgPoint>(i);
-        internal PgPoint2D   GetPgPoint2D(int i)      => GetFieldValue<PgPoint2D>(i);
-        internal PgPoint3D   GetPgPoint3D(int i)      => GetFieldValue<PgPoint3D>(i);
-        internal PgPolygon   GetPgPolygon(int i)      => GetFieldValue<PgPolygon>(i);
-        internal object      GetValue(string name)    => GetValue(GetOrdinal(name));
+        internal object          GetValue(string name)    => GetValue(GetOrdinal(name));
 
         internal object GetValue(int i)
         {

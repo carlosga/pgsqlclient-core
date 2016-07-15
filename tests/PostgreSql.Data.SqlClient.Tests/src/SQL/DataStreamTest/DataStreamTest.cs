@@ -1222,14 +1222,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 conn.Open();
                 using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
-                using (PgDataReader reader = cmd.ExecuteReader())
                 {
-                    var schema = reader.GetColumnSchema();
-
-                    for (int i = 0; i < schema.Count; i++)
+                    using (PgDataReader reader = cmd.ExecuteReader())
                     {
-                        DataTestClass.AssertEqualsWithDescription(expectedColNames[i]    , schema[i].ColumnName  , "FAILED: Received incorrect column name in GetColumnSchema.");
-                        DataTestClass.AssertEqualsWithDescription(expectedColTypeNames[i], schema[i].DataTypeName, "FAILED: Received incorrect column type name in GetColumnSchema.");
+                        var schema = reader.GetColumnSchema();
+
+                        for (int i = 0; i < schema.Count; i++)
+                        {
+                            DataTestClass.AssertEqualsWithDescription(expectedColNames[i]    , schema[i].ColumnName  , "FAILED: Received incorrect column name in GetColumnSchema.");
+                            DataTestClass.AssertEqualsWithDescription(expectedColTypeNames[i], schema[i].DataTypeName, "FAILED: Received incorrect column type name in GetColumnSchema.");
+                        }
                     }
                 }
             }

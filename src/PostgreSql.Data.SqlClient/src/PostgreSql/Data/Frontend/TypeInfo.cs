@@ -105,7 +105,7 @@ namespace PostgreSql.Data.Frontend
             _oid         = oid;
             _name        = name;
             _pgDbType    = PgDbType.Composite;
-            _size        = 0;
+            _size        = -1;
             _attributes  = attributes;
             _systemType  = systemType;
             _pgType      = systemType;
@@ -124,7 +124,7 @@ namespace PostgreSql.Data.Frontend
             _elementType = elementType;
             _systemType  = typeof(object);
             _pgType      = typeof(object);
-            _size        = 0;
+            _size        = -1;
             _isComposite = true;
         }
 

@@ -60,7 +60,6 @@ namespace PostgreSql.Data.Frontend
         internal SessionData         SessionData       => _sessionData;
         internal TransactionState    TransactionState  => _transactionState;
         internal DbConnectionOptions ConnectionOptions => _connectionOptions;
-        internal bool                IsOpen            => _open;
 
         private SemaphoreSlim _activeSemaphore;
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()

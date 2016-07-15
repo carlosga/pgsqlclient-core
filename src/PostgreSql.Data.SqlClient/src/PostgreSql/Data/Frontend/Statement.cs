@@ -44,7 +44,6 @@ namespace PostgreSql.Data.Frontend
         internal string         Tag             => _tag;
         internal int            RecordsAffected => _recordsAffected;
         internal RowDescriptor  RowDescriptor   => _rowDescriptor;
-        internal StatementState State           => _state;
 
         internal bool IsPrepared  => _state == StatementState.Prepared || IsExecuting || IsSuspended;
         internal bool IsExecuting => _state == StatementState.Executing;

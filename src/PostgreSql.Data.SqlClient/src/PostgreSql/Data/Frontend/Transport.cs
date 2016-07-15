@@ -197,11 +197,6 @@ namespace PostgreSql.Data.Frontend
             return total;
         }
 
-        internal void WriteByte(byte value)
-        {
-            _writer.WriteByte(value);
-        }
-
         internal unsafe void WriteInt32(int value)
         {
             fixed (byte* pbuffer = _buffer)

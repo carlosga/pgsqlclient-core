@@ -132,6 +132,11 @@ namespace PostgreSql.Data.Frontend
                 return;
             }
 
+            if (typeInfo.Size != -1)
+            {
+                Write(typeInfo.Size);
+            }
+
             switch (typeInfo.PgDbType)
             {
             case PgDbType.Void:
@@ -148,13 +153,11 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.Boolean:
-                Write(typeInfo.Size);
                 Write((bool)value);
                 break;
 
             case PgDbType.Bit:
             case PgDbType.Byte:
-                Write(typeInfo.Size);
                 WriteByte((byte)value);
                 break;
 
@@ -165,17 +168,14 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.SmallInt:
-                Write(typeInfo.Size);
                 Write((short)value);
                 break;
 
             case PgDbType.Integer:
-                Write(typeInfo.Size);
                 Write((int)value);
                 break;
 
             case PgDbType.BigInt:
-                Write(typeInfo.Size);
                 Write((long)value);
                 break;
 
@@ -184,52 +184,42 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.Real:
-                Write(typeInfo.Size);
                 Write((float)value);
                 break;
 
             case PgDbType.Double:
-                Write(typeInfo.Size);
                 Write((double)value);
                 break;
 
             case PgDbType.Money:
-                Write(typeInfo.Size);
                 Write((long)((decimal)value * 100));
                 break;
 
             case PgDbType.Interval:
-                Write(typeInfo.Size);
                 Write((PgInterval)value);
                 break;
 
             case PgDbType.Date:
-                Write(typeInfo.Size);
                 Write((DateTime)value);
                 break;
 
             case PgDbType.Time:
-                Write(typeInfo.Size);
                 Write((TimeSpan)value);
                 break;
 
             case PgDbType.Timestamp:
-                Write(typeInfo.Size);
                 WriteTimeStamp((DateTime)value);
                 break;
 
             case PgDbType.TimeTZ:
-                Write(typeInfo.Size);
                 WriteTimeTZ((DateTimeOffset)value);
                 break;
 
             case PgDbType.TimestampTZ:
-                Write(typeInfo.Size);
                 WriteTimestampTZ((DateTimeOffset)value);
                 break;
 
             case PgDbType.Uuid:
-                Write(typeInfo.Size);
                 Write((Guid)value);
                 break;
 
@@ -238,32 +228,26 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.MacAddress:
-                Write(typeInfo.Size);
                 Write((PhysicalAddress)value);
                 break;
 
             case PgDbType.Point:
-                Write(typeInfo.Size);
                 Write((PgPoint)value);
                 break;
 
             case PgDbType.Circle:
-                Write(typeInfo.Size);
                 Write((PgCircle)value);
                 break;
 
             case PgDbType.Line:
-                Write(typeInfo.Size);
                 Write((PgLine)value);
                 break;
 
             case PgDbType.LSeg:
-                Write(typeInfo.Size);
                 Write((PgLSeg)value);
                 break;
 
             case PgDbType.Box:
-                Write(typeInfo.Size);
                 Write((PgBox)value);
                 break;
 

@@ -46,42 +46,5 @@ namespace PostgreSql.Data.Frontend
                 return md5.ToString();
             }
         }
-
-        // internal static string EncryptPassword(byte[] salt, string userId, string password)
-        // {
-        //     using (IncrementalHash incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.MD5))
-        //     {
-        //         if (!string.IsNullOrEmpty(password))
-        //         {
-        //             incrementalHash.AppendData(Encoding.UTF8.GetBytes(password));
-        //         }
-
-        //         incrementalHash.AppendData(Encoding.UTF8.GetBytes(userId));
-
-        //         // Get first hash
-        //         var hash1 = incrementalHash.GetHashAndReset();
-        //         var md5   = new StringBuilder(hash1.Length * 2); 
-
-        //         for (int i = 0; i < hash1.Length; ++i)
-        //         {
-        //             md5.Append(hash1[i].ToString("x2"));
-        //         }
-
-        //         incrementalHash.AppendData(Encoding.UTF8.GetBytes(md5.ToString()));
-        //         incrementalHash.AppendData(salt);
-
-        //         // Get final hash
-        //         var hash = incrementalHash.GetHashAndReset();
-
-        //         md5.Clear();
-
-        //         for (int i = 0; i < hash.Length; ++i)
-        //         {
-        //             md5.Append(hash[i].ToString("x2"));
-        //         }
-
-        //         return Prefix + md5.ToString();
-        //     }
-        // }
     }
 }

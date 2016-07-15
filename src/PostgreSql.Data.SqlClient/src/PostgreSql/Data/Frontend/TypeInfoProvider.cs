@@ -189,12 +189,12 @@ namespace PostgreSql.Data.Frontend
             // path | 16+16n bytes | Closed path (similar to polygon) |	((x1,y1),...)
             // path | 16+16n bytes | Open path                        | [(x1,y1),...]
 
-            types[ 602] = new TypeInfo( 602, "path"  , PgDbType.Path , typeof(PgPath), typeof(PgPath), 16);
+            types[ 602] = new TypeInfo( 602, "path"  , PgDbType.Path , typeof(PgPath), typeof(PgPath));
             types[1019] = new TypeInfo(1019, "path[]", PgDbType.Array, types[602], typeof(PgPath[]), typeof(PgPath[]));
 
             // polygon | 40+16n bytes | Polygon (similar to closed path) | ((x1,y1),...)
 
-            types[ 604] = new TypeInfo( 604, "polygon"  , PgDbType.Polygon, typeof(PgPolygon), typeof(PgPolygon), 40);
+            types[ 604] = new TypeInfo( 604, "polygon"  , PgDbType.Polygon, typeof(PgPolygon), typeof(PgPolygon));
             types[1027] = new TypeInfo(1027, "polygon[]", PgDbType.Array  , types[604], typeof(PgPolygon[]), typeof(PgPolygon[]));
 
             // circle | 24 bytes | Circle | <(x,y),r> (center point and radius)
@@ -251,7 +251,7 @@ namespace PostgreSql.Data.Frontend
             //
 
             types[ 705] = new TypeInfo( 705, "unknown", PgDbType.Text, typeof(string), typeof(string));
-            types[2278] = new TypeInfo(2278, "void"   , PgDbType.Void, typeof(void), typeof(void), 0);
+            types[2278] = new TypeInfo(2278, "void"   , PgDbType.Void, typeof(void), typeof(void));
 
             //
             // INTERNAL TYPES
