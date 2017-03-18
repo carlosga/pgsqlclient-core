@@ -6,20 +6,6 @@
     "editor.renderWhitespace": true,
     "editor.trimAutoWhitespace": true,
     "files.eol": "\n",
-    "json.schemas": [
-        {
-            "fileMatch": [
-                "/global.json"
-            ],
-            "url": "http://json.schemastore.org/global"
-        },
-        {
-            "fileMatch": [
-                "/project.json"
-            ],
-            "url": "http://json.schemastore.org/project"
-        }
-    ],
     "files.exclude": {
         "**/.git": true,
         "**/.DS_Store": true,

@@ -7,9 +7,15 @@ stages:
 build:
   stage: build
   script:
-    - dotnet restore --verbosity Error
-    - dotnet build -c Debug **/project.json
-    - dotnet build -c Release **/project.json
+    - cd src/PostgreSql.Data.SqlClient
+    - dotnet restore --verbosity:q
+    - dotnet build -c Debug
+    - dotnet build -c Release
+    - cd .. && cd ..
+    - cd tests/PostgreSql.Data.SqlClient.Tests
+    - dotnet restore --verbosity:q
+    - dotnet build -c Debug
+    - dotnet build -c Release
 
 test:
   stage: test
@@ -27,8 +33,8 @@ test:
     - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
     # project setup
     - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
-    - dotnet restore --verbosity Error
   script:
-    - dotnet build **/project.json
     - cd tests/PostgreSql.Data.SqlClient.Tests
+    - dotnet restore --verbosity:q
+    - dotnet build
     - dotnet test
