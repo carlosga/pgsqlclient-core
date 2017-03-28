@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>postgresql data provider for .net core - unit tests</Description>
-    <PackageTags>postgresql;postgres;adonet;netcore;netstandard2</PackageTags>
+    <PackageTags>postgresql;postgres;adonet;netcore;netstandard15</PackageTags>
     <PackageProjectUrl>https://gitlab.com/carlosga/pgsqlclient-core</PackageProjectUrl>
     <PackageLicenseUrl>https://gitlab.com/carlosga/pgsqlclient-core/blob/master/license.md</PackageLicenseUrl>
   </PropertyGroup>
@@ -20,8 +20,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RuntimeFrameworkVersion>2.0.0-beta-001776-00</RuntimeFrameworkVersion>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
     <RuntimeIdentifier>ubuntu.16.04-x64</RuntimeIdentifier>
   </PropertyGroup>
 
@@ -32,13 +31,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PostgreSql.Data.SqlClient/PostgreSql.Data.SqlClient.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
     <PackageReference Include="xunit" Version="2.2.0-*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0-*" />
+
+    <PackageReference Include="System.Collections.NonGeneric" Version="4.3.0-*" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0-*" />
+    <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0-*" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0-*" />
+
+    <ProjectReference Include="../../src/PostgreSql.Data.SqlClient/PostgreSql.Data.SqlClient.csproj" />
   </ItemGroup>
 
 </Project>

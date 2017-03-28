@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/tests/PostgreSql.Data.SqlClient.Tests/bin/Debug/netcoreapp2.0/PostgreSql.Data.SqlClient.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceRoot}/tests/PostgreSql.Data.SqlClient.Tests",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}
