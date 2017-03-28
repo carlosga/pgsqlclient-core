@@ -28,10 +28,10 @@ test:
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - postgres createuser $POSTGRES_USER
-    - createdb -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_NORTHWIND_DB
+    - createdb -w -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_NORTHWIND_DB
     - psql -q -h "postgres" -U $POSTGRES_USER -d $POSTGRES_NORTHWIND_DB -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
     # pubs
-    - createdb -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_PUBS_DB
+    - createdb -w -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_PUBS_DB
     - psql -q -h "postgres" -U $POSTGRES_USER -d $POSTGRES_PUBS_DB -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
   script:
     - cd tests/PostgreSql.Data.SqlClient.Tests
