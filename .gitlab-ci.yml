@@ -13,6 +13,7 @@ build:
     - dotnet build -c Release
     - cd .. && cd ..
     - cd tests/PostgreSql.Data.SqlClient.Tests
+    - mv ConnectionString.ci.xml ConnectionString.xml
     - dotnet restore --verbosity:q
     - dotnet build -c Debug
     - dotnet build -c Release
@@ -31,10 +32,9 @@ test:
     # pubs
     - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
     - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
-    # project setup
-    - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
   script:
     - cd tests/PostgreSql.Data.SqlClient.Tests
+    - mv ConnectionString.ci.xml ConnectionString.xml
     - dotnet restore --verbosity:q
     - dotnet build
     - dotnet test

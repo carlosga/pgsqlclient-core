@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="xunit.runner.json;MultipleResultsTest.bsl">
+    <Content Include="xunit.runner.json;ConnectionString.xml;MultipleResultsTest.bsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
