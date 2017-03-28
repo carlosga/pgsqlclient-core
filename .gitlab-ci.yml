@@ -27,7 +27,7 @@ test:
     - apt-get install postgresql-client -y -qq
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
-    - postgres createuser $POSTGRES_PASSWORD
+    - postgres createuser $POSTGRES_USER
     - createdb -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_NORTHWIND_DB
     - psql -q -h "postgres" -U $POSTGRES_USER -d $POSTGRES_NORTHWIND_DB -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
     # pubs
