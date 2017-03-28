@@ -1,3 +1,5 @@
+[![build status](https://gitlab.com/carlosga/pgsqlclient-core/badges/master/build.svg)](https://gitlab.com/carlosga/pgsqlclient-core/commits/master)
+
 # pgsqlclient core
 
 [pgsqlclient](https://gitlab.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*) on linux.
