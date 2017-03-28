@@ -27,11 +27,11 @@ test:
     - apt-get install postgresql-client -y -qq
     # northwind
     - export PGPASSWORD=$POSTGRES_PASSWORD
-    - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_NORTHWIND_DB
-    - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_NORTHWIND_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
+    - createdb -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_NORTHWIND_DB
+    - psql -q -h "postgres" -U $POSTGRES_USER -d $POSTGRES_NORTHWIND_DB -f tests/PostgreSql.Data.SqlClient.Tests/Resources/northwind.sql
     # pubs
-    - createdb -h "postgres" -U "$POSTGRES_USER" -O "$POSTGRES_USER" $POSTGRES_PUBS_DB
-    - psql -q -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_PUBS_DB" -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
+    - createdb -h "postgres" -U $POSTGRES_USER -O $POSTGRES_USER $POSTGRES_PUBS_DB
+    - psql -q -h "postgres" -U $POSTGRES_USER -d $POSTGRES_PUBS_DB -f tests/PostgreSql.Data.SqlClient.Tests/Resources/pubs.sql
   script:
     - cd tests/PostgreSql.Data.SqlClient.Tests
     - mv ConnectionString.ci.xml ConnectionString.xml
