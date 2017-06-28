@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -45,7 +46,7 @@ namespace PostgreSql.Data.Frontend
 
         internal Transport()
         {
-            _buffer = new byte[4];
+            _buffer = ArrayPool<byte>.Shared.Rent(4);
         }
 
         #region IDisposable Support
@@ -62,17 +63,12 @@ namespace PostgreSql.Data.Frontend
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-                _buffer     = null;
                 _packetSize = 0;
                 _disposed   = true;
+
+                ArrayPool<byte>.Shared.Return(_buffer, true);
             }
         }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgNetworkStream() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()

@@ -44,8 +44,8 @@ namespace PostgreSql.Data.Frontend
         {
             if (_descriptors.Length > 0)
             {
-                _descriptors = Array.Empty<FieldDescriptor>();
-            }
+                Allocate(0);
+            }            
         }
     }
 }

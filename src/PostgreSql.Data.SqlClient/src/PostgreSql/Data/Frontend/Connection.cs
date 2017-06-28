@@ -171,7 +171,6 @@ namespace PostgreSql.Data.Frontend
                 _open                   = false;
                 _activeSemaphore        = null;
                 _cancelRequestSemaphore = null;
-                
 
                 // Callback cleanup
                 ReleaseCallbacks();

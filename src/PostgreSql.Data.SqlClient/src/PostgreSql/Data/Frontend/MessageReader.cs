@@ -5,6 +5,7 @@ using PostgreSql.Data.Bindings;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Diagnostics;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -34,18 +35,19 @@ namespace PostgreSql.Data.Frontend
         {
             _sessionData = sessionData;
             _capacity    = sessionData.ConnectionOptions.PacketSize;
-            _buffer      = new byte[_capacity];
+            _buffer      = ArrayPool<byte>.Shared.Rent(_capacity);
         }
 
         internal void Clear()
         {
             _messageType    = 0;
-            _buffer         = null;
             _position       = 0;
             _length         = 0;
             _capacity       = 0;
             _pendingMessage = 0;
             _sessionData    = null;
+
+            ArrayPool<byte>.Shared.Return(_buffer, true);
         }
 
         internal byte[] ReadBytes(int count)
@@ -89,7 +91,8 @@ namespace PostgreSql.Data.Frontend
 
                 if (_buffer.Length > (_capacity * 2))
                 {
-                    Array.Resize<byte>(ref _buffer, _capacity);
+                    PooledBuffer.Resize(ref _buffer, _capacity);
+                    // Array.Resize<byte>(ref _buffer, _capacity);
                 }
             }
             else
@@ -137,7 +140,7 @@ namespace PostgreSql.Data.Frontend
                 return ReadBytes(length);
 
             case PgDbType.Char:
-                return ReadString(length).TrimEnd(null);
+                return ReadString(length).TrimEnd();
 
             case PgDbType.VarChar:
             case PgDbType.Text:

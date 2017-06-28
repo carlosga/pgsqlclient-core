@@ -10,6 +10,7 @@ using System.Diagnostics;
 using PostgreSql.Data.Bindings;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -35,7 +36,7 @@ namespace PostgreSql.Data.Frontend
             _offset          = ((_messageType != FrontendMessages.Untyped) ? 1 : 0);
             _initialCapacity = 4 + _offset;
             _position        = _initialCapacity;
-            _buffer          = new byte[_initialCapacity]; // First 4/5 bytes are for the packet length
+            _buffer          = ArrayPool<byte>.Shared.Rent(_initialCapacity); // First 4/5 bytes are for the packet length
             if (_messageType != FrontendMessages.Untyped)
             {
                 _buffer[0] = _messageType;
@@ -46,11 +47,12 @@ namespace PostgreSql.Data.Frontend
         {
             if (_position != _initialCapacity)
             {
-                Array.Resize<byte>(ref _buffer, _initialCapacity);
-                if (_initialCapacity > 4)
-                {
-                    Array.Clear(_buffer, 1, 4);
-                }
+                PooledBuffer.Resize(ref _buffer, _initialCapacity);
+                // Array.Resize<byte>(ref _buffer, _initialCapacity);
+                // if (_initialCapacity > 4)
+                // {
+                //     Array.Clear(_buffer, 1, 4);
+                // }
                 _position = _initialCapacity;
             }
         }
@@ -314,7 +316,8 @@ namespace PostgreSql.Data.Frontend
                 // round up to 16 bytes, to reduce fragmentation
                 int size = Align((int)newSize);
 
-                Array.Resize(ref _buffer, size);
+                PooledBuffer.Resize(ref _buffer, size);
+                // Array.Resize(ref _buffer, size);
             }
 
             Debug.Assert(_buffer != null && _buffer.Length >= offset);
