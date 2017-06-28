@@ -92,6 +92,7 @@ namespace PostgreSql.Data.Frontend
                 if (_buffer.Length > (_capacity * 2))
                 {
                     PooledBuffer.Resize(ref _buffer, _capacity);
+                    Debug.Assert(_buffer.Length == _capacity);
                     // Array.Resize<byte>(ref _buffer, _capacity);
                 }
             }
@@ -107,13 +108,13 @@ namespace PostgreSql.Data.Frontend
 
                 do
                 {
-                    _length        += transport.ReadFrame(ref _buffer, _length);
+                    _length        += transport.ReadFrame(ref _buffer, _length, true);
                     _pendingMessage = transport.ReadByte();
                 } while (_pendingMessage == _messageType);
             }
             else
             {
-                _length = transport.ReadFrame(ref _buffer);
+                _length = transport.ReadFrame(ref _buffer, pooledFrame: true);
             }
         }
 

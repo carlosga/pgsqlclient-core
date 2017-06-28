@@ -25,19 +25,19 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public void TimeoutCancel()
         {
-            TimeoutCancel(s_constr);
+            InternalTimeoutCancel(s_constr);
         }
 
         [Fact]
         public void CancelAndDisposePreparedCommand()
         {
-            CancelAndDisposePreparedCommand(s_constr);
+            InternalCancelAndDisposePreparedCommand(s_constr);
         }
 
         [Fact(Skip="disabled")]
         public void TimeOutDuringRead()
         {
-            TimeOutDuringRead(s_constr);
+            InternalTimeOutDuringRead(s_constr);
         }
 
         public void MultiThreadedCancel(string constr, bool async)
@@ -62,7 +62,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        private void TimeoutCancel(string constr)
+        private void InternalTimeoutCancel(string constr)
         {
             using (var con = new PgConnection(constr + ";Command Timeout=1"))
             {
@@ -80,7 +80,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public static void CancelAndDisposePreparedCommand(string constr)
+        public static void InternalCancelAndDisposePreparedCommand(string constr)
         {
             int expectedValue = 1;
             using (var connection = new PgConnection(constr))
@@ -155,7 +155,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             stateTuple.Item2.Cancel();
         }
 
-        public void TimeOutDuringRead(string constr)
+        public void InternalTimeOutDuringRead(string constr)
         {
             // Create the proxy
             ProxyServer proxy = ProxyServer.CreateAndStartProxy(constr, out constr);

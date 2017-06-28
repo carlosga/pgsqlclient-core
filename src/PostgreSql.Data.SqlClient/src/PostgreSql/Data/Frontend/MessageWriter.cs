@@ -47,12 +47,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (_position != _initialCapacity)
             {
-                PooledBuffer.Resize(ref _buffer, _initialCapacity);
-                // Array.Resize<byte>(ref _buffer, _initialCapacity);
-                // if (_initialCapacity > 4)
-                // {
-                //     Array.Clear(_buffer, 1, 4);
-                // }
+                PooledBuffer.Reset(ref _buffer, _initialCapacity);
                 _position = _initialCapacity;
             }
         }
@@ -313,33 +308,11 @@ namespace PostgreSql.Data.Frontend
                     throw new OutOfMemoryException();
                 }
 
-                // round up to 16 bytes, to reduce fragmentation
-                int size = Align((int)newSize);
-
-                PooledBuffer.Resize(ref _buffer, size);
+                PooledBuffer.ResizeAligned(ref _buffer, (int)newSize);
                 // Array.Resize(ref _buffer, size);
             }
 
             Debug.Assert(_buffer != null && _buffer.Length >= offset);
-        }
-
-        /// FoundationDB client (BSD License)
-        private static int Align(int size)
-        {
-            const int ALIGNMENT = 16; // MUST BE A POWER OF TWO!
-            const int MASK      = (-ALIGNMENT) & int.MaxValue;
-
-            if (size <= ALIGNMENT)
-            {
-                if (size < 0)
-                {
-                    throw new ArgumentOutOfRangeException("size", "Size cannot be negative");
-                }
-                return ALIGNMENT;
-            }
-
-            // force an exception if we overflow above 2GB
-            checked { return (size + (ALIGNMENT - 1)) & MASK; }
         }
 
         private int Seek(int offset, SeekOrigin origin = SeekOrigin.Begin)

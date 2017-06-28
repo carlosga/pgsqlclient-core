@@ -170,14 +170,21 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal int ReadFrame(ref byte[] frame, int offset = 0)
+        internal int ReadFrame(ref byte[] frame, int offset = 0, bool pooledFrame = false)
         {
             int count = ReadInt32();
             int read  = 0;
             int total = 0;
             if ((offset + count) > frame.Length)
             {
-                Array.Resize<byte>(ref frame, (offset + count) * 2);
+                if (pooledFrame)
+                {
+                    PooledBuffer.Resize(ref frame, (offset + count) * 2);
+                }
+                else
+                {
+                    Array.Resize<byte>(ref frame, (offset + count) * 2);
+                }
             }
             do
             {

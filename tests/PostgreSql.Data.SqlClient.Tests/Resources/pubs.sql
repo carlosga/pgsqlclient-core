@@ -49,7 +49,7 @@ CREATE TABLE stores(
 	zip char(5) NULL,
     CONSTRAINT UPK_storeid PRIMARY KEY (stor_id));
     
-ALTER TABLE public.stores OWNER TO pgsqlclient;
+ALTER TABLE public.stores OWNER TO postgres;
 
 CREATE TABLE jobs(
 	job_id serial NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE jobs(
 	max_lvl smallint NOT NULL,
     CONSTRAINT UPKJobs_job_id PRIMARY KEY (job_id));
 
-ALTER TABLE public.jobs OWNER TO pgsqlclient;
+ALTER TABLE public.jobs OWNER TO postgres;
     
 SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('jobs', 'job_id'), 1, false);
 
@@ -70,7 +70,7 @@ CREATE TABLE publishers(
 	country character varying(30) NULL,
     CONSTRAINT UPKCL_pubind PRIMARY KEY (pub_id));
 
-ALTER TABLE public.publishers OWNER TO pgsqlclient;    
+ALTER TABLE public.publishers OWNER TO postgres;    
     
 CREATE TABLE pub_info(
 	pub_id char(4) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE pub_info(
 	pr_info text NULL,
     CONSTRAINT UPKCL_pubinfo PRIMARY KEY (pub_id));
     
-ALTER TABLE public.pub_info OWNER TO pgsqlclient;
+ALTER TABLE public.pub_info OWNER TO postgres;
 
 CREATE TABLE titles(
 	title_id tid NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE titles(
 	pubdate timestamp NOT NULL,
     CONSTRAINT UPKCL_titleidind PRIMARY KEY (title_id));
     
-ALTER TABLE public.titles OWNER TO pgsqlclient;    
+ALTER TABLE public.titles OWNER TO postgres;    
 
 CREATE TABLE employee(
 	emp_id empid NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE employee(
 	hire_date timestamp NOT NULL,
     CONSTRAINT PK_emp_id PRIMARY KEY (emp_id));
 
-ALTER TABLE public.employee OWNER TO pgsqlclient;        
+ALTER TABLE public.employee OWNER TO postgres;        
     
 CREATE TABLE authors(
 	au_id id NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE authors(
 	contract boolean NOT NULL,
     CONSTRAINT UPKCL_auidind PRIMARY KEY (au_id));
     
-ALTER TABLE public.authors OWNER TO pgsqlclient;            
+ALTER TABLE public.authors OWNER TO postgres;            
 
 CREATE TABLE discounts(
 	discounttype character varying(40) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE discounts(
 	discount decimal(4, 2) NOT NULL
 );
 
-ALTER TABLE public.discounts OWNER TO pgsqlclient;            
+ALTER TABLE public.discounts OWNER TO postgres;            
 
 CREATE TABLE sales(
 	stor_id char(4) NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE sales(
 	title_id tid NOT NULL,
     CONSTRAINT UPKCL_sales PRIMARY KEY (stor_id,ord_num,title_id));
 
-ALTER TABLE public.sales OWNER TO pgsqlclient;
+ALTER TABLE public.sales OWNER TO postgres;
     
 CREATE TABLE roysched(
 	title_id tid NOT NULL,
@@ -150,7 +150,7 @@ CREATE TABLE roysched(
 	royalty integer NULL
 );
 
-ALTER TABLE public.roysched OWNER TO pgsqlclient;
+ALTER TABLE public.roysched OWNER TO postgres;
 
 CREATE TABLE titleauthor(
 	au_id id NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE titleauthor(
 	royaltyper integer NULL,
     CONSTRAINT UPKCL_taind PRIMARY KEY (au_id, title_id));
 
-ALTER TABLE public.titleauthor OWNER TO pgsqlclient;
+ALTER TABLE public.titleauthor OWNER TO postgres;
     
 --
 -- DATA
@@ -1825,4 +1825,4 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
-GRANT ALL ON SCHEMA public TO pgsqlclient;
+GRANT ALL ON SCHEMA public TO postgres;
