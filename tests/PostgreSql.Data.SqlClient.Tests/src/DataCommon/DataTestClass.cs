@@ -106,9 +106,9 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public static string PostgreSql9_Northwind { get { return GetConnectionString("PostgreSql9_Northwind"); } }
-        public static string PostgreSql9_Pubs      { get { return GetConnectionString("PostgreSql9_Pubs"); } }
-
+        public static string PostgreSql_Northwind => GetConnectionString("PostgreSql9_Northwind");
+        public static string PostgreSql_Pubs      => GetConnectionString("PostgreSql9_Pubs");
+        
         // the name length will be no more then (16 + prefix.Length + escapeLeft.Length + escapeRight.Length)
         // some providers does not support names (Oracle supports up to 30)
         public static string GetUniqueName(string prefix, string escapeLeft, string escapeRight)
@@ -306,9 +306,9 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private static void WriteDbDataReader(TextWriter textWriter, DbDataReader reader, CultureInfo cultureInfo, string prefix, int recursionLimit)
         {
-            if (null == reader)      { throw new ArgumentNullException("reader"); }
-            if (null == textWriter)  { throw new ArgumentNullException("textWriter"); }
-            if (null == cultureInfo) { throw new ArgumentNullException("cultureInfo"); }
+            if (null == reader)      { throw new ArgumentNullException(nameof(reader)); }
+            if (null == textWriter)  { throw new ArgumentNullException(nameof(textWriter)); }
+            if (null == cultureInfo) { throw new ArgumentNullException(nameof(cultureInfo)); }
 
             if (0 > --recursionLimit)
             {

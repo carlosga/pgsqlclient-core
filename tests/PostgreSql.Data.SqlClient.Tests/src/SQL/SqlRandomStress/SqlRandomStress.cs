@@ -51,7 +51,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             var regularConnectionString = new PgConnectionStringBuilder();
 
-            regularConnectionString.ConnectionString         = DataTestClass.PostgreSql9_Northwind;
+            regularConnectionString.ConnectionString         = DataTestClass.PostgreSql_Northwind;
             regularConnectionString.MultipleActiveResultSets = false;
 
             List<string> connStrings = new List<string>();

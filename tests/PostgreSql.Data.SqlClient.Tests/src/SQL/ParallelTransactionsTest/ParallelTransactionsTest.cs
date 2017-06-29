@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public void BasicParallelTestShouldThrowsUnsupported()
         {
-            string connectionString     = DataTestClass.PostgreSql9_Pubs;
+            string connectionString     = DataTestClass.PostgreSql_Pubs;
             string expectedErrorMessage = "A transaction is currently active. Parallel transactions are not supported.";
             
             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(
@@ -25,7 +25,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public void MultipleExecutesInSameTransactionTest_ShouldThrowsUnsupported()
         {
-            string connectionString     = DataTestClass.PostgreSql9_Pubs;
+            string connectionString     = DataTestClass.PostgreSql_Pubs;
             string expectedErrorMessage = "A transaction is currently active. Parallel transactions are not supported.";
             
             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(

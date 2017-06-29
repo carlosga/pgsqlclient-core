@@ -14,10 +14,10 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public sealed class ConnectionPoolTest
     {
-        // [Fact]
-        public void ConnectionPool_Nwnd9()
+        [Fact(Skip="disabled")]
+        public void ConnectionPool_Northwind()
         {
-            var connBuilder   = new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind);
+            var connBuilder   = new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind);
             var sourceBuilder = new DataSourceBuilder(connBuilder.DataSource);
             sourceBuilder.Protocol = null;
 

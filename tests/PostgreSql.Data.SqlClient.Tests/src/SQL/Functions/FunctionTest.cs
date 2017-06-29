@@ -16,7 +16,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             string[] expectedResults = { "213-46-8915", "267-41-2394", "672-71-3249" };
             int      rowCount        = 0;
 
-            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql_Pubs))
             {
                 connection.Open();
                 
@@ -47,7 +47,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             string[] expectedResults = { "213-46-8915", "267-41-2394", "672-71-3249" };
             int      rowCount        = 0;
 
-            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+            using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql_Pubs))
             {
                 connection.Open();
                 
@@ -89,7 +89,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             {
                 long expectedResult = 23;
 
-                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql_Pubs))
                 {
                     connection.Open();
 
@@ -112,7 +112,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
             finally
             {
-                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Pubs))
+                using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql_Pubs))
                 {
                     connection.Open();
 

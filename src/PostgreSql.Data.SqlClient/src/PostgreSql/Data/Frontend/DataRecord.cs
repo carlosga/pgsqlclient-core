@@ -99,7 +99,7 @@ namespace PostgreSql.Data.Frontend
 
             if ((bufferIndex + length) > buffer.Length)
             {
-                throw new IndexOutOfRangeException("The index passed was outside the range of {bufferIndex} through {length}.");
+                throw ADP.IndexOutOfRange($"The index passed was outside the range of {bufferIndex} through {length}.");
             }
 
             byte[] byteArray = (byte[])_values[i];
@@ -137,7 +137,7 @@ namespace PostgreSql.Data.Frontend
 
             if ((bufferIndex + length) > buffer.Length)
             {
-                throw new IndexOutOfRangeException("The index passed was outside the range of {bufferIndex} through {length}.");
+                throw ADP.IndexOutOfRange($"The index passed was outside the range of {bufferIndex} through {length}.");
             }
 
             int    charsRead  = 0;

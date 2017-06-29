@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Data.Common;
 using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
@@ -13,7 +14,7 @@ namespace PostgreSql.Data.PgTypes
 
         public static PgBox Parse(string s)
         {
-            throw new NotSupportedException();
+            throw ADP.NotSupported();            
         }
 
         private readonly bool    _isNotNull;

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Data.Common;
 using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
@@ -15,7 +16,7 @@ namespace PostgreSql.Data.PgTypes
         {
             if (s == null)
             {
-                throw new ArgumentNullException("s cannot be null");
+                throw ADP.ArgumentNull(nameof(s));
             }
 
             if (s.IndexOf("(") > 0)
@@ -27,7 +28,7 @@ namespace PostgreSql.Data.PgTypes
 
             if (pointCoords == null || pointCoords.Length != 2)
             {
-                throw new ArgumentException("s is not a valid point.");
+                throw ADP.Argument("s is not a valid point.");
             }
 
             double x = Double.Parse(pointCoords[0], TypeInfoProvider.InvariantCulture);

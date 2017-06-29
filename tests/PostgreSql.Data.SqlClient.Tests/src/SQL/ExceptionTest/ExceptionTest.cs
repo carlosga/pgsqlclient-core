@@ -25,7 +25,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void WarningTest()
         {
-            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var connectionString = DataTestClass.PostgreSql_Northwind;
             var hitWarnings      = false;
 
             Action<object, PgInfoMessageEventArgs> warningCallback =
@@ -58,7 +58,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void ExceptionTests()
         {
-            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var connectionString = DataTestClass.PostgreSql_Northwind;
             var builder          = new PgConnectionStringBuilder(connectionString);
 
             // tests improper server name thrown from constructor of tdsparser
@@ -89,7 +89,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void VariousExceptionTests()
         {
-            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var connectionString = DataTestClass.PostgreSql_Northwind;
             var builder          = new PgConnectionStringBuilder(connectionString);
 
             // Test 1 - A
@@ -115,7 +115,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void IndependentConnectionExceptionTest()
         {
-            var connectionString = DataTestClass.PostgreSql9_Northwind;
+            var connectionString = DataTestClass.PostgreSql_Northwind;
             var builder          = new PgConnectionStringBuilder(connectionString);
             var badBuilder       = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
             

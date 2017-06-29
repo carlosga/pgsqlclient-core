@@ -481,24 +481,7 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             default:
-                throw new NotSupportedException();
-
-            // case AuthenticationStage.GSS:
-            //     // The frontend must now initiate a GSSAPI negotiation.
-            //     // The frontend will send a PasswordMessage with the first part of the GSSAPI data stream in response to this.
-            //     // If further messages are needed, the server will respond with AuthenticationGSSContinue.
-            //     throw new NotSupportedException();
-            //     break;
-
-            // case AuthenticationStage.GSSContinue:
-            //     // This message contains the response data from the previous step of GSSAPI or SSPI negotiation
-            //     // (AuthenticationGSS, AuthenticationSSPI or a previous AuthenticationGSSContinue).
-            //     // If the GSSAPI or SSPI data in this message indicates more data is needed to complete the authentication,
-            //     // the frontend must send that data as another PasswordMessage.
-            //     // If GSSAPI or SSPI authentication is completed by this message, the server will next send AuthenticationOk
-            //     // to indicate successful authentication or ErrorResponse to indicate failure.
-            //     throw new NotSupportedException();
-            //     break;
+                throw ADP.NotSupported();
             }
         }
 

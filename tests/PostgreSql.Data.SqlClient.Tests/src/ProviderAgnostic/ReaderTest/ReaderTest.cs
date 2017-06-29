@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestMain()
         {
-            string connectionString = DataTestClass.PostgreSql9_Pubs;
+            string connectionString = DataTestClass.PostgreSql_Pubs;
             string tempTable        = DataTestClass.GetUniqueName("T", string.Empty, string.Empty);
             string tempKey          = DataTestClass.GetUniqueName("K", string.Empty, string.Empty);
 

@@ -24,7 +24,7 @@ CREATE TABLE on_hand (
 );
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();

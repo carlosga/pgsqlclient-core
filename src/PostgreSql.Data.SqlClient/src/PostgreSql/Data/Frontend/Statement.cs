@@ -86,7 +86,7 @@ namespace PostgreSql.Data.Frontend
                 {
                     if (IsExecuting || (_rows != null && _rows.Count > 0))
                     {
-                        throw new InvalidOperationException("Fetch size cannot be changed while fetching rows.");
+                        throw ADP.InvalidOperation("Fetch size cannot be changed while fetching rows.");
                     }
                     _fetchSize = value;
                     _rows      = new Queue<object[]>(_fetchSize);

@@ -47,7 +47,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestReaderMars()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = DataTestClass.PostgreSql_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
 
             TestReaderMarsCase("Case 1: ExecuteReader*5 Close, ExecuteReader.", connectionString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
             TestReaderMarsCase("Case 2: ExecuteReader*5 Dispose, ExecuteReader.", connectionString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
@@ -71,7 +71,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestTransactionSingle()
         {
-            string connectionString = DataTestClass.PostgreSql9_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = DataTestClass.PostgreSql_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
 
             TestTransactionSingleCase("Case 1: BeginTransaction, Rollback.", connectionString, TransactionTestType.TransactionRollback);
             TestTransactionSingleCase("Case 2: BeginTransaction, Dispose.", connectionString, TransactionTestType.TransactionDispose);
@@ -80,7 +80,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestTransactionSingleCase("Case 5: BeginTransaction, GC, Connection Close.", connectionString, TransactionTestType.TransactionGCConnectionClose);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestReaderMarsCase(string caseName, string connectionString, ReaderTestType testType, ReaderVerificationType verificationType)
         {
             WeakReference  weak = null;
@@ -177,7 +176,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             return weak;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestTransactionSingleCase(string caseName, string connectionString, TransactionTestType testType)
         {
             WeakReference weak = null;

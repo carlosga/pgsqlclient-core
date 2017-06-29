@@ -287,7 +287,7 @@ namespace System.Data.Common
             case ConnectionState.Open | ConnectionState.Fetching:
                 return "The connection's current state is fetching.";
             default:
-                return String.Format("The connection's current state: {0}.", state.ToString());
+                return $"The connection's current state: {state.ToString()}.";
             }
         }
 
@@ -429,7 +429,7 @@ namespace System.Data.Common
 
         internal static Exception OpenConnectionPropertySet(string property, ConnectionState state)
         {
-            return InvalidOperation(String.Format("Not allowed to change the '{0}' property. {1}", property, ConnectionStateMsg(state)));
+            return InvalidOperation($"Not allowed to change the '{property}' property. {ConnectionStateMsg(state)}");
         }
 
         internal static Exception EmptyDatabaseName()

@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void SelectNullTimestampWithTZ()
         {
-            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
             {
                 conn.Open();
                 PgParameter p = new PgParameter("@p", PgDbType.TimestampTZ);

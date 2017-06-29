@@ -46,7 +46,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestReaderNonMars()
         {
-            string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
+            string connString = DataTestClass.PostgreSql_Pubs + "Max Pool Size=1";
 
             TestReaderNonMarsCase("Case  1: ExecuteReader, Close, ExecuteReader.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
             TestReaderNonMarsCase("Case  2: ExecuteReader, Dispose, ExecuteReader.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
@@ -70,7 +70,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestTransactionSingle()
         {
-            string connString = DataTestClass.PostgreSql9_Pubs + "Max Pool Size=1";
+            string connString = DataTestClass.PostgreSql_Pubs + "Max Pool Size=1";
 
             TestTransactionSingleCase("Case 1: BeginTransaction, Rollback.", connString, TransactionTestType.TransactionRollback);
             TestTransactionSingleCase("Case 2: BeginTransaction, Dispose.", connString, TransactionTestType.TransactionDispose);
@@ -79,7 +79,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             TestTransactionSingleCase("Case 5: BeginTransaction, GC, Connection Close.", connString, TransactionTestType.TransactionGCConnectionClose);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestReaderNonMarsCase(string caseName, string connectionString, ReaderTestType testType, ReaderVerificationType verificationType)
         {
             WeakReference weak = null;
@@ -152,7 +151,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void TestTransactionSingleCase(string caseName, string connectionString, TransactionTestType testType)
         {
             WeakReference weak = null;

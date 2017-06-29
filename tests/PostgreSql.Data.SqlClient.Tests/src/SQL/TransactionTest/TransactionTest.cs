@@ -13,9 +13,9 @@ namespace PostgreSql.Data.SqlClient.Tests
     public class TransactionTest
     {
         [Fact]
-        public void TestPostgreSql9()
+        public void Run()
         {
-            new TransactionTestWorker(DataTestClass.PostgreSql9_Northwind).StartTest();
+            new TransactionTestWorker(DataTestClass.PostgreSql_Northwind).StartTest();
         }
     }
 
@@ -68,9 +68,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             using (var conn = new PgConnection(_connectionString))
             {
                 conn.Open();
-                PgCommand command = new PgCommand(string.Format("CREATE TABLE {0} (CustomerID char(5) NOT NULL PRIMARY KEY, CompanyName varchar(40) NOT NULL, ContactName varchar(30) NULL)", s_tempTableName1), conn);
-                command.ExecuteNonQuery();
-                command.CommandText = $"CREATE TABLE {s_tempTableName2} (col1 int, col2 varchar(32))";
+                PgCommand command = new PgCommand($"CREATE TABLE {s_tempTableName1} (CustomerID char(5) NOT NULL PRIMARY KEY, CompanyName varchar(40) NOT NULL, ContactName varchar(30) NULL); CREATE TABLE {s_tempTableName2} (col1 int, col2 varchar(32))", conn);
                 command.ExecuteNonQuery();
             }
         }

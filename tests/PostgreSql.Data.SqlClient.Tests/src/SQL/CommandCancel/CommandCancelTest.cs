@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
     public class CommandCancelTest
     {
         // Shrink the packet size - this should make timeouts more likely
-        private static string s_constr = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { PacketSize = 512 }).ConnectionString;
+        private static string s_constr = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { PacketSize = 512 }).ConnectionString;
 
         [Fact]
         public void MultiThreadedCancel_NonAsync()
@@ -40,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             InternalTimeOutDuringRead(s_constr);
         }
 
-        public void MultiThreadedCancel(string constr, bool async)
+        private void MultiThreadedCancel(string constr, bool async)
         {
             using (var con = new PgConnection(constr))
             {
@@ -80,7 +80,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public static void InternalCancelAndDisposePreparedCommand(string constr)
+        private static void InternalCancelAndDisposePreparedCommand(string constr)
         {
             int expectedValue = 1;
             using (var connection = new PgConnection(constr))
@@ -112,7 +112,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        public static void VerifyConnection(PgCommand cmd)
+        private static void VerifyConnection(PgCommand cmd)
         {
             Assert.True(cmd.Connection.State == ConnectionState.Open, "FAILURE: - unexpected non-open state after Execute!");
 
@@ -121,7 +121,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             Assert.True(value == "ABC", "FAILURE: upon validation execute on connection: '" + value + "'");
         }
 
-        public void ExecuteCommandCancelExpected(object state)
+        private void ExecuteCommandCancelExpected(object state)
         {
             var       stateTuple   = (Tuple<bool, PgCommand, Barrier>)state;
             bool      async        = stateTuple.Item1;
@@ -144,7 +144,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }, errorMessage);
         }
 
-        public static void CancelSharedCommand(object state)
+        private static void CancelSharedCommand(object state)
         {
             var stateTuple = (Tuple<bool, PgCommand, Barrier>)state;
 
@@ -155,7 +155,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             stateTuple.Item2.Cancel();
         }
 
-        public void InternalTimeOutDuringRead(string constr)
+        private void InternalTimeOutDuringRead(string constr)
         {
             // Create the proxy
             ProxyServer proxy = ProxyServer.CreateAndStartProxy(constr, out constr);

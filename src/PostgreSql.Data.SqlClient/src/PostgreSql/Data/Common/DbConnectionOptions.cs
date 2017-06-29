@@ -88,7 +88,7 @@ namespace System.Data.Common
         {
             if (connectionString == null)
             {
-                throw new InvalidOperationException("connectionString cannot be null.");
+                throw ADP.ArgumentNull(nameof(connectionString));
             }
 
             _connectionString           = connectionString;

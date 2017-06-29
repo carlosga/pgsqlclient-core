@@ -18,7 +18,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void ExecuteTest()
         {
-            var connStr = DataTestClass.PostgreSql9_Northwind;
+            var connStr = DataTestClass.PostgreSql_Northwind;
             var com     = new PgCommand("select * from orders");
             var con     = new PgConnection(connStr);
 
@@ -44,7 +44,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact(Skip = "disabled")]
         public static void FailureTest()
         {
-            var  connStr       = DataTestClass.PostgreSql9_Northwind;
+            var  connStr       = DataTestClass.PostgreSql_Northwind;
             bool failure       = false;
             bool taskCompleted = false;
 

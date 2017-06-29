@@ -25,7 +25,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32, 2.05)""}', 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();
@@ -109,7 +109,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32, 2.05)""}', 1000);
 ";
 
-            var connStr = DataTestClass.PostgreSql9_Northwind;
+            var connStr = DataTestClass.PostgreSql_Northwind;
 
             try
             {
@@ -190,7 +190,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", NULL}', 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();
@@ -271,7 +271,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();
@@ -348,7 +348,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
 
             try
             {
@@ -418,7 +418,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES (ROW('fuzzy dice', NULL, 1.99), 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();
@@ -500,7 +500,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<DiscountBinding>();
@@ -594,7 +594,7 @@ CREATE TABLE on_hand (
 INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, NULL), 1000);
 ";
 
-            var connStr  = DataTestClass.PostgreSql9_Northwind;
+            var connStr  = DataTestClass.PostgreSql_Northwind;
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<DiscountBinding>();

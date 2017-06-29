@@ -15,7 +15,7 @@ namespace PostgreSql.Data.Bindings
         {
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new ArgumentNullException("connectionString");
+                throw ADP.ArgumentNull(nameof(connectionString));
             }
             if (s_providers.Count == 0)
             {
@@ -32,7 +32,7 @@ namespace PostgreSql.Data.Bindings
         {
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new ArgumentNullException("connectionString");
+                throw ADP.ArgumentNull(nameof(connectionString));
             }
 
             DbConnectionOptions options = new DbConnectionOptions(connectionString);

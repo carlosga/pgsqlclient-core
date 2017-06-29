@@ -14,7 +14,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public static class MARSTest
     {
-        private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql9_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+        private static readonly string s_ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
 
 #if DEBUG
         [Fact]

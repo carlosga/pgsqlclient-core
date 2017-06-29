@@ -78,12 +78,11 @@ namespace PostgreSql.Data.SqlClient
             }
             if (string.IsNullOrEmpty(value.ParameterName))
             {
-                Interlocked.Increment(ref _paramCount);
-                value.ParameterName = $"Parameter{_paramCount}";
+                value.ParameterName = $"Parameter{Interlocked.Increment(ref _paramCount)}";
             }
             else if (IndexOf(value) != -1)
             {
-                throw ADP.Argument("PgParameterCollection already contains PgParameter with ParameterName '" + value.ParameterName + "'.");
+                throw ADP.Argument($"PgParameterCollection already contains PgParameter with ParameterName '{value.ParameterName}'.");
             }
 
             value.Parent = this;
@@ -97,7 +96,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull($"The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
             }
 
             var parameter = value as PgParameter;
@@ -173,12 +172,11 @@ namespace PostgreSql.Data.SqlClient
             }
             if (string.IsNullOrEmpty(parameter.ParameterName))
             {
-                Interlocked.Increment(ref _paramCount);
-                parameter.ParameterName = $"Parameter{_paramCount}";
+                parameter.ParameterName = $"Parameter{Interlocked.Increment(ref _paramCount)}";
             }
             else if (IndexOf(parameter) != -1)
             {
-                throw ADP.Argument("PgParameterCollection already contains PgParameter with ParameterName '" + parameter.ParameterName + "'.");
+                throw ADP.Argument($"PgParameterCollection already contains PgParameter with ParameterName '{parameter.ParameterName}'.");
             }
             
             _parameters.Insert(index, parameter);

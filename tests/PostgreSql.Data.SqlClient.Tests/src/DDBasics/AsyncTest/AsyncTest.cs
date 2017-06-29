@@ -16,7 +16,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact(Skip="disabled")]
         public void OpenConnection_WithAsyncTrue_ThrowsNotSupportedException()
         {
-            var asyncConnectionString = DataTestClass.PostgreSql9_Pubs + "async=true";
+            var asyncConnectionString = DataTestClass.PostgreSql_Pubs + "async=true";
             Assert.Throws<NotSupportedException>(() => { new PgConnection(asyncConnectionString); });
         }
 
@@ -41,7 +41,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             var executedProcessList = new List<string>();
 
             //for shared connection we need to add MARS capabilities
-            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind + "MultipleActiveResultSets=true;"))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind + "MultipleActiveResultSets=true;"))
             {
                 conn.Open();
                 
@@ -71,7 +71,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private static async Task ExecuteCommandWithNewConnectionAsync(string processName, string cmdText, ICollection<string> executedProcessList)
         {
-            using (var conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
             {
                 await conn.OpenAsync();
                 

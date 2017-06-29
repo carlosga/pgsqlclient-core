@@ -20,7 +20,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         protected override void RunDataTest()
         {
-            MultipleErrorHandling(new PgConnection(PostgreSql9_Northwind + "multipleactiveresultsets=true;"));
+            MultipleErrorHandling(new PgConnection(PostgreSql_Northwind + "multipleactiveresultsets=true;"));
         }
 
         private static void MultipleErrorHandling(PgConnection connection)
