@@ -187,7 +187,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        [Fact(Skip="disabled")]
+        [Fact]
         public static void GetValueOfTRead()
         {
             using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
@@ -205,6 +205,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     rdr.GetFieldValue<string>(1);       // customer id
                     rdr.GetFieldValue<int>(2);          // employee id
                     rdr.GetFieldValue<DateTime>(3);     // OrderDate
+#warning TODO: Change the type to PgDate or PgTimestamp                    
                     rdr.GetFieldValue<DateTime>(4);     // RequiredDate
                     rdr.GetFieldValue<DateTime>(5);     // ShippedDate;
                     rdr.GetFieldValue<int>(6);          // ShipVia;
@@ -217,12 +218,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                     // should get an exception here
                     DataTestClass.AssertThrowsWrapper<PgNullValueException>(() => rdr.GetFieldValue<string>(11), errorMessage);
                     rdr.IsDBNull(11);
-                    rdr.GetFieldValue<string>(11);
-                    rdr.IsDBNull(11);
                     rdr.IsDBNull(12);
                     rdr.GetChars(12, 0, null, 0, 0);
                     rdr.IsDBNull(12);
-                    rdr.GetFieldValue<INullable>(13);//ShipCountry;
 
                     rdr.Read();
                     // read data out of buffer
@@ -230,6 +228,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     rdr.GetFieldValueAsync<string>(1).Wait();       // customer id
                     rdr.GetFieldValueAsync<int>(2).Wait();          // employee id
                     rdr.GetFieldValueAsync<DateTime>(3).Wait();     // OrderDate
+#warning TODO: Change the type to PgDate or PgTimestamp                    
                     rdr.GetFieldValueAsync<DateTime>(4).Wait();     // RequiredDate
                     rdr.GetFieldValueAsync<DateTime>(5).Wait();     // ShippedDate;
                     rdr.GetFieldValueAsync<int>(6).Wait();          // ShipVia;
@@ -243,12 +242,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                     Assert.True(rdr.IsDBNullAsync(11).Result, "FAILED: IsDBNull was false for a null value");
 
                     rdr.IsDBNullAsync(11).Wait();
-                    rdr.GetFieldValueAsync<string>(11).Wait();
-                    rdr.IsDBNullAsync(11).Wait();
                     rdr.IsDBNullAsync(12).Wait();
                     rdr.GetChars(12, 0, null, 0, 0);
                     rdr.IsDBNullAsync(12).Wait();
-                    rdr.GetFieldValueAsync<INullable>(13).Wait(); //ShipCountry;
 
                     rdr.Read();
                     Assert.True(rdr.IsDBNullAsync(11).Result, "FAILED: IsDBNull was false for a null value");
@@ -297,41 +293,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                 }
             }
         }
-
-        // private static void SQLTypeRead()
-        // {
-        //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-        //     {
-        //         conn.Open();
-        //         using (PgCommand cmd = new PgCommand("select * from orders where orderid < 10253", conn))
-        //         using (PgDataReader rdr = cmd.ExecuteReader())
-        //         {
-        //             rdr.Read();
-
-        //             SqlDateTime d;
-        //             SqlMoney m;
-        //             string s = null;
-        //             int i;
-
-        //             // read data out of buffer
-        //             i = rdr.Getint(0); //order id
-        //             s = rdr.Getstring(1); //customer id
-        //             i = rdr.Getint(2); // employee id
-        //             d = rdr.GetSqlDateTime(3); //OrderDate
-        //             d = rdr.GetSqlDateTime(4); //RequiredDate
-        //             d = rdr.GetSqlDateTime(5); //ShippedDate;
-        //             i = rdr.Getint(6); //ShipVia;
-        //             m = rdr.GetSqlMoney(7); //Freight;
-        //             s = rdr.Getstring(8); //ShipName;
-        //             s = rdr.Getstring(9); //ShipAddres;
-        //             s = rdr.Getstring(10); //ShipCity;
-        //             s = rdr.Getstring(11); //ShipRegion;
-        //             s = rdr.Getstring(12); //ShipPostalCode;
-        //             s = rdr.Getstring(13); //ShipCountry;
-        //             DataTestClass.AssertEqualsWithDescription("France", s.ToString(), "FAILED: Received incorrect last value.");
-        //         }
-        //     }
-        // }
 
         [Fact]
         public static void RowBuffer()
@@ -600,50 +561,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        // [Fact]
-        // public static void SqlCharsBytesTest()
-        // {
-        //     using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-        //     {
-        //         conn.Open();
-
-        //         // select with SqlChars	parameter
-        //         PgCommand cmd;
-        //         PgDataReader reader;
-        //         using (cmd = conn.CreateCommand())
-        //         {
-        //             cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where Title = @vm ";
-
-        //             (cmd.Parameters.Add("@vm", SqlDbType.VarChar)).Value = new SqlChars("Vice President, Sales");
-
-        //             using (reader = cmd.ExecuteReader())
-        //             {
-        //                 Assert.True(reader.Read(), "FAILED: No results were returned from read()");
-        //                 DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
-        //                 DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
-        //                 DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
-        //             }
-        //         }
-
-        //         // select with SqlBytes	parameter
-        //         using (cmd = conn.CreateCommand())
-        //         {
-        //             cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where EmployeeID = 2 and Convert(binary(5), Photo) = @bn ";
-
-        //             byte[] barr = new byte[5] { 0x15, 0x1c, 0x2F, 0x00, 0x02 };
-        //             (cmd.Parameters.Add("@bn", SqlDbType.VarBinary)).Value = new SqlBytes(barr);
-
-        //             using (reader = cmd.ExecuteReader())
-        //             {
-        //                 Assert.True(reader.Read(), "FAILED: No results were returned from read()");
-        //                 DataTestClass.AssertEqualsWithDescription(2, reader.GetInt32(0), "FAILED: GetInt32(0) result did not match expected value");
-        //                 DataTestClass.AssertEqualsWithDescription("Andrew", reader.GetString(1), "FAILED: GetString(1) result did not match expected value");
-        //                 DataTestClass.AssertEqualsWithDescription("Fuller", reader.GetString(2), "FAILED: GetString(2) result did not match expected value");
-        //             }
-        //         }
-        //     }
-        // }
-
         [Fact]
         public static void CloseConnection()
         {
@@ -836,60 +753,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-//         private static void GetXmlReader()
-//         {
-//             using (PgConnection connection = new PgConnection(DataTestClass.PostgreSql9_Northwind))
-//             {
-//                 connection.Open();
-//                 string xml = "CAST('<test><subtest /><subtest>asdfasdfasdf</subtest></test>' AS XML)";
-//                 string queryString = string.Format("SELECT {0}, {0}, 12, CAST(NULL AS XML), {0}, CAST(('<test>' + REPLICATE(CAST('a' AS VARCHAR(MAX)), 10000) + '</test>') AS XML), {0}", xml);
-//                 using (PgCommand cmd = new PgCommand(queryString, connection))
-//                 {
-//                     CommandBehavior[] behaviors = new CommandBehavior[] { CommandBehavior.Default };
-//                     foreach (CommandBehavior behavior in behaviors)
-//                     {
-//                         using (PgDataReader reader = cmd.ExecuteReader(behavior))
-//                         {
-//                             reader.Read();
-
-//                             // Basic success paths
-//                             reader.GetXmlReader(0);
-//                             reader.GetXmlReader(1);
-
-//                             // Bad values
-//                             DataTestClass.AssertThrowsWrapper<InvalidCastException>(() => reader.GetXmlReader(2));
-//                             // Null stream
-//                             XmlReader xmlReader = reader.GetXmlReader(3);
-//                             Assert.False(xmlReader.Read(), "FAILED: Successfully read on a null XmlReader");
-
-//                             // Get column before current column
-//                             Action action = (() => reader.GetXmlReader(0));
-//                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-
-//                             // Two XmlReaders on same column
-//                             reader.GetXmlReader(4);
-//                             action = (() => reader.GetXmlReader(4));
-//                             SeqAccessFailureWrapper<InvalidOperationException>(action, behavior);
-// #if DEBUG
-//                             // GetXmlReader while async is pending
-//                             Task t = null;
-//                             using (PendAsyncReadsScope pendScope = new PendAsyncReadsScope(reader))
-//                             {
-//                                 t = reader.ReadAsync();
-//                                 Assert.False(t.IsCompleted, "FAILED: Read completed immediately");
-//                                 DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(6));
-//                             }
-//                             t.Wait();
-
-//                             // GetXmlReader after Read 
-//                             DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => reader.GetXmlReader(0));
-// #endif
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-
         [Fact]
         public static void ReadStream()
         {
@@ -990,11 +853,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         connection.Open();
                         
-                        char[]       smallBuffer = new char[2];
-                        char[]       buffer      = new char[16];
-                        char[]       largeBuffer = new char[9000];
-                        TextReader   textReader  = null;
-                        Action action      = null;
+                        char[]     smallBuffer = new char[2];
+                        char[]     buffer      = new char[16];
+                        char[]     largeBuffer = new char[9000];
+                        TextReader textReader  = null;
+                        Action     action      = null;
                         
                         using (PgCommand cmd = new PgCommand(string.Format("SELECT {0}", correctString), connection))
                         {
@@ -1111,96 +974,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                         }
                     }
                 }
-            }
-        }
-
-        [Fact(Skip="disabled")]
-        public static void TimeoutDuringReadAsyncWithClosedReaderTest()
-        {
-            // Create the proxy
-            string connectionString = DataTestClass.PostgreSql_Northwind;
-            
-            ProxyServer proxy = ProxyServer.CreateAndStartProxy(connectionString, out connectionString);
-            proxy.SimulatedPacketDelay = 100;
-            proxy.SimulatedOutDelay = true;
-            try
-            {
-                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql_Northwind + ";Command Timeout=1"))
-                {
-                    // Start the command
-                    conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
-                    {
-                        cmd.CommandTimeout = 1;
-                        cmd.Parameters.AddWithValue("@p", new string('a', 3000));
-                        using (PgDataReader reader = cmd.ExecuteReader())
-                        {
-                            // Start reading, and then force a timeout
-                            Task<bool> task = reader.ReadAsync();
-                            proxy.PauseCopying();
-
-                            // Before the timeout occurs, but after ReadAsync has started waiting for a packet, close the reader
-                            Thread.Sleep(200);
-                            Task closeTask = Task.Run(() => reader.Dispose());
-
-                            // Wait for the task to see the timeout
-                            string errorMessage = "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.";
-                            DataTestClass.AssertThrowsWrapper<AggregateException, PgException>(() => task.Wait(), innerExceptionMessage: errorMessage);
-                        }
-                    }
-                }
-                proxy.Stop();
-            }
-            catch (PgException ex)
-            {
-                // In case of error, stop the proxy and dump its logs (hopefully this will help with debugging
-                proxy.Stop();
-                throw ex;
-            }
-        }
-
-        [Fact(Skip="disabled")]
-        public static void NonFatalTimeoutDuringRead()
-        {
-            string connectionString = DataTestClass.PostgreSql_Northwind;
-            
-            // Create the proxy
-            ProxyServer proxy = ProxyServer.CreateAndStartProxy(connectionString, out connectionString);
-            proxy.SimulatedPacketDelay = 100;
-            proxy.SimulatedOutDelay    = true;
-            try
-            {
-                using (PgConnection conn = new PgConnection(DataTestClass.PostgreSql_Northwind + ";Command Timeout=1"))
-                {
-                    // Start the command
-                    conn.Open();
-                    using (PgCommand cmd = new PgCommand("SELECT @p, @p, @p, @p, @p", conn))
-                    {
-                        cmd.CommandTimeout = 1;
-                        cmd.Parameters.AddWithValue("@p", new string('a', 3000));
-                        using (PgDataReader reader = cmd.ExecuteReader())
-                        {
-                            // Slow down packets and wait on ReadAsync
-                            proxy.SimulatedPacketDelay = 1500;
-                            reader.ReadAsync().Wait();
-
-                            // Allow proxy to copy at full speed again
-                            proxy.SimulatedOutDelay = false;
-                            reader.SetDefaultTimeout(30000);
-
-                            // Close will now observe the stored timeout error
-                            string errorMessage = "Timeout expired. The timeout period elapsed prior to completion of the operation or the server is not responding.";
-                            DataTestClass.AssertThrowsWrapper<PgException>(reader.Dispose, errorMessage);
-                        }
-                    }
-                }
-                proxy.Stop();
-            }
-            catch
-            {
-                // In case of error, stop the proxy and dump its logs (hopefully this will help with debugging
-                proxy.Stop();
-                throw;
             }
         }
 

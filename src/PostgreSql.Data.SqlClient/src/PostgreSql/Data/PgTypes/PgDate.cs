@@ -122,7 +122,12 @@ namespace PostgreSql.Data.PgTypes
                     return day;
                 }
 
-                return (int)((month - 1) * DaysPerMonth) + day;
+                if (year == PgDate.MinYear) // -4713-11-24
+                {
+                    return (int)((month - 1) * (DaysPerMonth)) + day;
+                }
+
+                return (_days - (new PgDate(year, 1, 1))._days + 1);
             }
         }
 
@@ -204,8 +209,6 @@ namespace PostgreSql.Data.PgTypes
         public static bool NotEquals(PgDate x, PgDate y)          => (x != y);
 
         public override int GetHashCode() => _days.GetHashCode();
-
-        //public static PgDate Parse(string s) => new PgDate();
 
         public DateTime ToDateTime() => (DateTime)this;
 

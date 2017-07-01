@@ -25,6 +25,9 @@ CREATE TABLE on_hand (
 ";
 
             var connStr  = DataTestClass.PostgreSql_Northwind;
+
+            DropTypes(connStr, dropSql);
+
             var provider = TypeBindingContext.Register(connStr);
 
             provider.RegisterBinding<InventoryItemBinding>();
@@ -85,17 +88,8 @@ CREATE TABLE on_hand (
             }
             finally
             {
-                using (var connection = new PgConnection(connStr)) 
-                {
-                    connection.Open();
-                    using (var command = new PgCommand(dropSql, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-                }
-
+                DropTypes(connStr, dropSql);
                 provider.Clear();
-                TypeBindingContext.Clear();
             }
         }
     }

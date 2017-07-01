@@ -5,22 +5,6 @@ using PostgreSql.Data.PgTypes;
 using System.Runtime.CompilerServices;
 using System.Security;
 
-namespace System
-{
-    internal static partial class SR
-    {
-        // internal static string GetString(string value)
-        // {
-        //     return value;
-        // }
-
-        // internal static string GetString(string format, params object[] args)
-        // {
-        //     return SR.Format(format, args);
-        // }
-    }
-}
-
 namespace System.Data.Common
 {
     internal static class ADP
@@ -37,6 +21,9 @@ namespace System.Data.Common
             }
         }
 
+        internal static Exception Format(string parameter)
+            => new FormatException(parameter);
+
         //
         // COM+ exceptions
         //
@@ -44,14 +31,15 @@ namespace System.Data.Common
         internal static ArgumentException Argument(string error, Exception inner)  => new ArgumentException(error, inner);
         internal static ArgumentException Argument(string error, string parameter) => new ArgumentException(error, parameter);
 
-        internal static ArgumentNullException ArgumentNull(string parameter) => new ArgumentNullException(parameter);
-        internal static ArgumentNullException ArgumentNull(string parameter, string error) => new ArgumentNullException(parameter, error);
+        internal static ArgumentNullException ArgumentNull(string parameter) 
+            => new ArgumentNullException(parameter);
 
-//         internal static ArgumentOutOfRangeException ArgumentOutOfRange(string parameterName)
-//         {
-//             ArgumentOutOfRangeException e = new ArgumentOutOfRangeException(parameterName);
-//             return e;
-//         }
+        internal static ArgumentNullException ArgumentNull(string parameter, string error) 
+            => new ArgumentNullException(parameter, error);
+
+        internal static ArgumentOutOfRangeException ArgumentOutOfRange(string parameterName)
+             => new ArgumentOutOfRangeException(parameterName);
+
 //         internal static ArgumentOutOfRangeException ArgumentOutOfRange(string message, string parameterName)
 //         {
 //             ArgumentOutOfRangeException e = new ArgumentOutOfRangeException(parameterName, message);
@@ -296,12 +284,12 @@ namespace System.Data.Common
         //
         internal static Exception PooledOpenTimeout()
         {
-            return InvalidOperation("Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.");
+            return InvalidOperation("Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.");
         }
 
         internal static Exception NonPooledOpenTimeout()
         {
-            return TimeoutException("Timeout attempting to open the connection.  The time period elapsed prior to attempting to open the connection has been exceeded.  This may have occurred because of too many simultaneous non-pooled connection attempts.");
+            return TimeoutException("Timeout attempting to open the connection. The time period elapsed prior to attempting to open the connection has been exceeded. This may have occurred because of too many simultaneous non-pooled connection attempts.");
         }
 
         //

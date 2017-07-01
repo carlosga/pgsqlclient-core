@@ -70,7 +70,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                 throw new Exception("Could not find a valid connection string for the key: " + key);
             }
 
-            return connectionString;
+            string password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+
+            return (new PgConnectionStringBuilder(connectionString) { Password = password }).ConnectionString;
         }
 
         private static void PopulateConnectionStrings()

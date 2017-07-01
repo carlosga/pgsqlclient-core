@@ -13,13 +13,6 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public sealed class DDAsyncTest
     {
-        [Fact(Skip="disabled")]
-        public void OpenConnection_WithAsyncTrue_ThrowsNotSupportedException()
-        {
-            var asyncConnectionString = DataTestClass.PostgreSql_Pubs + "async=true";
-            Assert.Throws<NotSupportedException>(() => { new PgConnection(asyncConnectionString); });
-        }
-
         [Fact]
         public void ExecuteCommand_WithNewConnection_ShouldPerformAsyncByDefault()
         {
@@ -41,7 +34,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             var executedProcessList = new List<string>();
 
             //for shared connection we need to add MARS capabilities
-            using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind + "MultipleActiveResultSets=true;"))
+            using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
             {
                 conn.Open();
                 

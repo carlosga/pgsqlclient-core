@@ -136,10 +136,10 @@ namespace PostgreSql.Data.SqlClient
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgConnection() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
+        ~PgConnection() {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(false);
+        }
 
         // This code added to correctly implement the disposable pattern.
         // public void Dispose()
@@ -348,7 +348,7 @@ namespace PostgreSql.Data.SqlClient
             if (!innerConnection.ConnectionOptions.Pooling)
             {
                 // For non-pooled connections, we need to make sure that the finalizer does actually run
-                // GC.ReRegisterForFinalize(this);
+                GC.ReRegisterForFinalize(this);
             }
 
             return true;

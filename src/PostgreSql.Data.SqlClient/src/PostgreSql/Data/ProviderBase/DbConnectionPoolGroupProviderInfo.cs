@@ -3,7 +3,7 @@
 
 namespace System.Data.ProviderBase
 {
-    internal class DbConnectionPoolGroupProviderInfo
+    internal sealed class DbConnectionPoolGroupProviderInfo
     {
         private DbConnectionPoolGroup _poolGroup;
 
@@ -11,6 +11,10 @@ namespace System.Data.ProviderBase
         {
             get { return _poolGroup; }
             set { _poolGroup = value; }
+        }
+
+        internal DbConnectionPoolGroupProviderInfo()
+        {            
         }
     }
 }

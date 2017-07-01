@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Buffers;
@@ -43,6 +44,9 @@ namespace PostgreSql.Data.Frontend
         private int           _packetSize;
 
         internal int PacketSize => _packetSize;
+
+        internal ChannelBinding GetChannelBinding 
+            => _secureStream?.TransportContext.GetChannelBinding(ChannelBindingKind.Unique);
 
         internal Transport()
         {
@@ -214,9 +218,7 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal void WriteFrame(byte[] frame, int offset, int length)
-        {
-            _writer.Write(frame, offset, length);
-        }
+            => _writer.Write(frame, offset, length);
 
         internal void WriteFrame(byte type)
         {

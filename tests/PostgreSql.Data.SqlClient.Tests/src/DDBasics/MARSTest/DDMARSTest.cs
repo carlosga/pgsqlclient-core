@@ -13,7 +13,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void ParametrizedMarsTest()
         {
-            string connstr  = DataTestClass.PostgreSql_Northwind + "multipleactiveresultsets=true;";
+            string connstr  = DataTestClass.PostgreSql_Northwind;
             string sql      = "SELECT @1; SELECT @2; SELECT @3;";
             int[]  expected = new int[] { 1, 2, 3 };
             int    index    = 0;
@@ -43,7 +43,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestMain()
         {
-            string connstr  = DataTestClass.PostgreSql_Northwind + "multipleactiveresultsets=true;";
+            string connstr  = DataTestClass.PostgreSql_Northwind;
             string cmdText1 = "select * from Orders; select count(*) from Customers";
             string cmdText2 = "select * from Customers; select count(*) from Orders";
 

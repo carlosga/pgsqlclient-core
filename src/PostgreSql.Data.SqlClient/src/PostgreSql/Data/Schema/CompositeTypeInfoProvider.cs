@@ -39,8 +39,8 @@ ORDER BY pg_type.oid, pg_attribute.attnum";
         {
             var types       = new Dictionary<int, TypeInfo>(10);
             var row         = new DataRecord();
-            var provider    = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
             var defaultType = typeof(object);
+            var provider    = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
 
             ITypeBinding binding = null;
 

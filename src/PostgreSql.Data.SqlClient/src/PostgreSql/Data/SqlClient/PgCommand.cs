@@ -35,7 +35,7 @@ namespace PostgreSql.Data.SqlClient
                 {
                     if (_statement != null && !string.IsNullOrEmpty(_commandText))
                     {
-                        InternalClose();
+                        Unprepare();
                     }
 
                     _commandText = value;
@@ -309,7 +309,7 @@ namespace PostgreSql.Data.SqlClient
             InternalClose();
         }
 
-        internal void InternalClose()
+        internal void Unprepare()
         {
             if (_disposed)
             {
@@ -318,9 +318,8 @@ namespace PostgreSql.Data.SqlClient
             try
             {
                 var reader = FindLiveReader();
-                reader?.CloseReaderFromCommand();
 
-                _connection.RemoveWeakReference(this);
+                reader?.CloseReaderFromCommand();
                 _statement?.Dispose();
             }
             catch
@@ -330,7 +329,13 @@ namespace PostgreSql.Data.SqlClient
             {
                 _statement    = null;
                 _commandIndex = 0;
-            }
+            }            
+        }
+
+        internal void InternalClose()
+        {
+            Unprepare();
+            _connection?.RemoveWeakReference(this);            
         }
 
         private void InternalPrepare()
@@ -352,7 +357,6 @@ namespace PostgreSql.Data.SqlClient
             _statement.FetchSize     = _fetchSize;
 
             _statement.Prepare();
-
             _connection.AddWeakReference(this, PgReferenceCollection.CommandTag);
         }
 

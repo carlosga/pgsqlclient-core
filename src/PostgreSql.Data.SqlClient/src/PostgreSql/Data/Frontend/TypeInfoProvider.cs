@@ -445,8 +445,6 @@ namespace PostgreSql.Data.Frontend
         private DbConnectionOptions               _connectionOptions;
         private int                               _count;
 
-        internal int Count => _count;
-
         internal TypeInfoProvider(DbConnectionOptions connectionOptions)
         {
             _types             = null;
@@ -479,7 +477,7 @@ namespace PostgreSql.Data.Frontend
                 return BaseTypes[oid];
             }
             if (_types == null)
-            {
+            {               
                 lock (s_syncObject)
                 {
                     if (_types == null)

@@ -47,7 +47,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestReaderMars()
         {
-            string connectionString = DataTestClass.PostgreSql_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MaxPoolSize = 1 }).ConnectionString;
 
             TestReaderMarsCase("Case 1: ExecuteReader*5 Close, ExecuteReader.", connectionString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
             TestReaderMarsCase("Case 2: ExecuteReader*5 Dispose, ExecuteReader.", connectionString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
@@ -71,7 +71,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestTransactionSingle()
         {
-            string connectionString = DataTestClass.PostgreSql_Northwind + ";multipleactiveresultsets=true;Max Pool Size=1";
+            string connectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MaxPoolSize = 1 }).ConnectionString;
 
             TestTransactionSingleCase("Case 1: BeginTransaction, Rollback.", connectionString, TransactionTestType.TransactionRollback);
             TestTransactionSingleCase("Case 2: BeginTransaction, Dispose.", connectionString, TransactionTestType.TransactionDispose);

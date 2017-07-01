@@ -15,7 +15,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = new PgDate();
 
-            Assert.Equal(date, PgDate.MinValue);
+            Assert.Equal(PgDate.MinValue, date);
         }
 
         [Fact]
@@ -23,13 +23,13 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = PgDate.MinValue;
 
-            Assert.Equal(date.Year          , -4713);
-            Assert.Equal(date.Month         , 11);
-            Assert.Equal(date.Day           , 24);
-            Assert.Equal(date.Era           , Era.BeforeCommon);
-            Assert.Equal(date.DayOfWeek     , DayOfWeek.Monday);
-            Assert.Equal(date.DayOfYear     , 328);
-            Assert.Equal(date.DaysSinceEpoch, -2451545);
+            Assert.Equal(-4713           , date.Year);
+            Assert.Equal(11              , date.Month);
+            Assert.Equal(24              , date.Day);
+            Assert.Equal(Era.BeforeCommon, date.Era);
+            Assert.Equal(DayOfWeek.Monday, date.DayOfWeek);
+            Assert.Equal(328             , date.DayOfYear);
+            Assert.Equal(-2451545        , date.DaysSinceEpoch);
         }
 
         [Fact]
@@ -37,13 +37,13 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = PgDate.MaxValue;
 
-            Assert.Equal(date.Year          , 5874897);
-            Assert.Equal(date.Month         , 12);
-            Assert.Equal(date.Day           , 31);
-            Assert.Equal(date.Era           , Era.Common);
-            Assert.Equal(date.DayOfWeek     , DayOfWeek.Tuesday);
-            Assert.Equal(date.DayOfYear     , 365);
-            Assert.Equal(date.DaysSinceEpoch, 2147483493 - 2451545);
+            Assert.Equal(5874897             , date.Year);
+            Assert.Equal(12                  , date.Month);
+            Assert.Equal(31                  , date.Day);
+            Assert.Equal(Era.Common          , date.Era);
+            Assert.Equal(DayOfWeek.Tuesday   , date.DayOfWeek);
+            Assert.Equal(365                 , date.DayOfYear);
+            Assert.Equal(2147483493 - 2451545, date.DaysSinceEpoch);
         }
 
         [Fact]
@@ -51,13 +51,13 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = PgDate.Epoch;
 
-            Assert.Equal(date.Year          , 2000);
-            Assert.Equal(date.Month         , 1);
-            Assert.Equal(date.Day           , 1);
-            Assert.Equal(date.Era           , Era.Common);
-            Assert.Equal(date.DayOfWeek     , System.DayOfWeek.Saturday);
-            Assert.Equal(date.DayOfYear     , 1);
-            Assert.Equal(date.DaysSinceEpoch, 0);
+            Assert.Equal(2000              , date.Year);
+            Assert.Equal(1                 , date.Month);
+            Assert.Equal(1                 , date.Day);
+            Assert.Equal(Era.Common        , date.Era);
+            Assert.Equal(DayOfWeek.Saturday, date.DayOfWeek);
+            Assert.Equal(1                 , date.DayOfYear);
+            Assert.Equal(0                 , date.DaysSinceEpoch);
         }
 
         [Fact]
@@ -65,12 +65,12 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             PgDate date = PgDate.Today;
 
-            Assert.Equal(date.Year     , DateTime.Today.Date.Year);
-            Assert.Equal(date.Month    , DateTime.Today.Date.Month);
-            Assert.Equal(date.Day      , DateTime.Today.Date.Day);
-            Assert.Equal(date.Era      , Era.Common);
-            Assert.Equal(date.DayOfWeek, DateTime.Today.Date.DayOfWeek);
-            Assert.Equal(date.DayOfYear, DateTime.Today.Date.DayOfYear);
+            Assert.Equal(DateTime.Today.Date.Year     , date.Year);
+            Assert.Equal(DateTime.Today.Date.Month    , date.Month);
+            Assert.Equal(DateTime.Today.Date.Day      , date.Day);
+            Assert.Equal(Era.Common                   , date.Era);
+            Assert.Equal(DateTime.Today.Date.DayOfWeek, date.DayOfWeek);
+            Assert.Equal(DateTime.Today.Date.DayOfYear, date.DayOfYear);
         }
 
         [Theory]
@@ -131,14 +131,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             yield return new object[] { PgDate.MaxValue         , DayOfWeek.Tuesday };
             yield return new object[] { new PgDate(2000, 02, 29), DayOfWeek.Tuesday };
             yield return new object[] { new PgDate(1986, 02, 28), DayOfWeek.Friday  };
+            yield return new object[] { new PgDate(2017, 06, 30), DayOfWeek.Friday  };
         }
 
         public static IEnumerable<object[]> DayOfYear_TestData()
         {
             yield return new object[] { PgDate.MinValue         , 328 };
             yield return new object[] { PgDate.MaxValue         , 365 };
-            yield return new object[] { new PgDate(2000, 02, 29),  59 };
-            yield return new object[] { new PgDate(1986, 02, 28),  58 };
+            yield return new object[] { new PgDate(2000, 02, 29),  60 };
+            yield return new object[] { new PgDate(1986, 02, 28),  59 };
+            yield return new object[] { new PgDate(2017, 06, 30), 181 };
         }
 
         /// Ported from corefx sources

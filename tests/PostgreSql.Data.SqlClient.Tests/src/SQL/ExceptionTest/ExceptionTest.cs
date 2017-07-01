@@ -40,7 +40,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 };
 
             var handler = new PgInfoMessageEventHandler(warningCallback);
-            using (var connection  = new PgConnection(connectionString + "pooling=false"))
+            using (var connection  = new PgConnection(connectionString))
             {
                 connection.InfoMessage += handler;
                 connection.Open();
@@ -77,8 +77,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             PgException firstAttemptException = VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
             
             // Verify that the same error results in a different instance of an exception, but with the same data
-#warning TODO: port ??
-            // VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => CheckThatExceptionsAreDistinctButHaveSameData(firstAttemptException, ex));
 
             // tests incorrect user name - exception thrown from adapter
             badBuilder   = new PgConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
@@ -143,7 +142,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                       && (e1.InnerException == e2.InnerException)
                       && (e1.Source         == e2.Source) 
                       && (e1.Data.Count     == e2.Data.Count) 
-                      && (e1.Errors         == e2.Errors);
+                      && (e1.Errors.Count   == e2.Errors.Count);
                 
             IDictionaryEnumerator enum1 = e1.Data.GetEnumerator();
             IDictionaryEnumerator enum2 = e2.Data.GetEnumerator();
