@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -21,13 +20,11 @@ namespace PostgreSql.Data.Frontend
             buffer = newBuffer;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void ResizeAligned(ref byte[] buffer, int newSize) 
         {           
             Resize(ref buffer, Align(newSize));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         /// FoundationDB client (BSD License)
         private static int Align(int size)
         {

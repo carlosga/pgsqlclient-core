@@ -8,7 +8,16 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public partial class CompositeTypesTest
     {
-        [Fact(Skip = "Hangs")]
+        [Fact]
+        public void RunSequential()
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                SelectCompositeArrayTest();
+            }
+        }
+
+        [Fact]
         public void SelectCompositeArrayTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -86,7 +95,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32,
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectCompositeArrayNoBindingsTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -162,7 +171,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", ""(fuzzy dice 2, 32,
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectCompositeArrayWithNullElementsTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -237,7 +246,7 @@ INSERT INTO on_hand VALUES ('{""(fuzzy dice 1, 42, 1.99)"", NULL}', 1000);
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -308,7 +317,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectCompositeWithoutBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -374,7 +383,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99), 1000);
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectCompositeWithNullValuesTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item";
@@ -445,7 +454,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', NULL, 1.99), 1000);
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectNestedCompositeWithBindingTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";
@@ -534,7 +543,7 @@ INSERT INTO on_hand VALUES (ROW('fuzzy dice', 42, 1.99, ROW(1, 10.50)), 1000);
             }
         }
 
-        [Fact(Skip = "Hangs")]
+        [Fact]
         public void SelectNullNestedCompositeTest()
         {
             string dropSql   = "DROP TABLE on_hand; DROP TYPE inventory_item_with_discount; DROP TYPE discount";

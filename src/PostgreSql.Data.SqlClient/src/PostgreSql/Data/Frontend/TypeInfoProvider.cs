@@ -439,11 +439,15 @@ namespace PostgreSql.Data.Frontend
             return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
         }
 
-        private readonly static object s_syncObject = new object();
-
         private ReadOnlyDictionary<int, TypeInfo> _types;
         private DbConnectionOptions               _connectionOptions;
         private int                               _count;
+        private SemaphoreSlim                     _activeSemaphore;
+        
+        private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
+        {
+            return LazyInitializer.EnsureInitialized(ref _activeSemaphore, () => new SemaphoreSlim(1, 1));
+        }        
 
         internal TypeInfoProvider(DbConnectionOptions connectionOptions)
         {
@@ -478,18 +482,21 @@ namespace PostgreSql.Data.Frontend
             }
             if (_types == null)
             {               
-                lock (s_syncObject)
+                var sem = LazyEnsureActiveSemaphoreInitialized();
+                sem.Wait();
+
+                if (_types == null)
                 {
-                    if (_types == null)
-                    {
-                        _types = DiscoverTypes(_connectionOptions);
-                    }
+                    _types = DiscoverTypes(_connectionOptions);                    
                 }
+                
+                sem.Release();
             }
             if (_types.ContainsKey(oid))
             {
                 return _types[oid];
             }
+            
             throw new NotSupportedException($"Data Type with OID='{oid}' is not supported");
         }
 
