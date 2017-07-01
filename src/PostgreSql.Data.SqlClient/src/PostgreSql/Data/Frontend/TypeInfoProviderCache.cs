@@ -25,6 +25,11 @@ namespace PostgreSql.Data.Frontend
             return provider;
         }
 
+        internal static void Clear()
+        {
+            s_providers.Clear();
+        }
+
         internal static void Release(DbConnectionOptions options)
         {
             TypeInfoProvider provider;

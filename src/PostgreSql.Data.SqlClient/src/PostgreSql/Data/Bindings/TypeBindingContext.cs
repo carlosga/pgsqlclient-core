@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
+using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.Bindings
 {
@@ -66,6 +67,7 @@ namespace PostgreSql.Data.Bindings
         public static void Clear()
         {
             s_providers.Clear();
+            TypeInfoProviderCache.Clear();
         }
     }
 }
