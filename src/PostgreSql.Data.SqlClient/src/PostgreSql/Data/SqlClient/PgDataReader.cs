@@ -196,14 +196,7 @@ namespace PostgreSql.Data.SqlClient
 
             _position++;
 
-            if (_refCursor != null)
-            {
-                return _row.ReadFrom(_refCursor);
-            }
-            else
-            {
-                return _row.ReadFrom(_statement);
-            }
+            return (_refCursor != null) ? _row.ReadFrom(_refCursor) : _row.ReadFrom(_statement);
         }
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)

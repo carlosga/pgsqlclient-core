@@ -50,6 +50,7 @@ CMakeLists.txt.user
 .browse.VC.*
 
 # Project files to be ignored
+devtools
 ConnectionString.xml
 *.lock.json
 *.repro

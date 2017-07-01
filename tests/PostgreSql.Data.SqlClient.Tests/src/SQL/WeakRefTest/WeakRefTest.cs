@@ -46,7 +46,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestReaderNonMars()
         {
-            string connString = DataTestClass.PostgreSql_Pubs + "Max Pool Size=1";
+            string connString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Pubs) { MaxPoolSize = 1 }).ConnectionString;
 
             TestReaderNonMarsCase("Case  1: ExecuteReader, Close, ExecuteReader.", connString, ReaderTestType.ReaderClose, ReaderVerificationType.ExecuteReader);
             TestReaderNonMarsCase("Case  2: ExecuteReader, Dispose, ExecuteReader.", connString, ReaderTestType.ReaderDispose, ReaderVerificationType.ExecuteReader);
@@ -70,7 +70,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void TestTransactionSingle()
         {
-            string connString = DataTestClass.PostgreSql_Pubs + "Max Pool Size=1";
+            string connString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Pubs) { MaxPoolSize = 1 }).ConnectionString;
 
             TestTransactionSingleCase("Case 1: BeginTransaction, Rollback.", connString, TransactionTestType.TransactionRollback);
             TestTransactionSingleCase("Case 2: BeginTransaction, Dispose.", connString, TransactionTestType.TransactionDispose);
@@ -137,14 +137,14 @@ namespace PostgreSql.Data.SqlClient.Tests
                             using (PgDataReader rdr = cmd.ExecuteReader())
                             {
                                 rdr.Read();
-                                Assert.Equal(rdr.FieldCount, 1);
-                                Assert.Equal(rdr.GetName(0), COLUMN_NAME_2);
+                                Assert.Equal(1            , rdr.FieldCount);
+                                Assert.Equal(COLUMN_NAME_2, rdr.GetName(0));
                             }
                             break;
 
                         case ReaderVerificationType.ChangeDatabase:
                             con.ChangeDatabase(DATABASE_NAME);
-                            Assert.Equal(con.Database, DATABASE_NAME);
+                            Assert.Equal(DATABASE_NAME, con.Database);
                             break;
                     }
                 }

@@ -147,13 +147,27 @@ namespace PostgreSql.Data.Frontend
                 _parameterIndices = null;
                 _hasRows          = false;
                 _recordsAffected  = -1;
-                _parseMessage     = null;
-                _describeMessage  = null;
-                _bindMessage      = null;
-                _executeMessage   = null;
-                _closeMessage     = null;
-                _queryMessage     = null;
-                _functionMessage  = null;
+                
+                _parseMessage?.Dispose();
+                _parseMessage = null;
+
+                _describeMessage?.Dispose();
+                _describeMessage = null;
+
+                _bindMessage?.Dispose();
+                _bindMessage = null;
+
+                _executeMessage?.Dispose();
+                _executeMessage = null;
+
+                _closeMessage?.Dispose();
+                _closeMessage = null;
+
+                _queryMessage?.Dispose();
+                _queryMessage = null;
+
+                _functionMessage?.Dispose();
+                _functionMessage = null;
 
                 _disposed = true;
             }
@@ -287,7 +301,7 @@ namespace PostgreSql.Data.Frontend
 
                 ChangeState(StatementState.Executing);
 
-                _functionMessage.Clear();
+                _functionMessage.Reset();
 
                 // Function id
                 _functionMessage.Write(id);
@@ -331,7 +345,7 @@ namespace PostgreSql.Data.Frontend
                 // Update Status
                 ChangeState(StatementState.Executing);
 
-                _queryMessage.Clear();
+                _queryMessage.Reset();
                 _queryMessage.WriteNullString(_statementText);
 
                 // Send message
@@ -414,13 +428,13 @@ namespace PostgreSql.Data.Frontend
                 _commandType = CommandType.Text;
 
                 // Clear messages
-                _parseMessage.Clear();
-                _describeMessage.Clear();
-                _bindMessage.Clear();
-                _executeMessage.Clear();
-                _closeMessage.Clear();
-                _queryMessage.Clear();
-                _functionMessage.Clear();
+                _parseMessage.Reset();
+                _describeMessage.Reset();
+                _bindMessage.Reset();
+                _executeMessage.Reset();
+                _closeMessage.Reset();
+                _queryMessage.Reset();
+                _functionMessage.Reset();
 
                 // Update Status
                 ChangeState(StatementState.Default);
@@ -491,7 +505,7 @@ namespace PostgreSql.Data.Frontend
 
         private void Parse()
         {
-            _parseMessage.Clear();
+            _parseMessage.Reset();
 
             // Reset has rows flag
             _hasRows = false;
@@ -533,7 +547,7 @@ namespace PostgreSql.Data.Frontend
 
         private void Describe(byte type)
         {
-            _describeMessage.Clear();
+            _describeMessage.Reset();
 
             _describeMessage.WriteByte(type);
             _describeMessage.WriteNullString(((type == STATEMENT) ? _parseName : _portalName));
@@ -557,7 +571,7 @@ namespace PostgreSql.Data.Frontend
                 ClosePortal();
             }
 
-            _bindMessage.Clear();
+            _bindMessage.Reset();
 
             // Destination portal name
             _bindMessage.WriteNullString(_portalName);
@@ -587,7 +601,7 @@ namespace PostgreSql.Data.Frontend
 
         private void Execute(CommandBehavior behavior)
         {
-            _executeMessage.Clear();
+            _executeMessage.Reset();
             _executeMessage.WriteNullString(_portalName);
 
             // Rows to retrieve ( 0 = nolimit )
@@ -637,7 +651,7 @@ namespace PostgreSql.Data.Frontend
                 return;
             }
 
-            _closeMessage.Clear();
+            _closeMessage.Reset();
             _closeMessage.WriteByte(type);
             _closeMessage.WriteNullString(name);
 

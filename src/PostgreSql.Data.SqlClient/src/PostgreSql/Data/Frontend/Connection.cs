@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Net.Security;
 using System.Threading;
+using PostgreSql.Data.Frontend.Sasl;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -32,6 +33,7 @@ namespace PostgreSql.Data.Frontend
         private bool                _open;
         private Transport           _transport;
         private MessageReader       _reader;
+        private ISaslMechanism      _saslAuthenticator;
 
         internal NotificationCallback Notification
         {
@@ -99,7 +101,7 @@ namespace PostgreSql.Data.Frontend
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgDatabase() {
+        // ~Connection() {
         //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
         //   Dispose(false);
         // }
@@ -149,8 +151,8 @@ namespace PostgreSql.Data.Frontend
             {
                 Lock();
 
-                _transport.Close();
-                _reader.Clear();
+                _transport?.Close();
+                _reader?.Dispose();
 
                 TypeInfoProviderCache.Release(_connectionOptions);
             }
@@ -171,6 +173,7 @@ namespace PostgreSql.Data.Frontend
                 _open                   = false;
                 _activeSemaphore        = null;
                 _cancelRequestSemaphore = null;
+                _saslAuthenticator      = null;
 
                 // Callback cleanup
                 ReleaseCallbacks();
@@ -251,21 +254,18 @@ namespace PostgreSql.Data.Frontend
                 connection = new Connection(_connectionOptions);
                 connection.Open();
 
-                var message = new MessageWriter(FrontendMessages.Untyped, _sessionData);
+                using (var message = new MessageWriter(FrontendMessages.Untyped, _sessionData))
+                {
+                    message.Write(CancelRequestCode);
+                    message.Write(_processId);
+                    message.Write(_secretKey);
 
-                message.Write(CancelRequestCode);
-                message.Write(_processId);
-                message.Write(_secretKey);
-
-                connection.Send(message);
+                    message.WriteTo(_transport);
+                }
             }
             finally
             {
-                if (connection != null)
-                {
-                    connection.Dispose();
-                }
-
+                connection?.Dispose();
                 cancelSem.Release();
             }
         }
@@ -295,21 +295,8 @@ namespace PostgreSql.Data.Frontend
 
         internal void Send(MessageWriter message) => message.WriteTo(_transport);
 
-        internal bool IsConnectionAlive(bool throwOnException = false)
-        {
-            try
-            {
-                return _transport.IsTransportAlive(throwOnException); 
-            }
-            catch
-            {
-                if (throwOnException)
-                {
-                    throw;
-                }
-                return false;
-            }
-        }
+        internal bool IsConnectionAlive(bool throwOnException = false) 
+            => ((_transport == null) ? false : _transport.IsTransportAlive(throwOnException)); 
 
         private void OpenInternal()
         {
@@ -342,72 +329,73 @@ namespace PostgreSql.Data.Frontend
         private void SendStartupMessage()
         {
             // Send Startup message
-            var message = new MessageWriter(FrontendMessages.Untyped, _sessionData);
-
-            // http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
-
-            // user name
-            message.Write(ProtocolVersion3);
-            message.WriteNullString("user");
-            message.WriteNullString(_connectionOptions.UserID);
-
-            // database
-            if (!string.IsNullOrEmpty(_connectionOptions.InitialCatalog))
+            using (var message = new MessageWriter(FrontendMessages.Untyped, _sessionData))
             {
-                message.WriteNullString("database");
-                message.WriteNullString(_connectionOptions.InitialCatalog);
+                // http://www.postgresql.org/docs/9.5/static/runtime-config-client.html
+
+                // user name
+                message.Write(ProtocolVersion3);
+                message.WriteNullString("user");
+                message.WriteNullString(_connectionOptions.UserID);
+
+                // database
+                if (!string.IsNullOrEmpty(_connectionOptions.InitialCatalog))
+                {
+                    message.WriteNullString("database");
+                    message.WriteNullString(_connectionOptions.InitialCatalog);
+                }
+
+                // select ISO date style
+                message.WriteNullString("DateStyle");
+                message.WriteNullString(PgDate.DateStyle);
+
+                // search_path
+                if (!string.IsNullOrEmpty(_connectionOptions.SearchPath))
+                {
+                    message.WriteNullString("search_path");
+                    message.WriteNullString(_connectionOptions.SearchPath);
+                }
+
+                // application_name
+                if (!string.IsNullOrEmpty(_connectionOptions.ApplicationName))
+                {
+                    message.WriteNullString("application_name");
+                    message.WriteNullString(_connectionOptions.ApplicationName);
+                }
+
+                // statement_timeout (milliseconds)
+                if (_connectionOptions.CommandTimeout > 0)
+                {
+                    message.WriteNullString("statement_timeout");
+                    message.WriteNullString($"{_connectionOptions.CommandTimeout}s");
+                }
+
+                // lock_timeout (milliseconds)
+                if (_connectionOptions.LockTimeout > 0)
+                {
+                    message.WriteNullString("lock_timeout");
+                    message.WriteNullString(_connectionOptions.LockTimeout.ToString(TypeInfoProvider.InvariantCulture));
+                }
+
+                // default_transaction_read_only
+                if (_connectionOptions.DefaultTransactionReadOnly)
+                {
+                    message.WriteNullString("default_transaction_read_only");
+                    message.WriteNullString("on");
+                }
+
+                // default_tablespace
+                if (!string.IsNullOrEmpty(_connectionOptions.DefaultTablespace))
+                {
+                    message.WriteNullString("default_tablespace");
+                    message.WriteNullString(_connectionOptions.DefaultTablespace);
+                }
+
+                // Terminator
+                message.WriteByte(0);
+
+                message.WriteTo(_transport);
             }
-
-            // select ISO date style
-            message.WriteNullString("DateStyle");
-            message.WriteNullString(PgDate.DateStyle);
-
-            // search_path
-            if (!string.IsNullOrEmpty(_connectionOptions.SearchPath))
-            {
-                message.WriteNullString("search_path");
-                message.WriteNullString(_connectionOptions.SearchPath);
-            }
-
-            // application_name
-            if (!string.IsNullOrEmpty(_connectionOptions.ApplicationName))
-            {
-                message.WriteNullString("application_name");
-                message.WriteNullString(_connectionOptions.ApplicationName);
-            }
-
-            // statement_timeout (milliseconds)
-            if (_connectionOptions.CommandTimeout > 0)
-            {
-                message.WriteNullString("statement_timeout");
-                message.WriteNullString($"{_connectionOptions.CommandTimeout}s");
-            }
-
-            // lock_timeout (milliseconds)
-            if (_connectionOptions.LockTimeout > 0)
-            {
-                message.WriteNullString("lock_timeout");
-                message.WriteNullString(_connectionOptions.LockTimeout.ToString(TypeInfoProvider.InvariantCulture));
-            }
-
-            // default_transaction_read_only
-            if (_connectionOptions.DefaultTransactionReadOnly)
-            {
-                message.WriteNullString("default_transaction_read_only");
-                message.WriteNullString("on");
-            }
-
-            // default_tablespace
-            if (!string.IsNullOrEmpty(_connectionOptions.DefaultTablespace))
-            {
-                message.WriteNullString("default_tablespace");
-                message.WriteNullString(_connectionOptions.DefaultTablespace);
-            }
-
-            // Terminator
-            message.WriteByte(0);
-
-            message.WriteTo(_transport);
 
             // Process responses
             ReadUntilReadyForQuery();
@@ -422,23 +410,6 @@ namespace PostgreSql.Data.Frontend
                 message = Read();
                 HandleMessage(message);
             } while (!message.IsReadyForQuery);
-        }
-
-        private void SendClearTextPasswordAuthentication()
-        {
-            var message = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
-
-            message.WriteNullString(_connectionOptions.Password);
-            message.WriteTo(_transport);
-        }
-
-        private void SendPasswordAuthentication(byte[] salt)
-        {
-            var message = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData);
-            var hash    = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
-
-            message.WriteNullString(hash);
-            message.WriteTo(_transport);
         }
 
         private void HandleMessage(MessageReader message)
@@ -471,17 +442,84 @@ namespace PostgreSql.Data.Frontend
                 // Authentication successful
                 return;
 
-            case AuthenticationStage.ClearText:
-                SendClearTextPasswordAuthentication();
-                break;
-
             case AuthenticationStage.MD5:
                 // Read salt used when encrypting the password
-                SendPasswordAuthentication(message.ReadBytes(4));
+                AuthenticationMD5(message.ReadBytes(4));
+                break;
+
+            case AuthenticationStage.AuthenticationSASL:
+                AuthenticationSASL(message);
+                break;
+
+            case AuthenticationStage.SASLContinue:
+                SASLContinue(message);
+                break;
+
+            case AuthenticationStage.AuthenticationSASLFinal:
+                AuthenticationSASLFinal(message);
                 break;
 
             default:
                 throw ADP.NotSupported();
+            }
+        }
+
+        private void AuthenticationMD5(byte[] salt)
+        {
+            using (var response = new MessageWriter(FrontendMessages.PasswordMessage, _sessionData))
+            {
+                var hash = MD5Authentication.EncryptPassword(salt, _connectionOptions.UserID, _connectionOptions.Password);
+
+                response.WriteNullString(hash);
+                response.WriteTo(_transport);
+            }
+        }
+
+        private void AuthenticationSASL(MessageReader message)
+        {
+            using (var response = new MessageWriter(FrontendMessages.SASLInitialresponse, _sessionData))
+            {
+                var saslMechanism = message.ReadNullString();   // Name of a SASL authentication mechanism.
+
+                _saslAuthenticator = new SaslScramSha256(_sessionData.ClientEncoding);
+
+                var buffer = _saslAuthenticator.Auth(_connectionOptions.UserID);
+
+                response.WriteNullString(saslMechanism);           
+                response.Write(buffer.Length);
+                response.Write(buffer);
+
+                response.WriteTo(_transport);            
+            }
+        }
+
+        private void SASLContinue(MessageReader message)
+        {
+            using (var response = new MessageWriter(FrontendMessages.SASLResponse, _sessionData))
+            {
+                var challenge = message.ReadToEnd();
+                // var channelBinding = _transport.GetChannelBinding();
+
+                var buffer = _saslAuthenticator.Challenge(challenge, _connectionOptions.Password);
+
+                if (buffer == null)
+                {
+                    throw new PgException("Authentication failed");
+                }
+
+                response.Write(buffer);
+
+                response.WriteTo(_transport);
+            }
+        }
+
+        private void AuthenticationSASLFinal(MessageReader message)
+        {
+            bool valid =_saslAuthenticator.Verify(message.ReadToEnd());
+            _saslAuthenticator = null;
+            if (!valid)
+            {
+                throw new PgException("Authentication failed");
             }
         }
 

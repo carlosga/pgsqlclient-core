@@ -34,12 +34,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             InternalCancelAndDisposePreparedCommand(s_constr);
         }
 
-        [Fact(Skip="disabled")]
-        public void TimeOutDuringRead()
-        {
-            InternalTimeOutDuringRead(s_constr);
-        }
-
         private void MultiThreadedCancel(string constr, bool async)
         {
             using (var con = new PgConnection(constr))
@@ -153,49 +147,6 @@ namespace PostgreSql.Data.SqlClient.Tests
             stateTuple.Item3.SignalAndWait();
             Thread.Sleep(TimeSpan.FromSeconds(1));
             stateTuple.Item2.Cancel();
-        }
-
-        private void InternalTimeOutDuringRead(string constr)
-        {
-            // Create the proxy
-            ProxyServer proxy = ProxyServer.CreateAndStartProxy(constr, out constr);
-            proxy.SimulatedPacketDelay = 100;
-            proxy.SimulatedOutDelay    = true;
-
-            try
-            {
-                using (var conn = new PgConnection(constr))
-                {
-                    // Start the command
-                    conn.Open();
-                    PgCommand cmd = new PgCommand("SELECT @p", conn);
-                    cmd.Parameters.AddWithValue("p", new byte[20000]);
-                    PgDataReader reader = cmd.ExecuteReader();
-                    reader.Read();
-
-                    // Tweak the timeout to 1ms, stop the proxy from proxying and then try GetValue (which should timeout)
-                    reader.SetDefaultTimeout(1);
-                    proxy.PauseCopying();
-                    string errorMessage = "Timeout expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.";
-                    Exception exception = Assert.Throws<PgException>(() => reader.GetValue(0));
-                    Assert.True(exception.Message.Contains(errorMessage));
-
-                    // Return everything to normal and close
-                    proxy.ResumeCopying();
-                    reader.SetDefaultTimeout(30000);
-                    reader.Dispose();
-                }
-
-                proxy.Stop();
-            }
-            catch
-            {
-                // In case of error, stop the proxy and dump its logs (hopefully this will help with debugging
-                proxy.Stop();
-                Console.WriteLine(proxy.GetServerEventLog());
-                Assert.True(false, "Error while reading through proxy");
-                throw;
-            }
         }
     }
 }

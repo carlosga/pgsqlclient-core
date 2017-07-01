@@ -14,90 +14,17 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public sealed class ConnectionPoolTest
     {
-        [Fact(Skip="disabled")]
-        public void ConnectionPool_Northwind()
-        {
-            var connBuilder   = new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind);
-            var sourceBuilder = new DataSourceBuilder(connBuilder.DataSource);
-            sourceBuilder.Protocol = null;
-
-            connBuilder.DataSource = sourceBuilder.ToString();
-            connBuilder.Pooling    = true;
-            
-            RunDataTestForSingleConnString(connBuilder.ConnectionString);
-        }
-
-        private static void RunDataTestForSingleConnString(string tcpConnectionString)
-        {
-            BasicConnectionPoolingTest(tcpConnectionString);
-            ClearAllPoolsTest(tcpConnectionString);
-            ReclaimEmancipatedOnOpenTest(tcpConnectionString);
-        }
-
-        /// <summary>
-        /// Tests that using the same connection string results in the same pool\internal connection and a different string results in a different pool\internal connection
-        /// </summary>
-        /// <param name="connectionString"></param>
-        private static void BasicConnectionPoolingTest(string connectionString)
-        {
-            var connection = new PgConnection(connectionString);
-            connection.Open();
-            var internalConnection = new InternalConnectionWrapper(connection);
-            var connectionPool     = new ConnectionPoolWrapper(connection);
-            connection.Close();
-
-            var connection2 = new PgConnection(connectionString);
-            connection2.Open();
-            Assert.True(internalConnection.IsInternalConnectionOf(connection2), "New connection does not use same internal connection");
-            Assert.True(connectionPool.ContainsConnection(connection2), "New connection is in a different pool");
-            connection2.Close();
-
-            var connection3 = new PgConnection(connectionString + ";App=PgConnectionPoolUnitTest;");
-            connection3.Open();
-            Assert.False(internalConnection.IsInternalConnectionOf(connection3), "Connection with different connection string uses same internal connection");
-            Assert.False(connectionPool.ContainsConnection(connection3), "Connection with different connection string uses same connection pool");
-            connection3.Close();
-
-            connectionPool.Cleanup();
-
-            var connection4 = new PgConnection(connectionString);
-            connection4.Open();
-            Assert.True(internalConnection.IsInternalConnectionOf(connection4), "New connection does not use same internal connection");
-            Assert.True(connectionPool.ContainsConnection(connection4), "New connection is in a different pool");
-            connection4.Close();
-        }
-
-        /// <summary>
-        /// Tests if clearing all of the pools does actually remove the pools
-        /// </summary>
-        /// <param name="connectionString"></param>
-        private static void ClearAllPoolsTest(string connectionString)
-        {
-            PgConnection.ClearAllPools();
-            Assert.True(0 == ConnectionPoolWrapper.AllConnectionPools().Length, "Pools exist after clearing all pools");
-
-            var connection = new PgConnection(connectionString);
-            connection.Open();
-            ConnectionPoolWrapper pool = new ConnectionPoolWrapper(connection);
-            connection.Close();
-            ConnectionPoolWrapper[] allPools = ConnectionPoolWrapper.AllConnectionPools();
-            DataTestClass.AssertEqualsWithDescription(1, allPools.Length, "Incorrect number of pools exist.");
-            Assert.True(allPools[0].Equals(pool), "Saved pool is not in the list of all pools");
-            DataTestClass.AssertEqualsWithDescription(1, pool.ConnectionCount, "Saved pool has incorrect number of connections");
-
-            PgConnection.ClearAllPools();
-            Assert.True(0 == ConnectionPoolWrapper.AllConnectionPools().Length, "Pools exist after clearing all pools");
-            DataTestClass.AssertEqualsWithDescription(0, pool.ConnectionCount, "Saved pool has incorrect number of connections.");
-        }
+        private static readonly string ConnectionString = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { Pooling = true }).ConnectionString;
+        private static readonly string ADP_PooledOpenTimeout = "Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.";
 
         /// <summary>
         /// Checks if an 'emancipated' internal connection is reclaimed when a new connection is opened AND we hit max pool size
         /// NOTE: 'emancipated' means that the internal connection's PgConnection has fallen out of scope and has no references, but was not explicitly disposed\closed
         /// </summary>
-        /// <param name="connectionString"></param>
-        private static void ReclaimEmancipatedOnOpenTest(string connectionString)
+        [Fact(Skip = "disabled")]
+        public static void ReclaimEmancipatedOnOpenTest()
         {
-            string newConnectionString = connectionString + ";Max Pool Size=1";
+            string newConnectionString = (new PgConnectionStringBuilder(ConnectionString) { MaxPoolSize = 1 }).ConnectionString;
             PgConnection.ClearAllPools();
 
             InternalConnectionWrapper internalConnection = CreateEmancipatedConnection(newConnectionString);
@@ -116,9 +43,66 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
         }
 
-        private static void ReplacementConnectionUsesSemaphoreTest(string connectionString)
+        /// <summary>
+        /// Tests that using the same connection string results in the same pool\internal connection and a different string results in a different pool\internal connection
+        /// </summary>
+        [Fact]
+        public static void BasicConnectionPoolingTest()
         {
-            string newConnectionString = (new PgConnectionStringBuilder(connectionString) { MaxPoolSize = 2, ConnectTimeout = 5 }).ConnectionString;
+            var connection = new PgConnection(ConnectionString);
+            connection.Open();
+            var internalConnection = new InternalConnectionWrapper(connection);
+            var connectionPool     = new ConnectionPoolWrapper(connection);
+            connection.Close();
+
+            var connection2 = new PgConnection(ConnectionString);
+            connection2.Open();
+            Assert.True(internalConnection.IsInternalConnectionOf(connection2), "New connection does not use same internal connection");
+            Assert.True(connectionPool.ContainsConnection(connection2), "New connection is in a different pool");
+            connection2.Close();
+
+            var connection3 = new PgConnection(ConnectionString + ";App=PgConnectionPoolUnitTest;");
+            connection3.Open();
+            Assert.False(internalConnection.IsInternalConnectionOf(connection3), "Connection with different connection string uses same internal connection");
+            Assert.False(connectionPool.ContainsConnection(connection3), "Connection with different connection string uses same connection pool");
+            connection3.Close();
+
+            connectionPool.Cleanup();
+
+            var connection4 = new PgConnection(ConnectionString);
+            connection4.Open();
+            Assert.True(internalConnection.IsInternalConnectionOf(connection4), "New connection does not use same internal connection");
+            Assert.True(connectionPool.ContainsConnection(connection4), "New connection is in a different pool");
+            connection4.Close();
+        }
+
+        /// <summary>
+        /// Tests if clearing all of the pools does actually remove the pools
+        /// </summary>
+        [Fact]
+        public static void ClearAllPoolsTest()
+        {
+            PgConnection.ClearAllPools();
+            Assert.True(0 == ConnectionPoolWrapper.AllConnectionPools().Length, "Pools exist after clearing all pools");
+
+            var connection = new PgConnection(ConnectionString);
+            connection.Open();
+            ConnectionPoolWrapper pool = new ConnectionPoolWrapper(connection);
+            connection.Close();
+            ConnectionPoolWrapper[] allPools = ConnectionPoolWrapper.AllConnectionPools();
+            DataTestClass.AssertEqualsWithDescription(1, allPools.Length, "Incorrect number of pools exist.");
+            Assert.True(allPools[0].Equals(pool), "Saved pool is not in the list of all pools");
+            DataTestClass.AssertEqualsWithDescription(1, pool.ConnectionCount, "Saved pool has incorrect number of connections");
+
+            PgConnection.ClearAllPools();
+            Assert.True(0 == ConnectionPoolWrapper.AllConnectionPools().Length, "Pools exist after clearing all pools");
+            DataTestClass.AssertEqualsWithDescription(0, pool.ConnectionCount, "Saved pool has incorrect number of connections.");
+        }
+
+        [Fact(Skip="disabled")]
+        public static void ReplacementConnectionUsesSemaphoreTest()
+        {
+            string newConnectionString = (new PgConnectionStringBuilder(ConnectionString) { MaxPoolSize = 2, ConnectTimeout = 5 }).ConnectionString;
             PgConnection.ClearAllPools();
 
             var liveConnection = new PgConnection(newConnectionString);
@@ -151,9 +135,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         // One task should have a timeout exception
                         if ((!taskWithCorrectException) 
-                         && (item.Exception.InnerException is InvalidOperationException))
-#warning Restore check
-                         // && (item.Exception.InnerException.Message.StartsWith(SystemDataResourceManager.Instance.ADP_PooledOpenTimeout)))
+                         && (item.Exception.InnerException is InvalidOperationException)
+                         && (item.Exception.InnerException.Message.StartsWith(ADP_PooledOpenTimeout)))
                         {
                             taskWithCorrectException = true;
                         }

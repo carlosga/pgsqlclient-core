@@ -13,7 +13,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public static class AsyncTest
     {
-        private const int TaskTimeout = 5000;
+        private const int TaskTimeout = 1000;
 
         [Fact]
         public static void ExecuteTest()
@@ -41,17 +41,16 @@ namespace PostgreSql.Data.SqlClient.Tests
             con.Close();
         }
 
-        [Fact(Skip = "disabled")]
+        [Fact(Skip = "Async Timeout")]
         public static void FailureTest()
         {
             var  connStr       = DataTestClass.PostgreSql_Northwind;
             bool failure       = false;
             bool taskCompleted = false;
 
-            var com = new PgCommand("select * from orders");
-            var con = new PgConnection(connStr + "pooling=false");
+            var con = new PgConnection(connStr);
+            var com = new PgCommand("select * from orders", con);
             
-            com.Connection = con;
             con.Open();
 
             Task<int> nonQueryTask = com.ExecuteNonQueryAsync();

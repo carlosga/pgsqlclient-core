@@ -1,21 +1,21 @@
 // Copyright (c) Carlos Guzmán Álvarez. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using PostgreSql.Data.Bindings;
 using PostgreSql.Data.PgTypes;
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Buffers;
 using System.Data.Common;
 using System.IO;
 using System.Diagnostics;
-using PostgreSql.Data.Bindings;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed partial class MessageWriter
-        : ITypeWriter
+        : ITypeWriter, IDisposable
     {
         private readonly byte        _messageType;
         private readonly SessionData _sessionData;
@@ -43,7 +43,47 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal void Clear()
+        #region IDisposable Support
+        private bool _disposed = false; // To detect redundant calls
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).                    
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+                if (_buffer != null)
+                {
+                    ArrayPool<byte>.Shared.Return(_buffer, true);
+                    _buffer = null;
+                }
+
+                _disposed = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~MessageWriter() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion        
+
+        internal void Reset()
         {
             if (_position != _initialCapacity)
             {

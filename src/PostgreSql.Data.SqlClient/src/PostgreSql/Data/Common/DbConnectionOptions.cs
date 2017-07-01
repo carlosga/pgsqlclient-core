@@ -58,7 +58,7 @@ namespace System.Data.Common
         internal string UserID                     => _userId;
         internal string InternalUrl                => $"{DataSource}://{InitialCatalog}";
 
-        internal bool IsEmpty => String.IsNullOrEmpty(_connectionString);
+        internal bool IsEmpty => string.IsNullOrEmpty(_connectionString);
 
         internal NotificationCallback Notification
         {
@@ -234,7 +234,7 @@ namespace System.Data.Common
                 }
             }
 
-            if (String.IsNullOrEmpty(_userId) || String.IsNullOrEmpty(_dataSource))
+            if (string.IsNullOrEmpty(_userId) || string.IsNullOrEmpty(_dataSource))
             {
                 throw ADP.InvalidConnectionStringArgument();
             }

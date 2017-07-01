@@ -36,5 +36,4 @@ test:
     - cd tests/PostgreSql.Data.SqlClient.Tests
     - mv ConnectionString.ci.xml ConnectionString.xml
     - dotnet restore --verbosity:q
-    - dotnet build
     - dotnet test
