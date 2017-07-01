@@ -483,7 +483,7 @@ namespace PostgreSql.Data.Frontend
 
                 _saslAuthenticator = new SaslScramSha256(_sessionData.ClientEncoding);
 
-                var buffer = _saslAuthenticator.Auth(_connectionOptions.UserID);
+                var buffer = _saslAuthenticator.Auth();
 
                 response.WriteNullString(saslMechanism);           
                 response.Write(buffer.Length);
