@@ -11,9 +11,8 @@ namespace PostgreSql.Data.Frontend.Sasl
         /// <summary>
         /// Starts the SASL negotiation process.
         /// </summary>
-        /// <param name="username">The user name.</param>
-        /// <returns>A SASL auth instance.</returns>
-        byte[] Auth(string username);
+        /// <returns>A SASL auth initial message.</returns>
+        byte[] Auth();
 
         /// <summary>
         /// Process the SASL challenge message.
@@ -27,7 +26,7 @@ namespace PostgreSql.Data.Frontend.Sasl
         /// Verifies the SASL success message if needed.
         /// </summary>
         /// <param name="signature">The server signature</param>
-        /// <returns><b>true</b> if the reponse has been verified; otherwise <b>false</b></returns>
+        /// <returns><b>true</b> if the server signature has been verified; otherwise <b>false</b></returns>
         bool Verify(byte[] signature);
     }
 }

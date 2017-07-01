@@ -32,10 +32,8 @@ namespace PostgreSql.Data.Frontend.Sasl
         /// <summary>
         /// Starts the SASL negotiation process.
         /// </summary>
-        /// <returns>
-        /// A SASL auth instance.
-        /// </returns>
-        public byte[] Auth(string username)
+        /// <returns>A SASL auth initial message.</returns>
+        public byte[] Auth()
         {
             _conce                  = CryptographicBuffer.EncodeToHexString(CryptographicBuffer.GenerateRandom(32));
             _clientFirstMessageBare = $"n=,r={_conce}";
@@ -47,7 +45,7 @@ namespace PostgreSql.Data.Frontend.Sasl
         /// Process the SASL challenge message.
         /// </summary>
         /// <param name="challenge">The server challenge.</param>
-        /// <param name="password">The user password.</param>
+        /// <param name="userPassword">The user password.</param>
         /// <returns>
         /// The challenge response.
         /// </returns>
@@ -107,7 +105,7 @@ namespace PostgreSql.Data.Frontend.Sasl
         /// </summary>
         /// <param name="signature">The server signature</param>
         /// <returns>
-        ///   <b>true</b> if the reponse has been verified; otherwise <b>false</b>
+        ///   <b>true</b> if the server signature has been verified; otherwise <b>false</b>
         /// </returns>
         public bool Verify(byte[] signature)
         {
