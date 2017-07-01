@@ -242,7 +242,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            if (_commands.Count == 1 || !_connection.MultipleActiveResultSets)
+            if (!_connection.MultipleActiveResultSets)
             {
                 return InternalExecuteNonQuery();
             }
