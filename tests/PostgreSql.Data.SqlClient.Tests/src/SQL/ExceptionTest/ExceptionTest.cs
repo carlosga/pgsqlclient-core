@@ -14,13 +14,13 @@ namespace PostgreSql.Data.SqlClient.Tests
     public static class ExceptionTest
     {
         // data value and server consts
-        private const string badServer               = "NotAServer";
-        private const string sqlsvrBadConn           = "A network-related or instance-specific error occurred while establishing a connection to PostgreSQL. The server was not found or was not accessible. Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.";
-        private const string logonFailedErrorMessage = "password authentication failed for user \"{0}\"";
-        private const string execReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is Closed.";
-        private const string warningNoiseMessage     = "The full-text search condition contained noise word(s).";
-        private const string warningInfoMessage      = "Test of info messages";
-        private const string orderIdQuery            = "select orderid from orders where orderid < 10250";
+        private const string BadServer               = "NotAServer";
+        private const string PostgreSqlBadConn       = "A network-related or instance-specific error occurred while establishing a connection to PostgreSQL. The server was not found or was not accessible. Verify that the server name is correct and that PostgreSQL is configured to allow remote connections.";
+        private const string LogonFailedErrorMessage = "password authentication failed for user \"{0}\"";
+        private const string ExecReaderFailedMessage = "ExecuteReader requires an open and available Connection. The connection's current state is Closed.";
+        private const string WarningNoiseMessage     = "The full-text search condition contained noise word(s).";
+        private const string WarningInfoMessage      = "Test of info messages";
+        private const string OrderIdQuery            = "select orderid from orders where orderid < 10250";
 
         [Fact]
         public static void WarningTest()
@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 {
                     for (int i = 0; i < imevent.Errors.Count; i++)
                     {
-                        Assert.True(imevent.Errors[i].Message.Contains(warningInfoMessage), "FAILED: WarningTest Callback did not contain correct message.");
+                        Assert.True(imevent.Errors[i].Message.Contains(WarningInfoMessage), "FAILED: WarningTest Callback did not contain correct message.");
                     }
                     
                     hitWarnings = true;
@@ -45,7 +45,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 connection.InfoMessage += handler;
                 connection.Open();
 
-                PgCommand cmd = new PgCommand(string.Format("SELECT RAISE_NOTICE('{0}')", warningInfoMessage), connection);
+                PgCommand cmd = new PgCommand(string.Format("SELECT RAISE_NOTICE('{0}')", WarningInfoMessage), connection);
                 cmd.ExecuteNonQuery();
 
                 connection.InfoMessage -= handler;
@@ -62,12 +62,12 @@ namespace PostgreSql.Data.SqlClient.Tests
             var builder          = new PgConnectionStringBuilder(connectionString);
 
             // tests improper server name thrown from constructor of tdsparser
-            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
-            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), sqlsvrBadConn);
+            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = BadServer, ConnectTimeout = 1 };
+            VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), PostgreSqlBadConn);
 
             // tests incorrect password
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
-            var errorMessage = string.Format(logonFailedErrorMessage, badBuilder.UserID);
+            var errorMessage = string.Format(LogonFailedErrorMessage, badBuilder.UserID);
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
             
             // tests incorrect database name
@@ -81,7 +81,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
             // tests incorrect user name - exception thrown from adapter
             badBuilder   = new PgConnectionStringBuilder(builder.ConnectionString) { UserID = "NotAUser" };
-            errorMessage = string.Format(CultureInfo.InvariantCulture, logonFailedErrorMessage, badBuilder.UserID);
+            errorMessage = string.Format(CultureInfo.InvariantCulture, LogonFailedErrorMessage, badBuilder.UserID);
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
         }
 
@@ -92,13 +92,13 @@ namespace PostgreSql.Data.SqlClient.Tests
             var builder          = new PgConnectionStringBuilder(connectionString);
 
             // Test 1 - A
-            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            var badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = BadServer, ConnectTimeout = 1 };
             using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
                 using (PgCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = orderIdQuery;
-                    VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
+                    command.CommandText = OrderIdQuery;
+                    VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), ExecReaderFailedMessage);
                 }
             }
 
@@ -106,7 +106,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
             using (var connection = new PgConnection(badBuilder.ConnectionString))
             {                
-                string errorMessage = string.Format(logonFailedErrorMessage, badBuilder.UserID);
+                string errorMessage = string.Format(LogonFailedErrorMessage, badBuilder.UserID);
                 VerifyConnectionFailure<PgException>(() => connection.Open(), errorMessage, (ex) => VerifyException(ex));
             }
         }
@@ -116,17 +116,17 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             var connectionString = DataTestClass.PostgreSql_Northwind;
             var builder          = new PgConnectionStringBuilder(connectionString);
-            var badBuilder       = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = badServer, ConnectTimeout = 1 };
+            var badBuilder       = new PgConnectionStringBuilder(builder.ConnectionString) { DataSource = BadServer, ConnectTimeout = 1 };
             
             using (var connection = new PgConnection(badBuilder.ConnectionString))
             {
                 // Test 1
-                VerifyConnectionFailure<PgException>(() => connection.Open(), sqlsvrBadConn);
+                VerifyConnectionFailure<PgException>(() => connection.Open(), PostgreSqlBadConn);
 
                 // Test 2
-                using (var command = new PgCommand(orderIdQuery, connection))
+                using (var command = new PgCommand(OrderIdQuery, connection))
                 {
-                    VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), execReaderFailedMessage);
+                    VerifyConnectionFailure<InvalidOperationException>(() => command.ExecuteReader(), ExecReaderFailedMessage);
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = orderIdQuery;
+                    command.CommandText = OrderIdQuery;
                     command.ExecuteReader();
                 }
             }

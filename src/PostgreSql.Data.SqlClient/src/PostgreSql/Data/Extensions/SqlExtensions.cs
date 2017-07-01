@@ -10,11 +10,11 @@ namespace System
 {
     internal static class SqlExtensions
     {
-        internal static List<string> SplitCommandText(this string commandText, char separator = ';')
-        {
-            var commands = new List<string>();
+        private const char CommandSeparator = ';';
 
-            if (commandText != null && commandText.IndexOf(';') != -1)
+        internal static List<string> SplitCommandText(this string commandText, ref List<string> commands)
+        {
+            if (commandText != null && commandText.IndexOf(CommandSeparator) != -1)
             {
                 var  inLiteral = false;
                 int  from      = 0;
@@ -30,9 +30,9 @@ namespace System
                     {
                         inLiteral = !inLiteral;
                     }
-                    else if (!inLiteral && (sym == separator || i == lastIndex))
+                    else if (!inLiteral && (sym == CommandSeparator || i == lastIndex))
                     {
-                        if (i == lastIndex && sym != separator)
+                        if (i == lastIndex && sym != CommandSeparator)
                         {
                             offset = 1;
                         }

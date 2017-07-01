@@ -39,7 +39,6 @@ namespace PostgreSql.Data.SqlClient
                     }
 
                     _commandText = value;
-                    _commands    = _commandText.SplitCommandText();
                 }
             }
         }
@@ -165,7 +164,7 @@ namespace PostgreSql.Data.SqlClient
             _commandBehavior   = CommandBehavior.Default;
             _designTimeVisible = false;
             _parameters        = new PgParameterCollection();
-            _commands          = new List<string>();
+            _commands          = new List<string>(1);
             _fetchSize         = 200;
         }
 
@@ -268,7 +267,7 @@ namespace PostgreSql.Data.SqlClient
         {
             CheckCommand();
 
-            if (_commands.Count == 1 || !_connection.MultipleActiveResultSets)
+            if (!_connection.MultipleActiveResultSets)
             {
                 return InternalExecuteScalar();
             }
@@ -321,6 +320,7 @@ namespace PostgreSql.Data.SqlClient
 
                 reader?.CloseReaderFromCommand();
                 _statement?.Dispose();
+                _commands?.Clear();
             }
             catch
             {
@@ -349,6 +349,17 @@ namespace PostgreSql.Data.SqlClient
             else if (_statement.IsPrepared)
             {
                 return;
+            }
+
+            _commands.Clear();
+
+            if (_connection.MultipleActiveResultSets)
+            {
+                _commandText.SplitCommandText(ref _commands);
+            }
+            else 
+            {
+                _commands.Add(_commandText);
             }
 
             _statement.Parameters    = _parameters;
