@@ -1,6 +1,6 @@
 ﻿{
     "appDomain": "denied",
-    "diagnosticMessages": true,
+    "diagnosticMessages": false,
     "parallelizeTestCollections": false,
     "maxParallelThreads": 1,
     "methodDisplay": "method"
