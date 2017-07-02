@@ -14,6 +14,15 @@ namespace System
 
         internal static List<string> SplitCommandText(this string commandText, ref List<string> commands)
         {
+            if (commands == null)
+            {
+                commands = new List<string>(1);
+            }
+            else
+            {
+                commands.Clear();
+            }
+            
             if (commandText != null && commandText.IndexOf(CommandSeparator) != -1)
             {
                 var  inLiteral = false;
@@ -92,6 +101,10 @@ namespace System
                                               , PgParameterCollection parameters
                                               , ref List<int>         parameterIndices)
         {
+            if (parameters == null || parameters.Count == 0)
+            {
+                return commandText;
+            }
             if (commandText.IndexOf('@') == -1)
             {
                 return commandText;
@@ -104,8 +117,15 @@ namespace System
             int  paramIndex   = 0;
             char sym;
 
-            parameterIndices.Clear();
-            parameterIndices.Capacity = parameters.Count;
+            if (parameterIndices == null)
+            {
+                parameterIndices = new List<int>(parameters.Count);
+            }
+            else
+            {
+                parameterIndices.Clear();
+                parameterIndices.Capacity = parameters.Count;
+            }
 
             for (int i = 0; i < commandText.Length; ++i)
             {
