@@ -11,128 +11,128 @@ namespace PostgreSql.Data.SqlClient
     {
         public string ApplicationName
         {
-            get { return GetString(DbConnectionStringKeywords.ApplicationName, DbConnectionStringDefaults.ApplicationName); }
-            set { SetValue(DbConnectionStringKeywords.ApplicationName, value); }
+            get => GetString(DbConnectionStringKeywords.ApplicationName, DbConnectionStringDefaults.ApplicationName);
+            set => SetValue(DbConnectionStringKeywords.ApplicationName, value);
         }
 
         public int CommandTimeout
         {
-            get { return GetInt32(DbConnectionStringKeywords.CommandTimeout, DbConnectionStringDefaults.CommandTimeout); }
-            set { SetValue(DbConnectionStringKeywords.CommandTimeout, value); }
+            get => GetInt32(DbConnectionStringKeywords.CommandTimeout, DbConnectionStringDefaults.CommandTimeout);
+            set => SetValue(DbConnectionStringKeywords.CommandTimeout, value);
         }
 
         public int ConnectRetryCount
         {
-            get { return GetInt32(DbConnectionStringKeywords.ConnectRetryCount, DbConnectionStringDefaults.ConnectRetryCount); }
-            set { SetValue(DbConnectionStringKeywords.ConnectRetryCount, value); }
+            get => GetInt32(DbConnectionStringKeywords.ConnectRetryCount, DbConnectionStringDefaults.ConnectRetryCount);
+            set => SetValue(DbConnectionStringKeywords.ConnectRetryCount, value);
         }
 
         public int ConnectRetryInterval
         {
-            get { return GetInt32(DbConnectionStringKeywords.ConnectRetryInterval, DbConnectionStringDefaults.ConnectRetryInterval); }
-            set { SetValue(DbConnectionStringKeywords.ConnectRetryInterval, value); }
+            get => GetInt32(DbConnectionStringKeywords.ConnectRetryInterval, DbConnectionStringDefaults.ConnectRetryInterval);
+            set => SetValue(DbConnectionStringKeywords.ConnectRetryInterval, value);
         }
 
         public int ConnectTimeout
         {
-            get { return GetInt32(DbConnectionStringKeywords.ConnectTimeout, DbConnectionStringDefaults.ConnectTimeout); }
-            set { SetValue(DbConnectionStringKeywords.ConnectTimeout, value); }
+            get => GetInt32(DbConnectionStringKeywords.ConnectTimeout, DbConnectionStringDefaults.ConnectTimeout);
+            set => SetValue(DbConnectionStringKeywords.ConnectTimeout, value);
         }
 
         public string DataSource
         {
-            get { return GetString(DbConnectionStringKeywords.DataSource, DbConnectionStringDefaults.DataSource); }
-            set { SetValue(DbConnectionStringKeywords.DataSource, value); }
+            get => GetString(DbConnectionStringKeywords.DataSource, DbConnectionStringDefaults.DataSource);
+            set => SetValue(DbConnectionStringKeywords.DataSource, value);
         }
 
         public bool DefaultTransactionReadOnly
         {
-            get { return GetBoolean(DbConnectionStringKeywords.DefaultTransactionReadOnly, DbConnectionStringDefaults.DefaultTransactionReadOnly); }
-            set { SetValue(DbConnectionStringKeywords.DefaultTransactionReadOnly, value); }
+            get => GetBoolean(DbConnectionStringKeywords.DefaultTransactionReadOnly, DbConnectionStringDefaults.DefaultTransactionReadOnly);
+            set => SetValue(DbConnectionStringKeywords.DefaultTransactionReadOnly, value);
         }
 
         public string DefaultTablespace
         {
-            get { return GetString(DbConnectionStringKeywords.DefaultTablespace, DbConnectionStringDefaults.DefaultTablespace); }
-            set { SetValue(DbConnectionStringKeywords.DefaultTablespace, value); }
+            get => GetString(DbConnectionStringKeywords.DefaultTablespace, DbConnectionStringDefaults.DefaultTablespace);
+            set => SetValue(DbConnectionStringKeywords.DefaultTablespace, value);
         }
 
         public bool Encrypt
         {
-            get { return GetBoolean(DbConnectionStringKeywords.Encrypt, DbConnectionStringDefaults.Encrypt); }
-            set { SetValue(DbConnectionStringKeywords.Encrypt, value); }
+            get => GetBoolean(DbConnectionStringKeywords.Encrypt, DbConnectionStringDefaults.Encrypt);
+            set => SetValue(DbConnectionStringKeywords.Encrypt, value);
         }
 
         public string InitialCatalog
         {
-            get { return GetString(DbConnectionStringKeywords.InitialCatalog, DbConnectionStringDefaults.InitialCatalog); }
-            set { SetValue(DbConnectionStringKeywords.InitialCatalog, value); }
+            get => GetString(DbConnectionStringKeywords.InitialCatalog, DbConnectionStringDefaults.InitialCatalog);
+            set => SetValue(DbConnectionStringKeywords.InitialCatalog, value);
         }
 
         public int LoadBalanceTimeout
         {
-            get { return GetInt32(DbConnectionStringKeywords.LoadBalanceTimeout, DbConnectionStringDefaults.LoadBalanceTimeout); }
-            set { SetValue(DbConnectionStringKeywords.LoadBalanceTimeout, value); }
+            get => GetInt32(DbConnectionStringKeywords.LoadBalanceTimeout, DbConnectionStringDefaults.LoadBalanceTimeout);
+            set => SetValue(DbConnectionStringKeywords.LoadBalanceTimeout, value);
         }
 
         public int LockTimeout
         {
-            get { return GetInt32(DbConnectionStringKeywords.LockTimeout, DbConnectionStringDefaults.LockTimeout); }
-            set { SetValue(DbConnectionStringKeywords.LockTimeout, value); }
+            get => GetInt32(DbConnectionStringKeywords.LockTimeout, DbConnectionStringDefaults.LockTimeout);
+            set => SetValue(DbConnectionStringKeywords.LockTimeout, value);
         }
 
         public int PacketSize
         {
-            get { return GetInt32(DbConnectionStringKeywords.PacketSize, DbConnectionStringDefaults.PacketSize); }
-            set { SetValue(DbConnectionStringKeywords.PacketSize, value); }
+            get => GetInt32(DbConnectionStringKeywords.PacketSize, DbConnectionStringDefaults.PacketSize);
+            set => SetValue(DbConnectionStringKeywords.PacketSize, value);
         }
 
         public string Password
         {
-            get { return GetString(DbConnectionStringKeywords.Password, DbConnectionStringDefaults.Password); }
-            set { SetValue(DbConnectionStringKeywords.Password, value); }
+            get => GetString(DbConnectionStringKeywords.Password, DbConnectionStringDefaults.Password);
+            set => SetValue(DbConnectionStringKeywords.Password, value);
         }
 
         public bool Pooling
         {
-            get { return GetBoolean(DbConnectionStringKeywords.Pooling, DbConnectionStringDefaults.Pooling); }
-            set { SetValue(DbConnectionStringKeywords.Pooling, value); }
+            get => GetBoolean(DbConnectionStringKeywords.Pooling, DbConnectionStringDefaults.Pooling);
+            set => SetValue(DbConnectionStringKeywords.Pooling, value);
         }
 
         public int PortNumber
         {
-            get { return GetInt32(DbConnectionStringKeywords.PortNumber, DbConnectionStringDefaults.PortNumber); }
-            set { SetValue(DbConnectionStringKeywords.PortNumber, value); }
+            get => GetInt32(DbConnectionStringKeywords.PortNumber, DbConnectionStringDefaults.PortNumber);
+            set => SetValue(DbConnectionStringKeywords.PortNumber, value);
         }
 
         public int MaxPoolSize
         {
-            get { return GetInt32(DbConnectionStringKeywords.MaxPoolSize, DbConnectionStringDefaults.MaxPoolSize); }
-            set { SetValue(DbConnectionStringKeywords.MaxPoolSize, value); }
+            get => GetInt32(DbConnectionStringKeywords.MaxPoolSize, DbConnectionStringDefaults.MaxPoolSize);
+            set => SetValue(DbConnectionStringKeywords.MaxPoolSize, value);
         }
 
         public int MinPoolSize
         {
-            get { return GetInt32(DbConnectionStringKeywords.MinPoolSize, DbConnectionStringDefaults.MinPoolSize); }
-            set { SetValue(DbConnectionStringKeywords.MinPoolSize, value); }
+            get => GetInt32(DbConnectionStringKeywords.MinPoolSize, DbConnectionStringDefaults.MinPoolSize);
+            set => SetValue(DbConnectionStringKeywords.MinPoolSize, value);
         }
 
         public bool MultipleActiveResultSets
         {
-            get { return GetBoolean(DbConnectionStringKeywords.MultipleActiveResultSets, DbConnectionStringDefaults.MultipleActiveResultSets); }
-            set { SetValue(DbConnectionStringKeywords.MultipleActiveResultSets, value); }
+            get => GetBoolean(DbConnectionStringKeywords.MultipleActiveResultSets, DbConnectionStringDefaults.MultipleActiveResultSets);
+            set => SetValue(DbConnectionStringKeywords.MultipleActiveResultSets, value);
         }
 
         public string SearchPath
         {
-            get { return GetString(DbConnectionStringKeywords.SearchPath, DbConnectionStringDefaults.SearchPath); }
-            set { SetValue(DbConnectionStringKeywords.SearchPath, value); }
+            get => GetString(DbConnectionStringKeywords.SearchPath, DbConnectionStringDefaults.SearchPath);
+            set => SetValue(DbConnectionStringKeywords.SearchPath, value);
         }
 
         public string UserID
         {
-            get { return GetString(DbConnectionStringKeywords.UserId, DbConnectionStringDefaults.UserID); }
-            set { SetValue(DbConnectionStringKeywords.UserId, value); }
+            get => GetString(DbConnectionStringKeywords.UserId, DbConnectionStringDefaults.UserID);
+            set => SetValue(DbConnectionStringKeywords.UserId, value);
         }
 
         public PgConnectionStringBuilder()

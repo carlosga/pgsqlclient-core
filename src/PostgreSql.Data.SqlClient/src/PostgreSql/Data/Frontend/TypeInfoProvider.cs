@@ -243,7 +243,7 @@ namespace PostgreSql.Data.Frontend
             //
             // Uuid
             // 
-            types[2950] = new TypeInfo(2950, "uuid", PgDbType.Uuid, typeof(Guid), typeof(Guid), 16);
+            types[2950] = new TypeInfo(2950, "uuid"  , PgDbType.Uuid, typeof(Guid), typeof(Guid), 16);
             types[2951] = new TypeInfo(2951, "uuid[]", PgDbType.Array, types[2950], typeof(Guid[]), typeof(Guid[]));
 
             //
@@ -395,10 +395,7 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal static TypeInfo GetTypeInfo(PgDbType pgDbType)
-        {
-            return BaseTypes.Values.First(x => x.PgDbType == pgDbType);
-        }
+        internal static TypeInfo GetTypeInfo(PgDbType pgDbType) => BaseTypes.Values.First(x => x.PgDbType == pgDbType);
 
         internal static TypeInfo GetTypeInfo(object value)
         {
@@ -456,10 +453,7 @@ namespace PostgreSql.Data.Frontend
             _connectionOptions = connectionOptions;
         }
 
-        internal int AddRef()
-        {
-            return Interlocked.Increment(ref _count);
-        }
+        internal int AddRef() => Interlocked.Increment(ref _count);
 
         internal int Release()
         {

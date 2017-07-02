@@ -20,10 +20,7 @@ namespace PostgreSql.Data.Frontend
             buffer = newBuffer;
         }
 
-        internal static void ResizeAligned(ref byte[] buffer, int newSize) 
-        {           
-            Resize(ref buffer, Align(newSize));
-        }
+        internal static void ResizeAligned(ref byte[] buffer, int newSize) => Resize(ref buffer, Align(newSize));
 
         /// FoundationDB client (BSD License)
         private static int Align(int size)

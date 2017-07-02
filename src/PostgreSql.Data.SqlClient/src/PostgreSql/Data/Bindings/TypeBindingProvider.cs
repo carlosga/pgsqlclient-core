@@ -11,10 +11,7 @@ namespace PostgreSql.Data.Bindings
         private readonly ConcurrentDictionary<string, ITypeBinding> _bindings;
         private readonly string                                     _connectionString;
 
-        public string ConnectionString 
-        {
-            get { return _connectionString; }
-        }
+        public string ConnectionString => _connectionString;
 
         public TypeBindingProvider(string connectionString)
         {
@@ -63,9 +60,6 @@ namespace PostgreSql.Data.Bindings
             return this;
         }
 
-        public void Clear()
-        {
-            _bindings.Clear();
-        }
+        public void Clear() => _bindings.Clear();
     }
 }

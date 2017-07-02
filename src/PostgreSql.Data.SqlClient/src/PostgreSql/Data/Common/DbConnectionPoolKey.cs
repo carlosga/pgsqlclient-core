@@ -26,15 +26,9 @@ namespace System.Data.Common
         {
         }
 
-        internal DbConnectionPoolKey Clone()
-        {
-            return new DbConnectionPoolKey(this);
-        }
+        public bool Equals(DbConnectionPoolKey other) => (other != null && _connectionString == other._connectionString);
 
-        public bool Equals(DbConnectionPoolKey other)
-        {
-            return (other != null && _connectionString == other._connectionString);
-        }
+        public override int GetHashCode() => _hashValue;
 
         public override bool Equals(object obj)
         {
@@ -48,11 +42,6 @@ namespace System.Data.Common
                 throw ADP.WrongType(obj.GetType(), typeof(DbConnectionPoolKey));
             }
             return Equals(key);
-        }
-
-        public override int GetHashCode()
-        {
-            return _hashValue;
         }
 
         public static bool operator ==(DbConnectionPoolKey lhs, DbConnectionPoolKey rhs)
@@ -74,5 +63,7 @@ namespace System.Data.Common
 
             return !lhs.Equals(rhs);
         }
+
+        internal DbConnectionPoolKey Clone()  =>  new DbConnectionPoolKey(this);        
     }
 }

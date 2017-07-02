@@ -23,10 +23,7 @@ namespace PostgreSql.Data.SqlClient
             base.AddItem(value, tag);
         }
 
-        internal void Deactivate()
-        {
-            base.Notify(0);
-        }
+        internal void Deactivate() => base.Notify(0);
 
         internal PgDataReader FindLiveReader(PgCommand command)
         {

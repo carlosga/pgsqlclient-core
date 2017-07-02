@@ -28,7 +28,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override string CommandText
         {
-            get { return _commandText ?? string.Empty; }
+            get => _commandText ?? string.Empty;
             set
             {
                 if (_commandText != value)
@@ -45,13 +45,13 @@ namespace PostgreSql.Data.SqlClient
 
         public override CommandType CommandType
         {
-            get { return _commandType; }
-            set { _commandType = value; }
+            get => _commandType;
+            set => _commandType = value;
         }
 
         public override int CommandTimeout
         {
-            get { return _commandTimeout; }
+            get => _commandTimeout;
             set
             {
                 if (value < 0)
@@ -65,21 +65,21 @@ namespace PostgreSql.Data.SqlClient
 
         public override bool DesignTimeVisible
         {
-            get { return _designTimeVisible; }
-            set { _designTimeVisible = value; }
+            get => _designTimeVisible;
+            set => _designTimeVisible = value;
         }
 
         public new PgParameterCollection Parameters => _parameters;
 
         public override UpdateRowSource UpdatedRowSource
         {
-            get { return _updatedRowSource; }
-            set { _updatedRowSource = value; }
+            get => _updatedRowSource;
+            set => _updatedRowSource = value;
         }
 
         public new PgConnection Connection
         {
-            get { return _connection; }
+            get => _connection;
             set
             {
                 if (HasLiveReader)
@@ -101,7 +101,7 @@ namespace PostgreSql.Data.SqlClient
 
         public new PgTransaction Transaction
         {
-            get { return _transaction; }
+            get => _transaction;
             set
             {
                 if (HasLiveReader)
@@ -118,7 +118,7 @@ namespace PostgreSql.Data.SqlClient
 
         public int FetchSize
         {
-            get { return _fetchSize; }
+            get => _fetchSize;
             set
             {
                 if (value < 0)
@@ -135,14 +135,14 @@ namespace PostgreSql.Data.SqlClient
 
         protected override DbConnection DbConnection
         {
-            get { return Connection; }
-            set { Connection = value as PgConnection; }
+            get => _connection;
+            set => Connection = value as PgConnection;
         }
 
         protected override DbTransaction DbTransaction
         {
-            get { return Transaction; }
-            set { Transaction = value as PgTransaction; }
+            get => _transaction;
+            set => Transaction = value as PgTransaction;
         }
 
         protected override DbParameterCollection DbParameterCollection => _parameters;

@@ -20,14 +20,14 @@ namespace PostgreSql.Data.SqlClient
 
         public new PgParameter this[int index]
         {
-            get { return GetParameter(index) as PgParameter; }
-            set { SetParameter(index, value); }
+            get => GetParameter(index) as PgParameter;
+            set => SetParameter(index, value);
         }
 
         public new PgParameter this[string parameterName]
         {
-            get { return GetParameter(parameterName) as PgParameter; }
-            set { SetParameter(parameterName, value); }
+            get => GetParameter(parameterName) as PgParameter;
+            set => SetParameter(parameterName, value);
         }
 
         public override int    Count    => _parameters.Count;

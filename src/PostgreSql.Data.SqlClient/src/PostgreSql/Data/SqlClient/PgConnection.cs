@@ -29,10 +29,7 @@ namespace PostgreSql.Data.SqlClient
         private int                   _closeCount;
         private bool                  _applyTransientFaultHandling;
 
-        public static void ClearAllPools()
-        {
-            PgConnectionFactory.SingletonInstance.ClearAllPools();
-        }
+        public static void ClearAllPools() => PgConnectionFactory.SingletonInstance.ClearAllPools();
 
         public static void ClearPool(PgConnection connection)
         {
@@ -47,7 +44,7 @@ namespace PostgreSql.Data.SqlClient
         
         public override string ConnectionString
         {
-            get { return InternalGetConnectionString(); }
+            get => InternalGetConnectionString();
             set
             {
                 InternalSetConnectionString(value);
@@ -88,8 +85,8 @@ namespace PostgreSql.Data.SqlClient
 
         internal DbConnectionPoolGroup PoolGroup
         { 
-            get { return _poolGroup; }
-            set { _poolGroup = value; }
+            get => _poolGroup;
+            set => _poolGroup = value;
         }
 
         public PgConnection()
@@ -164,10 +161,7 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        public override void Close()
-        {
-            _innerConnection.CloseConnection(this, ConnectionFactory);
-        }
+        public override void Close() =>_innerConnection.CloseConnection(this, ConnectionFactory);
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
 
@@ -201,10 +195,7 @@ namespace PostgreSql.Data.SqlClient
             return transaction;
         }
 
-        public override void ChangeDatabase(string database)
-        {
-            _innerConnection.ChangeDatabase(database);
-        }
+        public override void ChangeDatabase(string database) => _innerConnection.ChangeDatabase(database);
 
         public new PgCommand CreateCommand()
         {
@@ -212,10 +203,7 @@ namespace PostgreSql.Data.SqlClient
             return new PgCommand(string.Empty, this, internalConnection?.ActiveTransaction);
         }
 
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
-        {
-            return BeginTransaction(isolationLevel);
-        }
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
 
         protected override DbCommand CreateDbCommand() => CreateCommand();
 
@@ -283,30 +271,18 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        internal void AddWeakReference(object value, int tag)
-        {
-            InnerConnection.AddWeakReference(value, tag);
-        }
+        internal void AddWeakReference(object value, int tag) => InnerConnection.AddWeakReference(value, tag);
 
-        internal void NotifyWeakReference(int message)
-        {
-            InnerConnection.NotifyWeakReference(message);
-        }
+        internal void NotifyWeakReference(int message) => InnerConnection.NotifyWeakReference(message);
 
-        internal void RemoveWeakReference(object value)
-        {
-            InnerConnection.RemoveWeakReference(value);
-        }
+        internal void RemoveWeakReference(object value) => InnerConnection.RemoveWeakReference(value);
 
         internal bool SetInnerConnectionFrom(DbConnectionInternal to, DbConnectionInternal from)
         {
             return (Interlocked.CompareExchange<DbConnectionInternal>(ref _innerConnection, to, from) == from);
         }
 
-        internal void SetInnerConnectionTo(DbConnectionInternal to)
-        {
-            _innerConnection = to;
-        }
+        internal void SetInnerConnectionTo(DbConnectionInternal to) => _innerConnection = to;
 
         private bool TryOpen(TaskCompletionSource<DbConnectionInternal> retry)
         {

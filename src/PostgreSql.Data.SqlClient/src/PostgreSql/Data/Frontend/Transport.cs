@@ -45,8 +45,7 @@ namespace PostgreSql.Data.Frontend
 
         internal int PacketSize => _packetSize;
 
-        internal ChannelBinding GetChannelBinding 
-            => _secureStream?.TransportContext.GetChannelBinding(ChannelBindingKind.Unique);
+        internal ChannelBinding GetChannelBinding => _secureStream?.TransportContext.GetChannelBinding(ChannelBindingKind.Unique);
 
         internal Transport()
         {

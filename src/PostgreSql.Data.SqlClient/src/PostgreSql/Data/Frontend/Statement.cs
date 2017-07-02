@@ -54,13 +54,13 @@ namespace PostgreSql.Data.Frontend
 
         internal CommandType CommandType
         {
-            get { return _commandType; }
-            set { _commandType = value; }
+            get => _commandType;
+            set => _commandType = value;
         }
 
         internal string StatementText
         {
-            get { return _statementText; }
+            get => _statementText;
             set 
             {
                 if (_statementText != value)
@@ -73,13 +73,13 @@ namespace PostgreSql.Data.Frontend
 
         internal PgParameterCollection Parameters
         {
-            get { return _parameters; }
-            set { _parameters = value; }
+            get => _parameters;
+            set => _parameters = value;
         }
 
         internal int FetchSize
         {
-            get { return _fetchSize; }
+            get => _fetchSize;
             set
             {
                 if (_fetchSize != value)

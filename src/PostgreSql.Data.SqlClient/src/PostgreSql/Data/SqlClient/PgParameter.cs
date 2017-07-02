@@ -28,37 +28,37 @@ namespace PostgreSql.Data.SqlClient
 
         public override string ParameterName
         {
-            get { return _parameterName; }
-            set { _parameterName = value; }
+            get => _parameterName;
+            set => _parameterName = value;
         }
 
         public override byte Precision
         {
-            get { return _precision; }
-            set { _precision = value; }
+            get =>_precision;
+            set => _precision = value;
         }
 
         public override byte Scale
         {
-            get { return _scale; }
-            set { _scale = value; }
+            get => _scale;
+            set => _scale = value;
         }
 
         public override int Size
         {
-            get { return _size; }
-            set { _size = value; }
+            get => _size;
+            set => _size = value;
         }
 
         public override DbType DbType
         {
-            get { return TypeInfoProvider.GetDbType(_pgDbType); }
-            set { PgDbType = TypeInfoProvider.GetProviderType(value); }
+            get => TypeInfoProvider.GetDbType(_pgDbType);
+            set => PgDbType = TypeInfoProvider.GetProviderType(value);
         }
 
         public PgDbType PgDbType
         {
-            get { return _pgDbType; }
+            get => _pgDbType;
             set
             {
                 _pgDbType  = value;
@@ -73,31 +73,31 @@ namespace PostgreSql.Data.SqlClient
 
         public override ParameterDirection Direction
         {
-            get { return _direction; }
-            set { _direction = value; }
+            get => _direction;
+            set => _direction = value;
         }
 
         public override bool IsNullable
         {
-            get { return _isNullable; }
-            set { _isNullable = value; }
+            get => _isNullable;
+            set => _isNullable = value;
         }
 
         public override string SourceColumn
         {
-            get { return _sourceColumn; }
-            set { _sourceColumn = value; }
+            get => _sourceColumn;
+            set => _sourceColumn = value;
         }
 
         public override object Value
         {
-            get { return _value; }
-            set { PgValue = value; }
+            get => _value;
+            set => PgValue = value;
         }
 
         public object PgValue
         {
-            get { return _pgvalue; }
+            get => _pgvalue;
             set
             {
                 _value   = value;
@@ -112,20 +112,20 @@ namespace PostgreSql.Data.SqlClient
 
         public override bool SourceColumnNullMapping
         {
-            get { return _sourceColumnNullMapping; }
-            set { _sourceColumnNullMapping = value; }
+            get => _sourceColumnNullMapping;
+            set => _sourceColumnNullMapping = value;
         }
 
         internal PgParameterCollection Parent
         {
-            get { return _parent; }
-            set { _parent = value; }
+            get => _parent;
+            set => _parent = value;
         }
 
         internal TypeInfo TypeInfo
         {
-            get { return _typeInfo; }
-            set { _typeInfo = value; }
+            get => _typeInfo;
+            set => _typeInfo = value;
         }
 
         public PgParameter()
@@ -157,10 +157,7 @@ namespace PostgreSql.Data.SqlClient
             PgDbType       = pgDbType;
         }
 
-        public PgParameter(string   parameterName
-                         , PgDbType pgDbType
-                         , int      size
-                         , string   sourceColumn)
+        public PgParameter(string parameterName, PgDbType pgDbType, int size, string sourceColumn)
             : this()
         {
             _parameterName = parameterName;

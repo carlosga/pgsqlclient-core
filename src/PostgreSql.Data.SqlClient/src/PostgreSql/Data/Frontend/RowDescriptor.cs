@@ -11,8 +11,8 @@ namespace PostgreSql.Data.Frontend
 
         internal FieldDescriptor this[int index]
         {
-            get { return _descriptors[index]; }
-            set { _descriptors[index] = value; }
+            get => _descriptors[index];
+            set => _descriptors[index] = value;
         }
 
         internal int Count => _descriptors.Length;
@@ -35,10 +35,7 @@ namespace PostgreSql.Data.Frontend
             return -1;
         }
 
-        internal void Allocate(int count)
-        {
-            Array.Resize<FieldDescriptor>(ref _descriptors, count);
-        }
+        internal void Allocate(int count) => Array.Resize<FieldDescriptor>(ref _descriptors, count);
 
         internal void Clear()
         {
