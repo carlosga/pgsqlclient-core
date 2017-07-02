@@ -113,8 +113,7 @@ namespace PostgreSql.Data.SqlClient
                     // TODO: dispose managed state (managed objects).
                     try
                     {
-                        // This will call the Close method
-                        base.Dispose(disposing);
+                        Close();
                     }
                     finally
                     {
@@ -161,7 +160,7 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        public override void Close() =>_innerConnection.CloseConnection(this, ConnectionFactory);
+        public override void Close() => _innerConnection.CloseConnection(this, ConnectionFactory);
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
 
