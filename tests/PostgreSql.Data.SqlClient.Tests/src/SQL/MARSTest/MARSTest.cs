@@ -20,7 +20,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void MARSAsyncTimeoutTest()
         {
-            using (PgConnection connection = new PgConnection(s_ConnectionString + ";command timeout=1"))
+            var connectionString = (new PgConnectionStringBuilder(s_ConnectionString) { CommandTimeout = 1}).ConnectionString;
+
+            using (PgConnection connection = new PgConnection(connectionString))
             {
                 connection.Open();
                 PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);
@@ -48,7 +50,9 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public static void MARSSyncTimeoutTest()
         {
-            using (PgConnection connection = new PgConnection(s_ConnectionString + ";command timeout=1"))
+            var connectionString = (new PgConnectionStringBuilder(s_ConnectionString) { CommandTimeout = 1}).ConnectionString;
+            
+            using (PgConnection connection = new PgConnection(connectionString))
             {
                 connection.Open();
                 PgCommand command = new PgCommand("SELECT pg_sleep(1);SELECT 1", connection);

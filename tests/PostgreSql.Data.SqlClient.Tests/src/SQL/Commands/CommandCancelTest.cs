@@ -58,7 +58,8 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         private void InternalTimeoutCancel(string constr)
         {
-            using (var con = new PgConnection(constr + ";Command Timeout=1"))
+            var connectionString = (new PgConnectionStringBuilder(constr) { CommandTimeout = 1 }).ConnectionString;
+            using (var con = new PgConnection(connectionString))
             {
                 con.Open();
                 PgCommand cmd = con.CreateCommand();

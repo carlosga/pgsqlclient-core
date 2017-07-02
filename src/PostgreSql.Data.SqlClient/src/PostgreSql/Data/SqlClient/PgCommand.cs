@@ -69,13 +69,46 @@ namespace PostgreSql.Data.SqlClient
             set => _designTimeVisible = value;
         }
 
-        public new PgParameterCollection Parameters => _parameters;
+        public int FetchSize
+        {
+            get => _fetchSize;
+            set
+            {
+                if (value < 0)
+                {
+                    throw ADP.InvalidFetchSize(value);
+                }
+                if (HasLiveReader)
+                {
+                    throw ADP.OpenReaderExists();
+                }
+                _fetchSize = value; 
+            }
+        }
 
         public override UpdateRowSource UpdatedRowSource
         {
             get => _updatedRowSource;
             set => _updatedRowSource = value;
         }
+
+        public new PgParameterCollection Parameters
+        {
+            get
+            {
+                if (!_disposed)
+                {
+                    if (_parameters == null)
+                    {
+                        _parameters = new PgParameterCollection();
+                    }
+                }
+
+                return _parameters;
+            }
+        } 
+
+        protected override DbParameterCollection DbParameterCollection => Parameters;
 
         public new PgConnection Connection
         {
@@ -116,23 +149,6 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        public int FetchSize
-        {
-            get => _fetchSize;
-            set
-            {
-                if (value < 0)
-                {
-                    throw ADP.InvalidFetchSize(value);
-                }
-                if (HasLiveReader)
-                {
-                    throw ADP.OpenReaderExists();
-                }
-                _fetchSize = value; 
-            }
-        }
-
         protected override DbConnection DbConnection
         {
             get => _connection;
@@ -144,8 +160,6 @@ namespace PostgreSql.Data.SqlClient
             get => _transaction;
             set => Transaction = value as PgTransaction;
         }
-
-        protected override DbParameterCollection DbParameterCollection => _parameters;
 
         internal CommandBehavior CommandBehavior => _commandBehavior;
         internal Statement       Statement       => _statement;
@@ -163,8 +177,6 @@ namespace PostgreSql.Data.SqlClient
             _updatedRowSource  = UpdateRowSource.Both;
             _commandBehavior   = CommandBehavior.Default;
             _designTimeVisible = false;
-            _parameters        = new PgParameterCollection();
-            _commands          = new List<string>(1);
             _fetchSize         = 200;
         }
 
@@ -181,9 +193,9 @@ namespace PostgreSql.Data.SqlClient
         public PgCommand(string commandText, PgConnection connection, PgTransaction transaction)
             : this()
         {
-            CommandText = commandText;
-            Connection  = connection;
-            Transaction = transaction;
+            _commandText = commandText;
+            Connection   = connection;
+            Transaction  = transaction;
         }
 
         #region IDisposable Support
@@ -205,10 +217,12 @@ namespace PostgreSql.Data.SqlClient
                 _disposed     = true;
                 _connection   = null;
                 _transaction  = null;
-                _parameters   = null;
                 _commandText  = null;
                 _commands     = null;
                 _commandIndex = -1;
+
+                _parameters?.Clear();
+                _parameters = null;                
             }
         }
 
@@ -349,22 +363,16 @@ namespace PostgreSql.Data.SqlClient
             else if (_statement.IsPrepared)
             {
                 return;
-            }
-
-            _commands.Clear();
+            }            
 
             if (_connection.MultipleActiveResultSets)
             {
                 _commandText.SplitCommandText(ref _commands);
             }
-            else 
-            {
-                _commands.Add(_commandText);
-            }
 
             _statement.Parameters    = _parameters;
             _statement.CommandType   = _commandType;
-            _statement.StatementText = _commands[_commandIndex];
+            _statement.StatementText = ((_connection.MultipleActiveResultSets) ? _commands[_commandIndex] : _commandText);
             _statement.FetchSize     = _fetchSize;
 
             _statement.Prepare();

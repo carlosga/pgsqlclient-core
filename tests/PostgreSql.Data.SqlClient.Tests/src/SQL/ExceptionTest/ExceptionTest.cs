@@ -86,6 +86,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Fact]
+        public static void ExceptionOnParamersCollectionForDisposedCommands()
+        {
+            var command = new PgCommand();
+
+            command.Dispose();
+
+            Assert.Throws<NullReferenceException>(() => command.Parameters.Clear());
+        }
+
+        [Fact]
         public static void VariousExceptionTests()
         {
             var connectionString = DataTestClass.PostgreSql_Northwind;

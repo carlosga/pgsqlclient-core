@@ -106,7 +106,6 @@ namespace PostgreSql.Data.Frontend
             _state            = StatementState.Default;
             _recordsAffected  = -1;
             _parameters       = PgParameterCollection.Empty;
-            _parameterIndices = new List<int>();
             _rowDescriptor    = new RowDescriptor();
             _hasRows          = false;
             _parseMessage     = new MessageWriter(FrontendMessages.Parse        , _connection.SessionData);
@@ -144,10 +143,12 @@ namespace PostgreSql.Data.Frontend
                 _rowDescriptor    = null;
                 _rows             = null;
                 _parameters       = null;
-                _parameterIndices = null;
                 _hasRows          = false;
                 _recordsAffected  = -1;
-                
+
+                _parameterIndices?.Clear();
+                _parameterIndices = null;
+
                 _parseMessage?.Dispose();
                 _parseMessage = null;
 
@@ -422,7 +423,8 @@ namespace PostgreSql.Data.Frontend
                 _rowDescriptor.Clear();
 
                 // Reset statement parameters
-                _parameters = null;
+                _parameters       = null;
+                _parameterIndices = null;
 
                 // Reset command type
                 _commandType = CommandType.Text;
@@ -532,10 +534,13 @@ namespace PostgreSql.Data.Frontend
             _parseMessage.WriteNullString(_parsedStatementText);
 
             // Write parameter types
-            _parseMessage.Write((short)_parameterIndices.Count);
-            for (int i = 0; i < _parameterIndices.Count; ++i)
+            _parseMessage.Write((short)((_parameterIndices == null) ? 0 : _parameterIndices.Count));
+            if (_parameterIndices != null)
             {
-                _parseMessage.Write(_parameters[_parameterIndices[i]].TypeInfo?.Oid ?? 0);
+                for (int i = 0; i < _parameterIndices.Count; ++i)
+                {
+                    _parseMessage.Write(_parameters[_parameterIndices[i]].TypeInfo?.Oid ?? 0);
+                }
             }
 
             // Send the message
@@ -583,11 +588,14 @@ namespace PostgreSql.Data.Frontend
             _bindMessage.Write(65537);
 
             // Parameter value
-            _bindMessage.Write((short)_parameterIndices.Count);
-            for (int i = 0; i < _parameterIndices.Count; ++i)
+            _bindMessage.Write((short)((_parameterIndices == null) ? 0 : _parameterIndices.Count));
+            if (_parameterIndices != null)
             {
-                var param = _parameters[_parameterIndices[i]];
-                _bindMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
+                for (int i = 0; i < _parameterIndices.Count; ++i)
+                {
+                    var param = _parameters[_parameterIndices[i]];
+                    _bindMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
+                }
             }
 
             // Column information
@@ -754,6 +762,11 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessFunctionResult(MessageReader message)
         {
+            if (_parameterIndices == null)
+            {
+                return;
+            }
+
             for (int i = 0; i < _parameterIndices.Count; ++i)
             {
                 var p = _parameters[_parameterIndices[i]];
@@ -770,7 +783,7 @@ namespace PostgreSql.Data.Frontend
             var provider = _connection.SessionData.TypeInfoProvider;
             int count    = message.ReadInt16();
 
-            if (count != _parameterIndices.Count)
+            if (count != ((_parameterIndices?.Count ?? 0)))
             {
                 throw ADP.PrepareParametersCount(count, _parameterIndices.Count);
             }
