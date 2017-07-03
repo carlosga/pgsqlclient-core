@@ -8,6 +8,56 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public class CommandExecutionTest
     {       
+        [Fact]
+        public static void Ensure_Commands_Can_Be_Executed_Across_Transactions()
+        {
+            string sql = "select count(*)::int from orders";
+
+            using (var connection = new PgConnection(DataTestClass.PostgreSql_Northwind))
+            {
+                connection.Open();
+
+                PgCommand command = null;
+                bool      failure = false;
+
+                try 
+                {
+                    command = new PgCommand(sql, connection);
+
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        command.Transaction = transaction;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                        }
+                    }
+                    var count = (int)command.ExecuteScalar();
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        command.Transaction = transaction;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                        }
+                    }             
+                } 
+                catch
+                {
+                    failure = true;
+                }
+                finally 
+                {
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+
+                Assert.False(failure, "Execution of command across transaction has failed");
+            }
+        }
+
         /// <summary>
         /// #12. CommandText parsing should be delayed until the command is being prepared
         /// </summary>
