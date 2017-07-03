@@ -6,8 +6,8 @@ using System;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
-    public class ExecuteScriptTest
-    {
+    public class CommandExecutionTest
+    {       
         /// <summary>
         /// #12. CommandText parsing should be delayed until the command is being prepared
         /// </summary>
