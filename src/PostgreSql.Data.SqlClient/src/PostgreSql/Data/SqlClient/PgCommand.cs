@@ -134,7 +134,14 @@ namespace PostgreSql.Data.SqlClient
 
         public new PgTransaction Transaction
         {
-            get => _transaction;
+            get
+            { 
+                if (_transaction != null && _transaction.Connection == null)
+                {
+                    _transaction = null;
+                }
+                return _transaction;
+            }
             set
             {
                 if (HasLiveReader)
@@ -260,10 +267,8 @@ namespace PostgreSql.Data.SqlClient
             {
                 return InternalExecuteNonQuery();
             }
-            else
-            {
-                return InternalExecuteNonQueryMars();
-            }
+
+            return InternalExecuteNonQueryMars();
         }
 
         public new PgDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
@@ -531,6 +536,11 @@ namespace PostgreSql.Data.SqlClient
                 throw ADP.OpenReaderExists();
             }
 
+            if (_transaction != null && _transaction.Connection == null)
+            {
+                _transaction = null;
+            }
+            
             if (_transaction == null && _connection.HasActiveTransaction)
             {
                 throw ADP.TransactionRequired(memberName);

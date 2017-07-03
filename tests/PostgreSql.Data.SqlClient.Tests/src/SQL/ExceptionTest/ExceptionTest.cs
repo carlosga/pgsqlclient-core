@@ -66,7 +66,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), PostgreSqlBadConn);
 
             // tests incorrect password
-            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = "-" };
             var errorMessage = string.Format(LogonFailedErrorMessage, badBuilder.UserID);
             VerifyConnectionFailure<PgException>(() => GenerateConnectionException(badBuilder.ConnectionString), errorMessage, (ex) => VerifyException(ex));
             
@@ -113,7 +113,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
 
             // Test 1 - B
-            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = string.Empty };
+            badBuilder = new PgConnectionStringBuilder(builder.ConnectionString) { Password = "." };
             using (var connection = new PgConnection(badBuilder.ConnectionString))
             {                
                 string errorMessage = string.Format(LogonFailedErrorMessage, badBuilder.UserID);
