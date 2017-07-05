@@ -311,12 +311,15 @@ namespace PostgreSql.Data.Frontend
                 _functionMessage.Write(65537);
 
                 // Send parameter values
-                _functionMessage.Write((short)_parameterIndices.Count);
-                for (int i = 0; i < _parameterIndices.Count; ++i)
+                _functionMessage.Write((short)((_parameterIndices == null) ? 0 : _parameterIndices.Count));
+                if (_parameterIndices != null)
                 {
-                    var param = _parameters[_parameterIndices[i]];
+                    for (int i = 0; i < _parameterIndices.Count; ++i)
+                    {
+                        var param = _parameters[_parameterIndices[i]];
 
-                    _functionMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
+                        _functionMessage.Write(param.TypeInfo, ((param.PgValue != null) ? param.PgValue : param.Value));
+                    }
                 }
 
                 // Send the format code for the function result
