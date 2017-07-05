@@ -90,7 +90,7 @@ namespace PostgreSql.Data.Frontend
 
             if (ndigits > 0)
             {
-                for (int i = weight + 7; i >= 0; --i)
+                for (int i = weight + 7; i >= 0 && ndigits > 0; --i, ndigits--)
                 {
                     var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
@@ -98,10 +98,6 @@ namespace PostgreSql.Data.Frontend
                         absValue -= (digit * PgNumeric.Weights[i]);
                     }
                     Write(digit);
-                    if (absValue == 0)
-                    {
-                        break;
-                    }
                 }
             }
         }

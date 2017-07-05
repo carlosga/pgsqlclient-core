@@ -132,7 +132,7 @@ namespace PostgreSql.Data.SqlClient.Tests
               , prefix
               , hostName
               , DateTime.Now.ToString("yyyy_MM_dd", CultureInfo.InvariantCulture));
-            string name = GetUniqueName(extendedPrefix, "[", "]");
+            string name = GetUniqueName(extendedPrefix, "\"", "\"");
             
             if (name.Length > 128)
             {

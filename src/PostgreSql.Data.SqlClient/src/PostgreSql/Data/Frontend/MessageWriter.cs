@@ -311,22 +311,19 @@ namespace PostgreSql.Data.Frontend
 
         private void WriteStringInternal(object value)
         {
-            var str = value as string;
-            if (str != null)
+            switch (value)
             {
+            case string str:
                 Write(str);
-            }
-            else
-            {
-                var chars = value as char[];
-                if (chars != null)
-                {
-                    Write(chars);
-                }
-                else
-                {
-                    Write(Convert.ToString(value));
-                }
+                break;
+
+            case char[] chars:
+                Write(chars);
+                break;
+
+            default:
+                Write(Convert.ToString(value));
+                break;
             }
         }
 
