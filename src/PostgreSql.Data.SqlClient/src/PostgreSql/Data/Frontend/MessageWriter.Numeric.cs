@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.PgTypes;
 using System;
+using System.Collections.Generic;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -73,31 +74,49 @@ namespace PostgreSql.Data.Frontend
             if (absValue > 0)
             {
                 // postgres: numeric::estimate_ln_dweight 
-                weight  = (short)Math.Truncate(Math.Log((double)absValue, PgNumeric.NBase));
+                weight  = (short)Math.Log((double)absValue, PgNumeric.NBase);
                 // postgres: numeric::div_var
                 ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) / DEC_DIGITS);
             }
 
-            int sizeInBytes = 8 + ndigits * sizeof(short);
-
-            EnsureCapacity(sizeInBytes);
-
-            Write(sizeInBytes);
-            Write(ndigits);
-            Write(weight);
-            Write(sign);
-            Write(dscale);
+            short[] digits     = null;
+            short   realDigits = 0;
 
             if (ndigits > 0)
             {
-                for (int i = weight + 7; i >= 0 && ndigits > 0; --i, ndigits--)
+                digits = new short[ndigits];
+                var offset = weight + ((weight == 8) ? 6 : 7);
+                for (int i = offset; i >= 0 && ndigits > 0; --i, ndigits--, realDigits++)
                 {
                     var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
                     {
                         absValue -= (digit * PgNumeric.Weights[i]);
                     }
-                    Write(digit);
+                    digits[realDigits] = digit;
+                    if (absValue == 0)
+                    {
+                        break;
+                    }
+                }
+                realDigits++;
+            }
+
+            int sizeInBytes = 8 + (realDigits * sizeof(short));
+
+            EnsureCapacity(sizeInBytes);
+
+            Write(sizeInBytes);
+            Write(realDigits);
+            Write(weight);
+            Write(sign);
+            Write(dscale);
+
+            if (realDigits > 0)
+            {
+                for (int i = 0; i < realDigits; i++)
+                {
+                    Write(digits[i]);
                 }
             }
         }

@@ -22,6 +22,21 @@ namespace PostgreSql.Data.SqlClient.Tests
             yield return new object[] { 0.5M };
             yield return new object[] { 0.001M };
             yield return new object[] { -0.001M };
+            yield return new object[] { 1E-28M };
+            yield return new object[] { 1E-24M };
+            yield return new object[] { 1E-20M };
+            yield return new object[] { 1E-16M };
+            yield return new object[] { 1E-12M };
+            yield return new object[] { 1E-8M };
+            yield return new object[] { 1E-4M };
+            yield return new object[] { 1M };
+            yield return new object[] { 1E+4M };
+            yield return new object[] { 1E+8M };
+            // yield return new object[] { 1E+12M };
+            yield return new object[] { 1E+16M };
+            yield return new object[] { 1E+20M };
+            // yield return new object[] { 1E+24M };
+            yield return new object[] { 1E+28M };   
         }
         
         [Theory]
@@ -44,11 +59,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         command.ExecuteNonQuery();
                     }
-                }
-
-                using (var connection = new PgConnection(connStr)) 
-                {
-                    connection.Open();
                     using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (Price) VALUES (@Price) RETURNING Price", connection))
                     {
                         insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
@@ -56,9 +66,21 @@ namespace PostgreSql.Data.SqlClient.Tests
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                failed = true;
+                errorMsg = ex.Message;
+                failed   = true;
+            }
+            finally
+            {
+                using (var connection = new PgConnection(connStr)) 
+                {
+                    connection.Open();
+                    using (var command = new PgCommand($"DROP TABLE {tableName}", connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
 
             Assert.False(failed, $"Writing of decimal values has failed. {errorMsg}");
