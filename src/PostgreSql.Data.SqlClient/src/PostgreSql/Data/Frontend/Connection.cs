@@ -481,7 +481,7 @@ namespace PostgreSql.Data.Frontend
             {
                 var saslMechanism = message.ReadNullString();   // Name of a SASL authentication mechanism.
 
-                _saslAuthenticator = new SaslScramSha256(_sessionData.ClientEncoding);
+                _saslAuthenticator = SaslScram.Create(saslMechanism, _sessionData.ClientEncoding);
 
                 var buffer = _saslAuthenticator.Auth();
 
