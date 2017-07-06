@@ -23,7 +23,7 @@ namespace PostgreSql.Data.Frontend.Security
         private readonly byte[] _password;
         private byte[]          _salt;
         private uint            _iterations;
-        private HMACSHA256      _hmac;
+        private HMAC            _hmac;
 
         private byte[] _buffer;
         private uint   _block;
@@ -31,7 +31,7 @@ namespace PostgreSql.Data.Frontend.Security
         private int    _endIndex;
         private int    _blockSize;
         
-        internal PBKDF2(byte[] password, byte[] salt, int iterations)
+        internal PBKDF2(byte[] password, byte[] salt, int iterations, HashAlgorithmName name)
         {
             if (salt == null)
             {
@@ -53,7 +53,7 @@ namespace PostgreSql.Data.Frontend.Security
             _salt       = CryptographicBuffer.Clone(salt);
             _iterations = (uint)iterations;
             _password   = CryptographicBuffer.Clone(password);
-            _hmac       = new HMACSHA256(_password);
+            _hmac       = CreateHmacAlgorithm(name, _password);
             _blockSize  = _hmac.HashSize >> 3;
 
             Initialize();
@@ -192,5 +192,23 @@ namespace PostgreSql.Data.Frontend.Security
 
             return ret;
         }
+
+        private static HMAC CreateHmacAlgorithm(HashAlgorithmName name, byte[] keyMaterial)
+        {
+            if (name == HashAlgorithmName.SHA256)
+            {
+                return new HMACSHA256(keyMaterial);
+            }
+            else if (name == HashAlgorithmName.SHA384)
+            {
+                return new HMACSHA384(keyMaterial);
+            }
+            else if (name == HashAlgorithmName.SHA512)
+            {
+                return new HMACSHA512(keyMaterial);
+            }
+
+            throw new NotSupportedException();
+        }        
     }
 }

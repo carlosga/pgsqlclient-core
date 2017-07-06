@@ -33,6 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             var connStr        = DataTestClass.PostgreSql_Northwind;
             var failed         = false;
             var decValue       = 0.0M;
+            var errorMsg       = string.Empty;        
 
             try
             {
@@ -48,15 +49,10 @@ namespace PostgreSql.Data.SqlClient.Tests
                 using (var connection = new PgConnection(connStr)) 
                 {
                     connection.Open();
-                    using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (Price) VALUES (@Price)", connection))
+                    using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (Price) VALUES (@Price) RETURNING Price", connection))
                     {
                         insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
-                        insertCommand.ExecuteNonQuery();
-                    }
-
-                    using (var selectCommand = new PgCommand($"SELECT Price FROM {tableName} WHERE Id = 1", connection))
-                    {
-                        decValue = (decimal)selectCommand.ExecuteScalar();
+                        decValue = (decimal)insertCommand.ExecuteScalar();
                     }
                 }
             }
@@ -65,8 +61,8 @@ namespace PostgreSql.Data.SqlClient.Tests
                 failed = true;
             }
 
+            Assert.False(failed, $"Writing of decimal values has failed. {errorMsg}");
             Assert.Equal(price, decValue);
-            Assert.False(failed, "Writing of decimal values has failed");
         }
     }
 }
