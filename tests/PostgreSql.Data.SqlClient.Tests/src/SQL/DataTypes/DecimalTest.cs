@@ -59,11 +59,11 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         command.ExecuteNonQuery();
                     }
-                    using (var insertCommand = new PgCommand($"SELECT '{price}'::numeric", connection))
-                    {
-                        insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
-                        decValue = (decimal)insertCommand.ExecuteScalar();
-                    }
+                    // using (var insertCommand = new PgCommand($"SELECT '{price}'::numeric", connection))
+                    // {
+                    //     insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
+                    //     decValue = (decimal)insertCommand.ExecuteScalar();
+                    // }
                     using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (Price) VALUES (@Price) RETURNING Price", connection))
                     {
                         insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
