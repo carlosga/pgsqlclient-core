@@ -74,7 +74,8 @@ namespace PostgreSql.Data.Frontend
             if (absValue > 0)
             {
                 // postgres: numeric::estimate_ln_dweight 
-                weight  = (short)Math.Log((double)absValue, PgNumeric.NBase);
+                // weight  = (short)Math.Log((double)absValue, PgNumeric.NBase);
+                weight  = (short)((int)Math.Log10((double)absValue) >> 2);
                 // postgres: numeric::div_var
                 ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) / DEC_DIGITS);
             }
@@ -85,8 +86,7 @@ namespace PostgreSql.Data.Frontend
             if (ndigits > 0)
             {
                 digits = new short[ndigits];
-                var offset = weight + ((weight == 8) ? 6 : 7);
-                for (int i = offset; i >= 0 && ndigits > 0; --i, ndigits--, realDigits++)
+                for (int i = weight + 7; i >= 0 && ndigits > 0; --i, ndigits--, realDigits++)
                 {
                     var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
