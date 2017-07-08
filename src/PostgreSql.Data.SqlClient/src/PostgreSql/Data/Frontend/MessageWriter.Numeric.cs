@@ -4,6 +4,7 @@
 using PostgreSql.Data.PgTypes;
 using System;
 using System.Collections.Generic;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -64,20 +65,17 @@ namespace PostgreSql.Data.Frontend
 
             bool  isNegative = (value < 0);
             var   absValue   = ((isNegative) ? value * -1.0M : value);
-            int[] bits       = Decimal.GetBits(absValue);
-
-            short sign    = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
-            short dscale  = (short)((bits[3] & ScaleMask) >> ScaleShift);
-            short weight  = 0;
-            short ndigits = 0;
+            short dscale     = (short)((PgNumeric.GetFlags(ref absValue) & ScaleMask) >> ScaleShift);
+            short sign       = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
+            short weight     = 0;
+            short ndigits    = 0;
 
             if (absValue > 0)
             {
                 // postgres: numeric::estimate_ln_dweight 
-                // weight  = (short)Math.Log((double)absValue, PgNumeric.NBase);
                 weight  = (short)((int)Math.Log10((double)absValue) >> 2);
                 // postgres: numeric::div_var
-                ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) / DEC_DIGITS);
+                ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) >> 2);
             }
 
             short[] digits     = null;
@@ -85,21 +83,20 @@ namespace PostgreSql.Data.Frontend
 
             if (ndigits > 0)
             {
-                digits = new short[ndigits];
-                for (int i = weight + 7; i >= 0 && ndigits > 0; --i, ndigits--, realDigits++)
+                digits = ArrayPool<short>.Shared.Rent(ndigits);
+                for (int i = weight + 7; i >= 0; --i)
                 {
                     var digit = (short) (absValue / PgNumeric.Weights[i]);
                     if (digit > 0)
                     {
                         absValue -= (digit * PgNumeric.Weights[i]);
                     }
-                    digits[realDigits] = digit;
+                    digits[realDigits++] = digit;
                     if (absValue == 0)
                     {
                         break;
                     }
                 }
-                realDigits++;
             }
 
             int sizeInBytes = 8 + (realDigits * sizeof(short));
@@ -118,6 +115,11 @@ namespace PostgreSql.Data.Frontend
                 {
                     Write(digits[i]);
                 }
+            }
+
+            if (digits != null)
+            {
+                ArrayPool<short>.Shared.Return(digits, true);
             }
         }
     }

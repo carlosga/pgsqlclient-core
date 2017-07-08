@@ -10,7 +10,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 {
     public partial class DecimalTest
     {
-        public static IEnumerable<object[]> InsertDecimalValues_TestData()
+        public static IEnumerable<object[]> ReadWriteDecimalValues_TestData()
         {
             yield return new object[] { Decimal.MinValue };
             yield return new object[] { Decimal.MaxValue };
@@ -40,8 +40,8 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
         
         [Theory]
-        [MemberData(nameof(InsertDecimalValues_TestData))]
-        public void InsertTest(decimal price)
+        [MemberData(nameof(ReadWriteDecimalValues_TestData))]
+        public void ReadWriteDecimalValuesTest(decimal price)
         {
             var tableName      = DataTestClass.GetUniqueNameForPostgreSql("DecimalValues_");
             var createTableSql = $"CREATE TABLE {tableName} (Id SERIAL, Price numeric)";
@@ -59,11 +59,6 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         command.ExecuteNonQuery();
                     }
-                    // using (var insertCommand = new PgCommand($"SELECT '{price}'::numeric", connection))
-                    // {
-                    //     insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
-                    //     decValue = (decimal)insertCommand.ExecuteScalar();
-                    // }
                     using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (Price) VALUES (@Price) RETURNING Price", connection))
                     {
                         insertCommand.Parameters.Add("@Price", PgDbType.Numeric).Value = price;
