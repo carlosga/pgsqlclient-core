@@ -401,7 +401,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == null || value == DBNull.Value)
             {
-                return BaseTypes[Oid.Varchar];   // Varchar by default
+                return BaseTypes[Oid.Void];
             }
             if (value is INullable)
             {

@@ -122,6 +122,8 @@ namespace PostgreSql.Data.SqlClient
             set => _parent = value;
         }
 
+        internal bool IsTypeSet => _isTypeSet;
+
         internal TypeInfo TypeInfo
         {
             get => _typeInfo;

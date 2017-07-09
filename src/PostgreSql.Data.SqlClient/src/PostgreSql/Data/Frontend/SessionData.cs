@@ -11,17 +11,17 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed class SessionData
     {
-        internal static readonly ReadOnlyDictionary<string, Encoding> Encodings;
+        private static readonly ReadOnlyDictionary<string, Lazy<Encoding>> Encodings;
 
         static SessionData()
         {
-            Dictionary<string, Encoding> encodings = new Dictionary<string, Encoding>(20);
+            var encodings = new Dictionary<string, Lazy<Encoding>>(20);
 
             // http://www.postgresql.org/docs/9.1/static/multibyte.html
-            encodings["SQL_ASCII"]  = new ASCIIEncoding();                   // ASCII
-            encodings["UNICODE"]    = new UTF8Encoding(false);               // Unicode (UTF-8)
-            encodings["UTF8"]       = new UTF8Encoding(false);               // UTF-8
-            encodings["LATIN1"]     = Encoding.GetEncoding("iso-8859-1");    // ISO 8859-1/ECMA 94 (Latin alphabet no.1)
+            encodings["SQL_ASCII"] = new Lazy<Encoding>(() => new ASCIIEncoding());         // ASCII
+            encodings["UNICODE"]   = new Lazy<Encoding>(() => new UTF8Encoding(false));     // Unicode (UTF-8)
+            encodings["UTF8"]      = new Lazy<Encoding>(() => new UTF8Encoding(false));     // UTF-8
+            encodings["LATIN1"]    = new Lazy<Encoding>(() => Encoding.GetEncoding("iso-8859-1")); // ISO 8859-1/ECMA 94 (Latin alphabet no.1)
             // encodings["EUC_JP"]     = Encoding.GetEncoding("euc-jp");        // Japanese EUC
             // encodings["EUC_CN"]     = Encoding.GetEncoding("euc-cn");        // Chinese EUC
             // encodings["LATIN2"]     = Encoding.GetEncoding("iso-8859-2");    // ISO 8859-2/ECMA 94 (Latin alphabet no.2)
@@ -35,7 +35,7 @@ namespace PostgreSql.Data.Frontend
             // encodings["WIN1258"]    = Encoding.GetEncoding("windows-1258");  // TCVN-5712/Windows CP1258 (Vietnamese)
             // encodings["WIN1256"]    = Encoding.GetEncoding("windows-874");   // Windows CP874 (Thai)
 
-            Encodings = new ReadOnlyDictionary<string, Encoding>(encodings);
+            Encodings = new ReadOnlyDictionary<string, Lazy<Encoding>>(encodings);
         }
 
         private readonly DbConnectionOptions _connectionOptions;
@@ -88,11 +88,11 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case "server_encoding":
-                    _serverEncoding = Encodings[value];
+                    _serverEncoding = Encodings[value].Value;
                     break;
 
                 case "client_encoding":
-                    _clientEncoding = Encodings[value];
+                    _clientEncoding = Encodings[value].Value;
                     break;
 
                 case "application_name":
