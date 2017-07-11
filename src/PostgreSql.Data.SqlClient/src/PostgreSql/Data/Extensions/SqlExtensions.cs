@@ -139,8 +139,19 @@ namespace System
                     }
                     else
                     {
-                        parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
-                        builder.AppendFormat("${0}{1}", (++paramIndex).ToString(), sym);
+                        var paramName = paramBuilder.ToString();
+                        var index     = parameters.IndexOf(paramName);
+
+                        if (paramIndex <= index)
+                        {
+                            parameterIndices.Add(index);
+                            builder.AppendFormat("${0}{1}", ++paramIndex, sym);
+                        }
+                        else
+                        {
+                            builder.AppendFormat("${0}{1}", index + 1, sym);
+                        }
+                        
                         paramBuilder.Clear();
                         inParam = false;
                     }

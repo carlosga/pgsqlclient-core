@@ -325,6 +325,7 @@ namespace PostgreSql.Data.Frontend
 
                 case PgDbType.IPAddress:
                 case PgDbType.Enum:
+                case PgDbType.Void:
                     return DbType.Object;
 
                 default:
@@ -409,7 +410,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == null || value == DBNull.Value)
             {
-                return BaseTypes[Oid.Void];
+                return BaseTypes[Oid.Unknown];
             }
             if (value is INullable)
             {

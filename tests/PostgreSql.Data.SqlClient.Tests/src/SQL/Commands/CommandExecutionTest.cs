@@ -117,5 +117,52 @@ END $$;";
                 }
             }
         }
+
+        [Fact]
+        public void Command_With_One_Parameter_Several_Times()
+        {
+            var sql = "SELECT * FROM Employees WHERE ReportsTo = @p0 OR (ReportsTo IS NULL AND @p0 IS NULL)";
+
+            using (var connection = new PgConnection(DataTestClass.PostgreSql_Northwind))
+            {
+                connection.Open();
+
+                using (var command = new PgCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@p0", 2);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var rowCount = 0;
+                        while (reader.Read()) { ++rowCount; }
+                        Assert.Equal(5, rowCount);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Command_With_Two_Parameters_And_One_Several_Times()
+        {
+            var sql = "SELECT * FROM Employees WHERE Country = @p0 OR ReportsTo = @p1 OR (ReportsTo IS NULL AND @p1 IS NULL)";
+
+            using (var connection = new PgConnection(DataTestClass.PostgreSql_Northwind))
+            {
+                connection.Open();
+
+                using (var command = new PgCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@p0", "USA");
+                    command.Parameters.AddWithValue("@p1", 2);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var rowCount = 0;
+                        while (reader.Read()) { ++rowCount; }
+                        Assert.Equal(6, rowCount);
+                    }
+                }
+            }
+        }
     }
 }
