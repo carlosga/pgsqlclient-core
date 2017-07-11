@@ -299,6 +299,10 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Composite:
                 WriteComposite(typeInfo, value);
                 break;
+
+            case PgDbType.Enum:
+                WriteEnum(typeInfo, value);
+                break;
             }
         }
 

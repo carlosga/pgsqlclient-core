@@ -543,7 +543,7 @@ namespace PostgreSql.Data.Frontend
                 for (int i = 0; i < _parameterIndices.Count; ++i)
                 {
                     var parameter = _parameters[_parameterIndices[i]];
-                    if (!parameter.IsTypeSet && parameter.TypeInfo?.Oid == Oid.Void) 
+                    if (!parameter.IsTypeSet || parameter.TypeInfo?.Oid == Oid.Unknown) 
                     {
                         _parseMessage.Write(0);
                     }

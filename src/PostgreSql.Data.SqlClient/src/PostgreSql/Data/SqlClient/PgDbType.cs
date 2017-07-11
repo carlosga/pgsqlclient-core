@@ -19,6 +19,7 @@ namespace PostgreSql.Data.SqlClient
       , Composite
       , Date
       , Double
+      , Enum
       , Integer
       , Interval
       , IPAddress

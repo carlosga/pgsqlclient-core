@@ -46,7 +46,7 @@ namespace PostgreSql.Data.SqlClient
 
         public override int Size
         {
-            get => _size;
+            get => ((_size == 0) ? ValueSize() : _size);
             set => _size = value;
         }
 
@@ -210,15 +210,29 @@ namespace PostgreSql.Data.SqlClient
             else
             {
                 _typeInfo = TypeInfoProvider.GetTypeInfo(value);
-            }
-            if (_typeInfo == null && _pgDbType != PgDbType.Composite)
-            {
-                throw ADP.InvalidOperation("Unknown value type, set the parameter provider type before assigning its value.");
-            }
-            if (!_isTypeSet)
+            }            
+            if (_typeInfo != null && !_isTypeSet)
             {
                 _pgDbType = TypeInfo.PgDbType;
             }
         }
+
+        private int ValueSize()
+        {
+            if (!ADP.IsNull(_value))
+            {
+                switch (_value)
+                {
+                case string stringValue:
+                    return stringValue.Length;
+                case byte[] byteArrayValue:
+                    return byteArrayValue.Length;
+                case char[] charArrayValue:
+                    return charArrayValue.Length;
+                }
+            }
+            
+            return 0;            
+        }        
     }
 }

@@ -272,6 +272,9 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Composite:
                 return ReadComposite(typeInfo, length);
 
+            case PgDbType.Enum:
+                return ReadEnum(typeInfo, length);
+
             default:
                 return ReadBytes(length);
             }

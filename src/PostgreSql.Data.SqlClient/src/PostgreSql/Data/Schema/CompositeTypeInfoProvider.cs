@@ -35,9 +35,8 @@ ORDER BY pg_type.oid, pg_attribute.attnum";
             _connection = connection;
         }
 
-        internal ReadOnlyDictionary<int, TypeInfo> GetTypeInfo()
+        internal void GetTypeInfo(ref Dictionary<int, TypeInfo> types)
         {
-            var types       = new Dictionary<int, TypeInfo>(10);
             var row         = new DataRecord();
             var defaultType = typeof(object);
             var provider    = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
@@ -76,8 +75,6 @@ ORDER BY pg_type.oid, pg_attribute.attnum";
                     types.Add(arroid, new TypeInfo(arroid, schema, typname, types[typoid]));
                 }
             }
-
-            return new ReadOnlyDictionary<int, TypeInfo>(types);
         }
     }
 }
