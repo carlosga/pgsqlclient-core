@@ -520,6 +520,11 @@ namespace System.Data.Common
 //             return IO(Res.GetString(Res.SqlMisc_StreamErrorMessage), internalException);
 //         }
 
+        internal static InvalidOperationException UnknownEnumValue(string enumDataType, string enumValue)
+        {
+            return InvalidOperation($"No mapping exists from enum value {enumDataType}.{enumValue}.");
+        }
+
 //         internal static ArgumentException InvalidDataType(string typeName)
 //         {
 //             return Argument(Res.GetString(Res.ADP_InvalidDataType, typeName));

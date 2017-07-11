@@ -7,14 +7,17 @@ namespace PostgreSql.Data.Frontend
     {
         private readonly string _name;
         private readonly int    _oid;
+        private readonly int    _index;
 
-        internal string Name => _name;
-        internal int    Oid  => _oid;
+        internal string Name  => _name;
+        internal int    Oid   => _oid;
+        internal int    Index => _index;
 
-        internal TypeAttribute(string name, int oid)
+        internal TypeAttribute(string name, int oid, int index = -1)
         {
-            _name = name;
-            _oid  = oid;
+            _name  = name;
+            _oid   = oid;
+            _index = index;
         }
     }
 }

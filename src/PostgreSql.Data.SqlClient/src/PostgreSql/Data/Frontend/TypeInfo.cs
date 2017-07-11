@@ -76,15 +76,32 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal TypeInfo(int oid, string schema, string name, TypeAttribute[] attributes, Type systemType)
+            : this(oid, schema, name, attributes, systemType, PgDbType.Composite)
+        {
+        }
+
+        internal TypeInfo(int oid, string schema, string name, TypeAttribute[] attributes, Type systemType, PgDbType pgDbType)
         {
             _schema      = schema;
             _oid         = oid;
             _name        = name;
-            _pgDbType    = PgDbType.Composite;
+            _pgDbType    = pgDbType;
             _size        = -1;
             _attributes  = attributes;
             _systemType  = systemType;
             _pgType      = systemType;
+            _isComposite = (pgDbType == PgDbType.Composite);
+        }
+
+        internal TypeInfo(int oid, string schema, string name)
+        {
+            _schema      = schema;
+            _oid         = oid;
+            _name        = name;
+            _pgDbType    = PgDbType.Array;
+            _systemType  = typeof(object);
+            _pgType      = typeof(object);
+            _size        = -1;
             _isComposite = true;
         }
 

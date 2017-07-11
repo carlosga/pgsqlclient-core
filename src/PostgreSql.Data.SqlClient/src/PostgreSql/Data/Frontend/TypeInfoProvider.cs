@@ -258,6 +258,12 @@ namespace PostgreSql.Data.Frontend
             //
             types[194] = new TypeInfo(194, "pg_node_tree", PgDbType.Text, typeof(string), typeof(string));
 
+            //
+            // Enum types
+            //
+            types[3500]  = new TypeInfo( 3500, "anyenum", PgDbType.Enum, typeof(Enum), typeof(Enum));
+            types[11483] = new TypeInfo(11483, "pg_enum", PgDbType.Enum, typeof(Enum), typeof(Enum));
+
             BaseTypes = new ReadOnlyDictionary<int, TypeInfo>(types);
         }
 
@@ -318,6 +324,7 @@ namespace PostgreSql.Data.Frontend
                     return DbType.Guid;
 
                 case PgDbType.IPAddress:
+                case PgDbType.Enum:
                     return DbType.Object;
 
                 default:
@@ -395,7 +402,8 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        internal static TypeInfo GetTypeInfo(PgDbType pgDbType) => BaseTypes.Values.First(x => x.PgDbType == pgDbType);
+        internal static TypeInfo GetTypeInfo(PgDbType pgDbType)
+            => BaseTypes.Values.First(x => x.PgDbType == pgDbType);
 
         internal static TypeInfo GetTypeInfo(object value)
         {
@@ -407,7 +415,12 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes.Values.First(x => x.PgType == value.GetType());
             }
-            return BaseTypes.Values.FirstOrDefault(x => x.SystemType == value.GetType());
+            var typeInfo = BaseTypes.Values.FirstOrDefault(x => x.SystemType == value.GetType());
+            if (typeInfo == null)
+            {
+                typeInfo = BaseTypes[Oid.Unknown];
+            }
+            return typeInfo;
         }
 
         internal static TypeInfo GetArrayTypeInfo(object value)
@@ -420,7 +433,12 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
             }
-            return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+            if (typeInfo == null)
+            {
+                typeInfo = BaseTypes[Oid.Unknown];
+            }
+            return typeInfo;
         }
 
         internal static TypeInfo GetVectorTypeInfo(object value)
@@ -433,7 +451,12 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
             }
-            return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+            if (typeInfo == null)
+            {
+                typeInfo = BaseTypes[Oid.Unknown];
+            }
+            return typeInfo;
         }
 
         private ReadOnlyDictionary<int, TypeInfo> _types;
@@ -496,13 +519,20 @@ namespace PostgreSql.Data.Frontend
 
         private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(DbConnectionOptions connectionOptions)
         {
+            var types = new Dictionary<int, TypeInfo>(10);
+
             using (var connection = new Connection(connectionOptions))
             {
                 connection.Open();
 
-                var typeProvider = new CompositeTypeInfoProvider(connection);
-                return typeProvider.GetTypeInfo();
+                var compositeProvider = new CompositeTypeInfoProvider(connection);
+                var enumProvider      = new EnumTypeInfoProvider(connection);
+                
+                compositeProvider.GetTypeInfo(ref types);
+                enumProvider.GetTypeInfo(ref types);
             }
+
+            return new ReadOnlyDictionary<int, TypeInfo>(types);
         }
     }
 }
