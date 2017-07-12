@@ -114,7 +114,6 @@ namespace System
             var  paramBuilder = new StringBuilder(15);
             var  inLiteral    = false;
             var  inParam      = false;
-            int  paramIndex   = 0;
             char sym;
 
             if (parameterIndices == null)
@@ -142,16 +141,12 @@ namespace System
                         var paramName = paramBuilder.ToString();
                         var index     = parameters.IndexOf(paramName);
 
-                        if (paramIndex <= index)
+                        if (!parameterIndices.Contains(index))
                         {
                             parameterIndices.Add(index);
-                            builder.AppendFormat("${0}{1}", ++paramIndex, sym);
-                        }
-                        else
-                        {
-                            builder.AppendFormat("${0}{1}", index + 1, sym);
                         }
                         
+                        builder.AppendFormat("${0}{1}", parameterIndices.IndexOf(index) + 1, sym);
                         paramBuilder.Clear();
                         inParam = false;
                     }
@@ -175,8 +170,16 @@ namespace System
 
             if (inParam)
             {
-                parameterIndices.Add(parameters.IndexOf(paramBuilder.ToString()));
-                builder.AppendFormat("${0}", (++paramIndex).ToString());
+                var paramName = paramBuilder.ToString();
+                var index     = parameters.IndexOf(paramName);
+
+                if (!parameterIndices.Contains(index))
+                {
+                    parameterIndices.Add(index);
+                }
+                
+                builder.AppendFormat("${0}",  parameterIndices.IndexOf(index) + 1);
+                paramBuilder.Clear();
             }
 
             return builder.ToString();
