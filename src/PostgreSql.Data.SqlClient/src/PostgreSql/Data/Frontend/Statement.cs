@@ -408,10 +408,6 @@ namespace PostgreSql.Data.Frontend
                 // Close current statement
                 Close(STATEMENT);
 
-                // Sync state
-                _connection.Sync();
-                ReadUntilReadyForQuery();
-
                 // Reset has rows flag
                 _hasRows = false;
 

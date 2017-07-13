@@ -151,6 +151,8 @@ namespace PostgreSql.Data.Frontend
             {
                 Lock();
 
+                Sync();
+
                 _transport?.Close();
                 _reader?.Dispose();
 
@@ -228,6 +230,7 @@ namespace PostgreSql.Data.Frontend
             }
 
             _transport.WriteFrame(FrontendMessages.Sync);
+            ReadUntilReadyForQuery();
         }
 
         internal void CancelRequest()
@@ -599,7 +602,6 @@ namespace PostgreSql.Data.Frontend
                 if (_open)
                 {
                     Sync();
-                    ReadUntilReadyForQuery();
                 }
 
                 throw exception;

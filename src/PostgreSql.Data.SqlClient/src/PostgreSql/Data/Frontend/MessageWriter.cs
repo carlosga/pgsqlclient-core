@@ -205,15 +205,15 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.SmallInt:
-                Write((short)value);
+                Write(Convert.ToInt16(value));
                 break;
 
             case PgDbType.Integer:
-                Write((int)value);
+                Write(Convert.ToInt32(value));
                 break;
 
             case PgDbType.BigInt:
-                Write((long)value);
+                Write(Convert.ToInt64(value));
                 break;
 
             case PgDbType.Numeric:
