@@ -324,6 +324,7 @@ namespace PostgreSql.Data.Frontend
                     return DbType.Guid;
 
                 case PgDbType.IPAddress:
+                case PgDbType.MacAddress:
                 case PgDbType.Enum:
                 case PgDbType.Void:
                     return DbType.Object;
