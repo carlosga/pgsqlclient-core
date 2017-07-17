@@ -29,12 +29,6 @@ namespace PostgreSql.Data.Frontend
             Dictionary<int, TypeInfo> types = new Dictionary<int, TypeInfo>(100);
 
             //
-            // BYTE TYPE
-            //
-
-            types[18] = new TypeInfo(18, "char", PgDbType.Byte, typeof(byte), typeof(PgByte), sizeof(byte));
-
-            //
             // BINARY DATA TYPES
             //
 
@@ -45,8 +39,8 @@ namespace PostgreSql.Data.Frontend
             // BIT STRING TYPES
             //
 
-            types[1560] = new TypeInfo(1560, "bit"   , PgDbType.Byte, typeof(byte), typeof(PgBit), sizeof(byte));
-            types[1562] = new TypeInfo(1562, "varbit", PgDbType.Byte, types[1560], typeof(byte[]), typeof(PgBit));
+            types[1560] = new TypeInfo(1560, "bit"   , PgDbType.Bit, typeof(byte), typeof(PgBit), sizeof(byte));
+            types[1562] = new TypeInfo(1562, "varbit", PgDbType.Bit, types[1560], typeof(byte[]), typeof(PgBit));
 
             //
             // BOOLEAN TYPE
@@ -68,7 +62,7 @@ namespace PostgreSql.Data.Frontend
 
             // character(n), char(n) | fixed-length, blank padded
 
-            types[1002] = new TypeInfo(1002, "char", PgDbType.Array, types[18], typeof(char[]), typeof(string));
+            types[1002] = new TypeInfo(1002, "char", PgDbType.Array, typeof(char[]), typeof(string));
 
             // text	variable unlimited length
 
@@ -274,10 +268,6 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Boolean:
                     return DbType.Boolean;
 
-                case PgDbType.Bit:
-                case PgDbType.Byte:
-                    return DbType.Byte;
-
                 case PgDbType.Bytea:
                     return DbType.Binary;
 
@@ -285,6 +275,9 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Text:
                 case PgDbType.VarChar:
                     return DbType.String;
+
+                case PgDbType.Bit:
+                    return DbType.Byte;
 
                 case PgDbType.SmallInt:
                     return DbType.Int16;
@@ -353,8 +346,6 @@ namespace PostgreSql.Data.Frontend
                     return PgDbType.Bytea;
 
                 case DbType.Byte:
-                    return PgDbType.Byte;
-
                 case DbType.Int16:
                     return PgDbType.SmallInt;
 

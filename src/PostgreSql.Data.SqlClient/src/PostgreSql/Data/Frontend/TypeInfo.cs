@@ -65,14 +65,13 @@ namespace PostgreSql.Data.Frontend
             _isArray      = (_pgDbType == PgDbType.Array);
             _isBinary     = (_pgDbType == PgDbType.Bytea);
             _isRefCursor  = (_oid      == Frontend.Oid.RefCursor);
-            _isNumeric    = (_pgDbType == PgDbType.BigInt
-                          || _pgDbType == PgDbType.Byte
-                          || _pgDbType == PgDbType.Double
+            _isNumeric    = (_pgDbType == PgDbType.SmallInt
                           || _pgDbType == PgDbType.Integer
-                          || _pgDbType == PgDbType.Money
-                          || _pgDbType == PgDbType.Numeric
+                          || _pgDbType == PgDbType.BigInt
                           || _pgDbType == PgDbType.Real
-                          || _pgDbType == PgDbType.SmallInt);
+                          || _pgDbType == PgDbType.Double
+                          || _pgDbType == PgDbType.Money
+                          || _pgDbType == PgDbType.Numeric);
         }
 
         internal TypeInfo(int oid, string schema, string name, TypeAttribute[] attributes, Type systemType)

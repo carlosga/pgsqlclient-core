@@ -194,7 +194,6 @@ namespace PostgreSql.Data.Frontend
                 break;
 
             case PgDbType.Bit:
-            case PgDbType.Byte:
                 WriteByte((byte)value);
                 break;
 

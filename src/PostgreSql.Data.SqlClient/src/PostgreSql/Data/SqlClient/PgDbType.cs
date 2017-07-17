@@ -12,7 +12,6 @@ namespace PostgreSql.Data.SqlClient
       , Box
       , Box2D
       , Box3D
-      , Byte
       , Bytea
       , Char
       , Circle

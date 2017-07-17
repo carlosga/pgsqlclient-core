@@ -189,9 +189,6 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Boolean:
                 return ReadBoolean();
 
-            case PgDbType.Byte:
-                return ReadByte();
-
             case PgDbType.Numeric:
                 return ReadNumeric();
 
