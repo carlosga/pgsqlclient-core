@@ -25,8 +25,9 @@ namespace PostgreSql.Data.Frontend
 
         private void WriteTimestampTZ(DateTimeOffset value)
         {
-            var timestamp = (long)((value.ToUnixTimeMilliseconds() * 1000) - PgTimestamp.MicrosecondsBetweenEpoch)
-                          + (int)value.Offset.TotalSeconds;
+            var dt        = TimeZoneInfo.ConvertTime(value, _sessionData.TimeZoneInfo);
+            var timestamp = (long)(value.Subtract(PgTimestamp.EpochDateTime).TotalMilliseconds * 1000
+                          + (int)dt.Offset.TotalSeconds);
 
             Write(timestamp);
         }

@@ -116,7 +116,7 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case "TimeZone":
-                    _timeZoneInfo = TimeZoneInfo.Local;
+                    _timeZoneInfo = ((value == "UTC") ? TimeZoneInfo.Utc : TimeZoneInfo.Local);
                     break;
 
                 case "integer_datetimes":
