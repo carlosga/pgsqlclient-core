@@ -20,8 +20,8 @@ namespace PostgreSql.Data.Frontend
 
         private DateTimeOffset ReadTimestampWithTZ()
         {
-            var dt = PgTimestamp.EpochDateTime.AddMilliseconds(ReadInt64() * 0.001);
-            return TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo);
+            var dt = PgTimestamp.EpochDateTimeOffsetUtc.AddMilliseconds(ReadInt64() * 0.001);
+            return ((_sessionData.TimeZoneInfo == TimeZoneInfo.Utc) ? dt : TimeZoneInfo.ConvertTime(dt, _sessionData.TimeZoneInfo));
         }
     }
 }

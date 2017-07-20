@@ -22,11 +22,13 @@ namespace PostgreSql.Data.PgTypes
         internal static readonly long MicrosecondsBetweenEpoch = 10957 * MicrosecondsPerDay;
 
         internal static readonly DateTime EpochDateTime = new DateTime(2000, 01, 01, 0, 0, 0);
+        internal static readonly DateTimeOffset EpochDateTimeOffsetUtc = TimeZoneInfo.ConvertTime(EpochDateTime, TimeZoneInfo.Utc);
 
         private readonly bool     _isNotNull;
         private readonly DateTime _value;
 
         public long TotalMicroseconds => (long)(Value.Subtract(EpochDateTime).TotalMilliseconds * 1000);
+
 
         private PgTimestamp(bool isNotNull)
         {
