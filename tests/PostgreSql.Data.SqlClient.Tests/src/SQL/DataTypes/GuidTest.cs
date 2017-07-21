@@ -61,15 +61,16 @@ namespace PostgreSql.Data.SqlClient.Tests
         [Fact]
         public void ReadWriteServerGeneratedGuidTest()
         {
-            var tableName       = DataTestClass.GetUniqueNameForPostgreSql("UUId_");
-            var createSchemaSql = $@"CREATE EXTENSION IF NOT EXISTS ""uuid-ossp""; CREATE TABLE {tableName} (Id SERIAL, local_uuid uuid, server_uuid uuid DEFAULT uuid_generate_v4());";
-            var connStr         = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
-            var failed          = false;
-            var uuid            = Guid.NewGuid();
-            var localUuidValue  = Guid.Empty;
-            var serverUuidValue = Guid.Empty;
-            var count           = 0L;            
-            var errorMsg        = string.Empty;        
+            var tableName        = DataTestClass.GetUniqueNameForPostgreSql("UUId_");
+            var createSchemaSql  = $@"CREATE EXTENSION IF NOT EXISTS ""uuid-ossp""; CREATE TABLE {tableName} (Id SERIAL, local_uuid uuid, server_uuid uuid DEFAULT uuid_generate_v4());";
+            var connStr          = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+            var failed           = false;
+            var uuid             = Guid.NewGuid();
+            var localUuidValue   = Guid.Empty;
+            var serverUuidValue  = Guid.Empty;
+            var serverUuidString = string.Empty;
+            var count            = 0L;            
+            var errorMsg         = string.Empty;        
 
             try
             {
@@ -80,7 +81,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     {
                         command.ExecuteNonQuery();
                     }
-                    using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (local_uuid) VALUES (@local_uuid) RETURNING local_uuid, server_uuid", connection))
+                    using (var insertCommand = new PgCommand($"INSERT INTO {tableName} (local_uuid) VALUES (@local_uuid) RETURNING local_uuid, server_uuid, server_uuid::text", connection))
                     {
                         insertCommand.Parameters.AddWithValue("@local_uuid", uuid);
 
@@ -89,8 +90,9 @@ namespace PostgreSql.Data.SqlClient.Tests
                             Assert.True(reader.HasRows);
                             Assert.True(reader.Read());
 
-                            localUuidValue  = reader.GetGuid(0);
-                            serverUuidValue = reader.GetGuid(1);
+                            localUuidValue   = reader.GetGuid(0);
+                            serverUuidValue  = reader.GetGuid(1);
+                            serverUuidString = reader.GetString(2);
                         }
                     }
                     using (var selectCommand = new PgCommand($"SELECT COUNT(*) FROM {tableName} WHERE server_uuid = @server_uuid", connection))
@@ -119,9 +121,11 @@ namespace PostgreSql.Data.SqlClient.Tests
             }
 
             Assert.False(failed, $"Writing of UUID values has failed. {errorMsg}");
-            Assert.Equal(uuid, localUuidValue);
-            Assert.NotEqual(localUuidValue, serverUuidValue);
             Assert.Equal(1L, count);
+            Assert.Equal(uuid, localUuidValue);
+            Assert.Equal(serverUuidValue.ToString(), serverUuidString);
+            Assert.NotEqual(localUuidValue, serverUuidValue);
+            Assert.Equal(uuid, localUuidValue);
         }
     }
 }

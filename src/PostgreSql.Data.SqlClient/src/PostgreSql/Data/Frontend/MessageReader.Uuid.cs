@@ -9,7 +9,12 @@ namespace PostgreSql.Data.Frontend
     {
         private Guid ReadUuid()
         {
-            return new Guid(ReadBytes(16));
+            var a = ReadInt32();
+            var b = ReadInt16();
+            var c = ReadInt16();
+            var d = ReadBytes(8);
+
+            return new Guid(a, b, c, d);
         }
     }
 }
