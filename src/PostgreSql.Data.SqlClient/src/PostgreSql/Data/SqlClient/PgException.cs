@@ -22,7 +22,7 @@ namespace PostgreSql.Data.SqlClient
                 return _errors;
             }
         }
-
+    
         internal PgException() 
             : base()
         {

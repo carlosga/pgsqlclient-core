@@ -9,6 +9,7 @@ namespace PostgreSql.Data.Frontend
       , Prepared
       , Executing
       , Suspended
+      , Cancelling
       , Cancelled
     }
 }

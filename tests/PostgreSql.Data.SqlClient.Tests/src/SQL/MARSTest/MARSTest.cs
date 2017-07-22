@@ -289,6 +289,34 @@ namespace PostgreSql.Data.SqlClient.Tests
                 }
             }
         }
+
+        [Fact]
+        public static void MARSSyncExecuteReaderWithExplicitTransactionTest()
+        {
+            using (PgConnection conn = new PgConnection(s_ConnectionString))
+            {
+                conn.Open();
+
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn, tx)).ExecuteReader())
+                    using (PgDataReader reader2 = (new PgCommand("select * from Orders", conn, tx)).ExecuteReader())
+                    using (PgDataReader reader3 = (new PgCommand("select * from Orders", conn, tx)).ExecuteReader())
+                    using (PgDataReader reader4 = (new PgCommand("select * from Orders", conn, tx)).ExecuteReader())
+                    using (PgDataReader reader5 = (new PgCommand("select * from Orders", conn, tx)).ExecuteReader())
+                    {
+                        for (int i = 0; i < 830; i++)
+                        {
+                            Assert.True(reader1.Read() && reader2.Read() && reader3.Read() && reader4.Read() && reader5.Read(), "MARSSyncExecuteReaderTest2 Failure #1");
+                        }
+
+                        Assert.False(reader1.Read() || reader2.Read() || reader3.Read() || reader4.Read() || reader5.Read(), "MARSSyncExecuteReaderTest2 Failure #2");
+                    }
+
+                    tx.Commit();
+                }
+            }
+        }        
     }
 }
 

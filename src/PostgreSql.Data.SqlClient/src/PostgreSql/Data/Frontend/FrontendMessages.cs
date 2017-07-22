@@ -19,8 +19,8 @@ namespace PostgreSql.Data.Frontend
         internal const byte Query               = (byte)'Q';
         internal const byte Sync                = (byte)'S';
         internal const byte Terminate           = (byte)'X';
-        internal const byte Untyped             = (byte)' ';
         internal const byte SASLInitialresponse = (byte)'p';
         internal const byte SASLResponse        = (byte)'p';
+        internal const byte Untyped             = 0;
     }
 }

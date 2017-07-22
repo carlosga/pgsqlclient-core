@@ -33,7 +33,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             DbDataReader reader = readerTask.Result;
 
             int rows;
-            for (rows = 0; reader.Read(); rows++) ;
+            for (rows = 0; reader.Read(); rows++);
 
             Assert.True(rows == 830, string.Format("FAILED: ExecuteTest reader had wrong number of rows. Expected: {0}. Actual: {1}", 830, rows));
 

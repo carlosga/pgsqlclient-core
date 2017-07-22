@@ -147,11 +147,14 @@ namespace PostgreSql.Data.Frontend
 
         internal void Close()
         {
+            if (!_open)
+            {
+                return;
+            }
+            
             try
             {
                 Lock();
-
-                Sync();
 
                 _transport?.Close();
                 _reader?.Dispose();
@@ -220,19 +223,6 @@ namespace PostgreSql.Data.Frontend
         internal Statement CreateStatement()                => new Statement(this);
         internal Statement CreateStatement(string stmtText) => new Statement(this, stmtText);
 
-        internal void Flush() => _transport.WriteFrame(FrontendMessages.Flush);
-
-        internal void Sync()
-        {
-            if (!_open)
-            {
-                return;
-            }
-
-            _transport.WriteFrame(FrontendMessages.Sync);
-            ReadUntilReadyForQuery();
-        }
-
         internal void CancelRequest()
         {
             SemaphoreSlim activeSem = LazyEnsureActiveSemaphoreInitialized();
@@ -273,6 +263,12 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
+        internal void Sync()
+        {
+            _transport.WriteFrame(FrontendMessages.Sync);
+            ReadUntilReadyForQuery();
+        }
+
         internal MessageReader Read()
         {
             _reader.ReadFrom(_transport);
@@ -296,7 +292,8 @@ namespace PostgreSql.Data.Frontend
             return _reader;
         }
 
-        internal void Send(MessageWriter message) => message.WriteTo(_transport);
+        internal void Send(MessageWriter message, SyncMode syncMode = SyncMode.None) 
+            => message.WriteTo(_transport, syncMode);
 
         internal bool IsConnectionAlive(bool throwOnException = false) 
             => ((_transport == null) ? false : _transport.IsTransportAlive(throwOnException)); 
@@ -599,11 +596,6 @@ namespace PostgreSql.Data.Frontend
              || error.Severity == ErrorSeverity.Fatal
              || error.Severity == ErrorSeverity.Panic)
             {
-                if (_open)
-                {
-                    Sync();
-                }
-
                 throw exception;
             }
         }

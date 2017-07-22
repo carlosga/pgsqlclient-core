@@ -69,23 +69,6 @@ namespace PostgreSql.Data.SqlClient
             set => _designTimeVisible = value;
         }
 
-        public int FetchSize
-        {
-            get => _fetchSize;
-            set
-            {
-                if (value < 0)
-                {
-                    throw ADP.InvalidFetchSize(value);
-                }
-                if (HasLiveReader)
-                {
-                    throw ADP.OpenReaderExists();
-                }
-                _fetchSize = value; 
-            }
-        }
-
         public override UpdateRowSource UpdatedRowSource
         {
             get => _updatedRowSource;
@@ -106,7 +89,25 @@ namespace PostgreSql.Data.SqlClient
 
                 return _parameters;
             }
-        } 
+        }
+
+
+        public int FetchSize
+        {
+            get => _fetchSize;
+            set
+            {
+                if (value < 0)
+                {
+                    throw ADP.InvalidFetchSize(value);
+                }
+                if (HasLiveReader)
+                {
+                    throw ADP.OpenReaderExists();
+                }
+                _fetchSize = value; 
+            }
+        }       
 
         protected override DbParameterCollection DbParameterCollection => Parameters;
 
@@ -227,6 +228,7 @@ namespace PostgreSql.Data.SqlClient
                 _commandText  = null;
                 _commands     = null;
                 _commandIndex = -1;
+                _fetchSize    = 0;
 
                 _parameters?.Clear();
                 _parameters = null;                
@@ -359,11 +361,9 @@ namespace PostgreSql.Data.SqlClient
 
         private void InternalPrepare()
         {
-            var internalConnection = _connection.InnerConnection as PgConnectionInternal; 
-
             if (_statement == null)
             {
-                _statement = internalConnection.CreateStatement();
+                _statement = (_connection.InnerConnection as PgConnectionInternal).CreateStatement();
             }
             else if (_statement.IsPrepared)
             {
