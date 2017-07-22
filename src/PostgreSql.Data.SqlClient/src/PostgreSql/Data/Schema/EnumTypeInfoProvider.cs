@@ -41,7 +41,6 @@ ORDER BY pg_type.oid, pg_enum.enumsortorder;";
 
             using (var command = _connection.CreateStatement(SchemaQuery))
             {
-                command.FetchSize = 0;
                 command.Prepare();
                 command.ExecuteReader();
 

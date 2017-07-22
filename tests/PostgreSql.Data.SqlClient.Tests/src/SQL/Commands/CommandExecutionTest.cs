@@ -188,5 +188,33 @@ END $$;";
                 }
             }
         }
+
+        [Fact]
+        public void SelectPreparedStatement()
+        {
+            var sql = "SELECT OrderId FROM Orders WHERE OrderId = @OrderId";
+            var cs  = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = false }).ConnectionString;
+
+            using (var connection = new PgConnection(cs))
+            {
+                connection.Open();
+
+                using (var command = new PgCommand(sql, connection))
+                {
+                    var parameter = command.Parameters.AddWithValue("@OrderId", 0);
+
+                    command.Prepare();
+
+                    for (int i = 10248; i < 10260; i++)
+                    {
+                        parameter.Value = i;
+
+                        var result = (int)command.ExecuteScalar();
+
+                        Assert.Equal(i, result);
+                    }
+                }
+            }            
+        }
     }
 }

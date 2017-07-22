@@ -470,9 +470,7 @@ namespace PostgreSql.Data.SqlClient
         private void InitializeRefCursors()
         {
             // Ref cursors can be fetched only if there is an active transaction
-            if (_command.CommandType           == CommandType.StoredProcedure
-             && _statement.RowDescriptor.Count == 1
-             && _statement.RowDescriptor[0].TypeInfo.IsRefCursor)
+            if (_command.CommandType == CommandType.StoredProcedure && _statement.HasPendingRefCursors)
             {
                 // Clear refcursor's queue
                 _refCursors.Clear();
@@ -494,8 +492,7 @@ namespace PostgreSql.Data.SqlClient
         private bool NextResultFromRefCursor()
         {
             _refCursor = _refCursors.Dequeue();
-            _refCursor.Prepare();
-            _refCursor.ExecuteReader(_behavior);
+            _refCursor.Query();
 
             return true;
         }
@@ -504,7 +501,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_command != null && !_command.IsDisposed && _command.RecordsAffected != -1)
             {
-                _recordsAffected  += ((_recordsAffected == -1) ? 1 : _command.RecordsAffected);
+                _recordsAffected += ((_recordsAffected == -1) ? 1 : _command.RecordsAffected);
             }
         }
 

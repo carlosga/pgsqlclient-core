@@ -88,7 +88,8 @@ namespace PostgreSql.Data.Frontend
             if (_position != _initialCapacity)
             {
                 PooledBuffer.Reset(ref _buffer, _initialCapacity);
-                _position = _initialCapacity;
+                _position  = _initialCapacity;
+                _buffer[0] = _messageType;
             }
         }
 
@@ -149,16 +150,6 @@ namespace PostgreSql.Data.Frontend
                 Write(buffer.Length);
                 Write(buffer);
             }
-        }
-
-        internal void WriteTo(Transport transport)
-        {
-            int length = _position;
-
-            Seek(_offset);
-            Write(length - _offset);
-
-            transport.WriteFrame(_buffer, 0, length);
         }
 
         internal void Write(TypeInfo typeInfo, object value)

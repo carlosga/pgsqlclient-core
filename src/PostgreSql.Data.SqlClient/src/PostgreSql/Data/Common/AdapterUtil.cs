@@ -362,12 +362,12 @@ namespace System.Data.Common
         {
             return Argument($"Invalid CommandTimeout value {value}; the value must be >= 0.");
         }
-
+       
         internal static Exception InvalidFetchSize(int value, [CallerMemberName] string property = "")
         {
             return Argument($"Invalid FetchSize value {value}; the value must be >= 0.");
         }
-        
+       
         internal static Exception PrepareParametersCount(int expected, int actual)
         {
             return InvalidOperation($"The command contains an invalid number of parameters {actual} expected {expected} parameters.");
