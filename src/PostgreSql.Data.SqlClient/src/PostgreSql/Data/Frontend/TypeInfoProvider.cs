@@ -29,6 +29,12 @@ namespace PostgreSql.Data.Frontend
             Dictionary<int, TypeInfo> types = new Dictionary<int, TypeInfo>(100);
 
             //
+            // CHAR TYPE
+            //
+
+            types[18] = new TypeInfo(18, "char", PgDbType.Char, typeof(char), typeof(char));
+
+            //
             // BINARY DATA TYPES
             //
 
