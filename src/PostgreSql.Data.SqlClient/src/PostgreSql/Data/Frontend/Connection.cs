@@ -34,6 +34,7 @@ namespace PostgreSql.Data.Frontend
         private Transport           _transport;
         private MessageReader       _reader;
         private ISaslMechanism      _saslAuthenticator;
+        private SyncMode            _syncMode;
 
         internal NotificationCallback Notification
         {
@@ -172,13 +173,14 @@ namespace PostgreSql.Data.Frontend
                 _sessionData            = null;
                 _transport              = null;
                 _reader                 = null;
-                _transactionState       = TransactionState.Default;
                 _processId              = -1;
                 _secretKey              = -1;
                 _open                   = false;
                 _activeSemaphore        = null;
                 _cancelRequestSemaphore = null;
                 _saslAuthenticator      = null;
+                _transactionState       = TransactionState.Default;
+                _syncMode               = SyncMode.None;
 
                 // Callback cleanup
                 ReleaseCallbacks();
@@ -293,7 +295,10 @@ namespace PostgreSql.Data.Frontend
         }
 
         internal void Send(MessageWriter message, SyncMode syncMode = SyncMode.None) 
-            => message.WriteTo(_transport, syncMode);
+        {
+            _syncMode = syncMode;
+            message.WriteTo(_transport, syncMode);
+        }
 
         internal bool IsConnectionAlive(bool throwOnException = false) 
             => ((_transport == null) ? false : _transport.IsTransportAlive(throwOnException)); 
@@ -596,7 +601,7 @@ namespace PostgreSql.Data.Frontend
              || error.Severity == ErrorSeverity.Fatal
              || error.Severity == ErrorSeverity.Panic)
             {
-                if (_transactionState == TransactionState.Broken)
+                if (_syncMode == SyncMode.Sync || _syncMode == SyncMode.SyncAndFlush)
                 {
                     ReadUntilReadyForQuery();
                 }
