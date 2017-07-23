@@ -55,3 +55,6 @@ ConnectionString.xml
 *.lock.json
 *.repro
 *.out
+
+# Other
+benchmarks
