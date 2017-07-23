@@ -365,12 +365,7 @@ namespace PostgreSql.Data.Frontend
                 _connection.Send(_closeMessage, SyncMode.SyncAndFlush);
 
                 // Read until IS READY FOR QUERY message is received
-                MessageReader rmessage = null;
-
-                do
-                {
-                    rmessage = _connection.Read();
-                } while (!rmessage.IsReadyForQuery);
+                ReadUntilReadyForQuery();
 
                 // Reset records affected and statement tag
                 _recordsAffected = -1;
@@ -530,14 +525,6 @@ namespace PostgreSql.Data.Frontend
 
             _connection.Send(_describeMessage, SyncMode.SyncAndFlush);
 
-            MessageReader rmessage = null;
-
-            do
-            {
-                rmessage = _connection.Read();
-                HandleMessage(rmessage);
-            } while (!rmessage.IsRowDescription && !rmessage.IsNoData);
-
             ReadUntilReadyForQuery();
         }
 
@@ -599,7 +586,7 @@ namespace PostgreSql.Data.Frontend
                 _executeMessage.Write(0);
             }
 
-            ThrowIfCancelled();        
+            ThrowIfCancelled();
 
             var mode = (HasPendingRefCursors ? SyncMode.Flush : SyncMode.SyncAndFlush);
 

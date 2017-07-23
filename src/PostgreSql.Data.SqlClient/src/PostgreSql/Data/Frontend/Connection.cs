@@ -596,6 +596,11 @@ namespace PostgreSql.Data.Frontend
              || error.Severity == ErrorSeverity.Fatal
              || error.Severity == ErrorSeverity.Panic)
             {
+                if (_transactionState == TransactionState.Broken)
+                {
+                    ReadUntilReadyForQuery();
+                }
+
                 throw exception;
             }
         }
