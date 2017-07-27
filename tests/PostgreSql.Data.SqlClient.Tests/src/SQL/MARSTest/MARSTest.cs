@@ -316,7 +316,27 @@ namespace PostgreSql.Data.SqlClient.Tests
                     tx.Commit();
                 }
             }
-        }        
+        }
+
+        [Fact]
+        public static void ThrowsWhenMARSSupportIsDisabled()
+        {
+            var connectionString = (new PgConnectionStringBuilder(s_ConnectionString) { MultipleActiveResultSets = false}).ConnectionString;
+            using (PgConnection conn = new PgConnection(connectionString))
+            {
+                conn.Open();
+
+                bool yes = conn is System.ComponentModel.Component;
+
+                using (PgDataReader reader1 = (new PgCommand("select * from Orders", conn)).ExecuteReader())
+                {
+                    using (var command2 = new PgCommand("select * from Orders", conn))
+                    {
+                        Assert.Throws<InvalidOperationException>(() => command2.ExecuteReader());
+                    }
+                }
+            }
+        }
     }
 }
 

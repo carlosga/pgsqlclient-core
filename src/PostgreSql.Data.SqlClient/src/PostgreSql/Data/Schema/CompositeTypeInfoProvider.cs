@@ -10,7 +10,7 @@ namespace PostgreSql.Data.Schema
 {
     internal sealed class CompositeTypeInfoProvider
     {
-        private static readonly string SchemaQuery = @"SELECT
+        private static readonly string s_schemaQuery = @"SELECT
       pg_namespace.nspname
     , pg_type.oid
     , pg_type.typarray
@@ -37,13 +37,13 @@ ORDER BY pg_type.oid, pg_attribute.attnum";
 
         internal void GetTypeInfo(ref Dictionary<int, TypeInfo> types)
         {
-            var row         = new DataRecord();
+            var row         = new DataRow();
             var defaultType = typeof(object);
             var provider    = TypeBindingContext.GetProvider(_connection.ConnectionOptions.ConnectionString);
 
             ITypeBinding binding = null;
 
-            using (var command = _connection.CreateStatement(SchemaQuery))
+            using (var command = _connection.CreateStatement(s_schemaQuery))
             {
                 command.Prepare();
                 command.ExecuteReader();
@@ -64,6 +64,8 @@ ORDER BY pg_type.oid, pg_attribute.attnum";
                         row.ReadFrom(command);
                         attributes[i] = new TypeAttribute(row.GetString(6), row.GetInt32(5));
                     }
+
+                    row.Reset();
 
                     if (provider != null)
                     {

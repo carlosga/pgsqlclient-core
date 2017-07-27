@@ -38,7 +38,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     }
                 }
             }
-        }
+        }        
 
         [Fact]
         public static void TestMain()

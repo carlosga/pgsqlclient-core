@@ -7,8 +7,6 @@ using PostgreSql.Data.Frontend;
 
 namespace PostgreSql.Data.PgTypes
 {
-    internal delegate int GetFlagsDelegate(ref decimal value);
-
     /// http://grokbase.com/t/postgresql/pgsql-interfaces/046evv5wyw/libpq-binary-transfer-of-the-numeric-data-type
     /// The value represented by a NumericVar is determined by the sign, weight,
     /// ndigits, and digits[] array.
@@ -57,16 +55,6 @@ namespace PostgreSql.Data.PgTypes
             , 1E+24M
             , 1E+28M
         };
-
-        internal static readonly GetFlagsDelegate GetFlags = CreateCompiledExpression();
-
-        private static GetFlagsDelegate CreateCompiledExpression()
-        {
-            var value      = Expression.Parameter(typeof(decimal).MakeByRefType(), "value");
-            var expression = Expression.Field(value, "flags");
-
-            return Expression.Lambda<GetFlagsDelegate>(expression, value).Compile();
-        }        
 
         public static readonly PgNumeric MaxValue = Decimal.MaxValue;
         public static readonly PgNumeric MinValue = Decimal.MinValue;

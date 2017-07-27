@@ -64,7 +64,7 @@ namespace PostgreSql.Data.SqlClient
             NumericScale     = descriptor.NumericScale;
         }
 
-        internal void Populate(DataRecord row)
+        internal void Populate(DataRow row)
         {
             if (!row.IsDBNull(0))
             {

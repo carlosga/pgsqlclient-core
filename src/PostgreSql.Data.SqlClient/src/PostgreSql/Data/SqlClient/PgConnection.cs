@@ -117,34 +117,18 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _innerConnection       = null;
-                        _connectionString      = null;
-                        _userConnectionOptions = null;
-                        _poolGroup             = null;
                     }
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                _disposed = true;
+                _innerConnection       = null;
+                _connectionString      = null;
+                _userConnectionOptions = null;
+                _poolGroup             = null;
+                _disposed              = true;
             }
-        }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        ~PgConnection() {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
+            base.Dispose(disposing);
         }
-
-        // This code added to correctly implement the disposable pattern.
-        // public void Dispose()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(true);
-        //     // TODO: uncomment the following line if the finalizer is overridden above.
-        //     // GC.SuppressFinalize(this);
-        // }
         #endregion
 
         public override void Open()
@@ -160,7 +144,15 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        public override void Close() => _innerConnection.CloseConnection(this, ConnectionFactory);
+        public override void Close()
+        {
+            _innerConnection.CloseConnection(this, ConnectionFactory);
+
+            if (_userConnectionOptions.Pooling)
+            {
+                GC.SuppressFinalize(this);
+            }
+        }
 
         public new PgTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted);
 
@@ -270,6 +262,11 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        internal void ValidateConnectionForExecute(string method, PgCommand command)
+        {
+            InnerConnection.ValidateConnectionForExecute(command);
+        }
+
         internal void AddWeakReference(object value, int tag) => InnerConnection.AddWeakReference(value, tag);
 
         internal void NotifyWeakReference(int message) => InnerConnection.NotifyWeakReference(message);
@@ -320,7 +317,7 @@ namespace PostgreSql.Data.SqlClient
             Debug.Assert(innerConnection != null           , "Invalid connection state.");
             Debug.Assert(innerConnection.Connection != null, "Frontend connection cannot be null.");
 
-            if (!innerConnection.ConnectionOptions.Pooling)
+            if (!_userConnectionOptions.Pooling)
             {
                 // For non-pooled connections, we need to make sure that the finalizer does actually run
                 GC.ReRegisterForFinalize(this);

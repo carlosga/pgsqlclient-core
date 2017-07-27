@@ -4,6 +4,8 @@
 using PostgreSql.Data.PgTypes;
 using System.Runtime.CompilerServices;
 using System.Security;
+using System.Collections.Generic;
+using PostgreSql.Data.SqlClient;
 
 namespace System.Data.Common
 {
@@ -40,25 +42,10 @@ namespace System.Data.Common
         internal static ArgumentOutOfRangeException ArgumentOutOfRange(string parameterName)
              => new ArgumentOutOfRangeException(parameterName);
 
-//         internal static ArgumentOutOfRangeException ArgumentOutOfRange(string message, string parameterName)
-//         {
-//             ArgumentOutOfRangeException e = new ArgumentOutOfRangeException(parameterName, message);
-//             return e;
-//         }
-//         internal static IndexOutOfRangeException IndexOutOfRange(int value)
-//         {
-//             IndexOutOfRangeException e = new IndexOutOfRangeException(value.ToString(CultureInfo.InvariantCulture));
-//             return e;
-//         }
         internal static IndexOutOfRangeException IndexOutOfRange(string error)
         {
             return new IndexOutOfRangeException(error);
         }
-//         internal static IndexOutOfRangeException IndexOutOfRange()
-//         {
-//             IndexOutOfRangeException e = new IndexOutOfRangeException();
-//             return e;
-//         }
 
         internal static InvalidCastException InvalidCast(string error) => InvalidCast(error, null);
         internal static InvalidCastException InvalidCast(string error, Exception inner)
@@ -77,65 +64,12 @@ namespace System.Data.Common
         internal static NotSupportedException NotSupported()             => new NotSupportedException();
         internal static NotSupportedException NotSupported(string error) => new NotSupportedException(error);
 
-//         internal static OverflowException Overflow(string error)
-//         {
-//             return Overflow(error, null);
-//         }
-//         internal static OverflowException Overflow(string error, Exception inner)
-//         {
-//             OverflowException e = new OverflowException(error, inner);
-//             return e;
-//         }
-
         internal static PlatformNotSupportedException DbTypeNotSupported(string dbType)
         {
             return new PlatformNotSupportedException($"Type {dbType} is not supported.");
         }
 
-//         internal static InvalidCastException InvalidCast()
-//         {
-//             InvalidCastException e = new InvalidCastException();
-//             return e;
-//         }
-//         internal static IOException IO(string error)
-//         {
-//             IOException e = new IOException(error);
-//             return e;
-//         }
-//         internal static IOException IO(string error, Exception inner)
-//         {
-//             IOException e = new IOException(error, inner);
-//             return e;
-//         }
-
         private static InvalidOperationException Provider(string error) => InvalidOperation(error);
-
-//         internal static ObjectDisposedException ObjectDisposed(object instance)
-//         {
-//             ObjectDisposedException e = new ObjectDisposedException(instance.GetType().Name);
-//             return e;
-//         }
-
-//         internal static InvalidOperationException MethodCalledTwice(string method)
-//         {
-//             InvalidOperationException e = new InvalidOperationException(Res.GetString(Res.ADP_CalledTwice, method));
-//             return e;
-//         }
-//         internal static ArgumentException InvalidMultipartName(string property, string value)
-//         {
-//             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartName, Res.GetString(property), value));
-//             return e;
-//         }
-//         internal static ArgumentException InvalidMultipartNameIncorrectUsageOfQuotes(string property, string value)
-//         {
-//             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartNameQuoteUsage, Res.GetString(property), value));
-//             return e;
-//         }
-//         internal static ArgumentException InvalidMultipartNameToManyParts(string property, string value, int limit)
-//         {
-//             ArgumentException e = new ArgumentException(Res.GetString(Res.ADP_InvalidMultipartNameToManyParts, Res.GetString(property), value, limit));
-//             return e;
-//         }
 
         internal static void CheckArgumentNull(object value, string parameterName)
         {
@@ -149,28 +83,6 @@ namespace System.Data.Common
         {
             return !((e is NullReferenceException) || (e is SecurityException));
         }
-
-//         internal static bool IsCatchableOrSecurityExceptionType(Exception e)
-//         {
-//             // a 'catchable' exception is defined by what it is not.
-//             // since IsCatchableExceptionType defined SecurityException as not 'catchable'
-//             // this method will return true for SecurityException has being catchable.
-
-//             // the other way to write this method is, but then SecurityException is checked twice
-//             // return ((e is SecurityException) || IsCatchableExceptionType(e));
-
-//             Debug.Assert(e != null, "Unexpected null exception!");
-//             // Most of the exception types above will cause the process to fail fast
-//             // So they are no longer needed in this check
-//             return !(e is NullReferenceException);
-//         }
-
-//         // Invalid Enumeration
-
-//         internal static ArgumentOutOfRangeException InvalidEnumerationValue(Type type, int value)
-//         {
-//             return ADP.ArgumentOutOfRange(Res.GetString(Res.ADP_InvalidEnumerationValue, type.Name, value.ToString(System.Globalization.CultureInfo.InvariantCulture)), type.Name);
-//         }
 
         //
         // DbConnectionOptions, DataAccess
@@ -237,6 +149,7 @@ namespace System.Data.Common
 //         {
 //             return Argument(Res.GetString(Res.ADP_MissingConnectionOptionValue, key, requiredAdditionalKey));
 //         }
+
         internal static Exception WrongType(Type got, Type expected)
         {
             return Argument($"Expecting argument of type {got.ToString()}, but received type {expected.ToString()}.");
@@ -295,34 +208,34 @@ namespace System.Data.Common
         //
         // Generic Data Provider Collection
         //
-//         internal static ArgumentException CollectionRemoveInvalidObject(Type itemType, ICollection collection)
-//         {
-//             return Argument(Res.GetString(Res.ADP_CollectionRemoveInvalidObject, itemType.Name, collection.GetType().Name));
-//         }
-//         internal static ArgumentNullException CollectionNullValue(string parameter, Type collection, Type itemType)
-//         {
-//             return ArgumentNull(parameter, Res.GetString(Res.ADP_CollectionNullValue, collection.Name, itemType.Name));
-//         }
-//         internal static IndexOutOfRangeException CollectionIndexInt32(int index, Type collection, int count)
-//         {
-//             return IndexOutOfRange(Res.GetString(Res.ADP_CollectionIndexInt32, index.ToString(CultureInfo.InvariantCulture), collection.Name, count.ToString(CultureInfo.InvariantCulture)));
-//         }
-//         internal static IndexOutOfRangeException CollectionIndexString(Type itemType, string propertyName, string propertyValue, Type collection)
-//         {
-//             return IndexOutOfRange(Res.GetString(Res.ADP_CollectionIndexString, itemType.Name, propertyName, propertyValue, collection.Name));
-//         }
-//         internal static InvalidCastException CollectionInvalidType(Type collection, Type itemType, object invalidValue)
-//         {
-//             return InvalidCast(Res.GetString(Res.ADP_CollectionInvalidType, collection.Name, itemType.Name, invalidValue.GetType().Name));
-//         }
-//         internal static ArgumentException ParametersIsNotParent(Type parameterType, ICollection collection)
-//         {
-//             return Argument(Res.GetString(Res.ADP_CollectionIsNotParent, parameterType.Name, collection.GetType().Name));
-//         }
-//         internal static ArgumentException ParametersIsParent(Type parameterType, ICollection collection)
-//         {
-//             return Argument(Res.GetString(Res.ADP_CollectionIsNotParent, parameterType.Name, collection.GetType().Name));
-//         }
+        internal static ArgumentException CollectionRemoveInvalidObject(Type itemType, PgParameterCollection collection)
+        {
+            return Argument($"Attempted to remove an {itemType.Name} that is not contained by this {collection.GetType().Name}.");
+        }
+        internal static ArgumentNullException CollectionNullValue(string parameter, Type collection, Type itemType)
+        {
+            return ArgumentNull(parameter, $"The {collection.Name} only accepts non-null {itemType.Name} type objects.");
+        }
+        internal static IndexOutOfRangeException CollectionIndexInt32(int index, Type collection, int count)
+        {
+            return IndexOutOfRange($"Invalid index {index} for this {collection.Name} with Count={count}.");
+        }
+        internal static IndexOutOfRangeException CollectionIndexString(Type itemType, string propertyName, string propertyValue, Type collection)
+        {
+            return IndexOutOfRange($"An {itemType.Name} with {propertyName} '{propertyValue}' is not contained by this {collection.Name}.");
+        }
+        internal static InvalidCastException CollectionInvalidType(Type collection, Type itemType, object invalidValue)
+        {
+            return InvalidCast($"The {collection.Name} only accepts non-null {itemType.Name} type objects, not {invalidValue.GetType().Name} objects.");
+        }
+        internal static ArgumentException ParametersIsNotParent(Type parameterType, PgParameterCollection collection)
+        {
+            return Argument($"The {parameterType.Name} is already contained by another {collection.GetType().Name}.");
+        }
+        internal static ArgumentException ParametersIsParent(Type parameterType, PgParameterCollection collection)
+        {
+            return Argument($"The {parameterType.Name} is already contained by this {collection.GetType().Name}.");
+        }
 
         //
         // : IDbCommand
@@ -353,6 +266,7 @@ namespace System.Data.Common
         {
             return OpenReaderExists(null);
         }
+
         internal static Exception OpenReaderExists(Exception e)
         {
             return InvalidOperation("There is already an open DataReader associated with this Command which must be closed first.");
@@ -376,6 +290,7 @@ namespace System.Data.Common
         {
             return InvalidOperation($"Unknown parameter data type oid {oid}.");
         }
+
 //         internal static Exception UninitializedParameterSize(int index, Type dataType)
 //         {
 //             return InvalidOperation(Res.GetString(Res.ADP_UninitializedParameterSize, index.ToString(CultureInfo.InvariantCulture), dataType.Name));
@@ -591,22 +506,22 @@ namespace System.Data.Common
         //
         // : IDataParameterCollection
         //
-//         internal static Exception ParametersMappingIndex(int index, DbParameterCollection collection)
-//         {
-//             return CollectionIndexInt32(index, collection.GetType(), collection.Count);
-//         }
-//         internal static Exception ParametersSourceIndex(string parameterName, DbParameterCollection collection, Type parameterType)
-//         {
-//             return CollectionIndexString(parameterType, ADP.ParameterName, parameterName, collection.GetType());
-//         }
-//         internal static Exception ParameterNull(string parameter, DbParameterCollection collection, Type parameterType)
-//         {
-//             return CollectionNullValue(parameter, collection.GetType(), parameterType);
-//         }
-//         internal static Exception InvalidParameterType(DbParameterCollection collection, Type parameterType, object invalidValue)
-//         {
-//             return CollectionInvalidType(collection.GetType(), parameterType, invalidValue);
-//         }
+        internal static Exception ParametersMappingIndex(int index, PgParameterCollection collection)
+        {
+            return CollectionIndexInt32(index, collection.GetType(), collection.Count);
+        }
+        internal static Exception ParametersSourceIndex(string parameterName, DbParameterCollection collection, Type parameterType)
+        {
+            return CollectionIndexString(parameterType, "ParameterName", parameterName, collection.GetType());
+        }
+        internal static Exception ParameterNull(string parameter, DbParameterCollection collection, Type parameterType)
+        {
+            return CollectionNullValue(parameter, collection.GetType(), parameterType);
+        }
+        internal static Exception InvalidParameterType(DbParameterCollection collection, Type parameterType, object invalidValue)
+        {
+            return CollectionInvalidType(collection.GetType(), parameterType, invalidValue);
+        }
 
         //
         // : IDbTransaction
@@ -649,44 +564,6 @@ namespace System.Data.Common
         //
         // : Misc
         //
-
-//         internal static string BuildQuotedString(string quotePrefix, string quoteSuffix, string unQuotedString)
-//         {
-//             StringBuilder resultString = new StringBuilder();
-//             if (string.IsNullOrEmpty(quotePrefix) == false)
-//             {
-//                 resultString.Append(quotePrefix);
-//             }
-
-//             // Assuming that the suffix is escaped by doubling it. i.e. foo"bar becomes "foo""bar".
-//             if (string.IsNullOrEmpty(quoteSuffix) == false)
-//             {
-//                 resultString.Append(unQuotedString.Replace(quoteSuffix, quoteSuffix + quoteSuffix));
-//                 resultString.Append(quoteSuffix);
-//             }
-//             else
-//             {
-//                 resultString.Append(unQuotedString);
-//             }
-
-//             return resultString.ToString();
-//         }
-
-//         static private int GenerateUniqueName(Dictionary<string, int> hash, ref string columnName, int index, int uniqueIndex)
-//         {
-//             for (; ; ++uniqueIndex)
-//             {
-//                 string uniqueName = columnName + uniqueIndex.ToString(CultureInfo.InvariantCulture);
-//                 string lowerName = uniqueName.ToLowerInvariant();
-//                 if (!hash.ContainsKey(lowerName))
-//                 {
-//                     columnName = uniqueName;
-//                     hash.Add(lowerName, index);
-//                     break;
-//                 }
-//             }
-//             return uniqueIndex;
-//         }
 
 //         internal static bool IsDirection(DbParameter value, ParameterDirection condition) => (condition == (condition & value.Direction));
 

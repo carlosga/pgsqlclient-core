@@ -44,6 +44,11 @@ namespace System.Data.ProviderBase
             // not much to do here...
         }
 
+        internal override void ValidateConnectionForExecute(DbCommand command) 
+        {
+            throw ADP.ClosedConnectionError();
+        }
+
         protected override void Deactivate()
         {
             throw ADP.ClosedConnectionError();

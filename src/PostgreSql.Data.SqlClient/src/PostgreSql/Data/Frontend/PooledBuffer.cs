@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -23,6 +24,7 @@ namespace PostgreSql.Data.Frontend
         internal static void ResizeAligned(ref byte[] buffer, int newSize) => Resize(ref buffer, Align(newSize));
 
         /// FoundationDB client (BSD License)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Align(int size)
         {
             const int ALIGNMENT = 16; // MUST BE A POWER OF TWO!
@@ -30,10 +32,6 @@ namespace PostgreSql.Data.Frontend
 
             if (size <= ALIGNMENT)
             {
-                if (size < 0)
-                {
-                    throw new ArgumentOutOfRangeException("size", "Size cannot be negative");
-                }
                 return ALIGNMENT;
             }
 

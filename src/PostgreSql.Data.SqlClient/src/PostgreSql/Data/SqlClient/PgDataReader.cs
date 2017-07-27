@@ -12,6 +12,7 @@ using System.Data;
 using System.Data.Common;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Buffers;
 
 namespace PostgreSql.Data.SqlClient
 {
@@ -23,7 +24,7 @@ namespace PostgreSql.Data.SqlClient
         private bool             _open;
         private int              _position;
         private int              _recordsAffected;
-        private DataRecord       _row;
+        private DataRow          _row;
         private CommandBehavior  _behavior;
         private PgCommand        _command;
         private PgConnection     _connection;
@@ -82,12 +83,11 @@ namespace PostgreSql.Data.SqlClient
             _open            = true;
             _recordsAffected = -1;
             _position        = STARTPOS;
-            _refCursors      = new Queue<Statement>();
             _connection      = connection;
             _command         = command;
             _behavior        = _command.CommandBehavior;
             _statement       = _command.Statement;
-            _row             = new DataRecord();
+            _row             = new DataRow();
 
             _connection.AddWeakReference(this, PgReferenceCollection.DataReaderTag);
 
@@ -103,31 +103,14 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
                     Close();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
                 _disposed = true;
             }
+
+            base.Dispose(disposing);
         }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgDataReader() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        // public void Dispose()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(true);
-        //     // TODO: uncomment the following line if the finalizer is overridden above.
-        //     // GC.SuppressFinalize(this);
-        // }
         #endregion
 
         public ReadOnlyCollection<DbColumn> GetColumnSchema()
@@ -163,8 +146,8 @@ namespace PostgreSql.Data.SqlClient
             // Reset position
             _position = STARTPOS;
 
-            // Clear current row data
-            _row.Clear();
+            // Reset current row data
+            _row?.Reset();
 
             // Reset records affected
             _recordsAffected = -1;
@@ -173,16 +156,16 @@ namespace PostgreSql.Data.SqlClient
             _metadata = null;
 
             // Close the current ref cursor
-            _refCursor?.Close();
+            _refCursor?.CloseStatement();
 
             // Query for next result
-            if (_refCursors.Count != 0)
+            if (_refCursors != null && _refCursors.Count != 0)
             {
                 return NextResultFromRefCursor();
             }
 
             // Close the active statement
-            _statement.Close();
+            _statement.CloseStatement();
 
             return _command.NextResult(); 
         }
@@ -403,7 +386,9 @@ namespace PostgreSql.Data.SqlClient
 
         public override IEnumerator GetEnumerator() => new PgEnumerator(this, true);
 
-        internal PgDataRecord GetDataRecord() => new PgDataRecord(_row);
+        // internal PgDataRecord GetDataRecord() => new PgDataRecord(_row);
+
+        internal PgDataRecord GetDataRecord() => throw ADP.NotSupported();
 
         internal void CloseReaderFromConnection()
         {
@@ -427,9 +412,12 @@ namespace PostgreSql.Data.SqlClient
                 // This will update RecordsAffected property
                 UpdateRecordsAffected();
 
+                // Reset current row
+                _row?.Reset();
+
                 // Clear ref cursors
-                _refCursor?.Close();
-                _refCursors.Clear();
+                _refCursor?.CloseStatement();
+                _refCursors?.Clear();
 
                 // Reset state and position
                 _open     = false;
@@ -438,7 +426,7 @@ namespace PostgreSql.Data.SqlClient
                 // Remove the weak reference hold by the connection
                 _connection.RemoveWeakReference(this);
 
-                // Checck if the connection should be closed
+                // Check if the connection should be closed
                 if (!fromConnection && _behavior.HasBehavior(CommandBehavior.CloseConnection))
                 {
                     _connection?.Close();
@@ -449,13 +437,13 @@ namespace PostgreSql.Data.SqlClient
             }
             finally
             {
-                _connection      = null;
-                _command         = null;
-                _statement       = null;
                 _refCursor       = null;
                 _refCursors      = null;
                 _row             = null;
                 _metadata        = null;
+                _statement       = null;
+                _command         = null;
+                _connection      = null;
                 _recordsAffected = -1;
                 _position        = STARTPOS;
             }
@@ -472,8 +460,14 @@ namespace PostgreSql.Data.SqlClient
             // Ref cursors can be fetched only if there is an active transaction
             if (_command.CommandType == CommandType.StoredProcedure && _statement.HasPendingRefCursors)
             {
-                // Clear refcursor's queue
-                _refCursors.Clear();
+                if (_refCursors == null)
+                {
+                    _refCursors = new Queue<Statement>();
+                }
+                else
+                {
+                    _refCursors.Clear();
+                }
 
                 // Add refcusor's names to the queue
                 object[] row        = null;
@@ -482,6 +476,8 @@ namespace PostgreSql.Data.SqlClient
                 while ((row = _statement.FetchRow()) != null)
                 {
                     _refCursors.Enqueue(connection.CreateStatement($"fetch all in \"{row[0]}\""));
+
+                    DataRow.ReturnBuffer(ref row);
                 }
 
                 // Grab information of the first refcursor

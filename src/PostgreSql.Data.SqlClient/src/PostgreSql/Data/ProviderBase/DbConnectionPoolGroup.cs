@@ -129,6 +129,22 @@ namespace System.Data.ProviderBase
             {
                 DbConnectionPoolIdentity currentIdentity = DbConnectionPoolIdentity.NoIdentity;
 
+                if (_poolGroupOptions.PoolByIdentity)
+                {
+                    // if we're pooling by identity (because integrated security is
+                    // being used for these connections) then we need to go out and
+                    // search for the connectionPool that matches the current identity.
+
+                    currentIdentity = DbConnectionPoolIdentity.GetCurrent();
+
+                    // If the current token is restricted in some way, then we must
+                    // not attempt to pool these connections.
+                    if (currentIdentity.IsRestricted)
+                    {
+                        currentIdentity = null;
+                    }
+                }
+                
                 if (currentIdentity != null)
                 {
                     if (!_poolCollection.TryGetValue(currentIdentity, out pool))    // find the pool
@@ -189,6 +205,18 @@ namespace System.Data.ProviderBase
             return pool;
         }
 
+        private bool MarkPoolGroupAsActive()
+        {
+            // when getting a connection, make the entry active if it was idle (but not disabled)
+            // must always lock this before calling
+
+            if (PoolGroupStateIdle == _state)
+            {
+                _state = PoolGroupStateActive;
+            }
+            return (PoolGroupStateActive == _state);
+        }
+
         internal bool Prune()
         {
             // must only call from DbConnectionFactory.PruneConnectionPoolGroups on background timer thread
@@ -244,18 +272,6 @@ namespace System.Data.ProviderBase
                 }
                 return (PoolGroupStateDisabled == _state);
             }
-        }
-
-        private bool MarkPoolGroupAsActive()
-        {
-            // when getting a connection, make the entry active if it was idle (but not disabled)
-            // must always lock this before calling
-
-            if (PoolGroupStateIdle == _state)
-            {
-                _state = PoolGroupStateActive;
-            }
-            return (PoolGroupStateActive == _state);
         }
     }
 }
