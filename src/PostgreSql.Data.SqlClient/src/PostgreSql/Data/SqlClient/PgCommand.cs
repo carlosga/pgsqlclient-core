@@ -46,7 +46,20 @@ namespace PostgreSql.Data.SqlClient
         public override CommandType CommandType
         {
             get => _commandType;
-            set => _commandType = value;
+            set
+            {
+                switch (value)
+                {
+                case CommandType.StoredProcedure:
+                case CommandType.Text:
+                    _commandType = value;
+                    break;
+
+                case CommandType.TableDirect:
+                default:
+                    throw ADP.NotSupported();
+                }
+            } 
         }
 
         public override int CommandTimeout
@@ -185,7 +198,9 @@ namespace PostgreSql.Data.SqlClient
             _updatedRowSource  = UpdateRowSource.Both;
             _commandBehavior   = CommandBehavior.Default;
             _designTimeVisible = false;
-            _fetchSize         = 200;
+            _fetchSize         = 200;         
+
+            GC.SuppressFinalize(this);   
         }
 
         public PgCommand(string commandText)
@@ -217,38 +232,21 @@ namespace PostgreSql.Data.SqlClient
                 {
                     // TODO: dispose managed state (managed objects).
                     InternalClose();
+                    _parameters?.Clear();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                _disposed     = true;
                 _connection   = null;
                 _transaction  = null;
                 _commandText  = null;
                 _commands     = null;
+                _parameters   = null;
                 _commandIndex = -1;
                 _fetchSize    = 0;
-
-                _parameters?.Clear();
-                _parameters = null;                
+                _disposed     = true;
             }
+
+            base.Dispose(disposing);
         }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgCommand() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        // public void Dispose()
-        // {
-        //     // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //     Dispose(true);
-        //     // TODO: uncomment the following line if the finalizer is overridden above.
-        //     // GC.SuppressFinalize(this);
-        // }
         #endregion
 
         public override void Cancel()
@@ -433,7 +431,7 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _statement.Close();
+                        _statement.CloseStatement();
                     }
                 } while (NextCommandText());
 
@@ -472,7 +470,7 @@ namespace PostgreSql.Data.SqlClient
                     }
                     finally
                     {
-                        _statement.Close();
+                        _statement.CloseStatement();
                     }
                 } while (NextCommandText());
 
@@ -511,14 +509,7 @@ namespace PostgreSql.Data.SqlClient
         {
             var innerConnection = _connection?.InnerConnection as PgConnectionInternal;
             
-            if (innerConnection?.ReferenceCollection != null)
-            {
-                var references = innerConnection.ReferenceCollection as PgReferenceCollection;
-
-                return references?.FindLiveReader(this);
-            }
-
-            return null;
+            return ((innerConnection == null) ? null: innerConnection.FindLiveReader(this));
         }
 
         private void CheckCommand([System.Runtime.CompilerServices.CallerMemberName] string memberName = null)
@@ -531,11 +522,9 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.OpenConnectionRequired(memberName, _connection.State);
             }
-            if (HasLiveReader)
-            {
-                throw ADP.OpenReaderExists();
-            }
-
+            
+            _connection.ValidateConnectionForExecute(memberName, this);
+            
             if (_transaction != null && _transaction.Connection == null)
             {
                 _transaction = null;

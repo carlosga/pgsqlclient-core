@@ -6,7 +6,6 @@ using PostgreSql.Data.Schema;
 using PostgreSql.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -22,11 +21,11 @@ namespace PostgreSql.Data.Frontend
         internal static readonly IFormatProvider InvariantCulture = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
         internal static bool     IsNullString(string s) => (s == null || s == NullString);
 
-        internal static readonly ReadOnlyDictionary<int, TypeInfo> BaseTypes;
+        internal static readonly Dictionary<int, TypeInfo> BaseTypes;
 
         static TypeInfoProvider()
         {
-            Dictionary<int, TypeInfo> types = new Dictionary<int, TypeInfo>(100);
+            var types = new Dictionary<int, TypeInfo>(100);
 
             //
             // CHAR TYPE
@@ -264,7 +263,7 @@ namespace PostgreSql.Data.Frontend
             types[3500]  = new TypeInfo( 3500, "anyenum", PgDbType.Enum, typeof(Enum), typeof(Enum));
             types[11483] = new TypeInfo(11483, "pg_enum", PgDbType.Enum, typeof(Enum), typeof(Enum));
 
-            BaseTypes = new ReadOnlyDictionary<int, TypeInfo>(types);
+            BaseTypes = types;
         }
 
         internal static DbType GetDbType(PgDbType providerType)
@@ -426,7 +425,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == null || value == DBNull.Value)
             {
-                throw new PgNullValueException();
+                return BaseTypes[Oid.Unknown];
             }
             if (value is INullable)
             {
@@ -444,7 +443,7 @@ namespace PostgreSql.Data.Frontend
         {
             if (value == null || value == DBNull.Value)
             {
-                throw new PgNullValueException();
+                return BaseTypes[Oid.Unknown];
             }
             if (value is INullable)
             {
@@ -458,10 +457,10 @@ namespace PostgreSql.Data.Frontend
             return typeInfo;
         }
 
-        private ReadOnlyDictionary<int, TypeInfo> _types;
-        private DbConnectionOptions               _connectionOptions;
-        private int                               _count;
-        private SemaphoreSlim                     _activeSemaphore;
+        private Dictionary<int, TypeInfo> _types;
+        private DbConnectionOptions       _connectionOptions;
+        private int                       _count;
+        private SemaphoreSlim             _activeSemaphore;
         
         private SemaphoreSlim LazyEnsureActiveSemaphoreInitialized()
         {
@@ -516,7 +515,7 @@ namespace PostgreSql.Data.Frontend
             throw new NotSupportedException($"Data Type with OID='{oid}' is not supported");
         }
 
-        private static ReadOnlyDictionary<int, TypeInfo> DiscoverTypes(DbConnectionOptions connectionOptions)
+        private static Dictionary<int, TypeInfo> DiscoverTypes(DbConnectionOptions connectionOptions)
         {
             var types = new Dictionary<int, TypeInfo>(10);
 
@@ -531,7 +530,7 @@ namespace PostgreSql.Data.Frontend
                 enumProvider.GetTypeInfo(ref types);
             }
 
-            return new ReadOnlyDictionary<int, TypeInfo>(types);
+            return types;
         }
     }
 }

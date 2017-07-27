@@ -3,34 +3,39 @@
 
 using PostgreSql.Data.PgTypes;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed partial class MessageReader
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal byte ReadByte() => _buffer[_position++];
 
-        internal unsafe short ReadInt16()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal short ReadInt16()
         {
-            fixed (byte* pbuffer = &_buffer[_position])
-            {
-                _position += 2;
-                return (short)((*(pbuffer + 1) & 0xFF) | (*(pbuffer) & 0xFF) << 8);
-            }
+            var result = (short)((_buffer[_position + 1] & 0xFF) | (_buffer[_position] & 0xFF) << 8);
+        
+            _position += 2;
+        
+            return result;
         }
 
-        internal unsafe int ReadInt32()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int ReadInt32()
         {
-            fixed (byte* pbuffer = &_buffer[_position])
-            {
-                _position += 4;
-                return (*(pbuffer + 3) & 0xFF)
-                     | (*(pbuffer + 2) & 0xFF) <<  8
-                     | (*(pbuffer + 1) & 0xFF) << 16
-                     | (*(pbuffer    ) & 0xFF) << 24;
-            }
+            var result = (_buffer[_position + 3] & 0xFF)
+                       | (_buffer[_position + 2] & 0xFF) <<  8
+                       | (_buffer[_position + 1] & 0xFF) << 16
+                       | (_buffer[_position    ] & 0xFF) << 24;
+
+            _position += 4;
+
+            return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long ReadInt64()
         {
             int v1 = ReadInt32();
@@ -39,6 +44,7 @@ namespace PostgreSql.Data.Frontend
             return (uint)v2 | ((long)v1 << 32);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe float ReadSingle()
         {
             fixed (byte* pbuffer = &_buffer[_position])

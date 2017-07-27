@@ -6,40 +6,52 @@ using System;
 using System.Data.Common;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
-    internal sealed class DataRecord
+    internal sealed class DataRow
     {
+        internal static object[] RentBuffer(int minimumLength)
+        {
+            return ArrayPool<object>.Shared.Rent(minimumLength);
+        }
+
+        internal static void ReturnBuffer(ref object[] buffer)
+        {
+            if (buffer != null)
+            {
+                ArrayPool<object>.Shared.Return(buffer, true);
+                buffer = null;
+            }        
+        }
+
         private RowDescriptor _descriptor;
-        private object[]      _values;
+        private object[]      _row;
 
         internal int    FieldCount        => _descriptor.Count;
         internal object this[int i]       => GetValue(i);
         internal object this[string name] => GetValue(name);
 
-        internal DataRecord()
+        internal DataRow()
         {
-        }
-
-        internal DataRecord(RowDescriptor descriptor, object[] values)
-        {
-            _descriptor = descriptor;
-            _values     = values;
         }
 
         internal bool ReadFrom(Statement statement)
         {
-            _descriptor = statement.RowDescriptor;
-            _values     = statement.FetchRow();
+            ReturnBuffer(ref _row);
 
-            return (_values != null);
+            _descriptor = statement.RowDescriptor;
+            _row        = statement.FetchRow();
+
+            return (_row != null);
         }
 
-        internal void Clear()
+        internal void Reset()
         {
-            _descriptor = null;
-            _values     = null;
+            ReturnBuffer(ref _row);
+
+            _descriptor = null;        
         }
 
         internal int GetOrdinal(string name) => _descriptor.IndexOf(name);
@@ -79,7 +91,7 @@ namespace PostgreSql.Data.Frontend
         {
             CheckIndex(i);
 
-            return ADP.IsNull(_values[i]);
+            return ADP.IsNull(_row[i]);
         }
 
         internal long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
@@ -94,7 +106,7 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                return ((byte[])_values[i]).Length;
+                return ((byte[])_row[i]).Length;
             }
 
             if ((bufferIndex + length) > buffer.Length)
@@ -102,7 +114,7 @@ namespace PostgreSql.Data.Frontend
                 throw ADP.IndexOutOfRange($"The index passed was outside the range of {bufferIndex} through {length}.");
             }
 
-            byte[] byteArray = (byte[])_values[i];
+            byte[] byteArray = (byte[])_row[i];
 
             if (length > (byteArray.Length - dataIndex))
             {
@@ -132,7 +144,7 @@ namespace PostgreSql.Data.Frontend
 
             if (buffer == null)
             {
-                return ((string)_values[i]).Length;
+                return ((string)_row[i]).Length;
             }
 
             if ((bufferIndex + length) > buffer.Length)
@@ -142,7 +154,7 @@ namespace PostgreSql.Data.Frontend
 
             int    charsRead  = 0;
             int    realLength = length;
-            char[] charArray  = ((string)_values[i]).ToCharArray();
+            char[] charArray  = ((string)_row[i]).ToCharArray();
 
             if (length > (charArray.Length - dataIndex))
             {
@@ -185,19 +197,24 @@ namespace PostgreSql.Data.Frontend
         {
             CheckIndex(i);
 
-            return _values[i];
+            return _row[i];
         }
 
         internal T GetFieldValue<T>(int i)
         {
             ThrowIfNull(i);
 
-            return (T)_values[i];
+            if (typeof(T) == typeof(byte))
+            {
+                return (T)(object)_row[i];
+            }
+
+            return (T)_row[i];
         }
 
         internal int GetValues(object[] values)
         {
-            Array.Copy(_values, values, ((values.Length > FieldCount) ? FieldCount : values.Length));
+            Array.Copy(_row, values, ((values.Length > FieldCount) ? FieldCount : values.Length));
 
             return values.Length;
         }

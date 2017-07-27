@@ -49,7 +49,6 @@ namespace PostgreSql.Data.Frontend
 
         internal Transport()
         {
-            _buffer = ArrayPool<byte>.Shared.Rent(4);
         }
 
         #region IDisposable Support
@@ -64,22 +63,13 @@ namespace PostgreSql.Data.Frontend
                     Detach();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-                _packetSize = 0;
-                _disposed   = true;
-
-                ArrayPool<byte>.Shared.Return(_buffer, true);
+                _disposed = true;
             }
         }
 
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion
 
@@ -87,6 +77,8 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
+                _buffer = ArrayPool<byte>.Shared.Rent(4);
+                
                 Connect(host, port, connectTimeout, packetSize);
 
                 if (secureChannel)
@@ -344,14 +336,8 @@ namespace PostgreSql.Data.Frontend
 
         private void Detach()
         {
-            if (_reader != null)
-            {
-                _reader.Dispose();
-            }
-            if (_writer != null)
-            {
-                _writer.Dispose();
-            }
+            _reader?.Dispose();
+            _writer?.Dispose();
             if (_secureStream != null)
             {
                 try
@@ -362,20 +348,21 @@ namespace PostgreSql.Data.Frontend
                 {
                 }
             }
-            if (_networkStream != null)
+            _networkStream?.Dispose();
+            _socket?.Dispose();
+
+            if (_buffer != null)
             {
-                _networkStream.Dispose();
-            }
-            if (_socket != null)
-            {
-                _socket.Dispose();
+                ArrayPool<byte>.Shared.Return(_buffer, true);
             }
 
             _reader         = null;
             _writer         = null;
             _secureStream   = null;
             _networkStream  = null;
-            _socket         = null;
+            _socket         = null;            
+            _buffer         = null;
+            _packetSize     = 0;
 
             UserCertificateValidation = null;
             UserCertificateSelection  = null;

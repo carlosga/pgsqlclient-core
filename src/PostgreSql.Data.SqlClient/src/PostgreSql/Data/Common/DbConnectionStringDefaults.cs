@@ -20,7 +20,7 @@ namespace System.Data.Common
         internal const int    MaxPoolSize                = 100;
         internal const int    MinPoolSize                = 0;
         internal const bool   MultipleActiveResultSets   = false;
-        internal const int    PacketSize                 = 8192;
+        internal const int    PacketSize                 = 4096;
         internal const int    PortNumber                 = 5432;
         internal const string Password                   = null;
         internal const bool   Pooling                    = true;

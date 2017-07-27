@@ -5,11 +5,30 @@ using PostgreSql.Data.PgTypes;
 using System;
 using System.Collections.Generic;
 using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed partial class MessageWriter
     {
+        [StructLayout(LayoutKind.Explicit)]
+        struct Numeric
+        {
+            [FieldOffset(0)]
+            public int Flags;
+            [FieldOffset(4)]
+            private int Hi;
+            [FieldOffset(8)]
+            private int Lo;
+            [FieldOffset(12)]
+            private int Mid;
+
+            [FieldOffset(0)]
+            public decimal Number;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteByte(byte value)
         {
             EnsureCapacity(1);
@@ -17,30 +36,27 @@ namespace PostgreSql.Data.Frontend
             _buffer[_position++] = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal unsafe void Write(short value)
         {
             EnsureCapacity(2);
 
-            fixed (byte* pbuffer = _buffer)
-            {
-                *(pbuffer + _position++) = (byte)((value >> 8) & 0xFF);
-                *(pbuffer + _position++) = (byte)((value     ) & 0xFF);
-            }
+            _buffer[_position++] = (byte)((value >> 8) & 0xFF);
+            _buffer[_position++] = (byte)((value     ) & 0xFF);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal unsafe void Write(int value)
         {
             EnsureCapacity(4);
 
-            fixed (byte* pbuffer = _buffer)
-            {
-                *(pbuffer + _position++) = (byte)((value >> 24) & 0xFF);
-                *(pbuffer + _position++) = (byte)((value >> 16) & 0xFF);
-                *(pbuffer + _position++) = (byte)((value >>  8) & 0xFF);
-                *(pbuffer + _position++) = (byte)((value      ) & 0xFF);
-            }
+            _buffer[_position++] = (byte)((value >> 24) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 16) & 0xFF);
+            _buffer[_position++] = (byte)((value >>  8) & 0xFF);
+            _buffer[_position++] = (byte)((value      ) & 0xFF);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Write(long value)
         {
             EnsureCapacity(8);
@@ -49,8 +65,8 @@ namespace PostgreSql.Data.Frontend
             Write((int)(value));
         }
 
-        private void Write(float value)    => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-        private void Write(double value)   => Write(BitConverter.DoubleToInt64Bits(value));
+        private void Write(float value)  => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+        private void Write(double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
         private void Write(decimal value)
         {
@@ -65,10 +81,14 @@ namespace PostgreSql.Data.Frontend
 
             bool  isNegative = (value < 0);
             var   absValue   = ((isNegative) ? value * -1.0M : value);
-            short dscale     = (short)((PgNumeric.GetFlags(ref absValue) & ScaleMask) >> ScaleShift);
-            short sign       = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
             short weight     = 0;
             short ndigits    = 0;
+            short sign       = (short)((isNegative) ? PgNumeric.NegativeMask : PgNumeric.PositiveMask);
+            var   numeric    = default(Numeric);
+
+            numeric.Number = absValue;
+
+            short dscale = (short)((numeric.Flags & ScaleMask) >> ScaleShift);
 
             if (absValue > 0)
             {

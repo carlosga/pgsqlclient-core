@@ -11,6 +11,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -52,34 +53,20 @@ namespace PostgreSql.Data.Frontend
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).                    
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-                if (_buffer != null)
-                {
-                    ArrayPool<byte>.Shared.Return(_buffer, true);
-                    _buffer = null;
+                    if (_buffer != null)
+                    {
+                        ArrayPool<byte>.Shared.Return(_buffer, true);
+                        _buffer = null;
+                    }
                 }
 
                 _disposed = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~MessageWriter() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion        
 
@@ -104,51 +91,6 @@ namespace PostgreSql.Data.Frontend
                 Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
 
                 _position += count;
-            }
-        }
-
-        internal void WriteNullString(string value)
-        {
-            if (value == null || value.Length == 0)
-            {
-                WriteByte(0);
-            }
-            else
-            {
-                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                EnsureCapacity(buffer.Length + 1);
-                Write(buffer);
-                WriteByte(0);
-            }
-        }
-
-        internal void Write(string value)
-        {
-            if (value.Length == 0)
-            {
-                Write(0);
-            }
-            else
-            {
-                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                EnsureCapacity(buffer.Length + 4);
-                Write(buffer.Length);
-                Write(buffer);
-            }
-        }
-
-        internal void Write(char[] value)
-        {
-            if (value.Length == 0)
-            {
-                Write(0);
-            }
-            else
-            {
-                byte[] buffer = _sessionData.ClientEncoding.GetBytes(value);
-                EnsureCapacity(buffer.Length + 4);
-                Write(buffer.Length);
-                Write(buffer);
             }
         }
 
@@ -303,24 +245,6 @@ namespace PostgreSql.Data.Frontend
             Write(buffer);
         }
 
-        private void WriteStringInternal(object value)
-        {
-            switch (value)
-            {
-            case string str:
-                Write(str);
-                break;
-
-            case char[] chars:
-                Write(chars);
-                break;
-
-            default:
-                Write(Convert.ToString(value));
-                break;
-            }
-        }
-
         /// FoundationDB client (BSD License)
         private void EnsureCapacity(int count)
         {
@@ -340,7 +264,6 @@ namespace PostgreSql.Data.Frontend
                 }
 
                 PooledBuffer.ResizeAligned(ref _buffer, (int)newSize);
-                // Array.Resize(ref _buffer, size);
             }
 
             Debug.Assert(_buffer != null && _buffer.Length >= offset);

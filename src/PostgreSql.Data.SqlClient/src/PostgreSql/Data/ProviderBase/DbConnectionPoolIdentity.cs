@@ -9,7 +9,7 @@ namespace System.Data.ProviderBase
     internal sealed class DbConnectionPoolIdentity
         : IEquatable<DbConnectionPoolIdentity>
     {
-        internal static readonly DbConnectionPoolIdentity NoIdentity = new DbConnectionPoolIdentity("(NoIdentity)", false, true);
+        internal static readonly DbConnectionPoolIdentity NoIdentity = new DbConnectionPoolIdentity(string.Empty, false, true);
 
         private readonly string _sidString;
         private readonly bool   _isRestricted;
@@ -69,5 +69,20 @@ namespace System.Data.ProviderBase
 
             return !lhs.Equals(rhs);
         }
-    }
+
+        internal static DbConnectionPoolIdentity GetCurrent()
+        {
+            return GetCurrentManaged();
+        }        
+
+        internal static DbConnectionPoolIdentity GetCurrentManaged()
+        {
+            // string sidString = (!string.IsNullOrWhiteSpace(System.Environment.UserDomainName) ? System.Environment.UserDomainName + "\\" : "")
+            //                     + System.Environment.UserName;
+            // bool isNetwork    = false;
+            // bool isRestricted = false;
+            // return new DbConnectionPoolIdentity(sidString, isRestricted, isNetwork);
+            return NoIdentity;
+        }        
+    }    
 }

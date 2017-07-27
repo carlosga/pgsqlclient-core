@@ -6,13 +6,14 @@ using PostgreSql.Data.SqlClient;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.Buffers;
 
 namespace PostgreSql.Data.Schema
 {
     internal sealed class DbColumnSchemaGenerator
         : IDbColumnSchemaGenerator
     {
-        private static readonly string SchemaQuery = @"SELECT 
+        private static readonly string s_schemaQuery = @"SELECT 
       pg_namespace.nspname        AS TABLE_SCHEMA
     , pg_class.relname            AS TABLE_NAME
     , pg_attribute.attname        AS COLUMN_NAME
@@ -42,8 +43,9 @@ WHERE pg_attribute.attrelid     = @TableOid
         public ReadOnlyCollection<DbColumn> GetColumnSchema()
         {
             var columns = new DbColumn[_descriptor.Count];
+            var datarow = new DataRow();
 
-            using (var command = _connection.CreateStatement(SchemaQuery))
+            using (var command = _connection.CreateStatement(s_schemaQuery))
             {
                 command.Parameters = new PgParameterCollection();
 
@@ -62,9 +64,12 @@ WHERE pg_attribute.attrelid     = @TableOid
                         columnIdParam.Value = _descriptor[i].ColumnId;
 
                         command.ExecuteReader(CommandBehavior.SingleRow);
-
-                        schema.Populate(new DataRecord(command.RowDescriptor, command.FetchRow()));
+                        datarow.ReadFrom(command);
+                        schema.Populate(datarow);
+                        datarow.Reset();
                     }
+
+                    datarow.Reset();
 
                     columns[i] = schema;
                 }

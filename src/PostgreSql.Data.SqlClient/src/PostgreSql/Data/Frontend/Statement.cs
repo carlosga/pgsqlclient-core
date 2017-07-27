@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Data.Common;
+using System.Buffers;
 
 namespace PostgreSql.Data.Frontend
 {
     internal sealed class Statement
         : IDisposable
     {
-        private static readonly byte   STATEMENT     = (byte)'S';
-        private static readonly byte   PORTAL        = (byte)'P';
-        private static readonly char[] TAG_SEPARATOR = new char[] { ' ' }; 
+        private static readonly byte STATEMENT = (byte)'S';
+        private static readonly byte PORTAL    = (byte)'P';
 
         private Connection            _connection;
         private string                _statementText;
@@ -26,8 +26,6 @@ namespace PostgreSql.Data.Frontend
         private int                   _fetchSize;
         private int                   _recordsAffected;
         private bool                  _hasRows;
-        private RowDescriptor         _rowDescriptor;
-        private Queue<object[]>       _rows;
         private StatementState        _state;
         private PgParameterCollection _parameters;
         private CommandType           _commandType;
@@ -38,6 +36,8 @@ namespace PostgreSql.Data.Frontend
         private MessageWriter         _executeMessage;
         private MessageWriter         _closeMessage;
         private MessageWriter         _queryMessage;
+        private RowDescriptor         _rowDescriptor;
+        private Queue<object[]>       _rows;
 
         internal bool           HasRows         => _hasRows;
         internal string         Tag             => _tag;
@@ -117,6 +117,8 @@ namespace PostgreSql.Data.Frontend
             _executeMessage   = new MessageWriter(FrontendMessages.Execute , _connection.SessionData);
             _closeMessage     = new MessageWriter(FrontendMessages.Close   , _connection.SessionData);
             _queryMessage     = new MessageWriter(FrontendMessages.Query   , _connection.SessionData);
+            _statementName    = Guid.NewGuid().ToString();
+            _portalName       = Guid.NewGuid().ToString();
 
             FetchSize = 200;
         }
@@ -130,65 +132,46 @@ namespace PostgreSql.Data.Frontend
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
-                    Close();
+                    CloseStatement();
+                    ClearRows();
+
+                    _rowDescriptor?.Clear();
+                    _parameterIndices?.Clear();
+                    _parseMessage?.Dispose();
+                    _describeMessage?.Dispose();
+                    _bindMessage?.Dispose();
+                    _executeMessage?.Dispose();
+                    _closeMessage?.Dispose();
+                    _queryMessage?.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
                 _connection          = null;
                 _statementText       = null; 
                 _parsedStatementText = null;
                 _tag                 = null;
                 _portalName          = null;
                 _statementName       = null;
-                _rowDescriptor       = null;
                 _parameters          = null;
+                _parameterIndices    = null;
+                _parseMessage        = null;
+                _describeMessage     = null;
+                _bindMessage         = null;
+                _executeMessage      = null;
+                _closeMessage        = null;
+                _queryMessage        = null;
+                _rowDescriptor       = null;
+                _rows                = null;
                 _hasRows             = false;
                 _recordsAffected     = -1;
                 _fetchSize           = 0;
-
-                _rows?.Clear();
-                _rows = null;
-
-                _parameterIndices?.Clear();
-                _parameterIndices = null;
-
-                _parseMessage?.Dispose();
-                _parseMessage = null;
-
-                _describeMessage?.Dispose();
-                _describeMessage = null;
-
-                _bindMessage?.Dispose();
-                _bindMessage = null;
-
-                _executeMessage?.Dispose();
-                _executeMessage = null;
-
-                _closeMessage?.Dispose();
-                _closeMessage = null;
-
-                _queryMessage?.Dispose();
-                _queryMessage = null;
 
                 _disposed = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgStatement() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion
 
@@ -196,14 +179,9 @@ namespace PostgreSql.Data.Frontend
         {
             try
             {
-                Close();
+                CloseStatement();
 
                 _connection.Lock();
-
-                string statementName = Guid.NewGuid().ToString();
-
-                _statementName = $"S{statementName}";
-                _portalName    = $"P{statementName}";
 
                 Parse();
                 DescribeStatement();
@@ -318,7 +296,7 @@ namespace PostgreSql.Data.Frontend
             {
                 ChangeState(StatementState.Cancelling);
                 _connection.CancelRequest();
-                Close();
+                CloseStatement();
                 ChangeState(StatementState.Cancelled);
             }
         }
@@ -342,8 +320,8 @@ namespace PostgreSql.Data.Frontend
 
             return null;
         }
-
-        internal void Close()
+        
+        internal void CloseStatement()
         {
             if (_state == StatementState.Default)
             {
@@ -371,18 +349,15 @@ namespace PostgreSql.Data.Frontend
                 _recordsAffected = -1;
                 _tag             = null;
 
-                // Clear remaing rows
-                _rows.Clear();
+                // Reset the row descriptor
+                _rowDescriptor.Clear();
 
                 // Reset statement and portal names
                 _statementName = null;
                 _portalName    = null;
 
-                // Reset the row descriptor
-                _rowDescriptor.Clear();
-
-                // Reset has rows flag
-                _hasRows = false;                
+                // Clear remaing rows
+                ClearRows();
 
                 // Reset statement parameters
                 _parameters       = null;
@@ -391,7 +366,7 @@ namespace PostgreSql.Data.Frontend
                 // Reset command type
                 _commandType = CommandType.Text;
 
-                // Clear messages
+                // Reset messages
                 _parseMessage.Reset();
                 _describeMessage.Reset();
                 _bindMessage.Reset();
@@ -420,15 +395,17 @@ namespace PostgreSql.Data.Frontend
 
             ThrowIfCancelled();
 
+            var dataRow = new DataRow();
+
             using (var stmt = _connection.CreateStatement(stmtText))
             {
                 stmt.Query();
 
                 while (_rows.Count > 0)
                 {
-                    var row = stmt.FetchRow();
-
-                    stmtPlan.Append($"{row[0]} \r\n");
+                    dataRow.ReadFrom(stmt);                                       
+                    stmtPlan.Append($"{dataRow.GetValue(0)} \r\n");
+                    dataRow.Reset();
                 }
             }
 
@@ -450,20 +427,18 @@ namespace PostgreSql.Data.Frontend
                 return;
             }
 
-            object[] row   = null;
-            int      index = -1;
+            var dataRow = new DataRow();
+            int index   = -1;
 
+            dataRow.ReadFrom(this);
             for (int i = 0; i < _parameters.Count; ++i)
             {
                 if (_parameters[i].Direction != ParameterDirection.Input)
                 {
-                    if (row == null)
-                    {
-                        row = FetchRow();
-                    }
-                    _parameters[i].Value = row[++index];
+                    _parameters[i].Value = dataRow.GetValue(++index);
                 }
             }
+            dataRow.Reset();
         }
 
         private void Parse()
@@ -482,9 +457,17 @@ namespace PostgreSql.Data.Frontend
                 _parsedStatementText = _statementText.ToStoredProcedureCall(_parameters)
                                                      .ParseCommandText(_parameters, ref _parameterIndices);
             }
-            else
+            else if (_parameters != null && _parameters.Count > 0)
             {
                 _parsedStatementText = _statementText.ParseCommandText(_parameters, ref _parameterIndices);
+            }
+            else
+            {
+                if (_parameterIndices != null &&_parameterIndices.Count > 0)
+                {
+                    _parameterIndices.Clear();
+                }
+                _parsedStatementText = _statementText;
             }
 
             // Write Statement name and it's query
@@ -639,20 +622,16 @@ namespace PostgreSql.Data.Frontend
         {
             switch (message.MessageType)
             {
-            case BackendMessages.ParameterDescription:
-                ProcessParameterDescription(message);
+            case BackendMessages.DataRow:
+                ProcessDataRow(message);
                 break;
 
             case BackendMessages.RowDescription:
                 ProcessRowDescription(message);
                 break;
-
-            case BackendMessages.DataRow:
-                ProcessDataRow(message);
-                break;
-
-            case BackendMessages.FunctionCallResponse:
-                ProcessFunctionResult(message);
+            
+            case BackendMessages.ParameterDescription:        
+                ProcessParameterDescription(message);
                 break;
 
             case BackendMessages.PortalSuspended:
@@ -695,42 +674,21 @@ namespace PostgreSql.Data.Frontend
         {
             _tag = message.ReadNullString();
 
-            string[] elements = _tag.Split(TAG_SEPARATOR);
+            _recordsAffected = -1;                
 
-            switch (elements[0])
-            {
-            case "FETCH":
-            case "SELECT":
-                _recordsAffected = -1;
-                break;
-
-            case "INSERT":
-                _recordsAffected = int.Parse(elements[2]);
-                break;
-
-            case "UPDATE":
-            case "DELETE":
-            case "MOVE":
-            case "COPY":
-                _recordsAffected = int.Parse(elements[1]);
-                break;
+            if (_tag.StartsWith("INSERT", StringComparison.Ordinal))
+            {                
+                _recordsAffected = int.Parse(_tag.Substring(_tag.LastIndexOf(' ')));
             }
-        }
-
-        private void ProcessFunctionResult(MessageReader message)
-        {
-            if (_parameterIndices == null)
+            else if (_tag.StartsWith("DELETE", StringComparison.Ordinal)
+                  || _tag.StartsWith("UPDATE", StringComparison.Ordinal)
+                  || _tag.StartsWith("MOVE", StringComparison.Ordinal)
+                  || _tag.StartsWith("COPY", StringComparison.Ordinal))
             {
-                return;
-            }
-
-            for (int i = 0; i < _parameterIndices.Count; ++i)
-            {
-                var p = _parameters[_parameterIndices[i]];
-
-                if (p.Direction != ParameterDirection.Input)
+                var index = _tag.IndexOf(' ');
+                if (index != -1)
                 {
-                    p.Value = message.ReadValue(p.TypeInfo);
+                    _recordsAffected = int.Parse(_tag.Substring(index));
                 }
             }
         }
@@ -747,7 +705,14 @@ namespace PostgreSql.Data.Frontend
 
             for (int i = 0; i < count; ++i)
             {
-                _parameters[_parameterIndices[i]].TypeInfo = provider.GetTypeInfo(message.ReadInt32());
+                var oid       = message.ReadInt32();
+                var parameter = _parameters[_parameterIndices[i]]; 
+                var typeInfo  = parameter.TypeInfo;
+
+                if (typeInfo == null || oid != parameter.TypeInfo.Oid)
+                {
+                    parameter.TypeInfo = provider.GetTypeInfo(oid);
+                }
             }
         }
 
@@ -774,15 +739,13 @@ namespace PostgreSql.Data.Frontend
 
         private void ProcessDataRow(MessageReader message)
         {
-            while (message.Position < message.Length)
+            var count  = message.ReadInt16();
+            var values = DataRow.RentBuffer(count);
+            for (int i = 0; i < count; ++i)
             {
-                var values = new object[message.ReadInt16()];
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo);
-                }
-                _rows.Enqueue(values);
+                 values[i] = message.ReadValue(_rowDescriptor[i].TypeInfo);
             }
+             _rows.Enqueue(values);
             _hasRows = true;
         }
 
@@ -804,6 +767,20 @@ namespace PostgreSql.Data.Frontend
             {
                 _state = newState;
             }
+        }
+
+        private void ClearRows()
+        {
+            if (_rows.Count > 0)
+            {
+                while (_rows.Count > 0)
+                {
+                    var row = _rows.Dequeue();
+                    DataRow.ReturnBuffer(ref row);
+                }
+                _rows.Clear();
+            }
+            _hasRows = false;
         }
     }
 }

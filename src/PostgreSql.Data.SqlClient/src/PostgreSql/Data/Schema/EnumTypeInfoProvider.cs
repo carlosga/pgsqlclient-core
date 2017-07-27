@@ -12,7 +12,7 @@ namespace PostgreSql.Data.Schema
 {
     internal sealed class EnumTypeInfoProvider
     {
-        private static readonly string SchemaQuery = @"SELECT
+        private static readonly string s_schemaQuery = @"SELECT
       pg_namespace.nspname
     , pg_type.oid
     , pg_type.typarray
@@ -37,9 +37,9 @@ ORDER BY pg_type.oid, pg_enum.enumsortorder;";
 
         internal void GetTypeInfo(ref Dictionary<int, TypeInfo> types)
         {
-            var row = new DataRecord();
+            var row = new DataRow();
 
-            using (var command = _connection.CreateStatement(SchemaQuery))
+            using (var command = _connection.CreateStatement(s_schemaQuery))
             {
                 command.Prepare();
                 command.ExecuteReader();
@@ -60,6 +60,8 @@ ORDER BY pg_type.oid, pg_enum.enumsortorder;";
                         row.ReadFrom(command);
                         attributes[i] = new TypeAttribute(row.GetString(4), row.GetInt32(1), (int)row.GetFloat(5));
                     }
+                    
+                    row.Reset();
 
                     types.Add(typoid, new TypeInfo(typoid, schema, typname, attributes, typeof(Enum), PgDbType.Enum));
                     types.Add(arroid, new TypeInfo(arroid, schema, typname, types[typoid]));                

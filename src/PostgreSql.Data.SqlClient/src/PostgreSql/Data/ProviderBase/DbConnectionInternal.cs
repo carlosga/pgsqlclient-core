@@ -417,6 +417,8 @@ namespace System.Data.ProviderBase
             return true;
         }
 
+        internal abstract void ValidateConnectionForExecute(DbCommand command);
+
         protected virtual void PrepareForCloseConnection()
         {
             // By default, there is no preparation required

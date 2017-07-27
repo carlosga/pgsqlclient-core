@@ -17,7 +17,6 @@ namespace PostgreSql.Data.Frontend
         private int         _position;
         private int         _length;
         private int         _capacity;
-        private byte        _pendingMessage;
         private SessionData _sessionData;
 
         internal byte MessageType       => _messageType;
@@ -47,40 +46,26 @@ namespace PostgreSql.Data.Frontend
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).                    
-                    _messageType    = 0;
-                    _position       = 0;
-                    _length         = 0;
-                    _capacity       = 0;
-                    _pendingMessage = 0;
-                    _sessionData    = null;
-                }
+                    _messageType  = 0;
+                    _position     = 0;
+                    _length       = 0;
+                    _capacity     = 0;
+                    _sessionData  = null;
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-                if (_buffer != null)
-                {
-                    ArrayPool<byte>.Shared.Return(_buffer, true);
-                    _buffer = null;
+                    if (_buffer != null)
+                    {
+                        ArrayPool<byte>.Shared.Return(_buffer, true);
+                        _buffer = null;
+                    }
                 }
 
                 _disposed = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~MessageReader() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion    
 
@@ -100,61 +85,11 @@ namespace PostgreSql.Data.Frontend
             return buffer;
         }
 
-        internal string ReadNullString()
-        {
-            int start = _position;
-
-            while (_position < _length && _buffer[_position] != 0) 
-            { 
-                ++_position;
-            }
-
-            int count = _position - start;
-
-            if (_position < _buffer.Length)
-            {
-                ++_position;
-            }
-
-            return (count == 0) ? string.Empty : _sessionData.ClientEncoding.GetString(_buffer, start, count);
-        }
-
         internal void ReadFrom(Transport transport)
         {
-            _position = 0;
-
-            if (_pendingMessage != 0)
-            {
-                _messageType    = _pendingMessage;
-                _pendingMessage = 0;
-
-                if (_buffer.Length > (_capacity * 2))
-                {
-                    PooledBuffer.Resize(ref _buffer, _capacity);
-                    Debug.Assert(_buffer.Length == _capacity);
-                    // Array.Resize<byte>(ref _buffer, _capacity);
-                }
-            }
-            else
-            {
-                _messageType = transport.ReadByte();
-            }
-
-            if (_messageType == BackendMessages.DataRow)
-            {
-                _pendingMessage = _messageType;
-                _length         = 0;
-
-                do
-                {
-                    _length        += transport.ReadFrame(ref _buffer, _length, true);
-                    _pendingMessage = transport.ReadByte();
-                } while (_pendingMessage == _messageType);
-            }
-            else
-            {
-                _length = transport.ReadFrame(ref _buffer, pooledFrame: true);
-            }
+            _position    = 0;
+            _messageType = transport.ReadByte();
+            _length      = transport.ReadFrame(ref _buffer, pooledFrame: true);
         }
 
         internal object ReadValue(TypeInfo typeInfo)
@@ -168,8 +103,6 @@ namespace PostgreSql.Data.Frontend
             {
                 return DBNull.Value;
             }
-
-            Debug.Assert((_position + length) <= _length);
 
             switch (typeInfo.PgDbType)
             {
@@ -277,16 +210,6 @@ namespace PostgreSql.Data.Frontend
             }
         }
 
-        private char ReadChar()    => (char)_buffer[_position++];
-        private bool ReadBoolean() => (ReadByte() == 1);
-
-        private string ReadString(int count)
-        {
-            var data = _sessionData.ClientEncoding.GetString(_buffer, _position, count);
-
-            _position += count;
-
-            return data;
-        }
+        private bool ReadBoolean() => (_buffer[_position++] == 1);
     }
 }

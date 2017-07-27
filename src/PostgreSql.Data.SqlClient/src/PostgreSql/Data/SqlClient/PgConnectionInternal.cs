@@ -98,30 +98,18 @@ namespace PostgreSql.Data.SqlClient
                         connection.Close();
                     }
 
-                    // TODO: dispose managed state (managed objects).
                     base.Dispose();
                 }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
 
                 _disposed = true;
             }
         }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~PgConnection() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
 
         // This code added to correctly implement the disposable pattern.
         public override void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion
 
@@ -171,6 +159,43 @@ namespace PostgreSql.Data.SqlClient
         {
             return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
         }
+
+        internal override void ValidateConnectionForExecute(DbCommand command)
+        {
+            PgDataReader reader = null;
+            if (_connectionOptions.MultipleActiveResultSets)
+            {
+                if (command != null)
+                { // command can't have datareader already associated with it
+                    reader = FindLiveReader(command as PgCommand);
+                }
+            }
+            else
+            {
+                reader = FindLiveReader(null);
+            }
+            if (reader != null)
+            {
+                // if MARS is on, then a datareader associated with the command exists
+                // or if MARS is off, then a datareader exists
+                throw ADP.OpenReaderExists();
+            }
+            // else if (MARSOn && pending_data)
+            // {
+            //     DrainData
+            // }
+        }
+
+        internal PgDataReader FindLiveReader(PgCommand command)
+        {
+            PgDataReader          reader              = null;
+            PgReferenceCollection referenceCollection = ReferenceCollection as PgReferenceCollection;
+            if (null != referenceCollection)
+            {
+                reader = referenceCollection.FindLiveReader(command);
+            }
+            return reader;
+        }        
 
         protected override void Activate()
         {

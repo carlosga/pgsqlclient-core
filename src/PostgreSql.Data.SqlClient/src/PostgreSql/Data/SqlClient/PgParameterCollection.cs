@@ -13,7 +13,7 @@ namespace PostgreSql.Data.SqlClient
         : DbParameterCollection
     {
         internal static readonly PgParameterCollection Empty = new PgParameterCollection();
-        private static readonly object SyncObject = new object();
+        private static readonly Type s_ItemType = typeof(PgParameter);
 
         private readonly List<PgParameter> _parameters;
         private int                        _paramCount;
@@ -31,7 +31,7 @@ namespace PostgreSql.Data.SqlClient
         }
 
         public override int    Count    => _parameters.Count;
-        public override object SyncRoot => SyncObject;
+        public override object SyncRoot => ((ICollection)_parameters).SyncRoot;
 
         internal PgParameterCollection()
         {
@@ -70,11 +70,11 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ParameterNull(nameof(value), this, s_ItemType);
             }
             if (value.Parent != null)
             {
-                throw ADP.Argument("The PgParameter is already contained by another PgParameterCollection.");
+                throw ADP.ParametersIsNotParent(s_ItemType, this);
             }
             if (string.IsNullOrEmpty(value.ParameterName))
             {
@@ -82,7 +82,7 @@ namespace PostgreSql.Data.SqlClient
             }
             else if (IndexOf(value) != -1)
             {
-                throw ADP.Argument($"PgParameterCollection already contains PgParameter with ParameterName '{value.ParameterName}'.");
+                throw ADP.ParametersIsParent(s_ItemType, this);
             }
 
             value.Parent = this;
@@ -96,14 +96,14 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ParameterNull(nameof(value), this, s_ItemType);
             }
 
             var parameter = value as PgParameter;
 
             if (parameter == null)
             {
-                throw ADP.InvalidCast($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+                throw ADP.InvalidParameterType(this, s_ItemType, value);
             }
 
             return IndexOf(Add(parameter));
@@ -113,14 +113,14 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ParameterNull(nameof(value), this, s_ItemType);
             }
 
             var parameter = value as PgParameter;
 
             if (parameter == null)
             {
-                throw ADP.InvalidCast($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+                throw ADP.InvalidParameterType(this, s_ItemType, value);
             }
 
             return _parameters.Contains(parameter);
@@ -132,14 +132,14 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ParameterNull(nameof(value), this, s_ItemType);
             }
 
             var parameter = value as PgParameter;
 
             if (parameter == null)
             {
-                throw ADP.InvalidCast($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+                throw ADP.InvalidParameterType(this, s_ItemType, value);
             }
 
             return _parameters.IndexOf(parameter);
@@ -164,11 +164,11 @@ namespace PostgreSql.Data.SqlClient
 
             if (parameter == null)
             {
-                throw ADP.InvalidCast($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+                throw ADP.InvalidParameterType(this, s_ItemType, value);
             }
             if (parameter.Parent != null)
             {
-                throw ADP.Argument("The PgParameter is already contained by another PgParameterCollection.");
+                throw ADP.ParametersIsNotParent(s_ItemType, this);
             }
             if (string.IsNullOrEmpty(parameter.ParameterName))
             {
@@ -176,7 +176,7 @@ namespace PostgreSql.Data.SqlClient
             }
             else if (IndexOf(parameter) != -1)
             {
-                throw ADP.Argument($"PgParameterCollection already contains PgParameter with ParameterName '{parameter.ParameterName}'.");
+                throw ADP.ParametersIsParent(s_ItemType, this);
             }
             
             _parameters.Insert(index, parameter);
@@ -187,19 +187,19 @@ namespace PostgreSql.Data.SqlClient
         {
             if (value == null)
             {
-                throw ADP.ArgumentNull("The PgParameterCollection only accepts non-null PgParameter type objects.");
+                throw ADP.ParameterNull(nameof(value), this, s_ItemType);
             }
 
             var parameter = value as PgParameter;
 
             if (parameter == null)
             {
-                throw ADP.InvalidCast($"The PgParameterCollection only accepts non-null PgParameter type objects, not {value.GetType().Name} objects.");
+                throw ADP.InvalidParameterType(this, s_ItemType, value);
             }
 
             if (!Contains(parameter))
             {
-                throw ADP.Argument("Attempted to remove an PgParameter that is not contained by this PgParameterCollection.");
+                throw ADP.CollectionRemoveInvalidObject(s_ItemType, this);
             }
 
             _parameters.Remove(parameter);
@@ -212,7 +212,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (index < 0 || index > Count)
             {
-                throw ADP.IndexOutOfRange("The specified index does not exist.");
+                throw ADP.ParametersMappingIndex(index, this);
             }
 
             _parameters[index].Parent = null;
@@ -225,7 +225,7 @@ namespace PostgreSql.Data.SqlClient
             
             if (index == -1)
             {
-                throw ADP.IndexOutOfRange($"An PgParameter with ParameterName '{parameterName}' is not contained by this PgParameterCollection.");   
+                throw ADP.ParametersSourceIndex(parameterName, this, s_ItemType);
             }
 
             return _parameters[index];
@@ -235,7 +235,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (index < 0 || index >= _parameters.Count)
             {
-                throw ADP.IndexOutOfRange($"Invalid index {index} for this PgParameterCollection with Count={Count}.");
+                throw ADP.ParametersMappingIndex(index, this);
             }
             
             return _parameters[index];
@@ -245,7 +245,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (index < 0 || index >= _parameters.Count)
             {
-                throw ADP.IndexOutOfRange($"Invalid index {index} for this PgParameterCollection with Count={Count}.");
+                throw ADP.ParametersMappingIndex(index, this);
             }
 
             _parameters[index] = value as PgParameter;
@@ -257,7 +257,7 @@ namespace PostgreSql.Data.SqlClient
             
             if (index == -1)
             {
-                throw ADP.IndexOutOfRange($"An PgParameter with ParameterName '{parameterName}' is not contained by this PgParameterCollection.");   
+                throw ADP.ParametersSourceIndex(parameterName, this, s_ItemType);
             }
 
             _parameters[index] = value as PgParameter;

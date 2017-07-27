@@ -26,13 +26,8 @@ namespace System.Data.ProviderBase
         // GetCompletedTask must be called from within s_pendingOpenPooled lock
         private static Task<DbConnectionInternal> GetCompletedTask()
         {
-            if (s_completedTask == null)
-            {
-                var source = new TaskCompletionSource<DbConnectionInternal>();
-                source.SetResult(null);
-                s_completedTask = source.Task;
-            }
-            return s_completedTask;
+            Debug.Assert(Monitor.IsEntered(s_pendingOpenNonPooled), $"Expected {nameof(s_pendingOpenNonPooled)} lock to be held.");
+            return s_completedTask ?? (s_completedTask = Task.FromResult<DbConnectionInternal>(null));
         }
 
         private Dictionary<DbConnectionPoolKey, DbConnectionPoolGroup> _connectionPoolGroups;
@@ -321,12 +316,6 @@ namespace System.Data.ProviderBase
             return true;
         }
 
-        private Timer CreatePruningTimer()
-        {
-            var callback = new TimerCallback(PruneConnectionPoolGroups);
-            return new Timer(callback, null, PruningDueTime, PruningPeriod);
-        }
-
         private DbConnectionPool GetConnectionPool(DbConnection owningObject, DbConnectionPoolGroup connectionPoolGroup)
         {
             // if poolgroup is disabled, it will be replaced with a new entry
@@ -439,6 +428,12 @@ namespace System.Data.ProviderBase
                 userConnectionOptions = connectionPoolGroup.ConnectionOptions;
             }
             return connectionPoolGroup;
+        }
+
+        private Timer CreatePruningTimer()
+        {
+            var callback = new TimerCallback(PruneConnectionPoolGroups);
+            return new Timer(callback, null, PruningDueTime, PruningPeriod);
         }
 
         private void PruneConnectionPoolGroups(object state)
