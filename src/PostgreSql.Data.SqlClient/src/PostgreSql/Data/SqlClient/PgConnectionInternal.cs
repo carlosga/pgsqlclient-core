@@ -16,7 +16,35 @@ namespace PostgreSql.Data.SqlClient
     {
         private static bool IsTransient(Exception ex)
         {
-            return false;
+            var pgException = ex as PgException;
+            if (pgException != null)
+            {
+                foreach (PgError err in pgException.Errors)
+                {
+                    switch (err.Code)
+                    {
+                        case "08006":   // connection_failure
+                        case "08001": 	// sqlclient_unable_to_establish_sqlconnection
+                        case "08004": 	// sqlserver_rejected_establishment_of_sqlconnection
+                        case "25P03": 	// idle_in_transaction_session_timeout
+                        case "40001":   // serialization_failure
+                        case "53000": 	// insufficient_resources
+                        case "53200": 	// out_of_memory
+                        case "53300": 	// too_many_connections
+                        case "55006":   // object_in_use
+                        case "55P03":   // lock_not_available
+                        case "57014":   // query_canceled
+                        case "57P03": 	// cannot_connect_now
+                        case "58000":   // system_error
+                        case "58030":   // io_error
+                            return true;
+                    }                   
+                }
+
+                return false;
+            }
+
+            return (ex is TimeoutException);
         }
         
         private Connection                        _connection;

@@ -206,7 +206,7 @@ namespace PostgreSql.Data.Frontend
 
             if (typeof(T) == typeof(byte))
             {
-                return (T)(object)_row[i];
+                return (T)(object)Convert.ToByte(_row[i]);
             }
 
             return (T)_row[i];
