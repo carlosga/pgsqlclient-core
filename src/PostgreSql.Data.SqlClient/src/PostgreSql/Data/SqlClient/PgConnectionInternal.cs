@@ -152,6 +152,8 @@ namespace PostgreSql.Data.SqlClient
 
         internal override DbTransaction BeginTransaction(IsolationLevel isolationLevel)
         {
+            ValidateConnectionForExecute(null);
+
             var transaction = new PgTransaction(OwningConnection, _connection.CreateTransaction(isolationLevel));
 
             transaction.Begin();
@@ -194,8 +196,13 @@ namespace PostgreSql.Data.SqlClient
             if (_connectionOptions.MultipleActiveResultSets)
             {
                 if (command != null)
-                { // command can't have datareader already associated with it
+                {
+                    // command can't have datareader already associated with it
                     reader = FindLiveReader(command as PgCommand);
+                }
+                else 
+                {
+                    reader = FindLiveReader(null);    
                 }
             }
             else
@@ -204,8 +211,6 @@ namespace PostgreSql.Data.SqlClient
             }
             if (reader != null)
             {
-                // if MARS is on, then a datareader associated with the command exists
-                // or if MARS is off, then a datareader exists
                 throw ADP.OpenReaderExists();
             }
             // else if (MARSOn && pending_data)

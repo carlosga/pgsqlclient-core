@@ -17,6 +17,176 @@ namespace PostgreSql.Data.SqlClient.Tests
         {
             new TransactionTestWorker(DataTestClass.PostgreSql_Northwind).StartTest();
         }
+
+        [Fact]
+        public void BeginTransactionWithOpenDataReaderThrowsWithMarsDisabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = false }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn))
+                {
+                    using (PgDataReader reader = command.ExecuteReader())
+                    {
+                        reader.Read();
+
+                        Assert.Throws<InvalidOperationException>(() => conn.BeginTransaction());
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void CommitTransactionWithOpenDataReaderThrowsWithMarsDisabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = false }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Commit());
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void RollbackTransactionWithOpenDataReaderThrowsWithMarsDisabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = false }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Rollback());
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void SaveTransactionWithOpenDataReaderThrowsWithMarsDisabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = false }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Save("SAVEPOINT_NAME"));
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void BeginTransactionWithOpenDataReaderThrowsWithMarsEnabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn))
+                {
+                    using (PgDataReader reader = command.ExecuteReader())
+                    {
+                        reader.Read();
+
+                        Assert.Throws<InvalidOperationException>(() => conn.BeginTransaction());
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void CommitTransactionWithOpenDataReaderThrowsWithMarsEnabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Commit());
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void RollbackTransactionWithOpenDataReaderThrowsWithMarsEnabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Rollback());
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void SaveTransactionWithOpenDataReaderThrowsWithMarsEnabled()
+        {
+            var cs = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { MultipleActiveResultSets = true }).ConnectionString;
+            using (var conn = new PgConnection(cs))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    using (PgCommand command = new PgCommand($"SELECT * FROM pg_type", conn, tx))
+                    {
+                        using (PgDataReader reader = command.ExecuteReader())
+                        {
+                            reader.Read();
+
+                            Assert.Throws<InvalidOperationException>(() => tx.Save("SAVEPOINT_NAME"));
+                        }
+                    }
+                }
+            }
+        }        
     }
 
     internal class TransactionTestWorker

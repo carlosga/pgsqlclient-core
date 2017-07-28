@@ -41,7 +41,10 @@ namespace PostgreSql.Data.SqlClient
                         if (internalConnection != null && internalConnection.HasActiveTransaction)
                         {
                             // Implicitly roll back if the transaction still valid.
-                            Rollback();
+                            if (_innerTransaction != null)
+                            {
+                                _innerTransaction.Rollback();
+                            }
                         }
                     }
                     finally
@@ -116,6 +119,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 throw ADP.TransactionZombied(this);
             }
+            internalConnection.ValidateConnectionForExecute(null);
         }
     }
 }
