@@ -987,7 +987,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             };
             string[] expectedColTypeNames =
             {
-                "integer", "bpchar" , "integer", "date"    , "date"    , "date"    , "integer",
+                "integer", "char"   , "integer", "date"    , "date"    , "date"    , "integer",
                 "numeric", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
             };
 
@@ -1031,7 +1031,7 @@ namespace PostgreSql.Data.SqlClient.Tests
             };
             string[] expectedColTypeNames =
             {
-                "integer", "bpchar" , "integer", "date"    , "date"    , "date"    , "integer",
+                "integer", "char"   , "integer", "date"    , "date"    , "date"    , "integer",
                 "numeric", "varchar", "varchar", "varchar" , "varchar" , "varchar" , "varchar"
             };
 

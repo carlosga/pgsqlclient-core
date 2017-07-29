@@ -13,7 +13,7 @@ namespace PostgreSql.Data.Frontend
         internal static readonly int BooleanArray     = 1000;
         internal static readonly int Varchar          = 1043;
         internal static readonly int VarcharArray     = 1015;
-        internal static readonly int Char             = 1002;
+        internal static readonly int Char             = 1042;
         internal static readonly int Text             = 25;
         internal static readonly int TextArray        = 1009;
         internal static readonly int Timestamp        = 1114;
