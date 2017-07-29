@@ -65,8 +65,13 @@ namespace PostgreSql.Data.Frontend
             Write((int)(value));
         }
 
-        private void Write(float value)  => Write(BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-        private void Write(double value) => Write(BitConverter.DoubleToInt64Bits(value));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void Write(float value)
+            => Write(*((int*)&value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void Write(double value) 
+            => Write(*((long*)&value));       
 
         private void Write(decimal value)
         {
