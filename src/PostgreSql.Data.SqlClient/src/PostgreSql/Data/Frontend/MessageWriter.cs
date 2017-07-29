@@ -192,7 +192,7 @@ namespace PostgreSql.Data.Frontend
                 Write((Guid)value);
                 break;
 
-            case PgDbType.IPAddress:
+            case PgDbType.Inet:
                 Write((IPAddress)value);
                 break;
 

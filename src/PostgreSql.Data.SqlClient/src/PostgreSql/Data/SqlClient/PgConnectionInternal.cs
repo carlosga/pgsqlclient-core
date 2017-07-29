@@ -133,10 +133,8 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        // This code added to correctly implement the disposable pattern.
         public override void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
         #endregion

@@ -214,7 +214,7 @@ namespace PostgreSql.Data.Frontend
 
             // inet	| 7 or 19 bytes	| IPv4 and IPv6 hosts and networks
 
-            types[869] = new TypeInfo(869, "inet", PgDbType.IPAddress, typeof(IPAddress), typeof(IPAddress));
+            types[869] = new TypeInfo(869, "inet", PgDbType.Inet, typeof(IPAddress), typeof(IPAddress));
 
             // cidr	| 7 or 19 bytes	| IPv4 and IPv6 hosts and networks
 
@@ -321,7 +321,7 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Uuid:
                     return DbType.Guid;
 
-                case PgDbType.IPAddress:
+                case PgDbType.Inet:
                 case PgDbType.MacAddress:
                 case PgDbType.Enum:
                 case PgDbType.Void:

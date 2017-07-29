@@ -187,7 +187,7 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Uuid:
                 return ReadUuid();
 
-            case PgDbType.IPAddress:
+            case PgDbType.Inet:
                 return ReadIPAddress();
 
             case PgDbType.MacAddress:

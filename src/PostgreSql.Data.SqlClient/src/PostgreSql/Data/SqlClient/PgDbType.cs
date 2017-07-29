@@ -19,9 +19,9 @@ namespace PostgreSql.Data.SqlClient
       , Date
       , Double
       , Enum
+      , Inet
       , Integer
       , Interval
-      , IPAddress
       , Line
       , LSeg
       , MacAddress

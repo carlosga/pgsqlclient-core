@@ -1080,7 +1080,7 @@ namespace PostgreSql.Data.SqlClient.Tests
         : SqlRandomTypeInfo
     {
         public SqlIPAddressTypeInfo()
-            : base(PgDbType.IPAddress)
+            : base(PgDbType.Inet)
         {
         }
 
