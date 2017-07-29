@@ -43,7 +43,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw ADP.InvalidRead();
+                    throw ADP.DataReaderClosed();
                 }
                 return 0;
             }
@@ -58,7 +58,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw ADP.InvalidRead();
+                    throw ADP.DataReaderClosed();
                 }
                 return _statement?.RowDescriptor.Count ?? 0;
             }
@@ -70,7 +70,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (IsClosed)
                 {
-                    throw ADP.InvalidRead();
+                    throw ADP.DataReaderClosed();
                 }
                 return _statement.HasRows;
             }
@@ -87,7 +87,7 @@ namespace PostgreSql.Data.SqlClient
             _command         = command;
             _behavior        = _command.CommandBehavior;
             _statement       = _command.Statement;
-            _row             = new DataRow();
+            _row             = new Frontend.DataRow();
 
             _connection.AddWeakReference(this, PgReferenceCollection.DataReaderTag);
 
@@ -103,7 +103,7 @@ namespace PostgreSql.Data.SqlClient
             {
                 if (disposing)
                 {
-                    Close();
+                    InternalClose();
                 }
 
                 _disposed = true;
@@ -130,7 +130,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (IsClosed)
             {
-                throw ADP.InvalidRead();
+                throw ADP.DataReaderClosed();
             }
 
             // Throw exception if the statement has been cancelled
@@ -172,6 +172,11 @@ namespace PostgreSql.Data.SqlClient
 
         public override bool Read()
         {
+            if (IsClosed)
+            {
+                throw ADP.DataReaderClosed();
+            }
+            
             if (!_statement.HasRows)
             {
                 return false;
@@ -184,110 +189,110 @@ namespace PostgreSql.Data.SqlClient
 
         public override long GetBytes(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
         {
-            CheckPosition();
+            CheckDataIsReady();
 
             return _row.GetBytes(i, dataIndex, buffer, bufferIndex, length);
         }
 
         public override long GetChars(int i, long dataIndex, char[] buffer, int bufferIndex, int length)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetChars(i, dataIndex, buffer, bufferIndex, length);
         }
 
         public override bool GetBoolean(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetBoolean(i);
         }
 
         public override byte GetByte(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetByte(i);
         }
 
         public override char GetChar(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetChar(i);
         }
 
         public override DateTime GetDateTime(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetDateTime(i);
         }
 
         public DateTimeOffset GetDateTimeOffset(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetDateTimeOffset(i);
         }
 
         public override decimal GetDecimal(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetDecimal(i);
         }
 
         public override double GetDouble(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetDouble(i);
         }
 
         public override float GetFloat(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetFloat(i);
         }
 
         public override Guid GetGuid(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetGuid(i);
         }
 
         public IPAddress GetIPAddress(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetIPAddress(i);
         }
 
         public override short GetInt16(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetInt16(i);
         }
 
         public override int GetInt32(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetInt32(i);
         }
 
         public override long GetInt64(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetInt64(i);
         }
 
         public PhysicalAddress GetMacAddress(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetMacAddress(i);
         }
 
         public override string GetString(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetString(i);
         }
 
         public TimeSpan GetTimeSpan(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetTimeSpan(i);
         }
 
@@ -338,31 +343,31 @@ namespace PostgreSql.Data.SqlClient
 
         public override int GetOrdinal(string name)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _statement.RowDescriptor.IndexOf(name);
         }
 
         public override object GetValue(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row[i];
         }
 
         public override T GetFieldValue<T>(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetFieldValue<T>(i);
         }
 
         public override int GetValues(object[] values)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetValues(values);
         }
 
         public override bool IsDBNull(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.IsDBNull(i);
         }
 
@@ -374,13 +379,13 @@ namespace PostgreSql.Data.SqlClient
 
         public override object GetProviderSpecificValue(int i)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetProviderSpecificValue(i);
         }
 
         public override int GetProviderSpecificValues(object[] values)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row.GetProviderSpecificValues(values);
         }
 
@@ -392,15 +397,15 @@ namespace PostgreSql.Data.SqlClient
 
         internal void CloseReaderFromConnection()
         {
-            Close(true);
+            InternalClose(true);
         }
         
         internal void CloseReaderFromCommand()
         {
-            Close();
+            InternalClose();
         }
 
-        private void Close(bool fromConnection = false)
+        private void InternalClose(bool fromConnection = false)
         {
             if (!_open || _disposed) 
             {
@@ -451,7 +456,7 @@ namespace PostgreSql.Data.SqlClient
 
         private object GetValue(string name)
         {
-            CheckPosition();
+            CheckDataIsReady();
             return _row[name];
         }
 
@@ -477,7 +482,7 @@ namespace PostgreSql.Data.SqlClient
                 {
                     _refCursors.Enqueue(connection.CreateStatement($"fetch all in \"{row[0]}\""));
 
-                    DataRow.ReturnBuffer(ref row);
+                    Frontend.DataRow.ReturnBuffer(ref row);
                 }
 
                 // Grab information of the first refcursor
@@ -501,9 +506,13 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
-        private void CheckPosition()
+        private void CheckDataIsReady()
         {
-            if (IsClosed || _position == STARTPOS)
+            if (IsClosed)
+            {
+                throw ADP.DataReaderClosed();
+            }
+            else if (_position == STARTPOS)
             {
                 throw ADP.InvalidRead();
             }

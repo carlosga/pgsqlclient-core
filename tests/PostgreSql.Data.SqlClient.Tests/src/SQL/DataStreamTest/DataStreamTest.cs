@@ -104,6 +104,27 @@ namespace PostgreSql.Data.SqlClient.Tests
         }
 
         [Fact]
+        public static void CallReadWhenDataReaderClosed()
+        {
+            using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
+            {
+                conn.Open();
+                string query = "select * from shippers order by shipperid;";
+
+                using (var cmd = new PgCommand(query, conn))
+                {
+                    cmd.Parameters.Add(new PgParameter("@id", PgDbType.Integer)).Value = 10255;
+                    var r1 = cmd.ExecuteReader();
+
+                    r1.Dispose();
+
+                    string errorMessage = "Invalid attempt to call Read when reader is closed.";
+                    DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => r1.Read(), errorMessage);
+                }
+            }            
+        }        
+
+        [Fact]
         public static void VariantRead()
         {
             using (var conn = new PgConnection(DataTestClass.PostgreSql_Northwind))
@@ -425,7 +446,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                         reader.Read();
                         conn.Close();
 
-                        errorMessage = "Invalid attempt to read when no data is present.";
+                        errorMessage = "Invalid attempt to call CheckDataIsReady when reader is closed.";
                         DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => value = reader[0], errorMessage);
                         Assert.True(reader.IsClosed, "FAILED: Stream was not closed by connection close (Scenario: Read)");
                         conn.Open();
@@ -555,7 +576,7 @@ namespace PostgreSql.Data.SqlClient.Tests
                     }
 
                     bool result;
-                    string errorMessage = "Invalid attempt to read when no data is present.";
+                    string errorMessage = "Invalid attempt to call HasRows when reader is closed.";
                     DataTestClass.AssertThrowsWrapper<InvalidOperationException>(() => result = reader.HasRows, errorMessage);
                 }
             }
