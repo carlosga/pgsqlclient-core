@@ -161,8 +161,8 @@ namespace PostgreSql.Data.SqlClient
             return transaction;
         }
 
-        internal Statement CreateStatement()                => _connection.CreateStatement();
-        internal Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
+        internal override Statement CreateStatement()                => _connection.CreateStatement();
+        internal override Statement CreateStatement(string stmtText) => _connection.CreateStatement(stmtText);
 
         internal override bool IsConnectionAlive(bool throwOnException = false)
         {

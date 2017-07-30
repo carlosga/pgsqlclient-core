@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using PostgreSql.Data.Frontend;
 
 namespace System.Data.ProviderBase
 {
@@ -171,6 +172,11 @@ namespace System.Data.ProviderBase
         }
 
         internal abstract DbTransaction BeginTransaction(IsolationLevel il);
+
+        internal abstract void ValidateConnectionForExecute(DbCommand command);
+
+        internal abstract Statement CreateStatement();
+        internal abstract Statement CreateStatement(string stmtText);
 
         internal virtual void ChangeDatabase(string database)
         {
@@ -416,8 +422,6 @@ namespace System.Data.ProviderBase
         {
             return true;
         }
-
-        internal abstract void ValidateConnectionForExecute(DbCommand command);
 
         protected virtual void PrepareForCloseConnection()
         {

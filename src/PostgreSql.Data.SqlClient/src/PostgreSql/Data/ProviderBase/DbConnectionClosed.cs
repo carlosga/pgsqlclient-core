@@ -7,6 +7,7 @@
 using System.Data.Common;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using PostgreSql.Data.Frontend;
 
 namespace System.Data.ProviderBase
 {
@@ -45,6 +46,16 @@ namespace System.Data.ProviderBase
         }
 
         internal override void ValidateConnectionForExecute(DbCommand command) 
+        {
+            throw ADP.ClosedConnectionError();
+        }
+
+        internal override Statement CreateStatement()
+        {
+            throw ADP.ClosedConnectionError();        
+        }
+
+        internal override Statement CreateStatement(string stmtText)
         {
             throw ADP.ClosedConnectionError();
         }

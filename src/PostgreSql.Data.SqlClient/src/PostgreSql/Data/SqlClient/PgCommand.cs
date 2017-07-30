@@ -306,7 +306,7 @@ namespace PostgreSql.Data.SqlClient
             }
 
             // Execute a new statement every time
-            using (var statement = (_connection.InnerConnection as PgConnectionInternal).CreateStatement())
+            using (var statement = _connection.InnerConnection.CreateStatement())
             {
                 statement.CommandType   = _commandType;
                 statement.StatementText = _commandText;
@@ -380,7 +380,7 @@ namespace PostgreSql.Data.SqlClient
         {
             if (_statement == null)
             {
-                _statement = (_connection.InnerConnection as PgConnectionInternal).CreateStatement();
+                _statement = _connection.InnerConnection.CreateStatement();
             }
             else if (_statement.IsPrepared)
             {
