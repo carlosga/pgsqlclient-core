@@ -296,6 +296,25 @@ namespace PostgreSql.Data.SqlClient
             }
         }
 
+        public void ExecuteScript()
+        {
+            CheckCommand();
+
+            if (Parameters.Count > 0)
+            {
+                throw ADP.PrepareParametersCount(0, Parameters.Count);
+            }
+
+            // Execute a new statement every time
+            using (var statement = (_connection.InnerConnection as PgConnectionInternal).CreateStatement())
+            {
+                statement.CommandType   = _commandType;
+                statement.StatementText = _commandText;
+
+                statement.Query();
+            }
+        }
+
         public override void Prepare() 
         {
             CheckCommand();

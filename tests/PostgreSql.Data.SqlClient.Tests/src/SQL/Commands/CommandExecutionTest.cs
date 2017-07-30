@@ -3,6 +3,7 @@ using Xunit;
 using System.Threading;
 using System.Data;
 using System;
+using System.IO;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
@@ -214,7 +215,69 @@ END $$;";
                         Assert.Equal(i, result);
                     }
                 }
-            }            
+            }
+        }
+
+        [Fact]
+        public void ExecuteSqlScript()
+        {
+            var db        = "ExecuteScriptTest";
+            var masterCS  = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { 
+                InitialCatalog           = "postgres"
+              , MultipleActiveResultSets = false 
+            }).ConnectionString;
+
+            var cs  = (new PgConnectionStringBuilder(DataTestClass.PostgreSql_Northwind) { 
+                InitialCatalog           = db
+              , MultipleActiveResultSets = false 
+            }).ConnectionString;
+
+            try 
+            {
+                using (var connection = new PgConnection(masterCS))
+                {
+                    connection.Open();
+
+                    using (var command = new PgCommand($"CREATE DATABASE \"{db}\"", connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                using (var connection = new PgConnection(cs))
+                {
+                    connection.Open();
+
+                    var script = File.ReadAllText("./Resources/northwind.sql");
+
+                    using (var command = new PgCommand(script, connection))
+                    {
+                        command.ExecuteScript();                    
+                    }
+
+                    using (var checkCommand = new PgCommand("SELECT COUNT(*) FROM customers", connection))
+                    {
+                        var count = (long)checkCommand.ExecuteScalar();
+
+                        Assert.Equal(91, count);
+                    }
+                }
+            } 
+            finally 
+            {
+                try 
+                {
+                    using (var connection = new PgConnection(masterCS))
+                    {
+                        connection.Open();
+                        using (var dropDatabaseCommand = new PgCommand($"DROP DATABASE \"{db}\"", connection))
+                        {
+                            dropDatabaseCommand.ExecuteNonQuery();
+                        }                
+                    }
+                }
+                catch { }
+            }
         }
     }
 }
