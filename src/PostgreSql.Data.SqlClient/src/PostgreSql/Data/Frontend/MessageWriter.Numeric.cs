@@ -61,8 +61,16 @@ namespace PostgreSql.Data.Frontend
         {
             EnsureCapacity(8);
 
-            Write((int)(value >> 32));
-            Write((int)(value));
+            // Write((int)(value >> 32));
+            // Write((int)(value));
+            _buffer[_position++] = (byte)((value >> 56) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 48) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 40) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 32) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 24) & 0xFF);
+            _buffer[_position++] = (byte)((value >> 16) & 0xFF);
+            _buffer[_position++] = (byte)((value >>  8) & 0xFF);
+            _buffer[_position++] = (byte)((value      ) & 0xFF);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

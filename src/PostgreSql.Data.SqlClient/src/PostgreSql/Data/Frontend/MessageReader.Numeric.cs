@@ -38,10 +38,23 @@ namespace PostgreSql.Data.Frontend
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long ReadInt64()
         {
-            int v1 = ReadInt32();
-            int v2 = ReadInt32();
+            var result = ((long)_buffer[_position + 7] & 0xFF)
+                       | ((long)_buffer[_position + 6] & 0xFF) <<  8
+                       | ((long)_buffer[_position + 5] & 0xFF) << 16
+                       | ((long)_buffer[_position + 4] & 0xFF) << 24
+                       | ((long)_buffer[_position + 3] & 0xFF) << 32
+                       | ((long)_buffer[_position + 2] & 0xFF) << 40
+                       | ((long)_buffer[_position + 1] & 0xFF) << 48
+                       | ((long)_buffer[_position    ] & 0xFF) << 56;
 
-            return (uint)v2 | ((long)v1 << 32);
+            _position += 8;
+
+            return result;
+            
+            // int v1 = ReadInt32();
+            // int v2 = ReadInt32();
+
+            // return (uint)v2 | ((long)v1 << 32);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
