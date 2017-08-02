@@ -3,6 +3,7 @@
 
 using PostgreSql.Data.SqlClient;
 using System.Data;
+using System.Data.Common;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -30,6 +31,7 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case IsolationLevel.RepeatableRead:
+                case IsolationLevel.Snapshot:
                     sql += "REPEATABLE READ";
                     break;
 
@@ -38,9 +40,12 @@ namespace PostgreSql.Data.Frontend
                     break;
 
                 case IsolationLevel.ReadCommitted:
-                default:
+                case IsolationLevel.Unspecified:
                     sql += "READ COMMITTED";
                     break;
+
+                default:
+                    throw ADP.InvalidIsolationLevel(_isolationLevel);
             }
 
             using (var stmt = _connection.CreateStatement(sql))

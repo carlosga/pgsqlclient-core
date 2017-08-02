@@ -530,6 +530,12 @@ namespace System.Data.Common
             return CollectionInvalidType(collection.GetType(), parameterType, invalidValue);
         }
 
+        // IDbConnection.BeginTransaction
+        internal static ArgumentOutOfRangeException InvalidIsolationLevel(IsolationLevel value)
+        {
+            return InvalidEnumerationValue(typeof(IsolationLevel), (int)value);
+        }
+
         //
         // : IDbTransaction
         //
