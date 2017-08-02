@@ -79,5 +79,7 @@ namespace PostgreSql.Data.Frontend
         internal static readonly int UuidArray        = 2951;
         internal static readonly int AnyEnum          = 3500;
         internal static readonly int PgEnum           = 11483;
+        internal static readonly int Xml              = 142;
+        internal static readonly int XmlArray         = 143;
     };
 };

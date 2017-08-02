@@ -235,6 +235,10 @@ namespace PostgreSql.Data.Frontend
             case PgDbType.Enum:
                 WriteEnum(typeInfo, value);
                 break;
+
+            case PgDbType.Xml:
+                WriteXml(value);
+                break;
             }
         }
 

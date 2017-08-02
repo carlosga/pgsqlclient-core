@@ -41,5 +41,6 @@ namespace PostgreSql.Data.SqlClient
       , VarChar
       , Vector
       , Void
+      , Xml
     }
 }

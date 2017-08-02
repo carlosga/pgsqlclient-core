@@ -110,7 +110,7 @@ namespace PostgreSql.Data.SqlClient.Tests
 
         public static string PostgreSql_Northwind => GetConnectionString("PostgreSql9_Northwind");
         public static string PostgreSql_Pubs      => GetConnectionString("PostgreSql9_Pubs");
-        
+
         // the name length will be no more then (16 + prefix.Length + escapeLeft.Length + escapeRight.Length)
         // some providers does not support names (Oracle supports up to 30)
         public static string GetUniqueName(string prefix, string escapeLeft, string escapeRight)

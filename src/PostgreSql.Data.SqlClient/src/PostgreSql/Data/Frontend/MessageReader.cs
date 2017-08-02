@@ -117,6 +117,7 @@ namespace PostgreSql.Data.Frontend
 
             case PgDbType.VarChar:
             case PgDbType.Text:
+            case PgDbType.Xml:
                 return ReadString(length);
 
             case PgDbType.Boolean:
