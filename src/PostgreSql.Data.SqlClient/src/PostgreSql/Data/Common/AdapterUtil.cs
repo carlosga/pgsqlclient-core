@@ -84,6 +84,12 @@ namespace System.Data.Common
             return !((e is NullReferenceException) || (e is SecurityException));
         }
 
+        // Invalid Enumeration
+        internal static ArgumentOutOfRangeException InvalidEnumerationValue(Type type, int value)
+        {
+            return ArgumentOutOfRange($"The {type.Name} enumeration value, {value}, is invalid.");
+        }
+
         //
         // DbConnectionOptions, DataAccess
         //
@@ -440,18 +446,19 @@ namespace System.Data.Common
             return InvalidOperation($"No mapping exists from enum value {enumDataType}.{enumValue}.");
         }
 
-//         internal static ArgumentException InvalidDataType(string typeName)
-//         {
-//             return Argument(Res.GetString(Res.ADP_InvalidDataType, typeName));
-//         }
-//         internal static ArgumentException UnknownDataType(Type dataType)
-//         {
-//             return Argument(Res.GetString(Res.ADP_UnknownDataType, dataType.FullName));
-//         }
-//         internal static ArgumentException DbTypeNotSupported(System.Data.DbType type, Type enumtype)
-//         {
-//             return Argument(Res.GetString(Res.ADP_DbTypeNotSupported, type.ToString(), enumtype.Name));
-//         }
+        internal static ArgumentException InvalidDataType(string typeName)
+        {
+            return Argument($"The parameter data type of {typeName} is invalid.");
+        }
+        internal static ArgumentException UnknownDataType(Type dataType)
+        {
+            return Argument($"No mapping exists from object type {dataType.FullName} to a known managed provider native type.");
+        }
+        internal static ArgumentException DbTypeNotSupported(System.Data.DbType type, Type enumtype)
+        {
+            return Argument($"No mapping exists from DbType {type.ToString()} to a known {enumtype.Name}", enumtype.Name);
+        }
+
 //         internal static ArgumentException InvalidOffsetValue(int value)
 //         {
 //             return Argument(Res.GetString(Res.ADP_InvalidOffsetValue, value.ToString(CultureInfo.InvariantCulture)));

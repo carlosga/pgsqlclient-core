@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Xml;
 
 namespace PostgreSql.Data.Frontend
 {
@@ -258,6 +259,12 @@ namespace PostgreSql.Data.Frontend
             types[3500]  = new TypeInfo( 3500, "anyenum", PgDbType.Enum, typeof(Enum), typeof(Enum));
             types[11483] = new TypeInfo(11483, "pg_enum", PgDbType.Enum, typeof(Enum), typeof(Enum));
 
+            //
+            // Enum types
+            //
+            types[142] = new TypeInfo(142, "xml"  , PgDbType.Xml, typeof(string), typeof(string));
+            types[143] = new TypeInfo(143, "xml[]", PgDbType.Xml, types[142], typeof(string), typeof(string));
+
             BaseTypes = types;
         }
 
@@ -316,14 +323,17 @@ namespace PostgreSql.Data.Frontend
                 case PgDbType.Uuid:
                     return DbType.Guid;
 
+                case PgDbType.Xml:
+                    return DbType.Xml;
+
                 case PgDbType.Inet:
                 case PgDbType.MacAddress:
                 case PgDbType.Enum:
-                case PgDbType.Void:
+                case PgDbType.Void:                
                     return DbType.Object;
 
                 default:
-                    throw new NotSupportedException("Invalid data type specified.");
+                     throw ADP.InvalidEnumerationValue(typeof(PgDbType), (int)providerType);
             }
         }
 
@@ -385,13 +395,16 @@ namespace PostgreSql.Data.Frontend
                 case DbType.Guid:
                     return PgDbType.Uuid;
 
+                case DbType.Xml:
+                    return PgDbType.Xml;
+
                 // case DbType.VarNumeric:
                 // case DbType.SByte:
                 // case DbType.UInt16:
                 // case DbType.UInt32:
                 // case DbType.UInt64:
                 default:
-                    throw ADP.DbTypeNotSupported(dbType.ToString());
+                    throw ADP.DbTypeNotSupported(dbType, typeof(PgDbType));
             }
         }
 
@@ -404,16 +417,24 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes[Oid.Unknown];
             }
-            if (value is INullable)
-            {
-                return BaseTypes.Values.First(x => x.PgType == value.GetType());
-            }
+            
             var typeInfo = BaseTypes.Values.FirstOrDefault(x => x.SystemType == value.GetType());
-            if (typeInfo == null)
+            if (typeInfo != null)
             {
-                typeInfo = BaseTypes[Oid.Unknown];
+                return typeInfo;
             }
-            return typeInfo;
+
+            switch (value)
+            {
+            case INullable nullableValue:
+                return BaseTypes.Values.First(x => x.PgType == value.GetType());
+            case XmlDocument document:
+                return BaseTypes[Oid.Xml];
+            case XmlElement element:
+                return BaseTypes[Oid.Xml];
+            }
+
+            return BaseTypes[Oid.Unknown];
         }
 
         internal static TypeInfo GetArrayTypeInfo(object value)
@@ -422,16 +443,27 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes[Oid.Unknown];
             }
+
+            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
+            if (typeInfo != null)
+            {
+                return typeInfo;
+            }
+
+            switch (value)
+            {
+            case XmlDocument[] documentArray:
+                return BaseTypes[Oid.XmlArray];
+            case XmlElement[] elementArray:
+                return BaseTypes[Oid.XmlArray];
+            }
+
             if (value is INullable)
             {
                 return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.PgType == value.GetType());
             }
-            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Array && x.SystemType == value.GetType());
-            if (typeInfo == null)
-            {
-                typeInfo = BaseTypes[Oid.Unknown];
-            }
-            return typeInfo;
+
+            return BaseTypes[Oid.Unknown];
         }
 
         internal static TypeInfo GetVectorTypeInfo(object value)
@@ -440,16 +472,19 @@ namespace PostgreSql.Data.Frontend
             {
                 return BaseTypes[Oid.Unknown];
             }
+
+            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
+            if (typeInfo != null)
+            {
+                return typeInfo;
+            }
+
             if (value is INullable)
             {
                 return BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.PgType == value.GetType());
             }
-            var typeInfo = BaseTypes.Values.First(x => x.PgDbType == PgDbType.Vector && x.SystemType == value.GetType());
-            if (typeInfo == null)
-            {
-                typeInfo = BaseTypes[Oid.Unknown];
-            }
-            return typeInfo;
+
+            return BaseTypes[Oid.Unknown];
         }
 
         private Dictionary<int, TypeInfo> _types;

@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Xunit;
-using PostgreSql.Data.PgTypes;
-using System;
-using System.Collections.Generic;
 
 namespace PostgreSql.Data.SqlClient.Tests
 {
