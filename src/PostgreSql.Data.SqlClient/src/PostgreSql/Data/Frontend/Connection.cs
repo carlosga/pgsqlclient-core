@@ -155,6 +155,9 @@ namespace PostgreSql.Data.Frontend
             {
                 ReleaseLock();
 
+                _activeSemaphore?.Dispose();
+                _cancelRequestSemaphore?.Dispose();
+
                 _connectionOptions      = null;
                 _sessionData            = null;
                 _transport              = null;

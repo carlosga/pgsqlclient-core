@@ -512,8 +512,12 @@ namespace PostgreSql.Data.Frontend
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
+                    _types?.Clear();
+                    _activeSemaphore?.Dispose();
+
                     _types             = null;
                     _connectionOptions = null;
+                    _activeSemaphore   = null;
                 }
             }
             return _count;

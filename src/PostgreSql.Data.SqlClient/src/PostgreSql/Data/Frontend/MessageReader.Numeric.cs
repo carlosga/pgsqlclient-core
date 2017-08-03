@@ -60,12 +60,18 @@ namespace PostgreSql.Data.Frontend
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe float ReadSingle()
         {
-            fixed (byte* pbuffer = &_buffer[_position])
-            {
-                int val = ReadInt32();
-                return *((float*)&val);
-            }
+            int val = ReadInt32();
+            return *((float*)&val);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe double ReadDouble()
+        {
+            long val = ReadInt64();
+            return *((double*)&val);
+        }
+
+        private decimal ReadMoney()  => ((decimal)ReadInt64() / 100.0M);
 
         private decimal ReadNumeric()
         {
@@ -107,8 +113,5 @@ namespace PostgreSql.Data.Frontend
 
             return ((sign == PgNumeric.NegativeMask) ? -res : res);
         }
-
-        private double  ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-        private decimal ReadMoney()  => ((decimal)ReadInt64() / 100.0M);
     }
 }

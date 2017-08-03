@@ -37,11 +37,8 @@ namespace PostgreSql.Data.Frontend
             _offset          = ((_messageType != FrontendMessages.Untyped) ? 1 : 0);
             _initialCapacity = 4 + _offset;
             _position        = _initialCapacity;
-            _buffer          = ArrayPool<byte>.Shared.Rent(_initialCapacity); // First 4/5 bytes are for the packet length
-            if (_messageType != FrontendMessages.Untyped)
-            {
-                _buffer[0] = _messageType;
-            }
+            _buffer          = ArrayPool<byte>.Shared.Rent(_initialCapacity); // First 4/5 bytes are for the packet length and type
+            _buffer[0]       = _messageType;
         }
 
         #region IDisposable Support
@@ -74,7 +71,8 @@ namespace PostgreSql.Data.Frontend
         {
             if (_position != _initialCapacity)
             {
-                PooledBuffer.Reset(ref _buffer, _initialCapacity);
+                // PooledBuffer.Reset(ref _buffer, _initialCapacity);
+                Array.Clear(_buffer, 0, _buffer.Length);
                 _position  = _initialCapacity;
                 _buffer[0] = _messageType;
             }
