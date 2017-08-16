@@ -8,7 +8,7 @@ namespace PostgreSql.Data.Frontend
 {
     internal sealed partial class MessageReader
     {
-        private object ReadEnum(TypeInfo typeInfo, int length)
+        private int ReadEnum(TypeInfo typeInfo, int length)
         {
             var enumMember = ReadString(length);
 

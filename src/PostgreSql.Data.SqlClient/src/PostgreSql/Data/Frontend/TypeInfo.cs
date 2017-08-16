@@ -3,9 +3,11 @@
 
 using PostgreSql.Data.SqlClient;
 using System;
+using System.Diagnostics;
 
 namespace PostgreSql.Data.Frontend
 {
+    [DebuggerDisplay("{Schema}.{Name} ({SystemType.Name})")]
     internal sealed class TypeInfo
     {
         private readonly string          _schema;
