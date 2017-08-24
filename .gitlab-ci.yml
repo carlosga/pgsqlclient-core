@@ -7,13 +7,7 @@ stages:
 build:
   stage: build
   script:
-    - cd src/PostgreSql.Data.SqlClient
-    - dotnet restore --verbosity:q
-    - dotnet build -c Debug
-    - dotnet build -c Release
-    - cd .. && cd ..
-    - cd tests/PostgreSql.Data.SqlClient.Tests
-    - mv ConnectionString.ci.xml ConnectionString.xml
+    - mv tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.ci.xml tests/PostgreSql.Data.SqlClient.Tests/ConnectionString.xml
     - dotnet restore --verbosity:q
     - dotnet build -c Debug
     - dotnet build -c Release
