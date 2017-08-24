@@ -78,8 +78,8 @@ namespace PostgreSql.Data.Frontend
             => Write(*((int*)&value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void Write(double value) 
-            => Write(*((long*)&value));       
+        private unsafe void Write(double value)
+            => Write(*((long*)&value));
 
         private void Write(decimal value)
         {
@@ -90,7 +90,7 @@ namespace PostgreSql.Data.Frontend
             // Number of bits scale is shifted by.
             const int ScaleShift = 16;
             // decimal digits per NBASE digit
-            const int DEC_DIGITS = 4;  
+            const int DEC_DIGITS = 4;
 
             bool  isNegative = (value < 0);
             var   absValue   = ((isNegative) ? value * -1.0M : value);
@@ -105,7 +105,7 @@ namespace PostgreSql.Data.Frontend
 
             if (absValue > 0)
             {
-                // postgres: numeric::estimate_ln_dweight 
+                // postgres: numeric::estimate_ln_dweight
                 weight  = (short)((int)Math.Log10((double)absValue) >> 2);
                 // postgres: numeric::div_var
                 ndigits = (short)(weight + 1 + (dscale + DEC_DIGITS - 1) >> 2);

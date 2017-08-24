@@ -19,8 +19,7 @@ namespace PostgreSql.Data.Frontend
                 var byteCount = _sessionData.ClientEncoding.GetByteCount(value);
                 EnsureCapacity(byteCount + 1);
                 _sessionData.ClientEncoding.GetBytes(value, 0, value.Length, _buffer, _position);
-                _position += byteCount;
-                WriteByte(0);
+                _position += (byteCount + 1);
             }
         }
 

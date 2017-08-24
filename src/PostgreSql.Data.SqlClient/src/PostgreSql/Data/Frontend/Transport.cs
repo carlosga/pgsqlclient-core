@@ -208,8 +208,8 @@ namespace PostgreSql.Data.Frontend
             _writer.Write(_buffer, 0, 4);
         }
 
-        internal void WriteFrame(byte[] frame, int offset, int length)
-            => _writer.Write(frame, offset, length);
+        internal void WriteFrame(byte[] frame, int offset, int count)
+            => _writer.Write(frame, offset, count);
 
         internal void WriteFrame(byte type)
         {
