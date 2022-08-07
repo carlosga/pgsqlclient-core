@@ -69,7 +69,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Carlos Guzmán Álvarez** - *Initial work* - [carlosga](https://gitlab.com/carlosga)
+* **Carlos Guzmán Álvarez** - *Initial work* - [carlosga](https://github.com/carlosga)
 
 ## License
 
