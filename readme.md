@@ -1,8 +1,6 @@
-[![build status](https://gitlab.com/carlosga/pgsqlclient-core/badges/master/build.svg)](https://gitlab.com/carlosga/pgsqlclient-core/commits/master)
-
 # pgsqlclient core
 
-[pgsqlclient](https://gitlab.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*).
+[pgsqlclient](https://github.com/carlosga/pgsqlclient) rewrite under .net core (*netstandard1.5*).
 
 ## Getting Started
 
@@ -24,7 +22,7 @@ sudo apt-get install git
 1. Clone repository
 
 ```
-git clone --recursive https://gitlab.com/carlosga/pgsqlclient-core
+git clone --recursive https://github.com/carlosga/pgsqlclient-core
 ```
 
 2. Build (Debug)
